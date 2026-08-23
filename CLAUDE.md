@@ -62,8 +62,12 @@ follows `ANTHROPIC_API_KEY`, not the machine, so there is no free local path.
 While this site is still for one person, research here and write with `sync.py add`.
 Capture on the go with the **Event Inbox** artifact
 (https://claude.ai/code/artifact/93362d84-79a0-43b9-89e5-65eff75d74e2, source in
-`tools/event-inbox.html`): paste links or photograph posters, then hand the export
-to a Claude session to research and file. It cannot enrich or write to Supabase
+`tools/event-inbox.html`): paste links or photograph posters. **Read it directly** —
+WebFetch that URL and the queue comes back in a `<script id="queue">` JSON island;
+photos are base64 data URIs you can decode to a file and look at. No export step.
+After filing, clear the queue by republishing `tools/event-inbox.html` (its committed
+copy always has an empty queue) with the artifact URL. The Export button is only a
+fallback for getting the data out of Claude entirely. It cannot enrich or write to Supabase
 itself — a published artifact has no inference capability and its CSP blocks every
 external request. It is a notebook, not an uploader.
 Autofill exists for the community members who cannot ask Claude directly — keep it
