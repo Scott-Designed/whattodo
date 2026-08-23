@@ -6,6 +6,7 @@
     python3 scripts/sync.py pending       # community additions awaiting a check
     python3 scripts/sync.py verify 1043   # mark one verified
     python3 scripts/sync.py reject 1043   # remove one that isn't real (asks first)
+    python3 scripts/sync.py add x.json    # write a researched entry (or - for stdin)
 
 The database is the source of truth. `export` writes a dated snapshot for
 safekeeping; nothing reads it back. Edit rows in the Supabase table editor,
@@ -14,7 +15,7 @@ not in a spreadsheet.
 Needs SUPABASE_URL and SUPABASE_SERVICE_KEY in the environment or a .env file.
 The service key bypasses Row Level Security, so it stays out of the browser.
 """
-import os, sys, json, csv, pathlib, datetime, urllib.request, urllib.error
+import os, sys, json, csv, re, pathlib, datetime, urllib.request, urllib.error, urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 def load_env():
@@ -136,10 +137,110 @@ def reject(idn, assume_yes=False):
         return
     print(f"no row with id {idn}")
 
+# ── add ─────────────────────────────────────────────────────────────────────
+# Write a researched entry straight in, bypassing the form. The service key
+# ignores RLS, so this is the only path that may claim `verified` — which is
+# why --verified insists on a source_note. Everything is checked here rather
+# than left to the database, so a bad field in a batch of 200 names itself
+# instead of failing an opaque insert halfway through.
+
+ACTIVITY_COLS = {'name','type','tags','ages','cost','location','km','season','duration',
+                 'description','url','rating','notes','conditions','lat','lng','daypart',
+                 'added_by','verified','source_note'}
+EVENT_COLS    = {'name','type','starts_on','ends_on','time_text','recurrence','venue',
+                 'location','km','cost','ages','artist','genre','description','ticket_url',
+                 'info_url','conditions','date_confidence','added_by','verified','source_note'}
+EVENT_ONLY    = EVENT_COLS - ACTIVITY_COLS
+URL_FIELDS    = ('url','ticket_url','info_url')
+
+def vocab(table):
+    return {r['name'] for r in req('GET', f'/rest/v1/{table}?select=name')}
+
+def check(row, i, types, conds):
+    """Return a list of complaints about one row. Empty list means it is fine."""
+    bad = []
+    where = f"row {i}" + (f" ({row['name']})" if row.get('name') else '')
+    ev = bool(EVENT_ONLY & set(row)) or row.get('kind') == 'event'
+    cols = EVENT_COLS if ev else ACTIVITY_COLS
+
+    unknown = set(row) - cols - {'kind'}
+    if unknown:
+        # An event's link is info_url; writing `url` would be silently dropped.
+        hint = ' (an event link is info_url or ticket_url)' if ev and 'url' in unknown else ''
+        bad.append(f"{where}: no such field {sorted(unknown)}{hint}")
+    if not str(row.get('name') or '').strip():
+        bad.append(f"{where}: needs a name")
+    if row.get('type') is not None and row['type'] not in types:
+        bad.append(f"{where}: type '{row['type']}' is not one of the {len(types)} allowed")
+    for c in (row.get('conditions') or []):
+        if c not in conds: bad.append(f"{where}: condition '{c}' is not in the vocabulary")
+    if not ev and row.get('cost') not in (None,'Free','Cheap','Moderate','Splurge'):
+        bad.append(f"{where}: cost '{row['cost']}' must be Free/Cheap/Moderate/Splurge")
+    if not ev and row.get('daypart') not in (None,'day','night','both'):
+        bad.append(f"{where}: daypart must be day/night/both")
+    if ev and row.get('recurrence') not in (None,'none','weekly','fortnightly','monthly','annual'):
+        bad.append(f"{where}: recurrence '{row['recurrence']}' is not allowed")
+    if ev and row.get('date_confidence') not in (None,'high','medium','low'):
+        bad.append(f"{where}: date_confidence must be high/medium/low")
+    if ev and row.get('starts_on') and not re.match(r'^\d{4}-\d{2}-\d{2}$', str(row['starts_on'])):
+        bad.append(f"{where}: starts_on must be YYYY-MM-DD")
+    for f in URL_FIELDS:
+        u = row.get(f)
+        if u and not str(u).startswith(('http://','https://')):
+            bad.append(f"{where}: {f} must start with http:// or https://")
+        if u and 'maps.app.goo.gl' in str(u):
+            bad.append(f"{where}: {f} is a maps.app.goo.gl link — those get fabricated, use a real one")
+    if row.get('verified') and not str(row.get('source_note') or '').strip():
+        bad.append(f"{where}: claiming verified without a source_note — say where it came from")
+    return bad
+
+def add(path, verified=False, dry=False, force=False):
+    raw = sys.stdin.read() if path == '-' else pathlib.Path(path).read_text()
+    try: doc = json.loads(raw)
+    except json.JSONDecodeError as e: sys.exit(f"that is not valid JSON: {e}")
+    rows = doc if isinstance(doc, list) else [doc]
+
+    types, conds = vocab('types'), vocab('conditions')
+    for r in rows:
+        r.setdefault('added_by','Research')
+        if verified: r['verified'] = True
+
+    bad = [c for i,r in enumerate(rows,1) for c in check(r, i, types, conds)]
+    if bad:
+        print("nothing written — fix these first:"); [print("  •",b) for b in bad]; sys.exit(1)
+
+    # The same festival landing twice under two spellings is how this database
+    # got into trouble before. Say so; --force if it really is a separate thing.
+    clashes = []
+    for r in rows:
+        q = urllib.parse.quote(r['name'].strip())
+        for t in ('activities','events'):
+            for hit in req('GET', f'/rest/v1/{t}?select=id,name,verified&name=ilike.{q}'):
+                clashes.append(f"  • {r['name']} looks like {t} {hit['id']} "
+                               f"'{hit['name']}' (verified={hit['verified']})")
+    if clashes and not force:
+        print("already in the database:"); [print(c) for c in clashes]
+        sys.exit("nothing written. --force if these really are different things.")
+
+    for r in rows:
+        ev = bool(EVENT_ONLY & set(r)) or r.pop('kind', None) == 'event'
+        r.pop('kind', None)
+        t = 'events' if ev else 'activities'
+        if dry:
+            print(f"would add to {t}: {r['name']}"); continue
+        got = req('POST', f'/rest/v1/{t}', r, {'Prefer':'return=representation'})
+        row = got[0] if got else {}
+        print(f"added {t} {row.get('id')}: {row.get('name')}"
+              f"  verified={row.get('verified')}")
+    if dry: print(f"dry run — {len(rows)} row(s) checked, nothing written")
+
+
 cmd = sys.argv[1] if len(sys.argv)>1 else ''
 if   cmd=='seed': seed()
 elif cmd=='export': export()
 elif cmd=='pending': pending()
 elif cmd=='verify' and len(sys.argv)>2: verify(sys.argv[2])
 elif cmd=='reject' and len(sys.argv)>2: reject(sys.argv[2], '--yes' in sys.argv)
+elif cmd=='add' and len(sys.argv)>2: add(sys.argv[2], '--verified' in sys.argv,
+                                         '--dry-run' in sys.argv, '--force' in sys.argv)
 else: print(__doc__)

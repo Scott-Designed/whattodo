@@ -40,6 +40,17 @@ ended up in both sheets with two different dates, one of them wrong.
   `verified = true` or `added_by = 'Research'` — a submission cannot dress itself up
   as researched data.
 
+## Two meters — know which one you are spending
+
+Researching a listing inside Claude Code costs nothing beyond the Claude
+subscription. The site's **Autofill** button costs org API credits per press,
+wherever it runs — production, a preview, or `vercel dev` on the laptop. The bill
+follows `ANTHROPIC_API_KEY`, not the machine, so there is no free local path.
+
+While this site is still for one person, research here and write with `sync.py add`.
+Autofill exists for the community members who cannot ask Claude directly — keep it
+working, but do not use it as the everyday route.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
@@ -92,6 +103,13 @@ ended up in both sheets with two different dates, one of them wrong.
 1. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.
+   `add file.json` (or `-` for stdin) writes a researched entry, one object or a
+   list. It checks types, conditions, enums, date shape and URLs against the live
+   vocabularies before writing, so a bad field in a batch names itself instead of
+   failing an opaque insert. It refuses a name that already exists — pass `--force`
+   only when it genuinely is a different thing. `--verified` requires a
+   `source_note`; `--dry-run` checks without writing. An event's link is
+   `info_url`/`ticket_url`, never `url`.
 2. Pin the 42 unpinned map URLs, which unblocks a map view
 3. Promote the Ideas Pipeline into the database
 4. A scheduled job that re-checks estimated event dates as real ones get announced
