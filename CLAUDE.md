@@ -19,6 +19,17 @@ Vercel project, which builds every push. There is no build step; Vercel just
 serves `public/` and the function in `api/`. `npx vercel --prod` still works if
 you need to force a deploy without a commit.
 
+## How this project is worked on
+
+Solo. Commit straight to `main` and push — no pull requests, no asking which
+branch. `main` auto-deploys, so the safety net is `git revert <sha> && git push`
+and a six-second redeploy, not review. Use a branch only when a change could
+plausibly break the live site; note that `ANTHROPIC_API_KEY` is Production-only,
+so a preview build cannot exercise Autofill.
+
+One task per session. CLAUDE.md is the handover — when something is learned or
+decided, write it here, so the next session starts cold and still knows it.
+
 ## The database is the source of truth
 
 Supabase project ref `xpnsrtylcqjcoqitskwy`. Two tables — `activities` (evergreen
