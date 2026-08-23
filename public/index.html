@@ -202,7 +202,8 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--rule);font-fa
         <option value="grey">Grey &amp; cold</option><option value="rain">Raining</option></select></div>
     <div class="ctrl"><label for="sort">Sort</label>
       <select id="sort"><option value="near">Closest first</option><option value="when">Soonest first</option>
-        <option value="best">Best rated</option><option value="az">A &ndash; Z</option></select></div>
+        <option value="best">Best rated</option><option value="new">Recently added</option>
+        <option value="az">A &ndash; Z</option></select></div>
     <div class="ctrl"><label for="q">Search</label>
       <input id="q" type="search" placeholder="Name, place or tag"></div>
     <div class="ctrl"><label>&nbsp;</label>
@@ -305,7 +306,7 @@ function fromRow(r){
     url:r.url, info:r.info_url, ticket:r.ticket_url, cond, rating:r.rating,
     notes:r.notes, dur:r.duration, season:r.season||[], dbDaypart:r.daypart,
     date:r.starts_on, time:r.time_text, recur:r.recurrence, conf:r.date_confidence,
-    lat:r.lat, lng:r.lng, verified:r.verified, by:r.added_by,
+    lat:r.lat, lng:r.lng, verified:r.verified, by:r.added_by, created:r.created_at,
     added: r.verified===false, themes:[...new Set(themes)],
   };
 }
@@ -732,6 +733,10 @@ function ok(i){
 }
 function sortFn(a,b){
   if(S.sort==='az')   return a.name.localeCompare(b.name);
+  if(S.sort==='new'){
+    const k=i=>i.created?Date.parse(i.created):0;
+    return (k(b)-k(a))||((b.id||0)-(a.id||0));
+  }
   if(S.sort==='best') return (b.rating||0)-(a.rating||0)||(a.km??999)-(b.km??999);
   if(S.sort==='when'){
     /* a low-confidence date is unknown, not imminent — send those to the end, not the top */

@@ -107,9 +107,9 @@ working, but do not use it as the everyday route.
 - Tide, moon and fire-ban conditions have no data source wired up. Only the
   weather-derived tags actually evaluate: dry-ground, dry-trails, warm, low-wind,
   clear-sky, good-in-rain
-- Community adds need checking — `The Fives Cafe` (id 168) is still unchecked and
-  arrived almost empty. `Ashmore Arts` (169) is verified against the Surf Coast Arts
-  Trail listing; its distance was cleared rather than guessed and still needs a real one
+- The moderation queue is empty. `Ashmore Arts` (169) and `The Fives` (168) are both
+  verified; both had their distance cleared rather than guessed and still need real ones,
+  as does `Bird Rock Farm` (171)
 - Distances unverified; Waurn Ponds known wrong
 - **Autofill is dead until the Anthropic account is topped up.** Every call returns
   400 "credit balance is too low". The page now says so in English rather than
