@@ -95,7 +95,11 @@ create or replace view listings as
          a.conditions, a.rating, a.notes, a.duration, a.season, a.daypart,
          null::date as starts_on, null::text as time_text, null::text as recurrence,
          null::text as date_confidence,
-         coalesce(a.lat, av.lat) as lat, coalesce(a.lng, av.lng) as lng,
+         -- The casts matter: coalesce() drops the typmod, so without them the view
+         -- column becomes plain `numeric` and CREATE OR REPLACE VIEW refuses to
+         -- change the existing column's type (42P16).
+         coalesce(a.lat, av.lat)::numeric(9,6) as lat,
+         coalesce(a.lng, av.lng)::numeric(9,6) as lng,
          a.verified, a.added_by, a.created_at
     from activities a left join venues av on av.id = a.venue_id
   union all
@@ -103,7 +107,7 @@ create or replace view listings as
          e.description, e.info_url, e.info_url, e.ticket_url,
          e.conditions, null::smallint, null::text, null::text, '{}'::text[], 'day',
          e.starts_on, e.time_text, e.recurrence, e.date_confidence,
-         ev.lat, ev.lng,
+         ev.lat::numeric(9,6), ev.lng::numeric(9,6),
          e.verified, e.added_by, e.created_at
     from events e left join venues ev on ev.id = e.venue_id;
 
