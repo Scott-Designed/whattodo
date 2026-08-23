@@ -100,6 +100,11 @@ working, but do not use it as the everyday route.
 
 ## Known outstanding
 
+- An activity's single `url` is whatever it is — a map pin for some, the venue's own
+  site for others. The row labels it by inspection (`isMapLink`), so don't assume the
+  slot means "map". 87 of 203 activities carry a website there. `Directions` is built
+  separately from `lat`/`lng`; 186 of 203 are pinned, so a map view is nearer than
+  this list once implied — about 17 activities lack coordinates
 - 42 entries use Google Maps *search* URLs rather than pinned coordinates
 - Four events sit on estimated dates: Bells Beach Surf Film Festival, Deans Marsh
   Festival, Geelong Pride Film Festival, One Planet Festival
