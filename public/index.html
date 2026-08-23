@@ -731,6 +731,13 @@ function ok(i){
     if(!h.includes(S.q))return false}
   return true;
 }
+/* Most listings carry a map pin, but a researched or community-added one often
+   carries the venue's own site instead. Calling that "Open in Maps" sends people
+   somewhere they were not promised, so label the link by what it actually is.
+   Events reuse info_url in the url slot, which is why the caller skips the
+   duplicate rather than rendering the same link twice. */
+const isMapLink = u => /(?:google\.[a-z.]+\/maps|maps\.google\.|maps\.app\.goo\.gl|maps\.apple\.com|openstreetmap\.org)/i.test(u||'');
+
 function sortFn(a,b){
   if(S.sort==='az')   return a.name.localeCompare(b.name);
   if(S.sort==='new'){
@@ -765,7 +772,7 @@ function render(){
         <div>
           <p>${i.desc?esc(i.desc):'<em style="color:var(--ink3)">No description yet.</em>'}</p>
           <div class="links">
-            ${i.url?`<a href="${esc(i.url)}" target="_blank" rel="noopener">Open in Maps</a>`:''}
+            ${i.url&&i.url!==i.info?`<a href="${esc(i.url)}" target="_blank" rel="noopener">${isMapLink(i.url)?'Open in Maps':'Website'}</a>`:''}
             ${i.info?`<a href="${esc(i.info)}" target="_blank" rel="noopener">More info</a>`:''}
             ${i.ticket?`<a href="${esc(i.ticket)}" target="_blank" rel="noopener">Tickets</a>`:''}
             ${i.lat?`<a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}" target="_blank" rel="noopener">Directions</a>`:''}
