@@ -59,7 +59,9 @@ ended up in both sheets with two different dates, one of them wrong.
 - Tide, moon and fire-ban conditions have no data source wired up. Only the
   weather-derived tags actually evaluate: dry-ground, dry-trails, warm, low-wind,
   clear-sky, good-in-rain
-- `Ashmore Arts` and any other community adds need checking and verifying
+- Community adds need checking — `The Fives Cafe` (id 168) is still unchecked and
+  arrived almost empty. `Ashmore Arts` (169) is verified against the Surf Coast Arts
+  Trail listing; its distance was cleared rather than guessed and still needs a real one
 - Distances unverified; Waurn Ponds known wrong
 
 ## Gotchas already paid for
@@ -76,7 +78,9 @@ ended up in both sheets with two different dates, one of them wrong.
 
 ## Next things worth doing
 
-1. Verify community additions — `python3 scripts/sync.py pending`
+1. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
+   to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
+   before deleting; `--yes` skips the prompt.
 2. Pin the 42 unpinned map URLs, which unblocks a map view
 3. Promote the Ideas Pipeline into the database
 4. A scheduled job that re-checks estimated event dates as real ones get announced

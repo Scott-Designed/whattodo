@@ -5,6 +5,7 @@
     python3 scripts/sync.py export        # database -> a dated .xlsx backup
     python3 scripts/sync.py pending       # community additions awaiting a check
     python3 scripts/sync.py verify 1043   # mark one verified
+    python3 scripts/sync.py reject 1043   # remove one that isn't real (asks first)
 
 The database is the source of truth. `export` writes a dated snapshot for
 safekeeping; nothing reads it back. Edit rows in the Supabase table editor,
@@ -117,9 +118,28 @@ def verify(idn):
         if got: print(f"verified {t} {idn}: {got[0]['name']}"); return
     print(f"no row with id {idn}")
 
+def reject(idn, assume_yes=False):
+    """Delete a community add. Refuses verified rows; confirms unless --yes."""
+    for t in ('activities','events'):
+        got = req('GET', f'/rest/v1/{t}?id=eq.{idn}&select=id,name,type,location,added_by,verified')
+        if not got: continue
+        r = got[0]
+        if r['verified']:
+            sys.exit(f"{t} {idn} '{r['name']}' is verified — un-verify it in Supabase first "
+                     f"if you really mean to remove it.")
+        print(f"{t} {idn}: {r['name']}")
+        print(f"  type {r.get('type')}   location {r.get('location')}   added by {r.get('added_by')}")
+        if not assume_yes and input("  delete permanently? [y/N] ").strip().lower() != 'y':
+            print("  left alone."); return
+        req('DELETE', f'/rest/v1/{t}?id=eq.{idn}')
+        print(f"rejected {t} {idn}: {r['name']}")
+        return
+    print(f"no row with id {idn}")
+
 cmd = sys.argv[1] if len(sys.argv)>1 else ''
 if   cmd=='seed': seed()
 elif cmd=='export': export()
 elif cmd=='pending': pending()
 elif cmd=='verify' and len(sys.argv)>2: verify(sys.argv[2])
+elif cmd=='reject' and len(sys.argv)>2: reject(sys.argv[2], '--yes' in sys.argv)
 else: print(__doc__)
