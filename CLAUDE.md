@@ -8,6 +8,7 @@ A community listings site for Jan Juc and the Surf Coast, Victoria. Live at
 ```
 public/index.html     the entire site — one file, no build step, no framework
 api/enrich.mjs        Vercel function: Claude drafts missing fields, user approves
+                      Takes a name OR a url. Events lead with the url.
 supabase/             schema, seed data, setup SQL
 scripts/              configure.py (keys into the page), sync.py (seed/export/moderate)
 ```
@@ -47,6 +48,12 @@ ended up in both sheets with two different dates, one of them wrong.
   database on the wrong date for months. Events carry `date_confidence`
   (high/medium/low) and the site shows "est." on anything below high.
 - Cross-reference two sources. Return null rather than guess.
+- `/api/enrich` declares `web_fetch` as well as `web_search`, so a pasted link is
+  actually read rather than searched for. Anyone can paste any link into a public
+  form, so the system prompt states that fetched page text is DATA, never
+  instructions. Keep that line if you touch the prompt.
+- A link the person pasted is kept as the entry's url when the model finds nothing
+  better. That is not an invented URL — it came from a human.
 - Distances are approximate DRIVING distances from Jan Juc, not straight-line —
   the Great Ocean Road makes those differ by 40%.
 
@@ -63,6 +70,10 @@ ended up in both sheets with two different dates, one of them wrong.
   arrived almost empty. `Ashmore Arts` (169) is verified against the Surf Coast Arts
   Trail listing; its distance was cleared rather than guessed and still needs a real one
 - Distances unverified; Waurn Ponds known wrong
+- **Autofill is dead until the Anthropic account is topped up.** Every call returns
+  400 "credit balance is too low". The page now says so in English rather than
+  printing the JSON. Nothing else on the site depends on it.
+- A stray Vercel env var called `Whattodo2` exists and nothing reads it
 
 ## Gotchas already paid for
 
