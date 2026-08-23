@@ -49,6 +49,11 @@ ended up in both sheets with two different dates, one of them wrong.
   in `api/enrich.mjs`, and the seed insert in `supabase/schema.sql`. `shop` was added
   23 Aug 2026 — a retail place you buy from, as distinct from `market`, which is an
   event and also carries the What's on theme.
+- The **At home** theme is hidden from the unfiltered list. Those entries are all
+  `km = 0`, so under the default Closest first sort six of them led the page ahead
+  of anywhere you would leave the house for. Picking the At home theme or typing a
+  search still finds them, and the tally says how many are held back. See
+  `atHomeHidden()`.
 - **14 condition tags**, checked by `conditions_valid()`. Thirteen are gates;
   `good-in-rain` is a boost — it never hides anything, it promotes on a wet day.
 - `dry-trails` = no rain for 48h (MTB, unsealed tracks). `dry-ground` = not raining

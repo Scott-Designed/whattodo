@@ -719,8 +719,15 @@ function whenOK(i){
   if(!p.includes('day')) return false;
   return hoursNeeded(i.dur) <= Math.max(0, set-h);   /* is there still time to do it? */
 }
+function atHomeHidden(i){
+  /* "At home" is a theme you choose, not the answer to "what's on near me". With no
+     theme picked and nothing searched, keep these out of the default list — they
+     outnumber the real places and they are all zero km, so they used to lead it. */
+  return !S.theme && !S.q && (i.themes||[]).includes('home');
+}
 function ok(i){
   if(!whenOK(i)) return false;
+  if(atHomeHidden(i)) return false;
   if(S.theme && !(i.themes||[]).includes(S.theme)) return false;
   if(i.km!=null && i.km>S.km) return false;
   if(S.cost==='cheapish'){if(!['Free','Cheap'].includes(i.cost))return false}
@@ -754,7 +761,9 @@ function sortFn(a,b){
 function render(){
   syncClear();
   const list=ALL.filter(ok).sort(sortFn);
-  document.getElementById('tally').textContent=list.length+' listed';
+  const hidden = !S.theme && !S.q ? ALL.filter(i=>whenOK(i)&&(i.themes||[]).includes('home')).length : 0;
+  document.getElementById('tally').textContent =
+    list.length+' listed'+(hidden?' · '+hidden+' at home':'');
   document.getElementById('rows').innerHTML = list.length ? list.map(i=>{
     const place=esc(i.loc||i.venue||'');
     return `<div class="rec">
