@@ -1,0 +1,59 @@
+# Check the Surf Coast Events calendar and add what's new, unverified.
+#
+# Cadence: Monday and Thursday, 7am Melbourne time.
+#
+# The number that sets this is 9 — the shortest notice anything on that site has
+# ever been published with (measured across every listing, Aug 2026; only two
+# were under a fortnight). Checking twice a week means the worst case is hearing
+# about an event five days before it happens, and a missed run still leaves days
+# in hand. Daily would be seven times the runs for margin nobody needs; the
+# calendar is edited about thirty times a week, though, so less than weekly
+# would let dates drift out of the database unnoticed.
+#
+# GitHub cron is UTC and does not follow daylight saving, so this drifts to 8am
+# over summer. That does not matter for a job nobody is waiting on.
+name: Surf Coast events
+
+on:
+  schedule:
+    - cron: '0 21 * * 0,3'    # Sun/Wed 21:00 UTC = Mon/Thu 07:00 AEST
+  workflow_dispatch:           # and whenever you press the button
+
+permissions:
+  contents: write              # to commit events_seen.json back
+
+concurrency:
+  group: events
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Look, and add anything new as unverified
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python3 scripts/scrape_events.py --write | tee run.txt
+
+      - name: Put the run in the job summary
+        if: always()
+        run: |
+          {
+            echo '```'
+            cat run.txt 2>/dev/null || echo 'the run produced nothing — check the step above'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remember what was offered
+        run: |
+          git config user.name  'events bot'
+          git config user.email 'noreply@github.com'
+          git add scripts/events_seen.json
+          git diff --cached --quiet && { echo 'nothing new to remember'; exit 0; }
+          # [skip ci] because the site reads Supabase live — a redeploy adds nothing.
+          git commit -m "Events: remember this week's listings [skip ci]"
+          git push

@@ -10,7 +10,9 @@ public/index.html     the entire site — one file, no build step, no framework
 api/enrich.mjs        Vercel function: Claude drafts missing fields, user approves
                       Takes a name OR a url. Events lead with the url.
 supabase/             schema, seed data, setup SQL
-scripts/              configure.py (keys into the page), sync.py (seed/export/moderate)
+scripts/              configure.py (keys into the page), sync.py (seed/export/moderate),
+                      scrape_events.py (the Surf Coast Events feed)
+.github/workflows/events.yml  runs that feed Mon + Thu
 tools/event-inbox.html  published Artifact — capture links and poster photos on the go
 ```
 
@@ -107,6 +109,52 @@ external request. It is a notebook, not an uploader.
 Autofill exists for the community members who cannot ask Claude directly — keep it
 working, but do not use it as the everyday route.
 
+## The events feed runs itself
+
+`surfcoastevents.com.au` is WordPress with The Events Calendar, so it publishes
+a JSON API and **nothing here parses HTML**:
+
+    https://www.surfcoastevents.com.au/wp-json/tribe/events/v1/events
+
+`scripts/scrape_events.py` reads it, and `.github/workflows/events.yml` runs that
+**Monday and Thursday, 7am Melbourne**. Free on both meters — GitHub Actions
+minutes, and no model call anywhere in the path, so it keeps working while
+Autofill is dead. robots.txt allows it (`Disallow:` is empty).
+
+    python3 scripts/scrape_events.py            # look and report, writes nothing
+    python3 scripts/scrape_events.py --write    # insert the new ones, unverified
+    python3 scripts/scrape_events.py --json f   # rows for `sync.py add` instead
+
+Three things about that source, each of which the script exists to handle:
+
+- **It explodes a recurring series into one listing per occurrence.** Aireys Inlet
+  Market is sixteen listings. 98 listings are 46 real things. Instances share a
+  `slug`, so that is the grouping key — not the title, because the source
+  sometimes carries one market under two slugs. Spacing is only called
+  `weekly`/`monthly` when the occurrences actually keep to it; irregular ones say
+  so in `source_note` and wait for a human.
+- **It is edited constantly** — about 30 of ~100 listings changed in the week this
+  was built. So dates drift after import. Drift on an **unverified** row is
+  updated silently; drift on a row you **verified** is reported and left alone,
+  every run, until you deal with it. Your verification is not overwritten by a bot.
+- **It is a curated calendar, not the organiser's own page.** Everything lands
+  `date_confidence = 'medium'`, which is why the site shows it as "est.". Only a
+  human who has read a first-party page may raise it to `high`.
+
+Nothing is ever inserted `verified`. New rows appear in `sync.py pending` like any
+community addition. `scripts/events_seen.json` records every series ever offered,
+so something you rejected does not come back on Thursday — delete a line to be
+offered it again.
+
+**Why twice a week.** The shortest notice anything on that site has ever been
+published with is **9 days** (measured across every listing; only two were under a
+fortnight). Twice a week means the worst case is hearing about an event five days
+out, and a skipped run still leaves days in hand. Daily is seven times the runs
+for margin nobody needs. Weekly is the floor, not a comfort.
+
+The feed does not set `km`. Distances in this database are already known to be
+shaky and inventing more is exactly how it got burned — fill it in on review.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
@@ -150,6 +198,11 @@ working, but do not use it as the everyday route.
 - Tide, moon and fire-ban conditions have no data source wired up. Only the
   weather-derived tags actually evaluate: dry-ground, dry-trails, warm, low-wind,
   clear-sky, good-in-rain
+- The events feed has never run against production. Its first run offers ~46
+  series at once, some of which will collide by name with the 31 events already
+  there and be skipped. Run it without `--write` first and read the list.
+- Imported events carry no `km` and no `cost` (the source publishes no price at
+  all — 0 of 101 listings had one)
 - The moderation queue is empty. `Ashmore Arts` (169) and `The Fives` (168) are both
   verified; both had their distance cleared rather than guessed and still need real ones,
   as does `Bird Rock Farm` (171)
@@ -173,7 +226,10 @@ working, but do not use it as the everyday route.
 
 ## Next things worth doing
 
-1. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
+1. Turn the feed on: add `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` to the repo's
+   Actions secrets, run the workflow by hand once from the Actions tab, and read
+   the job summary before letting the schedule have it.
+2. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.
    `add file.json` (or `-` for stdin) writes a researched entry, one object or a
@@ -183,6 +239,6 @@ working, but do not use it as the everyday route.
    only when it genuinely is a different thing. `--verified` requires a
    `source_note`; `--dry-run` checks without writing. An event's link is
    `info_url`/`ticket_url`, never `url`.
-2. Pin the 42 unpinned map URLs, which unblocks a map view
-3. Promote the Ideas Pipeline into the database
-4. A scheduled job that re-checks estimated event dates as real ones get announced
+3. Pin the 42 unpinned map URLs, which unblocks a map view
+4. Promote the Ideas Pipeline into the database
+5. A scheduled job that re-checks estimated event dates as real ones get announced
