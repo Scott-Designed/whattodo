@@ -11,6 +11,7 @@ api/enrich.mjs        Vercel function: Claude drafts missing fields, user approv
                       Takes a name OR a url. Events lead with the url.
 supabase/             schema, seed data, setup SQL
 scripts/              configure.py (keys into the page), sync.py (seed/export/moderate)
+tools/event-inbox.html  published Artifact — capture links and poster photos on the go
 ```
 
 Deploy is a push to `main` — GitHub `Scott-Designed/whattodo` is connected to the
@@ -48,6 +49,12 @@ wherever it runs — production, a preview, or `vercel dev` on the laptop. The b
 follows `ANTHROPIC_API_KEY`, not the machine, so there is no free local path.
 
 While this site is still for one person, research here and write with `sync.py add`.
+Capture on the go with the **Event Inbox** artifact
+(https://claude.ai/code/artifact/93362d84-79a0-43b9-89e5-65eff75d74e2, source in
+`tools/event-inbox.html`): paste links or photograph posters, then hand the export
+to a Claude session to research and file. It cannot enrich or write to Supabase
+itself — a published artifact has no inference capability and its CSP blocks every
+external request. It is a notebook, not an uploader.
 Autofill exists for the community members who cannot ask Claude directly — keep it
 working, but do not use it as the everyday route.
 

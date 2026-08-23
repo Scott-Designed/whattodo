@@ -1,0 +1,440 @@
+<title>Jan Juc Event Inbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&display=swap">
+
+<style>
+/* Tokens lifted from whattodo-nu.vercel.app so this reads as the same project.
+   Light is the base set; dark redefines only the tokens, twice — once for an
+   unstamped system-dark viewer, once for an explicit toggle. */
+:root{
+  --ground:#EAEAEA; --surface:#E1E2DC; --ink:#1B2114; --ink2:#4A5142; --ink3:#787E6E;
+  --rule:#CFD0C9; --rule2:#B9BBB2; --accent:#8A6220; --accent-soft:#8A62201f;
+  --danger:#8C3324;
+  --serif:'Newsreader',Georgia,'Times New Roman',serif;
+  --util:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --pad:40px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
+    --rule:#2C3126; --rule2:#3C4234; --accent:#C89A4A; --accent-soft:#C89A4A24;
+    --danger:#D08475;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
+  --rule:#2C3126; --rule2:#3C4234; --accent:#C89A4A; --accent-soft:#C89A4A24;
+  --danger:#D08475;
+}
+@media (max-width:640px){ :root{--pad:18px} }
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--serif); font-size:17px; line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:780px; margin:0 auto; padding:var(--pad) var(--pad) 72px}
+
+/* ── masthead ─────────────────────────────────────────────────────── */
+h1{
+  font-family:var(--serif); font-weight:300; font-size:clamp(38px,7vw,60px);
+  letter-spacing:-.025em; line-height:.95; margin:0; text-wrap:balance;
+}
+.sub{
+  margin-top:12px; font-family:var(--util); font-size:11.5px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink3);
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--accent);display:inline-block}
+.ro-flag{
+  font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink3);border:1px solid var(--rule2);
+  padding:2px 7px;border-radius:2px;
+}
+hr.rule{border:0;border-top:1px solid var(--rule2);margin:26px 0 0}
+
+/* ── capture ──────────────────────────────────────────────────────── */
+.capture{padding:26px 0 4px}
+.lbl{
+  font-family:var(--util); font-size:10.5px; font-weight:600; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink3); display:block; margin-bottom:7px;
+}
+.field{
+  width:100%; font-family:var(--serif); font-size:17px; color:var(--ink);
+  background:transparent; border:0; border-bottom:1px solid var(--rule2);
+  padding:8px 0; border-radius:0;
+}
+.field::placeholder{color:var(--ink3);opacity:1}
+.field:focus{outline:0;border-bottom-color:var(--accent)}
+textarea.field{resize:vertical;min-height:2.6em;line-height:1.5}
+
+.row2{display:flex;gap:22px;flex-wrap:wrap;margin-top:20px}
+.row2 > *{flex:1 1 220px;min-width:0}
+
+.acts{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin-top:24px}
+button{
+  font-family:var(--util); font-size:12px; font-weight:600; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink); background:transparent;
+  border:0; border-bottom:1px solid var(--ink); padding:5px 1px; cursor:pointer;
+}
+button:hover:not(:disabled){color:var(--accent);border-bottom-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+button:disabled{color:var(--ink3);border-bottom-color:var(--rule2);cursor:default}
+button.quiet{border-bottom-color:var(--rule2);color:var(--ink2)}
+button.danger{border-bottom-color:transparent;color:var(--ink3);letter-spacing:.08em}
+button.danger:hover{color:var(--danger);border-bottom-color:var(--danger)}
+.msg{font-family:var(--util);font-size:12px;color:var(--ink3);letter-spacing:.02em}
+.msg.warn{color:var(--accent)}
+
+/* attached-photo chip */
+.chip{
+  display:none; align-items:center; gap:12px; margin-top:20px;
+  background:var(--surface); border:1px solid var(--rule); padding:10px 12px;
+}
+.chip.on{display:flex}
+.chip img{width:52px;height:52px;object-fit:cover;display:block;background:var(--rule)}
+.chip .meta{font-family:var(--util);font-size:11px;color:var(--ink3);letter-spacing:.06em;flex:1;min-width:0}
+
+/* ── queue ────────────────────────────────────────────────────────── */
+h2{
+  font-family:var(--util); font-size:10.5px; font-weight:600; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink3); margin:44px 0 0;
+}
+.list{margin-top:4px}
+.item{
+  display:flex; gap:16px; align-items:flex-start;
+  padding:18px 0; border-top:1px solid var(--rule);
+}
+.item:first-child{border-top:1px solid var(--rule2)}
+.thumb{
+  width:66px;height:66px;flex:0 0 66px;object-fit:cover;display:block;
+  background:var(--surface);border:1px solid var(--rule);
+}
+.stub{
+  width:66px;height:66px;flex:0 0 66px;background:var(--surface);
+  border:1px solid var(--rule); display:flex;align-items:center;justify-content:center;
+  font-family:var(--util);font-size:9.5px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink3);
+}
+.body{flex:1;min-width:0}
+.host{
+  font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);
+}
+.link{
+  display:block;margin-top:3px;font-size:16px;color:var(--ink);
+  overflow-wrap:anywhere;text-decoration:none;border-bottom:1px solid var(--rule2);
+  padding-bottom:1px;
+}
+.link:hover{border-bottom-color:var(--accent)}
+.note{margin-top:6px;color:var(--ink2);font-size:16px;overflow-wrap:anywhere}
+.when{
+  margin-top:7px;font-family:var(--util);font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink3);font-variant-numeric:tabular-nums;
+}
+.empty{
+  padding:34px 0 10px;color:var(--ink3);border-top:1px solid var(--rule2);
+  max-width:56ch;
+}
+
+/* ── footer ───────────────────────────────────────────────────────── */
+footer{
+  margin-top:44px;padding-top:18px;border-top:1px solid var(--rule2);
+  display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;
+}
+.tally{
+  font-family:var(--util);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink3);font-variant-numeric:tabular-nums;
+}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Event inbox</h1>
+    <div class="sub">
+      <span>Jan Juc &amp; the Surf Coast</span>
+      <span class="dot" aria-hidden="true"></span>
+      <span id="hdr-count">nothing waiting</span>
+      <span class="ro-flag" id="ro" hidden>read only</span>
+    </div>
+    <hr class="rule">
+  </header>
+
+  <section class="capture" aria-label="Add to the inbox">
+    <div>
+      <label class="lbl" for="f-url">Paste a link</label>
+      <input class="field" id="f-url" type="url" inputmode="url" autocomplete="off"
+             placeholder="Ticket page, venue gig list, Facebook event…">
+    </div>
+    <div class="row2">
+      <div>
+        <label class="lbl" for="f-note">Note <span style="text-transform:none;letter-spacing:0">— optional</span></label>
+        <textarea class="field" id="f-note" rows="1"
+                  placeholder="Anything the link won't say"></textarea>
+      </div>
+    </div>
+
+    <div class="chip" id="chip">
+      <img id="chip-img" alt="Attached photo">
+      <span class="meta" id="chip-meta"></span>
+      <button type="button" class="danger" id="chip-drop">Remove</button>
+    </div>
+
+    <div class="acts">
+      <button type="button" id="add">Add to inbox</button>
+      <button type="button" class="quiet" id="pick">Attach a photo</button>
+      <input type="file" id="file" accept="image/*" class="sr" tabindex="-1">
+      <span class="msg" id="msg" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <h2>Waiting to be written up</h2>
+  <div class="list" id="list"></div>
+
+  <footer>
+    <span class="tally" id="tally"></span>
+    <button type="button" class="quiet" id="export">Export as JSON</button>
+  </footer>
+</div>
+
+<script id="queue" type="application/json">[]</script>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id) };
+  var MAXB = 15 * 1024 * 1024;            // page ceiling is 16MB; leave headroom
+  var WARNB = 11 * 1024 * 1024;
+
+  var ITEMS = [];
+  try { ITEMS = JSON.parse($('queue').textContent) || [] } catch(e){ ITEMS = [] }
+
+  var ART = null, READONLY = false, BUSY = false, PHOTO = null;
+
+  /* ── render ─────────────────────────────────────────────────────── */
+  function host(u){
+    try { return new URL(u).hostname.replace(/^www\./,'') } catch(e){ return 'link' }
+  }
+  function when(iso){
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString(undefined,{day:'numeric',month:'short'}) + ' · ' +
+           d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+  }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function bytes(n){
+    if (n < 1024) return n + ' B';
+    if (n < 1024*1024) return Math.round(n/1024) + ' KB';
+    return (n/1024/1024).toFixed(1) + ' MB';
+  }
+  function payload(){ return JSON.stringify(ITEMS).length }
+
+  function render(){
+    var list = $('list');
+    if (!ITEMS.length){
+      list.innerHTML = '<p class="empty">Empty. Paste a link to a gig, market or ' +
+        'festival, or photograph a poster — whatever you find. It keeps until ' +
+        'you sit down with Claude to research and file it.</p>';
+    } else {
+      list.innerHTML = ITEMS.map(function(it){
+        var media = it.img
+          ? '<img class="thumb" src="' + it.img + '" alt="Photo attached to this item">'
+          : '<span class="stub">' + (it.url ? 'link' : 'note') + '</span>';
+        var link = it.url
+          ? '<span class="host">' + esc(host(it.url)) + '</span>' +
+            '<a class="link" href="' + esc(it.url) + '" target="_blank" rel="noopener">' +
+            esc(it.url) + '</a>'
+          : '';
+        var note = it.note ? '<p class="note">' + esc(it.note) + '</p>' : '';
+        return '<div class="item">' + media +
+          '<div class="body">' + link + note +
+          '<div class="when">' + esc(when(it.at)) + '</div></div>' +
+          '<button type="button" class="danger" data-drop="' + esc(it.id) + '">Remove</button>' +
+          '</div>';
+      }).join('');
+    }
+
+    var n = ITEMS.length;
+    $('hdr-count').textContent = n === 0 ? 'nothing waiting'
+      : n === 1 ? '1 waiting' : n + ' waiting';
+    var p = payload();
+    $('tally').textContent = n + (n === 1 ? ' item' : ' items') + ' · ' + bytes(p) +
+      (p > WARNB ? ' · getting full, export and clear some' : '');
+    $('export').disabled = !n;
+  }
+
+  /* ── persistence ────────────────────────────────────────────────── */
+  function say(t, warn){
+    $('msg').textContent = t || '';
+    $('msg').className = 'msg' + (warn ? ' warn' : '');
+  }
+
+  function lock(on){
+    BUSY = on;
+    ['add','pick','export','chip-drop'].forEach(function(id){
+      var el = $(id); if (el) el.disabled = on || (id === 'export' && !ITEMS.length);
+    });
+    document.querySelectorAll('[data-drop]').forEach(function(b){ b.disabled = on });
+  }
+
+  // Classic artifact: publish a COMPLETE replacement page. Rather than
+  // reconstruct the document from a template, refetch this page's own served
+  // source (same-origin, so the CSP allows it) and swap the JSON island.
+  // Never serialize the live DOM — it carries runtime scripts and view state.
+  async function save(){
+    if (!ART) { say('Saving is not available in this view.', true); return false }
+    lock(true); say('Saving…');
+    try{
+      var res = await fetch(location.href, {cache:'no-store'});
+      var src = await res.text();
+      var re = /(<script id="queue" type="application\/json">)[\s\S]*?(<\/script>)/;
+      if (!re.test(src)) throw new Error('island');
+      var json = JSON.stringify(ITEMS).replace(/<\//g, '<\\/');
+      if (json.length > MAXB) {
+        say('Too big to save — export and remove a few photos first.', true);
+        lock(false); return false;
+      }
+      await ART.publish(src.replace(re, function(m,a,b){ return a + json + b }));
+      return true;                 // this view reloads to the new version
+    } catch(err){
+      var code = err && err.code;
+      if (code === 'conflict'){
+        say('Saved somewhere else first — reloading to catch up.');
+        return false;
+      }
+      if (code === 'not_writer' || code === 'not_granted' || code === 'not_declared' ||
+          code === 'capability_disabled' || code === 'capability_removed'){
+        goReadOnly(); return false;
+      }
+      if (code === 'too_large'){
+        say('Too big to save — export, then remove a few photos.', true);
+      } else if (code === 'rate_limited'){
+        say('Saving too fast. Wait a moment and try again.', true);
+      } else {
+        say('Could not save. Your item is still on screen — try again.', true);
+      }
+      lock(false); return false;
+    }
+  }
+
+  function goReadOnly(){
+    READONLY = true;
+    $('ro').hidden = false;
+    ['add','pick','chip-drop'].forEach(function(id){
+      var el = $(id); if (el){ el.disabled = true } });
+    $('f-url').disabled = true; $('f-note').disabled = true;
+    document.querySelectorAll('[data-drop]').forEach(function(b){ b.remove() });
+    say('This is a read-only view — you can read the inbox but not change it.');
+  }
+
+  /* ── photos ─────────────────────────────────────────────────────── */
+  // A phone photo is several megabytes and the whole page has to fit in 16.
+  // Downscale to a long edge that still reads a poster's small print.
+  async function shrink(file){
+    var bmp = await createImageBitmap(file, {imageOrientation:'from-image'});
+    var scale = Math.min(1, 1400 / Math.max(bmp.width, bmp.height));
+    var w = Math.max(1, Math.round(bmp.width * scale));
+    var h = Math.max(1, Math.round(bmp.height * scale));
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').drawImage(bmp, 0, 0, w, h);
+    if (bmp.close) bmp.close();
+    return {data:c.toDataURL('image/jpeg', 0.72), w:w, h:h};
+  }
+
+  $('pick').addEventListener('click', function(){ $('file').click() });
+  $('file').addEventListener('change', async function(e){
+    var file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { say('That is not an image.', true); return }
+    say('Shrinking the photo…');
+    try{
+      var out = await shrink(file);
+      PHOTO = out.data;
+      $('chip-img').src = out.data;
+      $('chip-meta').textContent = out.w + '×' + out.h + ' · ' + bytes(out.data.length);
+      $('chip').classList.add('on');
+      say('Photo attached. Add a link or note if you have one, then add it.');
+    } catch(err){ say('Could not read that photo.', true) }
+  });
+  $('chip-drop').addEventListener('click', function(){
+    PHOTO = null; $('chip').classList.remove('on'); $('chip-img').removeAttribute('src'); say('');
+  });
+
+  /* ── add / remove ───────────────────────────────────────────────── */
+  $('add').addEventListener('click', async function(){
+    if (BUSY || READONLY) return;
+    var url = $('f-url').value.trim();
+    var note = $('f-note').value.trim();
+    if (!url && !note && !PHOTO){
+      say('Add a link, a photo or a note first.', true); $('f-url').focus(); return;
+    }
+    if (url && !/^https?:\/\//i.test(url)){
+      say('A link needs to start with http:// or https://', true); $('f-url').focus(); return;
+    }
+    ITEMS.unshift({
+      id: (Date.now().toString(36) + Math.random().toString(36).slice(2,7)),
+      url: url || null, note: note || null, img: PHOTO || null,
+      at: new Date().toISOString()
+    });
+    render();
+    // If the save fails the view stays put, so keep the draft recoverable.
+    try{ sessionStorage.setItem('inbox-draft', JSON.stringify({url:url,note:note})) }catch(e){}
+    var ok = await save();
+    if (ok){ try{ sessionStorage.removeItem('inbox-draft') }catch(e){} }
+    else { lock(false) }
+  });
+
+  $('list').addEventListener('click', async function(e){
+    var btn = e.target.closest('[data-drop]');
+    if (!btn || BUSY || READONLY) return;
+    var id = btn.getAttribute('data-drop');
+    var keep = ITEMS.filter(function(i){ return i.id !== id });
+    if (keep.length === ITEMS.length) return;
+    ITEMS = keep; render();
+    var ok = await save();
+    if (!ok) lock(false);
+  });
+
+  /* ── export ─────────────────────────────────────────────────────── */
+  $('export').addEventListener('click', async function(){
+    var dl = await window.claude.use('downloads');
+    var stamp = new Date().toISOString().slice(0,10);
+    var body = JSON.stringify(ITEMS, null, 2);
+    if (!dl){
+      // No download capability in this view — put it somewhere copyable.
+      navigator.clipboard && navigator.clipboard.writeText(body).then(
+        function(){ say('Downloads are not available here, so the inbox is on your clipboard.') },
+        function(){ say('Downloads are not available in this view.', true) });
+      return;
+    }
+    try{
+      await dl.save({filename:'event-inbox-' + stamp + '.json', data:body});
+      say('Exported. Hand that file to Claude to write them up.');
+    } catch(err){ say('Export cancelled.') }
+  });
+
+  /* ── boot ───────────────────────────────────────────────────────── */
+  render();
+  (async function(){
+    ART = await window.claude.use('artifact');
+    if (!ART) { goReadOnly(); return }
+    try{
+      var d = JSON.parse(sessionStorage.getItem('inbox-draft') || 'null');
+      if (d && (d.url || d.note)){
+        if (d.url) $('f-url').value = d.url;
+        if (d.note) $('f-note').value = d.note;
+        sessionStorage.removeItem('inbox-draft');
+      }
+    } catch(e){}
+  })();
+})();
+</script>
