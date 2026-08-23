@@ -114,7 +114,14 @@ ${schemaFor(kind)}`;
     });
     if (!r.ok) {
       const body = await r.text();
-      return res.status(502).json({error:'upstream', status:r.status, detail: body.slice(0,300)});
+      let upstream = '';
+      try { upstream = JSON.parse(body)?.error?.message || ''; } catch { /* not JSON */ }
+      // Being out of credit or rate-limited is the site owner's problem, not the
+      // visitor's. Name it so the page can say something useful instead of JSON.
+      const kind = /credit balance/i.test(upstream) ? 'no_credit'
+                 : r.status === 429 ? 'rate_limited' : 'upstream';
+      return res.status(502).json({error:kind, status:r.status,
+        message: upstream.slice(0,200), detail: body.slice(0,300)});
     }
     const data = await r.json();
 

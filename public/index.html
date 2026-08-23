@@ -586,7 +586,11 @@ async function draft(){
     if(r.status===501||r.status===404){ ENRICH=false; btn.hidden=true;
       msg('Autofill is not switched on for this site.'); return; }
     const d=await r.json();
-    if(!r.ok){ msg('Autofill failed: '+(d.detail||d.error||r.status)); return; }
+    if(!r.ok){
+      const human={
+        no_credit:'Autofill is out of credit — the site owner needs to top up the Anthropic account. Fill this in by hand for now.',
+        rate_limited:'Autofill is busy at the moment. Give it a minute and try again.'}[d.error];
+      msg(human || ('Autofill failed: '+(d.message||d.error||r.status))); return; }
     const p=d.proposal||{};
     clearSuggestions();
     markSuggested('f-name',  p.name);
