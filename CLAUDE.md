@@ -102,6 +102,10 @@ working, but do not use it as the everyday route.
   better. That is not an invented URL — it came from a human.
 - Distances are approximate DRIVING distances from Jan Juc, not straight-line —
   the Great Ocean Road makes those differ by 40%.
+- `km = 0` means *here* — Jan Juc itself, or your own house. `km = null` means the
+  entry has no location to measure ("Anywhere outdoors", "Any beach"): the sort
+  treats null as furthest, so unlocated ideas fall to the bottom of Closest first
+  instead of burying the real places. Never write 0 to mean "don't know".
 
 ## Known outstanding
 
