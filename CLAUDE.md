@@ -12,7 +12,10 @@ supabase/             schema, seed data, setup SQL
 scripts/              configure.py (keys into the page), sync.py (seed/export/moderate)
 ```
 
-Deploy is `npx vercel --prod` from the project root. There is no build.
+Deploy is a push to `main` — GitHub `Scott-Designed/whattodo` is connected to the
+Vercel project, which builds every push. There is no build step; Vercel just
+serves `public/` and the function in `api/`. `npx vercel --prod` still works if
+you need to force a deploy without a commit.
 
 ## The database is the source of truth
 

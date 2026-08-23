@@ -44,11 +44,13 @@ select (select count(*) from activities) activities,
 python3 scripts/configure.py https://xxxx.supabase.co eyJhbGciOi...
 ```
 
-**4. Deploy.** Drag this folder onto vercel.com/new, or:
+**4. Deploy.** The repo is connected to Vercel — pushing to `main` deploys:
 
 ```bash
-npx vercel --prod
+git push
 ```
+
+To force a deploy without a commit, `npx vercel --prod` still works.
 
 Open it. The badge next to the date should read **live**.
 
