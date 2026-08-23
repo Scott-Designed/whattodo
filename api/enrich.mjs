@@ -6,7 +6,7 @@
 // Optional: ENRICH_MODEL (default claude-sonnet-5).
 
 const TYPES_PLACE = ['beach','walk','surf','water','bike track','skatepark','sport','park',
-  'playground','nature','museum','cafe','cinema','camping','at-home','night',
+  'playground','nature','museum','cafe','shop','cinema','camping','at-home','night',
   'volunteering','nursery','cultural'];
 const TYPES_EVENT = ['gig','festival','market','workshop','community','sport-event'];
 const CONDITIONS = ['any-weather','low-tide','high-tide','new-moon','full-moon','clear-sky',

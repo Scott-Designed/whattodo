@@ -14,6 +14,7 @@ insert into types (name, band) values
   ('bike track','place'),('skatepark','place'),('sport','place'),('park','place'),
   ('playground','place'),('nature','place'),('museum','place'),('cafe','place'),
   ('cinema','place'),('camping','place'),('at-home','place'),('night','place'),
+  ('shop','place'),
   ('volunteering','community'),('nursery','community'),('cultural','community'),
   ('gig','event'),('festival','event'),('market','event'),('workshop','event'),
   ('community','event'),('sport-event','event')

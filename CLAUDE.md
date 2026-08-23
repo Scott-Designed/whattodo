@@ -42,8 +42,13 @@ ended up in both sheets with two different dates, one of them wrong.
 
 ## Conventions that are enforced, not just documented
 
-- **25 types**, foreign-keyed to the `types` table. An unknown type is rejected by
+- **26 types**, foreign-keyed to the `types` table. An unknown type is rejected by
   the database, not just by the form. `null` is allowed and means "not sorted yet".
+  Adding one means four places, not one: a row in `types` (with its `band`),
+  `THEME_OF` in the page or it shows under no theme filter, `TYPES_PLACE`/`TYPES_EVENT`
+  in `api/enrich.mjs`, and the seed insert in `supabase/schema.sql`. `shop` was added
+  23 Aug 2026 — a retail place you buy from, as distinct from `market`, which is an
+  event and also carries the What's on theme.
 - **14 condition tags**, checked by `conditions_valid()`. Thirteen are gates;
   `good-in-rain` is a boost — it never hides anything, it promotes on a wet day.
 - `dry-trails` = no rain for 48h (MTB, unsealed tracks). `dry-ground` = not raining
