@@ -75,7 +75,14 @@ After it is run, an event with a `venue_id` carries lat/lng and a map becomes
 possible; `venue` stays for one-offs and "various venues".
 
 `venues.lat`/`lng` are seeded null on purpose — coordinates need a real geocoder,
-never an estimate. The spreadsheet also holds a `Barwon Heads Hotel` gig history
+never an estimate. OpenStreetMap's Nominatim is reachable from this environment and
+is a legitimate source (`https://nominatim.openstreetmap.org/search?format=json`);
+its policy is max 1 request/second and a real User-Agent. Geocoding is a separate
+pass, not something to eyeball.
+
+Five events are linked so far — the licensed venues. The other 38 happen at parks,
+beaches, reserves, halls and cenotaphs, which the music spreadsheet never covered.
+Those need venue rows of their own before the map can show everything. The spreadsheet also holds a `Barwon Heads Hotel` gig history
 and per-venue Facebook/Instagram/Oztix feed URLs, which is the raw material for
 an automated what's-on check later.
 
