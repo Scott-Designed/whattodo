@@ -62,6 +62,23 @@ ended up in both sheets with two different dates, one of them wrong.
   `verified = true` or `added_by = 'Research'` — a submission cannot dress itself up
   as researched data.
 
+## Venues
+
+`supabase/VENUES_RUN_THIS.sql` creates a `venues` table and seeds 38 of them from
+Scott's music venue spreadsheet, then adds `venue_id` to both `events` and
+`activities` and rebuilds `listings` so an event inherits its venue's coordinates.
+**Run it in the Supabase SQL editor** — PostgREST cannot create tables, so this
+cannot be applied from a script.
+
+Until it is run, `events.venue` stays free text and events cannot be plotted.
+After it is run, an event with a `venue_id` carries lat/lng and a map becomes
+possible; `venue` stays for one-offs and "various venues".
+
+`venues.lat`/`lng` are seeded null on purpose — coordinates need a real geocoder,
+never an estimate. The spreadsheet also holds a `Barwon Heads Hotel` gig history
+and per-venue Facebook/Instagram/Oztix feed URLs, which is the raw material for
+an automated what's-on check later.
+
 ## Two meters — know which one you are spending
 
 Researching a listing inside Claude Code costs nothing beyond the Claude
