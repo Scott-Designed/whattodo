@@ -88,18 +88,28 @@ insert into venues (name, suburb, address, kind, website, events_url, ticketing_
 on conflict (name) do nothing;
 
 -- The site reads `listings`. Rebuild it so an event inherits its venue's
--- coordinates, and an activity can too. Everything else is unchanged.
-create or replace view listings as
+-- coordinates, and an activity can too.
+--
+-- DROP then CREATE, not CREATE OR REPLACE. The existing view's lat/lng are plain
+-- `numeric`: the old view unions activities.lat (numeric(9,6)) with an untyped
+-- null, and union type resolution throws the precision away. CREATE OR REPLACE
+-- refuses any column-type change, in either direction, so it rejects the new
+-- definition (42P16). Dropping first sidesteps the argument entirely, and the
+-- whole file runs in one transaction, so the view is never actually absent.
+--
+-- The ::numeric casts keep the new columns plain numeric to match, which also
+-- means this stays re-runnable.
+
+drop view if exists listings;
+
+create view listings as
   select 'a'||a.id as key, a.id, false as is_event, a.name, a.type, a.location, a.km, a.cost, a.ages,
          a.description, a.url, null::text as info_url, null::text as ticket_url,
          a.conditions, a.rating, a.notes, a.duration, a.season, a.daypart,
          null::date as starts_on, null::text as time_text, null::text as recurrence,
          null::text as date_confidence,
-         -- The casts matter: coalesce() drops the typmod, so without them the view
-         -- column becomes plain `numeric` and CREATE OR REPLACE VIEW refuses to
-         -- change the existing column's type (42P16).
-         coalesce(a.lat, av.lat)::numeric(9,6) as lat,
-         coalesce(a.lng, av.lng)::numeric(9,6) as lng,
+         coalesce(a.lat, av.lat)::numeric as lat,
+         coalesce(a.lng, av.lng)::numeric as lng,
          a.verified, a.added_by, a.created_at
     from activities a left join venues av on av.id = a.venue_id
   union all
@@ -107,8 +117,12 @@ create or replace view listings as
          e.description, e.info_url, e.info_url, e.ticket_url,
          e.conditions, null::smallint, null::text, null::text, '{}'::text[], 'day',
          e.starts_on, e.time_text, e.recurrence, e.date_confidence,
-         ev.lat::numeric(9,6), ev.lng::numeric(9,6),
+         ev.lat::numeric, ev.lng::numeric,
          e.verified, e.added_by, e.created_at
     from events e left join venues ev on ev.id = e.venue_id;
+
+-- Dropping the view dropped its grants with it. The page reads as `anon`.
+grant select on listings to anon, authenticated;
+grant select on venues   to anon, authenticated;
 
 select (select count(*) from venues) as venues_seeded;
