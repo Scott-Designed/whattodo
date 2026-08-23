@@ -85,6 +85,7 @@ option{background:var(--ground);color:var(--ink)}
 .fld input:focus-visible,.fld select:focus-visible,.fld textarea:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .fld input::placeholder,.fld textarea::placeholder{color:var(--ink3)}
 .fld.wide{grid-column:1/-1;max-width:74ch}
+.fld.lead{order:-1;grid-column:1/-1;max-width:74ch}
 .acts{display:flex;flex-wrap:wrap;gap:22px;align-items:center;margin-top:26px}
 .acts .msg{font-family:var(--util);font-size:12px;color:var(--ink3);flex:1 1 200px;line-height:1.6}
 .mine{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);
@@ -239,7 +240,7 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--rule);font-fa
           <select id="f-dur"><option value="">&mdash;</option><option>&lt; 1hr</option><option>half-day</option><option>full-day</option><option>overnight</option></select></div>
         <div class="fld wide"><label for="f-desc">What is it? Any local tips.</label>
           <textarea id="f-desc" placeholder="The stuff you'd tell a friend — not tourist copy."></textarea></div>
-        <div class="fld"><label for="f-url">Link (optional)</label>
+        <div class="fld" id="fld-url"><label for="f-url" id="lab-url">Link (optional)</label>
           <input id="f-url" type="url" placeholder="https://"></div>
         <div class="fld"><label for="f-by">Added by</label>
           <input id="f-by" placeholder="Your name &mdash; optional"></div>
@@ -449,8 +450,20 @@ function fillTypes(){
   const sel=document.getElementById('f-type');
   sel.innerHTML='<option value="">&mdash; not sure</option>'+
     (KIND==='event'?EVENT_TYPES:PLACE_TYPES).map(t=>`<option>${t}</option>`).join('');
-  document.querySelectorAll('.ev-only').forEach(e=>e.style.display=KIND==='event'?'':'none');
-  document.querySelectorAll('.pl-only').forEach(e=>e.style.display=KIND==='event'?'none':'');
+  const ev = KIND==='event';
+  document.querySelectorAll('.ev-only').forEach(e=>e.style.display=ev?'':'none');
+  document.querySelectorAll('.pl-only').forEach(e=>e.style.display=ev?'none':'');
+  /* An event usually has a page of its own. Lead with it — paste the link and the
+     rest, name included, is read off that page. A place rarely has one, so there
+     the link stays an afterthought at the bottom. */
+  document.getElementById('fld-url').classList.toggle('lead', ev);
+  document.getElementById('lab-url').textContent =
+    ev ? 'Event link — paste it and press Autofill' : 'Link (optional)';
+  document.getElementById('f-url').placeholder =
+    ev ? 'https://  — the page for the gig, market or festival' : 'https://';
+  document.getElementById('f-name').placeholder =
+    ev ? 'Read from the link, or type it yourself' : 'e.g. Point Impossible Beach';
+  const d=document.getElementById('f-draft'); if(d) d.textContent = ev ? 'Autofill from link' : 'Autofill';
 }
 document.querySelectorAll('.kind button').forEach(b=>b.addEventListener('click',()=>{
   KIND=b.dataset.k;
@@ -555,12 +568,20 @@ function clearSuggestions(){
 
 async function draft(){
   const name=F('f-name').value.trim();
-  if(!name){ msg('Type a name first — that is what it searches for.'); F('f-name').focus(); return; }
+  const url=F('f-url').value.trim();
+  if(!name && !url){
+    const ev = KIND==='event';
+    msg(ev ? 'Paste the event link first — that is what it reads.'
+           : 'Type a name first — that is what it searches for.');
+    F(ev ? 'f-url' : 'f-name').focus(); return;
+  }
+  if(url && !/^https?:\/\//i.test(url)){
+    msg('That link needs to start with http:// or https://'); F('f-url').focus(); return; }
   const btn=F('f-draft'); const was=btn.textContent;
-  btn.disabled=true; btn.textContent='Searching…'; msg('');
+  btn.disabled=true; btn.textContent = url ? 'Reading the link…' : 'Searching…'; msg('');
   try{
     const r=await fetch('/api/enrich',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({kind:KIND, name, location:F('f-where').value.trim(),
+      body:JSON.stringify({kind:KIND, name, url, location:F('f-where').value.trim(),
                            hint:F('f-desc').value.trim()})});
     if(r.status===501||r.status===404){ ENRICH=false; btn.hidden=true;
       msg('Autofill is not switched on for this site.'); return; }
@@ -568,6 +589,7 @@ async function draft(){
     if(!r.ok){ msg('Autofill failed: '+(d.detail||d.error||r.status)); return; }
     const p=d.proposal||{};
     clearSuggestions();
+    markSuggested('f-name',  p.name);
     markSuggested('f-where', p.location);
     markSuggested('f-type',  p.type);
     markSuggested('f-km',    p.km);
@@ -583,6 +605,7 @@ async function draft(){
       `<li><a href="${s.url}" target="_blank" rel="noopener">${(s.title||s.url).slice(0,60)}</a></li>`).join('')
       || '<li><span class="warn">No sources cited.</span></li>';
     const gaps=[];
+    if(!F('f-name').value.trim()) gaps.push('no name found — type one before you save');
     if(!p.url) gaps.push('no link found');
     if(KIND==='event' && !p.starts_on) gaps.push('no date confirmed');
     if(KIND==='event' && p.date_confidence && p.date_confidence!=='high')
