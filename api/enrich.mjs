@@ -133,6 +133,13 @@ ${schemaFor(kind)}`;
         if (c.url && !cited.some(x => x.url === c.url)) cited.push({title: c.title, url: c.url});
       }
     }
+    // A fetched page is a source even when it produces no citation block, so count
+    // the server tools that actually ran. Citations alone under-report and made a
+    // well-sourced draft warn "treat this as a guess".
+    const usedTools = (data.content || []).some(b =>
+      b.type === 'server_tool_use' || b.type === 'web_search_tool_result' ||
+      b.type === 'web_fetch_tool_result');
+
     const m = text.match(/\{[\s\S]*\}/);
     if (!m) return res.status(502).json({error:'no_json', detail:text.slice(0,300)});
 
@@ -155,7 +162,8 @@ ${schemaFor(kind)}`;
       .filter((s,i,a) => s && s.url && a.findIndex(x => x.url === s.url) === i)
       .slice(0, 8);
 
-    return res.status(200).json({proposal, sources, searched: cited.length > 0});
+    return res.status(200).json({proposal, sources,
+      searched: cited.length > 0 || usedTools || sources.length > 0});
   } catch (e) {
     return res.status(500).json({error:'failed', detail:String(e).slice(0,200)});
   }
