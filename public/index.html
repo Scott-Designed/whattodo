@@ -58,6 +58,33 @@ option{background:var(--ground);color:var(--ink)}
 .clearbtn:hover{color:var(--ink2);border-bottom-color:var(--ink2)}
 .clearbtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 
+/* ── the four secondary filters, folded away until asked for ── */
+.morebtn{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--rule2);padding:5px 0 6px;cursor:pointer;
+  white-space:nowrap;display:inline-flex;align-items:center;gap:7px;
+}
+.morebtn:hover,.morebtn[aria-expanded="true"]{border-bottom-color:var(--ink)}
+.morebtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.morebtn .dot{width:6px;height:6px;border-radius:50%;background:var(--ink);flex:none}
+.more{display:flex;flex-wrap:wrap;gap:14px 18px;padding:0 0 34px}
+.more[hidden]{display:none}
+
+/* ── sort / view / search belong to the list, not to the filters ── */
+.toolbar{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end;padding-bottom:14px}
+.toolbar .grow{flex:1 1 200px}
+.toolbar .grow input{width:100%}
+
+/* ── Add is a standing offer, not a filter ── */
+.addpill{
+  position:fixed;right:24px;bottom:24px;z-index:40;
+  font-family:var(--util);font-size:13px;font-weight:600;letter-spacing:.06em;
+  color:var(--ground);background:var(--ink);border:0;border-radius:999px;
+  padding:13px 22px;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.28);
+}
+.addpill:hover,.addpill[aria-expanded="true"]{background:var(--ink2)}
+.addpill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
 /* ── add panel ── */
 .addbtn{
   font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
@@ -109,13 +136,11 @@ option{background:var(--ground);color:var(--ink)}
 
 /* ── table ── */
 .tbl{border-top:1px solid var(--ink)}
-.thead,.rowline{
+.rowline{
   display:grid;
-  grid-template-columns:minmax(0,2.7fr) minmax(0,.85fr) minmax(0,1.35fr) minmax(0,1.1fr) minmax(0,.75fr);
+  grid-template-columns:minmax(0,2.7fr) minmax(0,.85fr) minmax(0,1.35fr) minmax(0,1.1fr) minmax(0,.9fr);
   gap:0 24px;align-items:baseline;
 }
-.thead{padding:11px 0;border-bottom:1px solid var(--rule2);position:sticky;top:0;background:var(--ground);z-index:5}
-.thead span{font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3)}
 
 .rec{border-bottom:1px solid var(--rule)}
 .rowline{width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:19px 0}
@@ -123,6 +148,9 @@ option{background:var(--ground);color:var(--ink)}
 .rowline:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 .c-name{font-size:19px;letter-spacing:-.01em;line-height:1.25}
 .c-type,.c-where,.c-when,.c-cost{font-size:15px;color:var(--ink2);line-height:1.3}
+.c-extra{font-size:15px;color:var(--ink2);line-height:1.3;min-width:0}
+.c-extra b{display:block;font-family:var(--util);font-size:9.5px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
 .est{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-top:3px}
 .tm{display:block;font-family:var(--serif);font-size:14px;color:var(--ink3);line-height:1.3;margin-top:1px}
 /* How often it repeats, beside the day — "Saturday" alone reads as one Saturday. */
@@ -210,18 +238,17 @@ body.mapview .tbl{display:none}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:1180px){
-  .thead,.rowline{grid-template-columns:minmax(0,2.6fr) minmax(0,1.35fr) minmax(0,1.15fr) minmax(0,.85fr)}
-  .thead .h-type,.c-type{display:none}
+  .rowline{grid-template-columns:minmax(0,2.6fr) minmax(0,1.35fr) minmax(0,1.15fr) minmax(0,.95fr)}
+  .c-type{display:none}
 }
 @media (max-width:940px){
-  .thead,.rowline{grid-template-columns:minmax(0,2.4fr) minmax(0,1.35fr) minmax(0,1.15fr)}
-  .thead .h-cost,.c-cost{display:none}
+  .rowline{grid-template-columns:minmax(0,2.4fr) minmax(0,1.35fr) minmax(0,1.15fr)}
+  .c-extra{display:none}
   .detail-in{grid-template-columns:1fr}
 }
 @media (max-width:700px){
   :root{--pad:20px}
   header{padding:44px 0 30px}
-  .thead{display:none}
   .rowline{grid-template-columns:1fr;gap:4px;padding:16px 0}
   .c-where,.c-when{display:none}
   .mob{display:block;grid-column:1;font-family:var(--util);font-size:12px;color:var(--ink3)}
@@ -243,14 +270,24 @@ body.mapview .tbl{display:none}
   </header>
 
   <div class="controls">
+    <div class="ctrl"><label for="verb">Verb</label>
+      <select id="verb"><option value="">Anything</option></select></div>
+    <div class="ctrl"><label for="type">Type</label>
+      <select id="type"><option value="">All types</option></select></div>
     <div class="ctrl"><label for="when">When</label>
       <select id="when">
         <option value="now">Now</option><option value="later">Later today</option>
         <option value="tonight">Tonight</option><option value="tomorrow">Tomorrow</option>
         <option value="any">Any time</option>
       </select></div>
-    <div class="ctrl"><label for="theme">Theme</label>
-      <select id="theme"><option value="">Everything</option></select></div>
+    <div class="ctrl"><label>&nbsp;</label>
+      <button id="morebtn" type="button" class="morebtn" aria-expanded="false"
+              aria-controls="more">Filters<span class="dot" id="moredot" hidden></span></button></div>
+    <div class="ctrl"><label>&nbsp;</label>
+      <button id="clear" type="button" class="clearbtn" hidden>Clear all</button></div>
+  </div>
+
+  <div class="more" id="more" hidden>
     <div class="ctrl"><label for="km">Distance</label>
       <select id="km">
         <option value="999">Any distance</option><option value="5">Within 5 km</option>
@@ -267,24 +304,7 @@ body.mapview .tbl{display:none}
       <select id="wx"><option value="">Doesn't matter</option>
         <option value="auto">Detect automatically</option><option value="fine">Fine</option>
         <option value="grey">Grey &amp; cold</option><option value="rain">Raining</option></select></div>
-    <div class="ctrl"><label for="sort">Sort</label>
-      <select id="sort"><option value="near">Closest first</option><option value="when">Soonest first</option>
-        <option value="best">Best rated</option><option value="new">Recently added</option>
-        <option value="az">A &ndash; Z</option></select></div>
-    <div class="ctrl"><label>View</label>
-      <div class="seg" id="viewseg" role="group" aria-label="How to show the listings">
-        <button type="button" data-v="list" aria-pressed="true">List</button>
-        <button type="button" data-v="map" aria-pressed="false">Map</button>
-      </div></div>
-    <div class="ctrl"><label for="q">Search</label>
-      <input id="q" type="search" placeholder="Name, place or tag"></div>
-    <div class="ctrl"><label>&nbsp;</label>
-      <button id="addtoggle" type="button" class="addbtn">+ Add</button></div>
-    <div class="ctrl"><label>&nbsp;</label>
-      <button id="clear" type="button" class="clearbtn" hidden>Clear all</button></div>
-    <div class="tally" id="tally"></div>
   </div>
-
 
   <section class="panel" id="panel" aria-label="Add a listing">
     <h2>Add something</h2>
@@ -335,13 +355,26 @@ body.mapview .tbl{display:none}
     </form>
   </section>
 
+  <button id="addtoggle" type="button" class="addpill">+ Add</button>
+
   <script id="additions" type="application/json">[]</script>
 
+  <div class="toolbar">
+    <div class="ctrl"><label for="sort">Sort</label>
+      <select id="sort"><option value="near">Closest first</option><option value="when">Soonest first</option>
+        <option value="best">Best rated</option><option value="new">Recently added</option>
+        <option value="az">A &ndash; Z</option></select></div>
+    <div class="ctrl"><label>View</label>
+      <div class="seg" id="viewseg" role="group" aria-label="How to show the listings">
+        <button type="button" data-v="list" aria-pressed="true">List</button>
+        <button type="button" data-v="map" aria-pressed="false">Map</button>
+      </div></div>
+    <div class="ctrl grow"><label for="q">Search</label>
+      <input id="q" type="search" placeholder="Name, place or tag"></div>
+    <div class="tally" id="tally"></div>
+  </div>
+
   <div class="tbl">
-    <div class="thead">
-      <span>Name</span><span class="h-type">Type</span><span>Where</span>
-      <span>When</span><span class="h-cost">Cost</span>
-    </div>
     <div id="rows"></div>
   </div>
 
@@ -429,7 +462,7 @@ async function fetchWeather(){
             rain:j.current.precipitation,rain48:past,cloud:j.current.cloud_cover};
   }catch(e){ clearTimeout(t); return null; }
 }
-const S={when:'now',theme:'',km:999,cost:'',who:'',wx:'',sort:'near',q:''};
+const S={when:'now',verb:'',type:'',km:999,cost:'',who:'',wx:'',sort:'near',q:''};
 
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -532,6 +565,67 @@ function suits(i){if(!S.wx)return null;const k=i.cond.map(met).filter(v=>v!==nul
    Entries people add on the page. They live in the JSON island below so
    they survive a republish; DATA above stays a faithful copy of the
    spreadsheet and is never edited here. ════════════════════════════ */
+/* A verb is what you feel like doing; a type is what the thing is. They are two
+   axes, not a hierarchy — a cafe is Eat and Drink, a beach is Swim and Walk — so
+   this maps one type to several verbs rather than partitioning them. Derived from
+   `type` for now: that is enough for every type except `sport-event`, which holds
+   runs, rides, swims and surf comps under one word and needs a per-row verb before
+   Run can mean only running. */
+const VERBS=[['listen','Listen'],['watch','Watch'],['look','Look'],['walk','Walk'],
+  ['run','Run'],['ride','Ride'],['swim','Swim'],['play','Play'],['eat','Eat'],
+  ['drink','Drink'],['learn','Learn'],['make','Make'],['join','Join'],
+  ['browse','Browse'],['stay','Stay']];
+const VERB_OF={
+  gig:['listen'], 'sport-event':['watch','run','ride'], festival:['watch'], cinema:['watch'],
+  nature:['look','walk'], night:['look'], nursery:['look','browse'],
+  walk:['walk'], park:['walk','play'], beach:['swim','walk'], water:['swim'], surf:['swim'],
+  skatepark:['ride'], 'bike track':['ride'],
+  sport:['play'], playground:['play'], 'at-home':['play','make'],
+  cafe:['eat','drink'], market:['eat','browse'], shop:['browse'],
+  museum:['learn'], cultural:['learn','watch'], workshop:['learn','make'],
+  community:['join'], volunteering:['join'], camping:['stay']};
+/* Drink is the one verb no type records. It comes off the place instead — which is
+   what splitting `places.kind` from `places.offers` bought us. */
+const DRINK_KINDS=new Set(['pub','bar','brewery','winery','distillery','cidery']);
+function verbsOf(i){
+  const v=new Set(VERB_OF[i.type]||[]);
+  if(DRINK_KINDS.has(i.placeKind)) v.add('drink');
+  return [...v];
+}
+
+/* One extra fact per type — the one that decides whether you go. Two rules made
+   this list, and both were learned the hard way:
+
+   1. It must not repeat what the row already prints. The When cell carries the
+      day, the time, the recurrence AND the season, so `time`, `how often` and
+      `season` all printed the same fact twice — "Wednesday 6:30pm–9pm" beside
+      "Time 6:30pm–9pm". Same failure as a venue in the name beside the venue in
+      Where.
+   2. The database must actually hold it for that type. `cost` is on 5% of gigs
+      (the feed publishes no prices at all) but the venue's kind is on 82%, so a
+      gig says what kind of room it is — a pub night and a hall night are not the
+      same evening. That column only exists because `places.kind` was split from
+      `places.offers` this morning.
+
+   First slot that has a value wins, so the cell is rarely empty. */
+const EXTRA_OF={
+  gig:['place','cost'], 'sport-event':['cost','place'], festival:['cost','place'],
+  market:['cost','place'], workshop:['cost','place'], community:['cost','place'],
+  cafe:['cost'], camping:['cost'], cultural:['cost'], water:['cost'], museum:['cost'],
+  nursery:['cost'], cinema:['cost'], shop:['cost'],
+  walk:['dur'], 'at-home':['dur'], 'bike track':['dur'], volunteering:['dur'], nature:['dur'],
+  skatepark:['who'], sport:['who'], park:['who'], playground:['who'],
+  beach:['cond'], night:['cond'], surf:['cond']};
+const EXTRA_LABEL={cost:'Cost',dur:'How long',who:'Suits',cond:'Best in',place:'Setting'};
+function extraOf(i){
+  for(const slot of (EXTRA_OF[i.type]||['cost'])){
+    const v={cost:i.cost, dur:i.dur, who:(i.ages||[]).join(', '),
+             cond:(i.cond||[]).join(', '), place:i.placeKind}[slot];
+    if(v && String(v).trim()) return {label:EXTRA_LABEL[slot], value:String(v)};
+  }
+  return null;
+}
+
 const THEME_OF={beach:['beach'],surf:['beach'],water:['beach'],walk:['walks'],park:['walks'],
   skatepark:['wheels'],'bike track':['wheels'],nature:['wildlife'],nursery:['wildlife'],
   cafe:['eat'],shop:['eat'],market:['eat','whatson'],cultural:['culture'],museum:['culture'],cinema:['culture'],
@@ -645,7 +739,7 @@ document.getElementById('addform').addEventListener('submit',async e=>{
 });
 async function refreshFromDb(){
   const rows=await loadRemote();
-  if(rows){ LIVE=rows; rebuild(); render(); refreshThemeCounts(); }
+  if(rows){ LIVE=rows; rebuild(); render(); refreshFacets(); }
 }
 function msg(t){ document.getElementById('f-msg').textContent=t }
 
@@ -828,12 +922,13 @@ function atHomeHidden(i){
   /* "At home" is a theme you choose, not the answer to "what's on near me". With no
      theme picked and nothing searched, keep these out of the default list — they
      outnumber the real places and they are all zero km, so they used to lead it. */
-  return !S.theme && !S.q && (i.themes||[]).includes('home');
+  return !S.verb && !S.type && !S.q && (i.themes||[]).includes('home');
 }
 function ok(i){
   if(!whenOK(i)) return false;
   if(atHomeHidden(i)) return false;
-  if(S.theme && !(i.themes||[]).includes(S.theme)) return false;
+  if(S.verb && !verbsOf(i).includes(S.verb)) return false;
+  if(S.type && i.type!==S.type) return false;
   if(i.km!=null && i.km>S.km) return false;
   if(S.cost==='cheapish'){if(!['Free','Cheap'].includes(i.cost))return false}
   else if(S.cost && i.cost!==S.cost) return false;
@@ -884,7 +979,7 @@ function render(){
   syncClear();
   const list=ALL.filter(ok).sort(sortFn);
   VISIBLE=list;
-  const hidden = !S.theme && !S.q ? ALL.filter(i=>whenOK(i)&&(i.themes||[]).includes('home')).length : 0;
+  const hidden = !S.verb && !S.type && !S.q ? ALL.filter(i=>whenOK(i)&&(i.themes||[]).includes('home')).length : 0;
   document.getElementById('tally').textContent =
     list.length+' listed'+(hidden?' · '+hidden+' at home':'');
   document.getElementById('rows').innerHTML = list.length ? list.map(i=>{
@@ -895,8 +990,11 @@ function render(){
         <span class="c-type">${i.type?esc(i.type):'<span class="est" style="display:inline">unsorted</span>'}</span>
         <span class="c-where">${esc(wVenue)}${wSuburb?`<span class="tm">${esc(wSuburb)}</span>`:''}</span>
         <span class="c-when">${whenText(i)}</span>
-        <span class="c-cost">${esc(i.cost||'')}</span>
-        <span class="mob">${esc(i.type)} &middot; ${esc(whereLine(i))} &middot; ${whenText(i).replace(/<[^>]+>/g,' &middot; ')} &middot; ${esc(i.cost||'')}</span>
+        <span class="c-extra">${(()=>{const x=extraOf(i);return x?`<b>${esc(x.label)}</b>${esc(x.value)}`:''})()}</span>
+        <span class="mob">${[i.type, whereLine(i), whenText(i).replace(/<[^>]+>/g,'\u001f'),
+          (()=>{const x=extraOf(i);return x?x.value:''})()]
+          .flatMap(v=>String(v==null?'':v).split('\u001f')).map(v=>v.trim())
+          .filter(Boolean).map(esc).join(' &middot; ')}</span>
       </button>
       <div class="detail"><div class="detail-in">
         <div>
@@ -1076,34 +1174,61 @@ async function showView(v){
 viewBtns.forEach(b=>b.addEventListener('click',()=>showView(b.dataset.v)));
 S.view='list';
 rebuild();
-const t=document.getElementById('theme');
-function refreshThemeCounts(){
-  const keep=t.value;
-  t.innerHTML='<option value="">Everything</option>'+THEMES.map(([k,l])=>
-    `<option value="${k}">${l} (${ALL.filter(i=>i.themes.includes(k)).length})</option>`).join('');
-  t.value=keep;
+const verbSel=document.getElementById('verb'), typeSel=document.getElementById('type');
+/* Counts are computed against the other filter, not baked, so a type that says 19
+   returns 19. A count that lies is worse than no count. */
+function refreshFacets(){
+  const keepV=verbSel.value, keepT=typeSel.value;
+  const forVerb = S.type ? ALL.filter(i=>i.type===S.type) : ALL;
+  verbSel.innerHTML='<option value="">Anything</option>'+VERBS.map(([k,l])=>{
+    const n=forVerb.filter(i=>verbsOf(i).includes(k)).length;
+    return `<option value="${k}"${n?'':' disabled'}>${l} (${n})</option>`}).join('');
+  verbSel.value=keepV;
+
+  const forType = S.verb ? ALL.filter(i=>verbsOf(i).includes(S.verb)) : ALL;
+  const types=[...new Set(ALL.map(i=>i.type).filter(Boolean))].sort();
+  typeSel.innerHTML='<option value="">All types</option>'+types.map(k=>{
+    const n=forType.filter(i=>i.type===k).length;
+    return `<option value="${k}"${n?'':' disabled'}>${k} (${n})</option>`}).join('');
+  typeSel.value=keepT;
 }
-refreshThemeCounts();
-[['when','when'],['theme','theme'],['km','km'],['cost','cost'],['who','who'],['wx','wx'],['sort','sort']].forEach(([id,key])=>{
+refreshFacets();
+[['when','when'],['verb','verb'],['type','type'],['km','km'],['cost','cost'],
+ ['who','who'],['wx','wx'],['sort','sort']].forEach(([id,key])=>{
   document.getElementById(id).addEventListener('change',e=>{
     S[key]= key==='km' ? +e.target.value : e.target.value;
     if(key==='wx' && e.target.value==='auto') return void useAuto(e.target);
-    /* What's on is a diary, not a directory — it only makes sense in date order */
-    if(key==='theme' && e.target.value==='whatson'){
+    /* Dated things are a diary, not a directory — they only read in date order */
+    if(key==='verb' && ['listen','watch'].includes(e.target.value)){
       S.sort='when'; document.getElementById('sort').value='when';
     }
+    if(key==='verb'||key==='type') refreshFacets();
     render()})});
+
+/* the four secondary filters, and a dot when any of them is doing something */
+const moreBtn=document.getElementById('morebtn'), moreBox=document.getElementById('more');
+moreBtn.addEventListener('click',()=>{
+  const open=moreBtn.getAttribute('aria-expanded')==='true';
+  moreBtn.setAttribute('aria-expanded',String(!open));
+  moreBox.hidden=open;
+});
+function syncMoreDot(){
+  const on = S.km!==999 || S.cost || S.who || S.wx;
+  document.getElementById('moredot').hidden = !on;
+}
 document.getElementById('q').addEventListener('input',e=>{S.q=e.target.value.trim().toLowerCase();render()});
 
-const DEFAULTS={when:'now',theme:'',km:999,cost:'',who:'',wx:'',q:''};   /* sort is a view, not a filter */
+const DEFAULTS={when:'now',verb:'',type:'',km:999,cost:'',who:'',wx:'',q:''};   /* sort is a view, not a filter */
 function syncClear(){
   const on = Object.keys(DEFAULTS).some(k=>S[k]!==DEFAULTS[k]);
   document.getElementById('clear').hidden = !on;
+  syncMoreDot();
 }
 document.getElementById('clear').addEventListener('click',()=>{
   Object.assign(S,DEFAULTS);
   S.sort='near'; document.getElementById('sort').value='near';
-  ['when','theme','km','cost','who','wx'].forEach(id=>document.getElementById(id).value=String(DEFAULTS[id]));
+  ['when','verb','type','km','cost','who','wx'].forEach(id=>document.getElementById(id).value=String(DEFAULTS[id]));
+  refreshFacets();
   document.getElementById('km').value='999';
   document.getElementById('q').value='';
   render();
@@ -1147,7 +1272,7 @@ render();
   const badge=document.getElementById('src');
   if(!REMOTE){ badge.textContent='built-in copy'; return; }
   const rows=await loadRemote();
-  if(rows){ LIVE=rows; rebuild(); refreshThemeCounts(); render(); badge.textContent='live'; }
+  if(rows){ LIVE=rows; rebuild(); refreshFacets(); render(); badge.textContent='live'; }
   else { badge.textContent='offline copy';
     badge.title='Could not reach the database — showing the version built into this page.'; }
 })();
