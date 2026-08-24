@@ -40,11 +40,15 @@ SEEN_NOTE = ('Gigs already offered by scrape_venues.py. Delete a line to be offe
              'it again — otherwise something you rejected comes back next week.')
 HORIZON   = 300          # days ahead worth caring about
 
+# Every one of these white-labels a subdomain per venue — Torquay Hotel's gigs
+# sit on BOTH tickets.oztix.com.au and torquayhotel.oztix.com.au, and hardcoding
+# the first cost us half that venue's listings. Match the domain, not a guess at
+# the subdomain.
 TICKETERS = [
-    ('humanitix',  'Humanitix',  r'https://events\.humanitix\.com/[a-z0-9\-/]+'),
-    ('oztix',      'Oztix',      r'https://tickets\.oztix\.com\.au/outlet/event/[a-z0-9\-]+'),
-    ('trybooking', 'TryBooking', r'https://www\.trybooking\.com/[A-Za-z0-9\-/]+'),
-    ('eventbrite', 'Eventbrite', r'https://www\.eventbrite\.com(?:\.au)?/e/[A-Za-z0-9\-]+'),
+    ('humanitix',  'Humanitix',  r'https://(?:[a-z0-9-]+\.)?humanitix\.com/[a-z0-9\-/]+'),
+    ('oztix',      'Oztix',      r'https://(?:[a-z0-9-]+\.)?oztix\.com\.au/outlet/event/[a-z0-9\-]+'),
+    ('trybooking', 'TryBooking', r'https://(?:[a-z0-9-]+\.)?trybooking\.com/[A-Za-z0-9\-/]+'),
+    ('eventbrite', 'Eventbrite', r'https://(?:[a-z0-9-]+\.)?eventbrite\.com(?:\.au)?/e/[A-Za-z0-9\-]+'),
 ]
 # Eventbrite publishes a free API; scraping it is the worse road, so we only
 # note that a venue uses it and leave the row for a human.
@@ -132,7 +136,7 @@ def gigs_for(venue):
             how.append(f'{label} ({len(links)}) — has a free API, left for a human')
             continue
         got = 0
-        for link in links[:40]:
+        for link in links[:80]:
             tp = E.fetch(link)
             if tp is None: continue
             rows = [g for g in (E.from_jsonld(o) for o in E.jsonld_events(tp)) if g]
