@@ -428,18 +428,29 @@ land.
   events already there and were skipped. None has a `km` yet.
 - Imported events carry no `km` and no `cost` (the source publishes no price at
   all — 0 of 101 listings had one)
-- **`Lorne Falls Festival (Spectate)` (15) should not be in the database.**
+- **`sync.py reject <id>` does not say which table.** It matched activity 83
+  when the event 83 was meant, and only refused because that activity happened
+  to be verified — otherwise it would have deleted `Lake Elizabeth Campground`
+  instead of a duplicate market. Ids are per-table and they collide. Make it
+  take `e83`/`a83`, or the `key` the listings view already builds.
+- `Lorne Falls Festival` (15) was deleted 24 Aug 2026. Its own site says the
+  festival is on hiatus with no dates; the row had it running 28–31 Dec 2026 at
+  the Lorne foreshore, which was never the site even when it ran. Kept for the
+  record, since the reasoning is the useful part:
   fallsfestival.com's own front page says the team are "taking this New Years'
-  season off to rest, recover and recalibrate" and names no 2026/27 dates; the
-  festival has not run since 2022 and the Lorne site — a 68ha farm at Murroon,
-  not the foreshore the row describes — was sold in 2025. The row carries
-  28–31 Dec 2026, `verified = true`, and a description of watching it from town,
-  which was never possible from 20km inland. This is the Arts Trail failure
-  again. Delete it, or park it with no date.
+  season off to rest, recover and recalibrate"; the festival has not run since
+  2022 and the Lorne site — a 68ha farm at Murroon — was sold in 2025. The row
+  was `verified = true` on a date nobody had announced. A verified flag is not
+  evidence; it only records that a person looked.
 - `Lorne Schoolies Week` (23) was deleted 24 Aug 2026 at Scott's request. It was
   a warning to stay away rather than something to do.
-- Two rows are the same market: `Torquay Farmers Market` (5) and the feed's
-  import (83). Renaming made them adjacent and obvious. Merge them.
+- The two Torquay Farmers Market rows were merged 24 Aug 2026 (5 kept, 83
+  deleted) — and both had it in the wrong place. myfarmersmarket.com.au and
+  visitgreatoceanroad.org.au agree it is "the carpark of the Surf Coast Shire
+  Offices ... every Saturday, morning from 8.30am to 1.00pm", not Fishermans
+  Beach Reserve, and not finishing at 12:30. Place 79 was created and geocoded
+  for it. The duplicate is what exposed the error: two rows disagreeing is a
+  better bug report than one row being quietly wrong.
 - Four event names still carry their recurrence — "– every Saturday", "– first
   Sunday of Month". The `recurrence` column says `weekly`/`monthly` but has
   nowhere to put the day, so the name is the only place *Saturday* is written
@@ -494,17 +505,15 @@ land.
 
 ## Next things worth doing
 
-1. Decide what happens to `Lorne Falls Festival (Spectate)` (15) — see Known
-   outstanding. It is a dated, verified row for a festival on hiatus.
-2. Build venue rows for the four dated events whose free text already names a
+1. Build place rows for the four dated events whose free text already names a
    real place: `Baines Crescent outlets` (22), `Anglesea Community Hub` (30),
    `Anglesea Community Precinct` (53), `Torquay Common` (77). Each one then
    gets a pin and a tidier name. `name_rules.py` lists all 18 that have a date
    and a time but no venue.
-3. Work through the 44 imported events — `sync.py pending`. Each needs a
+2. Work through the 44 imported events — `sync.py pending`. Each needs a
    distance from Jan Juc and its date checked against the organiser's own page
    before `date_confidence` can go to high; until then the site shows "est.".
-4. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
+3. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.
    `add file.json` (or `-` for stdin) writes a researched entry, one object or a
@@ -514,7 +523,7 @@ land.
    only when it genuinely is a different thing. `--verified` requires a
    `source_note`; `--dry-run` checks without writing. An event's link is
    `info_url`/`ticket_url`, never `url`.
-5. Pin the 42 entries whose `url` is a Google Maps *search* rather than a
+4. Pin the 42 entries whose `url` is a Google Maps *search* rather than a
    coordinate — each one is a missing pin on the map
-6. Promote the Ideas Pipeline into the database
-7. A scheduled job that re-checks estimated event dates as real ones get announced
+5. Promote the Ideas Pipeline into the database
+6. A scheduled job that re-checks estimated event dates as real ones get announced
