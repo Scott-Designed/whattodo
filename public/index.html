@@ -189,7 +189,7 @@ option{background:var(--ground);color:var(--ink)}
 
 
 /* ── table ── */
-.tbl{border-top:1px solid var(--ink)}
+.tbl{border-top:1px solid var(--ink);margin:0 calc(var(--pad) * -1)}
 .rowline{
   display:grid;
   grid-template-columns:minmax(0,1fr) 92px 200px 132px 140px;
@@ -198,12 +198,15 @@ option{background:var(--ground);color:var(--ink)}
 
 .rec{border-bottom:1px solid var(--rule)}
 .rowline{width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;
-  cursor:pointer;padding:11px 0;min-height:57px}
+  cursor:pointer;padding:11px var(--pad);min-height:57px}
 .rowline:hover{background:var(--surface)}
 .rowline:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 .c-name{font-size:19px;letter-spacing:-.01em;line-height:1.2}
-.c-name,.c-type,.c-where,.c-when,.c-cost,.c-extra,.tm{
+.c-type,.c-where,.c-when,.c-cost,.c-extra,.tm,.c-name .nm{
   min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+/* the name clips, the unverified badge does not — it is the row's only warning */
+.c-name{display:flex;align-items:center;gap:8px;min-width:0}
+.c-name .mine{flex:none}
 .c-type,.c-where,.c-when,.c-cost{font-size:15px;color:var(--ink2);line-height:1.22}
 .c-extra{font-size:15px;color:var(--ink2);line-height:1.22;min-width:0}
 .est{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-top:3px}
@@ -213,7 +216,7 @@ option{background:var(--ground);color:var(--ink)}
   color:var(--ink3);margin-left:7px;white-space:nowrap}
 .mob{display:none}
 
-.detail{display:none;padding:2px 0 30px}
+.detail{display:none;padding:2px var(--pad) 30px}
 .rec.open .detail{display:block}
 .detail-in{display:grid;grid-template-columns:minmax(0,3.1fr) minmax(0,2.5fr);gap:28px 28px;max-width:1400px}
 .detail p{margin:0 0 14px;font-size:17px;line-height:1.62;color:var(--ink2);max-width:66ch}
@@ -305,8 +308,9 @@ body.mapview .tbl{display:none}
   :root{--pad:20px}
   header{padding:44px 0 30px}
   /* stacked, so a fixed height and a clipped name both stop making sense */
-  .rowline{grid-template-columns:1fr;gap:3px;padding:11px 0;min-height:0}
-  .c-name{white-space:normal;overflow:visible;text-overflow:clip}
+  .rowline{grid-template-columns:1fr;gap:3px;padding:11px var(--pad);min-height:0}
+  .c-name{display:block}
+  .c-name .nm{white-space:normal;overflow:visible;text-overflow:clip;display:inline}
   .c-where,.c-when{display:none}
   .mob{display:block;grid-column:1;font-family:var(--util);font-size:12px;color:var(--ink3)}
   .controls{gap:12px 18px}
@@ -1031,7 +1035,7 @@ function render(){
     const [wVenue,wSuburb]=whereParts(i);
     return `<div class="rec">
       <button class="rowline" aria-expanded="false">
-        <span class="c-name">${esc(i.name)}${i.added?`<span class="mine" title="${i.by?esc(i.by)+' added this — ':''}not checked yet">unverified</span>`:''}</span>
+        <span class="c-name"><span class="nm">${esc(i.name)}</span>${i.added?`<span class="mine" title="${i.by?esc(i.by)+' added this — ':''}not checked yet">unverified</span>`:''}</span>
         <span class="c-type">${i.type?esc(i.type):'<span class="est" style="display:inline">unsorted</span>'}</span>
         <span class="c-where">${esc(wVenue)}${wSuburb?`<span class="tm">${esc(wSuburb)}</span>`:''}</span>
         <span class="c-when">${whenText(i)}</span>
