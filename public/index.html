@@ -193,14 +193,17 @@ option{background:var(--ground);color:var(--ink)}
 .rowline{
   display:grid;
   grid-template-columns:minmax(0,1fr) 92px 200px 132px 140px;
-  gap:0 24px;align-items:baseline;
+  gap:0 24px;align-items:center;
 }
 
 .rec{border-bottom:1px solid var(--rule)}
-.rowline{width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:11px 0}
+.rowline{width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;
+  cursor:pointer;padding:11px 0;min-height:57px}
 .rowline:hover{background:var(--surface)}
 .rowline:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 .c-name{font-size:19px;letter-spacing:-.01em;line-height:1.2}
+.c-name,.c-type,.c-where,.c-when,.c-cost,.c-extra,.tm{
+  min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .c-type,.c-where,.c-when,.c-cost{font-size:15px;color:var(--ink2);line-height:1.22}
 .c-extra{font-size:15px;color:var(--ink2);line-height:1.22;min-width:0}
 .est{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-top:3px}
@@ -301,7 +304,9 @@ body.mapview .tbl{display:none}
 @media (max-width:700px){
   :root{--pad:20px}
   header{padding:44px 0 30px}
-  .rowline{grid-template-columns:1fr;gap:3px;padding:11px 0}
+  /* stacked, so a fixed height and a clipped name both stop making sense */
+  .rowline{grid-template-columns:1fr;gap:3px;padding:11px 0;min-height:0}
+  .c-name{white-space:normal;overflow:visible;text-overflow:clip}
   .c-where,.c-when{display:none}
   .mob{display:block;grid-column:1;font-family:var(--util);font-size:12px;color:var(--ink3)}
   .controls{gap:12px 18px}
