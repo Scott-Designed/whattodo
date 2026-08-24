@@ -122,9 +122,10 @@ def gigs_for(venue):
     # 2 — follow the ticketing links it carries
     found, how = [], []
     for key, label, pat in TICKETERS:
-        if key in SKIP:
-            how.append(f'{label} skipped'); continue
         links = sorted(set(re.findall(pat, page)))
+        if key in SKIP:
+            if links: how.append(f'{label} ({len(links)} links) skipped')
+            continue
         links = [l for l in links if not l.rstrip('/').endswith(('/host', '/outlet'))]
         if not links: continue
         if label in API_INSTEAD:
