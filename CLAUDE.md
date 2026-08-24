@@ -82,7 +82,23 @@ is a legitimate source (`https://nominatim.openstreetmap.org/search?format=json`
 its policy is max 1 request/second and a real User-Agent. Geocoding is a separate
 pass, not something to eyeball.
 
-34 of the 38 venues are geocoded (24 Aug 2026) — 11 to the building, 14 to the
+78 venues now: 38 from the spreadsheet plus 40 created from events' free-text
+`venue` strings. 72 are pinned, 68 of 88 events are linked, and 66 events are
+plottable (was 5). The mapping from venue string to canonical venue is curated by
+hand in the commit history, not fuzzy-matched — fuzzy matching wanted to file the
+Bells Beach surf comp at Bells Beach Brewing.
+
+20 events stay unlinked on purpose: "Various venues – Surf Coast", "Rotates —
+check website", "Surf Coast Shire", bare "Torquay". They name no single place you
+can stand at, so inventing a pin for them would be the placeholder problem again.
+
+**Four Winchelsea venues share one coordinate** (-38.241908, 143.98596) because
+OpenStreetMap has the town but not the Globe Theatre, Trebeck Reserve, Lions Park
+or the Shire Hall. Their `source_note` says "suburb-level only". That is the same
+shape as the 50-pins-on-one-spot problem — honest here because it is recorded, but
+a map should draw suburb-level pins differently, or they will read as precise.
+
+34 of the 38 spreadsheet venues were geocoded (24 Aug 2026) — 11 to the building, 14 to the
 street, 9 by name and suburb where the sheet had no address; every row's
 `source_note` says which. Four did not resolve in OpenStreetMap under any query
 tried and are deliberately left null: Eureka Hotel Geelong, Princess Park

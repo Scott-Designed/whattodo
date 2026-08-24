@@ -262,6 +262,11 @@ body.mapview .tbl{display:none}
       <select id="sort"><option value="near">Closest first</option><option value="when">Soonest first</option>
         <option value="best">Best rated</option><option value="new">Recently added</option>
         <option value="az">A &ndash; Z</option></select></div>
+    <div class="ctrl"><label>View</label>
+      <div class="seg" id="viewseg" role="group" aria-label="How to show the listings">
+        <button type="button" data-v="list" aria-pressed="true">List</button>
+        <button type="button" data-v="map" aria-pressed="false">Map</button>
+      </div></div>
     <div class="ctrl"><label for="q">Search</label>
       <input id="q" type="search" placeholder="Name, place or tag"></div>
     <div class="ctrl"><label>&nbsp;</label>
@@ -329,6 +334,11 @@ body.mapview .tbl{display:none}
       <span>When</span><span class="h-dur">How long</span><span class="h-cost">Cost</span><span class="num">km</span>
     </div>
     <div id="rows"></div>
+  </div>
+
+  <div id="mapwrap">
+    <div id="map"><div class="mapstate">The map loads when you open it.</div></div>
+    <p class="mapnote" id="mapnote"></p>
   </div>
 
   <footer>
@@ -819,6 +829,7 @@ function sortFn(a,b){
 function render(){
   syncClear();
   const list=ALL.filter(ok).sort(sortFn);
+  VISIBLE=list;
   const hidden = !S.theme && !S.q ? ALL.filter(i=>whenOK(i)&&(i.themes||[]).includes('home')).length : 0;
   document.getElementById('tally').textContent =
     list.length+' listed'+(hidden?' · '+hidden+' at home':'');
@@ -862,7 +873,147 @@ function render(){
     const r=b.closest('.rec'), o=r.classList.toggle('open');
     b.setAttribute('aria-expanded',o);
   }));
+  paintMap();
 }
+
+/* ══ map ═══════════════════════════════════════════════════════════════════
+   MapLibre GL JS, fetched from the CDN only when someone actually opens the
+   map. If that fetch fails the list is untouched and the map says so — the
+   page must never depend on a third party to render its own data.
+
+   Basemap is CARTO's Positron / Dark Matter: vector, no API key, swapped with
+   the page's own light/dark. Their styles carry no attribution string, so it
+   is added here by hand — OpenStreetMap and CARTO are both owed it.
+
+   A pin is drawn from a real lat/lng or not at all. Everything in the current
+   filter that has no coordinates is counted out loud underneath the map rather
+   than quietly dropped, because a map that silently shows two thirds of the
+   database is a map that lies. ════════════════════════════════════════════ */
+/* Pinned to the 5.x line on purpose: 6.x ships ESM only, split across a shared
+   chunk and a module worker, which wants a bundler. This file has no build step,
+   so the UMD build that puts `maplibregl` on window is the one that fits. */
+const MAPLIBRE='https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl';
+const BASEMAP={light:'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+               dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'};
+const ATTRIB='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
+            +' contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
+let MAP=null, MARKS=[], MAPSIG=null, LOADING=null, VISIBLE=[];
+
+const isDark=()=>document.documentElement.dataset.theme
+  ? document.documentElement.dataset.theme==='dark'
+  : matchMedia('(prefers-color-scheme:dark)').matches;
+
+function loadMapLibre(){
+  if(window.maplibregl) return Promise.resolve();
+  return LOADING ||= new Promise((ok,fail)=>{
+    const css=document.createElement('link');
+    css.rel='stylesheet'; css.href=MAPLIBRE+'.css';
+    /* First in the head, not last: MapLibre's stylesheet and this page's own use the
+       same selectors at the same weight, so whichever lands later wins. Appended, it
+       repaints the popups white over the top of a dark page. */
+    document.head.insertBefore(css, document.head.firstChild);
+    const js=document.createElement('script');
+    js.src=MAPLIBRE+'.min.js'; js.onload=ok;
+    js.onerror=()=>{ LOADING=null; fail(new Error('cdn')); };
+    document.head.appendChild(js);
+  });
+}
+
+/* Several things genuinely happen at one place — five listings sit on Bells Beach.
+   Those share a pin and the pin says how many, rather than being nudged apart into
+   five coordinates that are not true. */
+const atKey=i=>Number(i.lat).toFixed(5)+','+Number(i.lng).toFixed(5);
+function popupHTML(group){
+  return '<div class="pop">'+group.map(i=>{
+    const meta=[i.type, i.loc||i.venue, i.km!=null?i.km+' km':''].filter(Boolean).map(esc).join(' &middot; ');
+    const d=String(i.desc||'');
+    const links=[
+      i.url&&i.url!==i.info&&!isMapLink(i.url)?`<a href="${esc(i.url)}" target="_blank" rel="noopener">Website</a>`:'',
+      i.info?`<a href="${esc(i.info)}" target="_blank" rel="noopener">More info</a>`:'',
+      i.ticket?`<a href="${esc(i.ticket)}" target="_blank" rel="noopener">Tickets</a>`:'',
+      `<a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}" target="_blank" rel="noopener">Directions</a>`
+    ].join('');
+    return `<h4>${esc(i.name)}</h4><p class="meta">${meta}</p>`
+         + (d?`<p class="txt">${esc(d.length>170?d.slice(0,170).trim()+'…':d)}</p>`:'')
+         + links;
+  }).join('')+'</div>';
+}
+
+function paintMap(){
+  const note=document.getElementById('mapnote');
+  const pinned=VISIBLE.filter(i=>i.lat!=null&&i.lng!=null);
+  const blank=VISIBLE.length-pinned.length;
+  const blankEv=VISIBLE.filter(i=>i.ev&&i.lat==null).length;
+  if(note) note.innerHTML = VISIBLE.length===0 ? 'Nothing matches that.'
+    : `<b>${pinned.length}</b> of ${VISIBLE.length} on the map`
+      + (blank?` &middot; ${blank} have no coordinates yet`:'')
+      + (blankEv?`, ${blankEv} of those events &mdash; no venue is geocoded`:'')
+      + ' &middot; distances in the list are driving km from Jan Juc, not the line you see here';
+  if(S.view!=='map'||!MAP) return;
+
+  const sig=pinned.map(i=>i.id).join(',');
+  if(sig===MAPSIG) return;
+  MAPSIG=sig;
+  MARKS.forEach(m=>m.remove()); MARKS=[];
+
+  const groups=new Map();
+  pinned.forEach(i=>{ const k=atKey(i); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(i); });
+
+  const bounds=new maplibregl.LngLatBounds();
+  groups.forEach(group=>{
+    const i=group[0], el=document.createElement('div');
+    el.className='pin'+(group.length>1?' multi':'');
+    el.setAttribute('role','button'); el.tabIndex=0;
+    el.title=group.length>1 ? group.length+' things here' : i.name;
+    if(group.length>1) el.innerHTML='<b>'+group.length+'</b>';
+    const m=new maplibregl.Marker({element:el})
+      .setLngLat([+i.lng,+i.lat])
+      .setPopup(new maplibregl.Popup({offset:14,maxWidth:'300px'}).setHTML(popupHTML(group)))
+      .addTo(MAP);
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); }});
+    MARKS.push(m);
+    bounds.extend([+i.lng,+i.lat]);
+  });
+
+  if(groups.size) MAP.fitBounds(bounds,{padding:{top:60,right:60,bottom:60,left:60},maxZoom:13,duration:500});
+}
+
+function buildMap(){
+  const el=document.getElementById('map');
+  el.innerHTML='';
+  MAP=new maplibregl.Map({
+    container:el, style:BASEMAP[isDark()?'dark':'light'],
+    center:[JJ.lng,JJ.lat], zoom:9, attributionControl:{compact:true, customAttribution:ATTRIB}});
+  MAP.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+  MAP.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
+  /* Jan Juc itself — every km in the database is measured from here. */
+  const home=document.createElement('div');
+  home.className='pin home'; home.title='Jan Juc — distances are measured from here';
+  new maplibregl.Marker({element:home}).setLngLat([JJ.lng,JJ.lat]).addTo(MAP);
+  /* Pins go on straight away rather than waiting for `load`. They are HTML sitting
+     over the canvas, not part of the style, so they do not need the basemap — and on
+     a slow connection the listings appear while the tiles are still arriving. */
+  MAPSIG=null; paintMap();
+  matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{
+    if(MAP && !document.documentElement.dataset.theme) MAP.setStyle(BASEMAP[isDark()?'dark':'light']);
+  });
+}
+
+const viewBtns=[...document.querySelectorAll('#viewseg button')];
+async function showView(v){
+  S.view=v;
+  viewBtns.forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.v===v)));
+  document.body.classList.toggle('mapview', v==='map');
+  if(v!=='map') return;
+  if(MAP){ MAP.resize(); MAPSIG=null; paintMap(); return; }
+  const el=document.getElementById('map');
+  el.innerHTML='<div class="mapstate">Fetching the map…</div>';
+  try{ await loadMapLibre(); }
+  catch(e){ el.innerHTML='<div class="mapstate">The map couldn’t load. The list still works — switch back to it.</div>'; return; }
+  buildMap();
+}
+viewBtns.forEach(b=>b.addEventListener('click',()=>showView(b.dataset.v)));
+S.view='list';
 rebuild();
 const t=document.getElementById('theme');
 function refreshThemeCounts(){
