@@ -103,13 +103,32 @@ option{background:var(--ground);color:var(--ink)}
 .morebtn:hover,.morebtn[aria-expanded="true"]{border-bottom-color:var(--ink)}
 .morebtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .morebtn .dot{width:6px;height:6px;border-radius:50%;background:var(--ink);flex:none}
-.more{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding:0 0 30px}
+.more{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding:0 0 26px}
 .more[hidden]{display:none}
 
 /* ── sort / view / search belong to the list, not to the filters ── */
-.toolbar{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding-bottom:12px}
-.toolbar .grow{flex:1 1 240px;margin-right:auto}
-.toolbar .grow input{width:100%}
+.toolbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;padding-bottom:12px}
+/* the listing area has a name, and its count belongs beside it rather than
+   floating loose at the end of a row of controls */
+.board{margin:0 auto 0 0;font-family:var(--serif);font-weight:400;font-size:17px;
+  line-height:1.3;letter-spacing:-.005em;color:var(--ink);white-space:nowrap}
+.board span{color:var(--ink3);font-variant-numeric:tabular-nums}
+.toolbar input[type=search]{min-width:0;width:150px;transition:width .16s}
+.toolbar input[type=search]:focus{width:212px}
+
+/* ── what is currently on, and one click to take it off again ── */
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 0 22px}
+.chips:empty{display:none}
+.chip{
+  font-family:var(--util);font-size:12px;font-weight:500;letter-spacing:.02em;
+  color:var(--ground);background:var(--ink);border:1px solid var(--ink);
+  border-radius:999px;padding:5px 8px 5px 12px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.chip:hover{background:var(--ink2);border-color:var(--ink2)}
+.chip:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.chip .x{font-size:13px;line-height:1;opacity:.7}
+.chip:hover .x{opacity:1}
 
 /* ── Add is a standing offer, not a filter ── */
 .addpill{
@@ -168,7 +187,6 @@ option{background:var(--ground);color:var(--ink)}
 .review li a:hover{border-bottom-color:var(--ink)}
 .warn{font-family:var(--util);font-size:12px;color:var(--ink3);margin-top:8px}
 
-.tally{font-family:var(--util);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding-bottom:8px;font-variant-numeric:tabular-nums}
 
 /* ── table ── */
 .tbl{border-top:1px solid var(--ink)}
@@ -291,7 +309,6 @@ body.mapview .tbl{display:none}
   .controls{gap:12px 18px}
   select,input[type=search]{min-width:0;width:100%;font-size:16px}
   .ctrl{flex:1 1 42%}
-  .tally{width:100%;margin-left:0;padding-bottom:0}
   #map{height:min(76vh,560px)}
   .seg button{padding:6px 13px 7px;font-size:15px}
 }
@@ -308,12 +325,11 @@ body.mapview .tbl{display:none}
   <div class="controls">
     <div class="ctrl ms" id="ms-verb"></div>
     <div class="ctrl ms" id="ms-type"></div>
-    <div class="ctrl">
-      <select id="when" aria-label="When">
-        <option value="now">Now</option><option value="later">Later today</option>
-        <option value="tonight">Tonight</option><option value="tomorrow">Tomorrow</option>
-        <option value="any">Any time</option>
-      </select></div>
+    <div class="seg" id="whenseg" role="group" aria-label="When">
+      <button type="button" data-w="today" aria-pressed="false">Today</button>
+      <button type="button" data-w="tomorrow" aria-pressed="false">Tomorrow</button>
+      <button type="button" data-w="any" aria-pressed="true">Any time</button>
+    </div>
     <button id="morebtn" type="button" class="morebtn" aria-expanded="false"
             aria-controls="more">Filters<span class="dot" id="moredot" hidden></span></button>
     <button id="clear" type="button" class="clearbtn" hidden>Clear all</button>
@@ -388,9 +404,12 @@ body.mapview .tbl{display:none}
 
   <script id="additions" type="application/json">[]</script>
 
+  <div class="chips" id="chips"></div>
+
   <div class="toolbar">
-    <div class="ctrl grow">
-      <input id="q" type="search" aria-label="Search" placeholder="Search name, place or tag"></div>
+    <h2 class="board">Notice Board <span id="tally"></span></h2>
+    <div class="ctrl">
+      <input id="q" type="search" aria-label="Search" placeholder="Search"></div>
     <div class="ctrl">
       <select id="sort" aria-label="Sort"><option value="near">Closest first</option>
         <option value="when">Soonest first</option><option value="best">Best rated</option>
@@ -401,7 +420,6 @@ body.mapview .tbl{display:none}
         <button type="button" data-v="map" aria-pressed="false">Map</button>
       </div></div>
   </div>
-  <div class="tally" id="tally"></div>
 
   <div class="tbl">
     <div id="rows"></div>
@@ -491,7 +509,7 @@ async function fetchWeather(){
             rain:j.current.precipitation,rain48:past,cloud:j.current.cloud_cover};
   }catch(e){ clearTimeout(t); return null; }
 }
-const S={when:'now',verb:[],type:[],km:999,cost:[],who:[],wx:'',sort:'near',q:''};
+const S={when:'any',verb:[],type:[],km:999,cost:[],who:[],wx:'',sort:'near',q:''};
 
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -921,31 +939,15 @@ function whenText(i){
   return lbl + rep + (time?`<span class="tm">${esc(time)}</span>`:'') + (mark?`<span class="est">${mark}</span>`:'');
 }
 function whenOK(i){
+  /* Three answers, because that is how many questions a person actually has:
+     is it on today, is it on tomorrow, or show me everything. A place has no
+     date, so it is on whichever day you ask about — the daylight arithmetic
+     that used to gate "Now" said a beach was unavailable at 10pm, which is
+     true of the light but not of the beach. */
   if(S.when==='any') return true;
-  const now=melbNow(), h=now.getHours()+now.getMinutes()/60;
-  const {rise,set}=sunHours(now);
-  const dark = h>=set || h<rise;
-  const d = i.ev ? daysAway(nextDate(i)) : null;
-
-  if(S.when==='tomorrow') return i.ev ? d===1 : true;
-  if(i.ev && d!==0) return false;                 /* the rest are all about today */
-
-  if(S.when==='tonight'){
-    if(i.ev) return (startHour(i.time,set) ?? 12) >= set-0.5;
-    return dayparts(i).includes('night');
-  }
-  if(S.when==='later'){
-    if(i.ev) return (startHour(i.time,set) ?? 24) > h;
-    /* daytime things only still count if there is daylight left to do them in */
-    const p=dayparts(i);
-    return p.includes('night') || (p.includes('day') && hoursNeeded(i.dur) <= Math.max(0,set-h));
-  }
-  /* now */
-  if(i.ev){ const st=startHour(i.time,set); return st===null ? true : (st<=h+2 && st>=h-3); }
-  const p=dayparts(i);
-  if(dark) return p.includes('night');
-  if(!p.includes('day')) return false;
-  return hoursNeeded(i.dur) <= Math.max(0, set-h);   /* is there still time to do it? */
+  if(!i.ev) return true;
+  const d=daysAway(nextDate(i));
+  return S.when==='tomorrow' ? d===1 : d===0;
 }
 function atHomeHidden(i){
   /* "At home" is a theme you choose, not the answer to "what's on near me". With no
@@ -1009,7 +1011,8 @@ function render(){
   VISIBLE=list;
   const hidden = !S.verb.length && !S.type.length && !S.q ? ALL.filter(i=>whenOK(i)&&(i.themes||[]).includes('home')).length : 0;
   document.getElementById('tally').textContent =
-    list.length+' listed'+(hidden?' · '+hidden+' at home':'');
+    list.length===1 ? '1 thing pinned' : list.length+' things pinned';
+  paintChips();
   document.getElementById('rows').innerHTML = list.length ? list.map(i=>{
     const [wVenue,wSuburb]=whereParts(i);
     return `<div class="rec">
@@ -1294,12 +1297,51 @@ function refreshFacets(){
   paintMulti(MULTI.who, WHO, w=>pw.filter(i=>(i.ages||[]).some(a=>a===w||a==='all-ages')).length);
 }
 refreshFacets();
-[['when','when'],['km','km'],['wx','wx'],['sort','sort']].forEach(([id,key])=>{
+[['km','km'],['wx','wx'],['sort','sort']].forEach(([id,key])=>{
   document.getElementById(id).addEventListener('change',e=>{
     S[key]= key==='km' ? +e.target.value : e.target.value;
     if(key==='wx' && e.target.value==='auto') return void useAuto(e.target);
     if(key!=='sort') refreshFacets();
     render()})});
+
+document.getElementById('whenseg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  S.when=b.dataset.w;
+  [...e.currentTarget.children].forEach(x=>
+    x.setAttribute('aria-pressed', String(x===b)));
+  refreshFacets(); render();
+});
+
+/* Every filter that is on, said plainly, and one click to take it off. The
+   controls tell you what you *can* pick; these tell you what you *did*. */
+function paintChips(){
+  const box=document.getElementById('chips');
+  const out=[];
+  const label=(k,v)=>({verb:(VERBS.find(o=>o[0]===v)||[v,v])[1],
+                       who:(WHO.find(o=>o[0]===v)||[v,v])[1]}[k] ?? v);
+  ['verb','type','cost','who'].forEach(k=>
+    S[k].forEach(v=>out.push([k, v, label(k,v)])));
+  if(S.when!=='any') out.push(['when', S.when, S.when==='today'?'Today':'Tomorrow']);
+  if(S.km!==999)     out.push(['km', 999, 'Within '+S.km+' km']);
+  if(S.wx)           out.push(['wx', '', {auto:'Weather now',fine:'Fine',grey:'Grey & cold',
+                                          rain:'Raining'}[S.wx] || S.wx]);
+  if(S.q)            out.push(['q', '', '\u201c'+S.q+'\u201d']);
+  box.innerHTML=out.map(([k,v,l])=>
+    `<button class="chip" type="button" data-k="${k}" data-v="${esc(String(v))}"`
+    +` aria-label="Remove filter ${esc(l)}">${esc(l)}<span class="x">&times;</span></button>`).join('');
+}
+document.getElementById('chips').addEventListener('click',e=>{
+  const c=e.target.closest('.chip'); if(!c) return;
+  const k=c.dataset.k, v=c.dataset.v;
+  if(Array.isArray(S[k])) S[k]=S[k].filter(x=>x!==v);
+  else if(k==='km')  { S.km=999; document.getElementById('km').value='999'; }
+  else if(k==='when'){ S.when='any';
+    [...document.getElementById('whenseg').children].forEach(x=>
+      x.setAttribute('aria-pressed', String(x.dataset.w==='any'))); }
+  else if(k==='wx')  { S.wx=''; document.getElementById('wx').value=''; }
+  else if(k==='q')   { S.q=''; document.getElementById('q').value=''; }
+  refreshFacets(); render();
+});
 
 /* the four secondary filters, and a dot when any of them is doing something */
 const moreBtn=document.getElementById('morebtn'), moreBox=document.getElementById('more');
@@ -1317,7 +1359,7 @@ function syncMoreDot(){
 document.getElementById('q').addEventListener('input',e=>{
   S.q=e.target.value.trim().toLowerCase(); refreshFacets(); render();});
 
-const DEFAULTS={when:'now',verb:[],type:[],km:999,cost:[],who:[],wx:'',q:''};   /* sort is a view, not a filter */
+const DEFAULTS={when:'any',verb:[],type:[],km:999,cost:[],who:[],wx:'',q:''};   /* sort is a view, not a filter */
 function syncClear(){
   const on = Object.keys(DEFAULTS).some(k=>Array.isArray(DEFAULTS[k])
     ? S[k].length : S[k]!==DEFAULTS[k]);
@@ -1327,7 +1369,9 @@ function syncClear(){
 document.getElementById('clear').addEventListener('click',()=>{
   Object.keys(DEFAULTS).forEach(k=>S[k]=Array.isArray(DEFAULTS[k])?[]:DEFAULTS[k]);
   S.sort='near'; document.getElementById('sort').value='near';
-  ['when','km','wx'].forEach(id=>document.getElementById(id).value=String(DEFAULTS[id]));
+  ['km','wx'].forEach(id=>document.getElementById(id).value=String(DEFAULTS[id]));
+  [...document.getElementById('whenseg').children].forEach(x=>
+    x.setAttribute('aria-pressed', String(x.dataset.w===DEFAULTS.when)));
   refreshFacets();
   document.getElementById('km').value='999';
   document.getElementById('q').value='';
@@ -1355,11 +1399,6 @@ function refreshClock(){
   document.getElementById('sub').textContent =
     now.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'})+
     '  ·  '+t+'  ·  Jan Juc & the Surf Coast';
-  const o=document.getElementById('when').options;
-  o[0].textContent = 'Now — '+t;
-  o[1].textContent = dark ? 'Later tonight' : 'Later today';
-  o[2].textContent = dark ? 'Tonight — now on' : 'Tonight — after '+hhmm(set);
-  o[3].textContent = 'Tomorrow — '+new Date(now.getTime()+864e5).toLocaleDateString('en-AU',{weekday:'long'});
 }
 refreshClock();
 setInterval(()=>{refreshClock();render()},60000);   /* keep it honest as the evening comes on */
