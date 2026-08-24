@@ -493,6 +493,12 @@ caught it before it shipped; clicking around the page would not have.
   evidence; it only records that a person looked.
 - `Lorne Schoolies Week` (23) was deleted 24 Aug 2026 at Scott's request. It was
   a warning to stay away rather than something to do.
+- `Snake Valley Dark Sky Site` (activity 90) was deleted 25 Aug 2026 — 100 km
+  inland toward Ballarat, which is the wrong direction. Everything else past
+  75 km is Otways and Great Ocean Road (Cape Otway, Beech Forest, Kennett River,
+  Lavers Hill, Forrest), and those sit on the region's spine rather than outside
+  it, so distance alone is not the test — direction is. It was `verified = true`,
+  which again only recorded that a person had looked.
 - The two Torquay Farmers Market rows were merged 24 Aug 2026 (5 kept, 83
   deleted) — and both had it in the wrong place. myfarmersmarket.com.au and
   visitgreatoceanroad.org.au agree it is "the carpark of the Surf Coast Shire
