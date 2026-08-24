@@ -515,6 +515,18 @@ caught it before it shipped; clicking around the page would not have.
 
 ## Gotchas already paid for
 
+- **The preview pane cannot serve this project from iCloud.** The dev-server
+  process launched by `.claude/launch.json` starts with its cwd set to the
+  project directory, and the sandbox denies that path outright — it throws
+  `PermissionError` on `os.getcwd()` before running a line of its own code, so
+  it cannot read `public/` either. A committed `scripts/serve.py` would not help;
+  the launcher cannot read that file for the same reason. The working route is to
+  copy `public/index.html` somewhere outside iCloud (the session scratchpad) and
+  point a server at the copy, re-copying after every edit. That path is
+  session-specific, so **do not commit it into `launch.json`** — the file in git
+  is the original and should stay that way. Verifying against the deployed site
+  works too, once a push has built.
+
 - **DDL can be run from here after all.** PostgREST cannot create a table or
   redefine a view, which is why every schema file says "run it in the SQL
   editor" — but the Supabase **Management API** can:
