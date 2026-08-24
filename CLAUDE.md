@@ -177,6 +177,18 @@ shaky and inventing more is exactly how it got burned — fill it in on review.
   instructions. Keep that line if you touch the prompt.
 - A link the person pasted is kept as the entry's url when the model finds nothing
   better. That is not an invented URL — it came from a human.
+- **A coordinate means "you can stand here".** 50 activities once shared one identical
+  point (-38.3655, 144.2978, Jan Juc town centre) used as a placeholder — "Board Game
+  Evening" and "Nerf Battle" among them. That is not an approximation, it is fiction
+  wearing the costume of data, and on a map it stacks 50 false pins on one spot. 48
+  were cleared 24 Aug 2026; a null pin is honest, a wrong one is not.
+- Geocode, never estimate. OpenStreetMap Nominatim works from here (1 req/sec, real
+  User-Agent). Record what it actually matched: a result resolving to "Ashmore Road,
+  Torquay" is street-level, not the same fact as "50, Prospect Road, Ceres", which is
+  the building. `source_note` carries that distinction for every geocoded row.
+- Which coordinate wins: an activity uses **its own** `lat`/`lng`. `venue_id` is only
+  for an activity that *is* one of the licensed venues in `venues`. The `listings` view
+  coalesces own-first, venue-second.
 - Distances are approximate DRIVING distances from Jan Juc, not straight-line —
   the Great Ocean Road makes those differ by 40%.
 - `km = 0` means *here* — Jan Juc itself, or your own house. `km = null` means the
