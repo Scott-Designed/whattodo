@@ -216,9 +216,9 @@ shaky and inventing more is exactly how it got burned — fill it in on review.
 - Tide, moon and fire-ban conditions have no data source wired up. Only the
   weather-derived tags actually evaluate: dry-ground, dry-trails, warm, low-wind,
   clear-sky, good-in-rain
-- The events feed has never run against production. Its first run offers ~46
-  series at once, some of which will collide by name with the 31 events already
-  there and be skipped. Run it without `--write` first and read the list.
+- The feed's backfill is done: 44 imported 24 Aug 2026, ids 45–88, all
+  unverified and all `date_confidence = 'medium'`. Four collided by name with
+  events already there and were skipped. None has a `km` yet.
 - Imported events carry no `km` and no `cost` (the source publishes no price at
   all — 0 of 101 listings had one)
 - The moderation queue is empty. `Ashmore Arts` (169) and `The Fives` (168) are both
@@ -239,14 +239,21 @@ shaky and inventing more is exactly how it got burned — fill it in on review.
 - The site ships with a baked-in copy of the data so it renders instantly and still
   works if Supabase is down. The badge by the date says `live` / `offline copy` /
   `built-in copy`. Don't remove that fallback.
+- A GitHub Actions step that pipes through `tee` reports **tee's** exit status,
+  not the script's, so a crash shows a green tick. `set -o pipefail`, and `2>&1`
+  or the traceback never reaches the job summary. The events job shipped with
+  both bugs and its first real run failed invisibly.
+- GitHub secrets are set from the terminal — `… | gh secret set NAME` — not by
+  pasting into the web form. Pasting put the text of the shell command into the
+  secret, and the failure surfaced three layers away as `unknown url type`.
 - Sunset is computed in-page (no API) for the When filter. Verified against
   WillyWeather: 22 Aug 2026 gives sunrise 6:59, sunset 5:52pm.
 
 ## Next things worth doing
 
-1. Turn the feed on: add `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` to the repo's
-   Actions secrets, run the workflow by hand once from the Actions tab, and read
-   the job summary before letting the schedule have it.
+1. Work through the 44 imported events — `sync.py pending`. Each needs a
+   distance from Jan Juc and its date checked against the organiser's own page
+   before `date_confidence` can go to high; until then the site shows "est.".
 2. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.
