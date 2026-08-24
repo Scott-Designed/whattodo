@@ -179,8 +179,12 @@ body.mapview .tbl{display:none}
 .maplibregl-popup-close-button{font-family:var(--util);font-size:17px;line-height:1;color:var(--ink3);
   background:none;padding:5px 8px 6px;right:0;top:0}
 .maplibregl-popup-close-button:hover{background:none;color:var(--ink)}
-.pop{max-height:270px;overflow-y:auto}
-.pop h4{font-family:var(--serif);font-weight:400;font-size:19px;letter-spacing:-.01em;line-height:1.2;margin:0 0 4px}
+.pop{max-height:270px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--rule2) transparent}
+.pop::-webkit-scrollbar{width:5px}
+.pop::-webkit-scrollbar-thumb{background:var(--rule2)}
+.pop::-webkit-scrollbar-track{background:transparent}
+.pop h4{font-family:var(--serif);font-weight:400;font-size:19px;letter-spacing:-.01em;line-height:1.2;
+  margin:0 0 4px;padding-right:16px}
 .pop h4~h4{margin-top:15px;padding-top:13px;border-top:1px solid var(--rule)}
 .pop .meta{font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
   color:var(--ink3);margin:0 0 7px}
@@ -882,8 +886,8 @@ function render(){
    page must never depend on a third party to render its own data.
 
    Basemap is CARTO's Positron / Dark Matter: vector, no API key, swapped with
-   the page's own light/dark. Their styles carry no attribution string, so it
-   is added here by hand — OpenStreetMap and CARTO are both owed it.
+   the page's own light/dark. Attribution rides along in their TileJSON, so the
+   control fills itself in — don't add a second copy by hand, it prints twice.
 
    A pin is drawn from a real lat/lng or not at all. Everything in the current
    filter that has no coordinates is counted out loud underneath the map rather
@@ -895,9 +899,7 @@ function render(){
 const MAPLIBRE='https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl';
 const BASEMAP={light:'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
                dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'};
-const ATTRIB='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
-            +' contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
-let MAP=null, MARKS=[], MAPSIG=null, LOADING=null, VISIBLE=[];
+let MAP=null, MARKS=[], MAPSIG=null, LOADING=null, VISIBLE=[], FITTED=false;
 
 const isDark=()=>document.documentElement.dataset.theme
   ? document.documentElement.dataset.theme==='dark'
@@ -975,7 +977,13 @@ function paintMap(){
     bounds.extend([+i.lng,+i.lat]);
   });
 
-  if(groups.size) MAP.fitBounds(bounds,{padding:{top:60,right:60,bottom:60,left:60},maxZoom:13,duration:500});
+  /* Follow the filter. The first fit jumps — an animation started before the basemap
+     has finished arriving gets dropped and leaves the map on its opening view. */
+  if(groups.size){
+    MAP.fitBounds(bounds,{padding:{top:60,right:60,bottom:60,left:60},maxZoom:13,
+                          duration:FITTED?500:0});
+    FITTED=true;
+  }
 }
 
 function buildMap(){
@@ -983,7 +991,7 @@ function buildMap(){
   el.innerHTML='';
   MAP=new maplibregl.Map({
     container:el, style:BASEMAP[isDark()?'dark':'light'],
-    center:[JJ.lng,JJ.lat], zoom:9, attributionControl:{compact:true, customAttribution:ATTRIB}});
+    center:[JJ.lng,JJ.lat], zoom:9, attributionControl:{compact:true}});
   MAP.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
   MAP.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
   /* Jan Juc itself — every km in the database is measured from here. */

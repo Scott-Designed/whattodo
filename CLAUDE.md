@@ -92,11 +92,14 @@ Bells Beach surf comp at Bells Beach Brewing.
 check website", "Surf Coast Shire", bare "Torquay". They name no single place you
 can stand at, so inventing a pin for them would be the placeholder problem again.
 
-**Four Winchelsea venues share one coordinate** (-38.241908, 143.98596) because
-OpenStreetMap has the town but not the Globe Theatre, Trebeck Reserve, Lions Park
-or the Shire Hall. Their `source_note` says "suburb-level only". That is the same
-shape as the 50-pins-on-one-spot problem — honest here because it is recorded, but
-a map should draw suburb-level pins differently, or they will read as precise.
+No two venues share a coordinate. Four Winchelsea ones briefly did — OpenStreetMap
+has the town but not its halls — and were resolved by finding the real addresses
+instead of accepting the town centre: the Globe Theatre is 17 Willis St (its
+heritage listing says so), the Shire Hall is on Main St, Lions Park is on Barwon
+Terrace. Cheaper than arguing about how a map should draw an approximation.
+
+Two venues stay unpinned: `Eureka Hotel Geelong` and `The Whiskery` (Drysdale).
+Neither resolves in OpenStreetMap and neither has a usable address on file.
 
 34 of the 38 spreadsheet venues were geocoded (24 Aug 2026) — 11 to the building, 14 to the
 street, 9 by name and suburb where the sheet had no address; every row's
