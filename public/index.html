@@ -197,16 +197,14 @@ option{background:var(--ground);color:var(--ink)}
 }
 
 .rec{border-bottom:1px solid var(--rule)}
-.rowline{width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:19px 0}
+.rowline{width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:11px 0}
 .rowline:hover{background:var(--surface)}
 .rowline:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
-.c-name{font-size:19px;letter-spacing:-.01em;line-height:1.25}
-.c-type,.c-where,.c-when,.c-cost{font-size:15px;color:var(--ink2);line-height:1.3}
-.c-extra{font-size:15px;color:var(--ink2);line-height:1.3;min-width:0}
-.c-extra b{display:block;font-family:var(--util);font-size:9.5px;font-weight:600;
-  letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
+.c-name{font-size:19px;letter-spacing:-.01em;line-height:1.2}
+.c-type,.c-where,.c-when,.c-cost{font-size:15px;color:var(--ink2);line-height:1.22}
+.c-extra{font-size:15px;color:var(--ink2);line-height:1.22;min-width:0}
 .est{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-top:3px}
-.tm{display:block;font-family:var(--serif);font-size:14px;color:var(--ink3);line-height:1.3;margin-top:1px}
+.tm{display:block;font-family:var(--serif);font-size:14px;color:var(--ink3);line-height:1.2;margin-top:0}
 /* How often it repeats, beside the day — "Saturday" alone reads as one Saturday. */
 .rep{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
   color:var(--ink3);margin-left:7px;white-space:nowrap}
@@ -303,7 +301,7 @@ body.mapview .tbl{display:none}
 @media (max-width:700px){
   :root{--pad:20px}
   header{padding:44px 0 30px}
-  .rowline{grid-template-columns:1fr;gap:4px;padding:16px 0}
+  .rowline{grid-template-columns:1fr;gap:3px;padding:11px 0}
   .c-where,.c-when{display:none}
   .mob{display:block;grid-column:1;font-family:var(--util);font-size:12px;color:var(--ink3)}
   .controls{gap:12px 18px}
@@ -431,7 +429,7 @@ body.mapview .tbl{display:none}
   </div>
 
   <footer>
-    Distances are approximate driving distances from Jan Juc. Dates marked <b style="display:inline;letter-spacing:.08em">est.</b> are worked out from last year and should be checked before you go. Built from the Notice community database.
+    Distances are approximate driving distances from Jan Juc. Open a listing to see how sure its date is &mdash; some are worked out rather than read off the organiser&rsquo;s own page, and those say so. Built from the Notice community database.
   </footer>
 </div>
 
@@ -916,7 +914,7 @@ const THISYEAR=new Date().getFullYear();
 const SEASONS=['summer','autumn','winter','spring'];
 /* When = when you can go. Duration = how long it takes. Two different questions. */
 function whenText(i){
-  if(i.ev && !i.date) return 'Date not set<span class="est">needs checking</span>';
+  if(i.ev && !i.date) return 'Date not set';
   if(!i.ev){
     const p=dayparts(i);
     const lbl = p.length===2 ? 'Any time' : p[0]==='night' ? 'After dark' : 'Daylight';
@@ -929,14 +927,14 @@ function whenText(i){
   /* show the year whenever it is not this one — "25 Apr" alone reads as this April */
   const dated = dt.toLocaleDateString('en-AU',
     {day:'numeric',month:'short',...(dt.getFullYear()!==THISYEAR?{year:'numeric'}:{})});
+  /* Inside the week, name the day the way a person would say it out loud. Day 7
+     is the same weekday as today, so "This Monday" on a Monday would read as
+     today — it gets the date instead. Recurrence and date confidence have moved
+     into the open row; the list says when, not how often or how sure. */
   const lbl = d===0?'Today' : d===1?'Tomorrow'
-    : (d>1&&d<7) ? dt.toLocaleDateString('en-AU',{weekday:'long'}) : dated;
-  const mark = i.conf==='low' ? 'estimated' : i.conf==='medium' ? 'est.' : '';
+    : (d>1&&d<7) ? 'This '+dt.toLocaleDateString('en-AU',{weekday:'long'}) : dated;
   const time = i.time ? String(i.time).replace(/\s*(mon|tues|wednes|thurs|fri|satur|sun)days?\s*$/i,'') : '';
-  /* A rolled weekly event shows its next Saturday; without this it reads as the
-     only Saturday. Annual sits beside a far-off date for the same reason. */
-  const rep = i.recur && i.recur!=='none' ? `<span class="rep">${esc(i.recur)}</span>` : '';
-  return lbl + rep + (time?`<span class="tm">${esc(time)}</span>`:'') + (mark?`<span class="est">${mark}</span>`:'');
+  return lbl + (time?`<span class="tm">${esc(time)}</span>`:'');
 }
 function whenOK(i){
   /* Three answers, because that is how many questions a person actually has:
@@ -1021,7 +1019,7 @@ function render(){
         <span class="c-type">${i.type?esc(i.type):'<span class="est" style="display:inline">unsorted</span>'}</span>
         <span class="c-where">${esc(wVenue)}${wSuburb?`<span class="tm">${esc(wSuburb)}</span>`:''}</span>
         <span class="c-when">${whenText(i)}</span>
-        <span class="c-extra">${(()=>{const x=extraOf(i);return x?`<b>${esc(x.label)}</b>${esc(x.value)}`:''})()}</span>
+        <span class="c-extra">${(()=>{const x=extraOf(i);return x?esc(x.value):''})()}</span>
         <span class="mob">${[i.type, whereLine(i), whenText(i).replace(/<[^>]+>/g,'\u001f'),
           (()=>{const x=extraOf(i);return x?x.value:''})()]
           .flatMap(v=>String(v==null?'':v).split('\u001f')).map(v=>v.trim())
@@ -1044,6 +1042,10 @@ function render(){
           ${i.time?`<p class="dl"><b>Time</b><span>${esc(i.time)}</span></p>`:''}
           ${!i.ev&&i.dur?`<p class="dl"><b>How long</b><span>${esc(i.dur)}</span></p>`:''}
           ${i.ev&&i.recur?`<p class="dl"><b>How often</b><span>${esc(i.recur)}</span></p>`:''}
+          ${i.ev&&i.conf&&i.conf!=='high'?`<p class="dl"><b>Date</b><span>${
+            i.conf==='low'?'Estimated — check with the organiser before you go'
+                          :'Not read off the organiser\u2019s own page — worth checking'
+            }</span></p>`:''}
           ${!i.ev&&(i.season||[]).length?`<p class="dl"><b>Season</b><span>${esc(i.season.join(', '))}</span></p>`:''}
           ${i.rating?`<p class="dl"><b>Rating</b><span>${i.rating} / 5</span></p>`:''}
         </div>
