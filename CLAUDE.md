@@ -269,14 +269,28 @@ case is a source we do not take.
     python3 scripts/scrape_venues.py --only oztix       # one platform
     python3 scripts/scrape_venues.py --skip humanitix   # leave a platform alone
 
-Ladder, best first: schema.org `Event` on the page → ticketing links followed and
-read (schema.org, or Oztix's patterned `<title>`) → report and stop. Never guess.
+It reads **both** the venue's own listing and the ticket pages behind it, then
+merges them on date. Neither is a superset: the listing is the only thing that
+sees a gig nobody ticketed (Torquay Hotel sells its Grand Final afterparty on the
+door), while the ticket page carries the blurb, the link and exact times. The
+listing is the spine; ticket data fills it in.
 
-**Confidence.** A ticket page is the organiser's own, so it is first-party and
-sufficient on its own. A date read from a machine-readable `startDate` lands
-`high`; a date picked out of a title by regex lands `medium`, because a regex can
-misfire and a wrong date wearing a confident badge is what this project has
-already paid for. Nothing is inserted `verified` either way.
+**Follow the pagination.** These sites show nine gigs a page and draw the pager
+in JavaScript, so a fetch — and even a headless browser scrolling to the bottom —
+only ever sees the first nine. `/gigs/page/2/` is a real url and has the rest.
+Torquay Hotel went from 8 gigs to 13 on that alone.
+
+A listing row must never claim a ticket link it cannot prove is its own. Taking
+the first ticket url on the page stamped one gig's ticket page onto all thirteen,
+including the one with no tickets at all — exactly the fabricated-url failure this
+project already paid for. `merge()` attaches a ticket link only where the date
+matches.
+
+**Confidence.** A ticket page and a venue's own gig listing are both first-party,
+so both land `high` — but only because the listing parser uses the printed weekday
+as a checksum: if "Saturday, Oct 17" is not actually a Saturday the row is thrown
+away rather than guessed at. A date picked out of an Oztix `<title>` by regex, with
+no such check, stays `medium`. Nothing is inserted `verified` either way.
 
 **It sets `venue_id`**, because it knows which venue it is reading. The
 surfcoastevents feed cannot and does not.

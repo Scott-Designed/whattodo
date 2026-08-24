@@ -101,8 +101,6 @@ def to_lines(page):
 def from_listing(page, base):
     """Gigs read off a venue's own listing page. Ticket link optional."""
     lines = to_lines(page)
-    tickets = re.findall(r'https://(?:[a-z0-9-]+\.)?(?:oztix\.com\.au/outlet/event|'
-                         r'humanitix\.com|trybooking\.com)/?[A-Za-z0-9\-/]*', page)
     out = []
     for i, line in enumerate(lines):
         m = LISTING_WHEN.match(line)
@@ -123,7 +121,10 @@ def from_listing(page, base):
             tt = clockish(hh, int(m.group('mi') or 0))
         out.append({'name': ' '.join(name.split())[:200], 'raw_name': name, 'starts_on': d.isoformat(),
                     'ends_on': None, 'time_text': tt, 'description': None,
-                    'url': E.clean_url(tickets[0]) if tickets else E.clean_url(base),
+                    # The listing cannot say which ticket link is this gig's —
+                    # taking the first on the page stamps one gig's ticket page
+                    # onto all of them. merge() attaches the real one by date.
+                    'url': E.clean_url(base),
                     'conf': 'high'})
     return out
 
@@ -228,7 +229,9 @@ def gigs_for(venue):
     for g in direct: g['conf'] = 'high'
     if direct: how.append(f'schema.org on the page ({len(direct)})')
 
-    # 3 — follow the ticketing links, for the detail the listing does not carry
+    # 3 — follow the ticketing links, for the detail the listing does not carry.
+    #     Across every sheet: a gig on page 2 deserves its blurb too.
+    page = '\n'.join(sheets)
     found = list(direct)
     for key, label, pat in TICKETERS:
         links = sorted(set(re.findall(pat, page)))
