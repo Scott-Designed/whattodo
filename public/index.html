@@ -1312,8 +1312,11 @@ document.getElementById('whenseg').addEventListener('click',e=>{
   refreshFacets(); render();
 });
 
-/* Every filter that is on, said plainly, and one click to take it off. The
-   controls tell you what you *can* pick; these tell you what you *did*. */
+/* Every filter that is on, said plainly, and one click to take it off — for the
+   controls that cannot show their own state. The multi-selects summarise ("Listen
+   +1") and the secondary four are folded away behind a button, so those need
+   saying out loud. When does not: it is three buttons and the pressed one is
+   visible, so a chip would print the same fact twice. */
 function paintChips(){
   const box=document.getElementById('chips');
   const out=[];
@@ -1321,7 +1324,6 @@ function paintChips(){
                        who:(WHO.find(o=>o[0]===v)||[v,v])[1]}[k] ?? v);
   ['verb','type','cost','who'].forEach(k=>
     S[k].forEach(v=>out.push([k, v, label(k,v)])));
-  if(S.when!=='any') out.push(['when', S.when, S.when==='today'?'Today':'Tomorrow']);
   if(S.km!==999)     out.push(['km', 999, 'Within '+S.km+' km']);
   if(S.wx)           out.push(['wx', '', {auto:'Weather now',fine:'Fine',grey:'Grey & cold',
                                           rain:'Raining'}[S.wx] || S.wx]);
@@ -1335,9 +1337,6 @@ document.getElementById('chips').addEventListener('click',e=>{
   const k=c.dataset.k, v=c.dataset.v;
   if(Array.isArray(S[k])) S[k]=S[k].filter(x=>x!==v);
   else if(k==='km')  { S.km=999; document.getElementById('km').value='999'; }
-  else if(k==='when'){ S.when='any';
-    [...document.getElementById('whenseg').children].forEach(x=>
-      x.setAttribute('aria-pressed', String(x.dataset.w==='any'))); }
   else if(k==='wx')  { S.wx=''; document.getElementById('wx').value=''; }
   else if(k==='q')   { S.q=''; document.getElementById('q').value=''; }
   refreshFacets(); render();
