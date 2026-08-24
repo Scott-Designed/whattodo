@@ -155,7 +155,26 @@ def from_jsonld(o):
             tt += '–' + clock(me.group(2))
     name = o.get('name')
     name = ' '.join(name) if isinstance(name, list) else name
+    # Where the gig actually happens. A host page can belong to an organisation
+    # that runs events all over the shire, so the source row cannot be assumed
+    # to be the room — only the event itself knows that.
+    loc = o.get('location')
+    loc = loc[0] if isinstance(loc, list) and loc else loc
+    vname = vsub = vaddr = None
+    if isinstance(loc, dict):
+        vname = loc.get('name')
+        vname = ' '.join(vname) if isinstance(vname, list) else vname
+        a = loc.get('address')
+        if isinstance(a, dict):
+            vaddr = a.get('streetAddress'); vsub = a.get('addressLocality')
+        elif isinstance(a, str):
+            vaddr = a
+            m2 = re.search(r',\s*([A-Za-z \'-]+?)\s+(?:VIC|NSW|QLD|SA|WA|TAS|NT|ACT)\b', a)
+            if m2: vsub = m2.group(1).strip()
     return {
+        'venue_name'   : html.unescape(str(vname)).strip() if vname else None,
+        'venue_suburb' : html.unescape(str(vsub)).strip() if vsub else None,
+        'venue_address': html.unescape(str(vaddr)).strip() if vaddr else None,
         'name'     : html.unescape(str(name or '')).strip(),
         'starts_on': day,
         'ends_on'  : me.group(1) if me and me.group(1) > day else None,

@@ -305,17 +305,29 @@ def dedupe(rows):
         uniq.setdefault((E.norm(g['name']), g['starts_on']), g)
     return sorted(uniq.values(), key=lambda x: x['starts_on'])
 
-def build(venue, g):
-    """One gig -> an events row. The venue is ours, so it is trusted."""
+def build(venue, g, registry):
+    """One gig -> an events row.
+
+    The source row is not necessarily the room. A Humanitix host page can belong
+    to a community organisation that runs events all over the shire, or to a
+    promoter who hires a hall — The Sound Doctor puts its gigs on at Anglesea
+    Memorial Hall. So the venue comes from the event where the event says, and
+    venue_id is set only when that name matches a row we already hold. No match
+    means null, not a guess: attributing a wildflower show to a live music
+    promoter because they share a hall is how this table got muddled.
+    """
+    vname = g.get('venue_name') or venue['name']
+    vsub  = g.get('venue_suburb') or (venue.get('suburb') if not g.get('venue_name') else None)
+    vid   = registry.get(E.norm(vname))
     return {
         'name'           : g['name'][:200],
         'type'           : 'gig',
         'starts_on'      : g['starts_on'],
         'ends_on'        : g.get('ends_on'),
         'time_text'      : g.get('time_text'),
-        'venue'          : venue['name'],
-        'venue_id'       : venue['id'],
-        'location'       : venue.get('suburb'),
+        'venue'          : vname,
+        'venue_id'       : vid,
+        'location'       : vsub,
         'description'    : g.get('description'),
         'info_url'       : g.get('url'),
         'ticket_url'     : g.get('url'),
@@ -351,6 +363,7 @@ def main(argv):
         print("\n  Nothing to read. Put a ticketing page in venues.events_url and run again.")
         return
 
+    registry = {E.norm(v['name']): v['id'] for v in venues}
     existing = E.db('GET', '/rest/v1/events?select=id,name,starts_on,venue_id,verified,source_note')
     by_name  = {E.norm(e['name']): e for e in existing}
     by_slot  = {(e.get('venue_id'), e.get('starts_on')): e for e in existing if e.get('venue_id')}
@@ -366,11 +379,12 @@ def main(argv):
         if not gigs:
             quiet.append(v); continue
         for g in sorted(gigs, key=lambda x: x['starts_on']):
-            row = build(v, g)
+            row = build(v, g, registry)
             key = f"{v['id']}:{g['starts_on']}:{E.norm(g['name'])[:40]}"
             if key in seen:
                 continue
-            hit = by_slot.get((v['id'], g['starts_on'])) or by_name.get(E.norm(g['name']))
+            hit = (by_slot.get((row['venue_id'], g['starts_on'])) if row['venue_id'] else None) \
+                  or by_name.get(E.norm(g['name']))
             if hit:
                 dupe.append((hit, row))
                 print(f"     {g['starts_on']}  {g['name'][:44]:46} already there as {hit['id']}")
