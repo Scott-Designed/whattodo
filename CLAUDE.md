@@ -517,17 +517,61 @@ land.
 - Sunset is computed in-page (no API) for the When filter. Verified against
   WillyWeather: 22 Aug 2026 gives sunrise 6:59, sunset 5:52pm.
 
+## Places — a taxonomy, written but NOT YET RUN
+
+`supabase/PLACES_TAXONOMY.sql` renames `venues` to `places` (and `venue_id` to
+`place_id`), and splits `kind` into two columns. **It has not been applied.**
+Until it is, the table is still `venues`, the view's column is still `venue`,
+and `scripts/classify_places.py --write` refuses. The page already reads
+`r.place ?? r.venue`, so it works either side of the migration — that fallback
+is the transition guard and can go once the migration lands.
+
+Why the split. `venues.kind` was doing two jobs badly. 40 of 79 rows said
+"event venue", which records how the row got created rather than what the place
+is — it covered beaches, a cenotaph, a library, a street, a carpark and a
+resort. The ~30 real values came off a music-venue spreadsheet, so the whole
+vocabulary was a music-industry one applied to a coastline. And it was already
+two axes fighting over one column: `Hotel` and `Beach` say what a place **is**,
+`Live Music Venue` says what **happens** there, which is why the Torquay Hotel
+— a pub, a restaurant and a live music room — could only be filed as one.
+
+So `kind` is one value foreign-keyed to `place_kinds` (the `types` pattern) and
+`offers` is a `text[]` checked against `place_offers` (the `conditions`
+pattern). The old free text survives in `kind_legacy`.
+
+There is deliberately **no `hotel` kind**. In Australia a hotel is usually a
+pub, and every "Hotel" in the music sheet is one; the place that is actually
+accommodation, Mantra Lorne, was never labelled a hotel. Pubs are `pub`, places
+you sleep are `accommodation`, food and drink live in `offers`.
+
+`classify_places.py` proposes a kind and offers for all 79 — 28 kinds, one left
+null (`Bloom`, which has nothing on file but a name and a suburb). Read the dry
+run before `--write`. Its ordering is the rule and it is load-bearing: first
+match wins, so the noun a name ends on must be tested before the geography it
+mentions, or Bells Beach Brewing files as a beach and Fishermans Beach Reserve
+does too. Both did, on the first pass.
+
+Offers stay conservative — 39 of 79 carry any. `live-music` only where the row
+was seeded from the music spreadsheet, since that sheet is a list of places
+that put music on. `food`/`drinks` follow from a licensed kind, `tickets` from
+having a ticketing URL. Nothing else is guessed, and **no accessibility claim
+is ever inferred** — a wrong one sends someone to a place that cannot take them.
+
 ## Next things worth doing
 
-1. Build place rows for the four dated events whose free text already names a
+1. **Run `supabase/PLACES_TAXONOMY.sql`**, then
+   `python3 scripts/classify_places.py --write`. Read the dry run first. Auto
+   mode would not run the migration unattended — it renames tables and drops
+   the view — so it needs the SQL editor or an explicit go-ahead.
+2. Build place rows for the four dated events whose free text already names a
    real place: `Baines Crescent outlets` (22), `Anglesea Community Hub` (30),
    `Anglesea Community Precinct` (53), `Torquay Common` (77). Each one then
    gets a pin and a tidier name. `name_rules.py` lists all 18 that have a date
    and a time but no venue.
-2. Work through the 44 imported events — `sync.py pending`. Each needs a
+3. Work through the 44 imported events — `sync.py pending`. Each needs a
    distance from Jan Juc and its date checked against the organiser's own page
    before `date_confidence` can go to high; until then the site shows "est.".
-3. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
+4. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.
    `add file.json` (or `-` for stdin) writes a researched entry, one object or a
@@ -537,7 +581,7 @@ land.
    only when it genuinely is a different thing. `--verified` requires a
    `source_note`; `--dry-run` checks without writing. An event's link is
    `info_url`/`ticket_url`, never `url`.
-4. Pin the 42 entries whose `url` is a Google Maps *search* rather than a
+5. Pin the 42 entries whose `url` is a Google Maps *search* rather than a
    coordinate — each one is a missing pin on the map
-5. Promote the Ideas Pipeline into the database
-6. A scheduled job that re-checks estimated event dates as real ones get announced
+6. Promote the Ideas Pipeline into the database
+7. A scheduled job that re-checks estimated event dates as real ones get announced
