@@ -315,6 +315,61 @@ def dedupe(rows):
         uniq.setdefault((E.norm(g['name']), g['starts_on']), g)
     return sorted(uniq.values(), key=lambda x: x['starts_on'])
 
+# ── adding a room we have not met ───────────────────────────────────────────
+# A ticketing platform's schema.org `location` carries a real name, suburb and
+# street address, all written by the organiser. That is good enough to create a
+# venue from — unlike the surfcoastevents feed, whose "venue" is as often a town
+# or a beach. The guards below are what keep the difference honest.
+
+GENERIC = {'online','tba','tbc','various','venue','virtual','zoom','to be advised'}
+
+def venue_key(name):
+    """Match key that forgives 'The' and punctuation — Blackmans/Blackman's."""
+    return E.norm(re.sub(r'(?i)^the\s+', '', (name or '').strip()))
+
+def worth_adding(g):
+    """Is this location solid enough to become a row? Reasons, not a bare no."""
+    name = (g.get('venue_name') or '').strip()
+    if len(name) < 3:               return None, 'no venue name'
+    if name.lower() in GENERIC:     return None, f'"{name}" is not a place'
+    sub = (g.get('venue_suburb') or '').strip()
+    if sub and E.norm(name) == E.norm(sub):
+        return None, f'"{name}" is just the suburb'
+    if not (g.get('venue_address') or '').strip():
+        return None, f'"{name}" has no street address'
+    return name, None
+
+def ensure_venue(g, src, registry, made, write):
+    """venue_id for this gig, creating the room if it is new and solid.
+
+    A gig read off a venue's own listing carries no location of its own — the
+    venue is the site we are reading, so the source row is the answer. That is
+    only true when the source is a room: an organiser's page says nothing about
+    where its events happen, so without a location we have to admit we do not
+    know.
+    """
+    if not (g.get('venue_name') or '').strip():
+        if (src.get('kind') or '').lower() == 'organiser':
+            return None, 'organiser listing gave no venue'
+        return src['id'], None
+    key = venue_key(g.get('venue_name'))
+    if key and key in registry: return registry[key], None
+    name, why = worth_adding(g)
+    if not name: return None, why
+    row = {'name': name, 'suburb': g.get('venue_suburb') or None,
+           'address': (g.get('venue_address') or '').split(',')[0].strip() or None,
+           'kind': 'event venue',
+           'source_note': f"added from a ticketing listing for an event held there, "
+                          f"{E.today().isoformat()}"}
+    if not write:
+        made.append(('would add', name, row['suburb']))
+        return None, f'new venue "{name}" — would be added'
+    got = E.db('POST', '/rest/v1/venues', row, {'Prefer': 'return=representation'})
+    vid = got[0]['id'] if got else None
+    if vid: registry[venue_key(name)] = vid
+    made.append(('added', name, row['suburb']))
+    return vid, f'added venue {vid} "{name}"'
+
 def build(venue, g, registry):
     """One gig -> an events row.
 
@@ -328,7 +383,7 @@ def build(venue, g, registry):
     """
     vname = g.get('venue_name') or venue['name']
     vsub  = g.get('venue_suburb') or (venue.get('suburb') if not g.get('venue_name') else None)
-    vid   = registry.get(E.norm(vname))
+    vid   = g.pop('_venue_id', None)
     return {
         'name'           : g['name'][:200],
         'type'           : 'gig',
@@ -357,7 +412,7 @@ def main(argv):
     globals()['SKIP'] = skip
 
     E.load_env()
-    venues = E.db('GET', '/rest/v1/venues?select=id,name,suburb,website,events_url,ticketing_url'
+    venues = E.db('GET', '/rest/v1/venues?select=id,name,suburb,kind,website,events_url,ticketing_url'
                          '&order=name')
     live = [v for v in venues if (v.get('events_url') or v.get('ticketing_url')
                                   or v.get('website'))]
@@ -373,7 +428,8 @@ def main(argv):
         print("\n  Nothing to read. Put a ticketing page in venues.events_url and run again.")
         return
 
-    registry = {E.norm(v['name']): v['id'] for v in venues}
+    registry = {venue_key(v['name']): v['id'] for v in venues}
+    made = []
     existing = E.db('GET', '/rest/v1/events?select=id,name,starts_on,venue_id,verified,source_note')
     by_name  = {E.norm(e['name']): e for e in existing}
     by_slot  = {(e.get('venue_id'), e.get('starts_on')): e for e in existing if e.get('venue_id')}
@@ -389,7 +445,10 @@ def main(argv):
         if not gigs:
             quiet.append(v); continue
         for g in sorted(gigs, key=lambda x: x['starts_on']):
+            vid, vnote = ensure_venue(g, v, registry, made, write)
+            g['_venue_id'] = vid
             row = build(v, g, registry)
+            if vnote: print(f"       venue: {vnote}")
             key = f"{v['id']}:{g['starts_on']}:{E.norm(g['name'])[:40]}"
             if key in seen:
                 continue
@@ -402,6 +461,10 @@ def main(argv):
             new.append((key, row))
             print(f"     {g['starts_on']}  {g['name'][:44]:46} NEW  [{row['date_confidence']}]")
 
+    if made:
+        print(f"\nrooms not previously on file — {len(made)}")
+        for what, name, sub in made:
+            print(f"   {what:9} {name[:40]:42} {sub or ''}")
     print(f"\n{len(new)} new, {len(dupe)} already in the database, "
           f"{len(quiet)} venue(s) with nothing readable")
     if not write:
