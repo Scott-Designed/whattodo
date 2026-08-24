@@ -499,6 +499,25 @@ function startHour(t,sunset){
 }
 const todayISO=(()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)})();
 const daysAway=ds=>ds?Math.round((new Date(ds+'T00:00:00')-new Date(todayISO+'T00:00:00'))/864e5):null;
+/* A weekly or fortnightly event whose stored date has passed has not finished —
+   it happens again on the same weekday, seven or fourteen days on. Roll it forward
+   so it keeps showing, otherwise a standing Saturday gig silently ages out of the
+   site the Sunday after it was entered.
+   Monthly and annual are deliberately NOT rolled. Adding a month or a year moves
+   the weekday, so "third Sunday" would quietly become "the 20th" — a date nobody
+   published, which is exactly how this database got a festival wrong before. Those
+   need a person to set the next starts_on. */
+function nextDate(i){
+  if(!i || !i.ev || !i.date) return i && i.date || null;
+  const step = i.recur==='weekly' ? 7 : i.recur==='fortnightly' ? 14 : 0;
+  const d = daysAway(i.date);
+  if(d===null || d>=0 || !step) return i.date;
+  const hops = Math.ceil(-d/step);
+  /* Parse and format in UTC. Parsing as local and formatting with toISOString
+     shifts the result back a day in +10, so every rolled gig landed on Friday. */
+  return new Date(Date.parse(i.date+'T00:00:00Z')+hops*step*864e5)
+           .toISOString().slice(0,10);
+}
 
 function derive(){const w=S.wx==='auto'?WX.auto:WX[S.wx];if(!w)return null;
   return{raining:w.rain>.1,dryTrails:w.rain48<2&&w.rain<=.1,warm:w.temp>=18,lowWind:w.wind<10,clear:w.cloud<20}}
@@ -749,7 +768,7 @@ function rebuild(){
     : [...DATA.activities.map(a=>({...a,ev:false})), ...DATA.events.map(e=>({...e,ev:true}))];
   /* keep events with no date yet — they are waiting on information, not finished */
   ALL=[...base, ...(LIVE?[]:ADDED)]
-    .filter(i=>!i.ev || !i.date || (daysAway(i.date)??0)>=0);
+    .filter(i=>!i.ev || !i.date || (daysAway(nextDate(i))??0)>=0);
 }
 
 const THISYEAR=new Date().getFullYear();
@@ -765,7 +784,7 @@ function whenText(i){
       ? `<span class="tm">${esc(ss.length===1?ss[0]:ss[0]+'–'+ss[ss.length-1])}</span>` : '';
     return lbl+seasonal;
   }
-  const dt=new Date(i.date+'T00:00:00'), d=daysAway(i.date);
+  const nd=nextDate(i), dt=new Date(nd+'T00:00:00'), d=daysAway(nd);
   /* show the year whenever it is not this one — "25 Apr" alone reads as this April */
   const dated = dt.toLocaleDateString('en-AU',
     {day:'numeric',month:'short',...(dt.getFullYear()!==THISYEAR?{year:'numeric'}:{})});
@@ -780,7 +799,7 @@ function whenOK(i){
   const now=melbNow(), h=now.getHours()+now.getMinutes()/60;
   const {rise,set}=sunHours(now);
   const dark = h>=set || h<rise;
-  const d = i.ev ? daysAway(i.date) : null;
+  const d = i.ev ? daysAway(nextDate(i)) : null;
 
   if(S.when==='tomorrow') return i.ev ? d===1 : true;
   if(i.ev && d!==0) return false;                 /* the rest are all about today */
@@ -854,7 +873,7 @@ function sortFn(a,b){
   if(S.sort==='best') return (b.rating||0)-(a.rating||0)||(a.km??999)-(b.km??999);
   if(S.sort==='when'){
     /* a low-confidence date is unknown, not imminent — send those to the end, not the top */
-    const k=i=>i.ev?(i.date?(daysAway(i.date)??9e5):9e5):9e3;
+    const k=i=>i.ev?(i.date?(daysAway(nextDate(i))??9e5):9e5):9e3;
     return k(a)-k(b)||(a.km??999)-(b.km??999)}
   return (a.km??999)-(b.km??999)||(b.rating||0)-(a.rating||0);
 }
