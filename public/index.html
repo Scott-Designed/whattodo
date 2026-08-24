@@ -111,21 +111,18 @@ option{background:var(--ground);color:var(--ink)}
 .tbl{border-top:1px solid var(--ink)}
 .thead,.rowline{
   display:grid;
-  grid-template-columns:minmax(0,2.7fr) minmax(0,.85fr) minmax(0,1.3fr) minmax(0,1.05fr) minmax(0,.85fr) minmax(0,.7fr) 72px;
+  grid-template-columns:minmax(0,2.7fr) minmax(0,.85fr) minmax(0,1.35fr) minmax(0,1.1fr) minmax(0,.75fr);
   gap:0 24px;align-items:baseline;
 }
 .thead{padding:11px 0;border-bottom:1px solid var(--rule2);position:sticky;top:0;background:var(--ground);z-index:5}
 .thead span{font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3)}
-.thead .num,.c-km{text-align:right}
 
 .rec{border-bottom:1px solid var(--rule)}
 .rowline{width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:19px 0}
 .rowline:hover{background:var(--surface)}
 .rowline:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 .c-name{font-size:19px;letter-spacing:-.01em;line-height:1.25}
-.c-type,.c-where,.c-when,.c-dur,.c-cost{font-size:15px;color:var(--ink2);line-height:1.3}
-.c-km{font-size:18px;color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap}
-.c-km i{font-family:var(--util);font-style:normal;font-size:10px;color:var(--ink3);letter-spacing:.04em}
+.c-type,.c-where,.c-when,.c-cost{font-size:15px;color:var(--ink2);line-height:1.3}
 .est{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-top:3px}
 .tm{display:block;font-family:var(--serif);font-size:14px;color:var(--ink3);line-height:1.3;margin-top:1px}
 .mob{display:none}
@@ -210,11 +207,11 @@ body.mapview .tbl{display:none}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:1180px){
-  .thead,.rowline{grid-template-columns:minmax(0,2.6fr) minmax(0,1.3fr) minmax(0,1.1fr) minmax(0,.8fr) 70px}
-  .thead .h-type,.c-type,.thead .h-dur,.c-dur{display:none}
+  .thead,.rowline{grid-template-columns:minmax(0,2.6fr) minmax(0,1.35fr) minmax(0,1.15fr) minmax(0,.85fr)}
+  .thead .h-type,.c-type{display:none}
 }
 @media (max-width:940px){
-  .thead,.rowline{grid-template-columns:minmax(0,2.4fr) minmax(0,1.3fr) minmax(0,1.1fr) 68px}
+  .thead,.rowline{grid-template-columns:minmax(0,2.4fr) minmax(0,1.35fr) minmax(0,1.15fr)}
   .thead .h-cost,.c-cost{display:none}
   .detail-in{grid-template-columns:1fr}
 }
@@ -222,8 +219,8 @@ body.mapview .tbl{display:none}
   :root{--pad:20px}
   header{padding:44px 0 30px}
   .thead{display:none}
-  .rowline{grid-template-columns:1fr 62px;gap:4px 16px;padding:16px 0}
-  .c-where,.c-when,.c-dur{display:none}
+  .rowline{grid-template-columns:1fr;gap:4px;padding:16px 0}
+  .c-where,.c-when{display:none}
   .mob{display:block;grid-column:1;font-family:var(--util);font-size:12px;color:var(--ink3)}
   .controls{gap:12px 18px}
   select,input[type=search]{min-width:0;width:100%;font-size:16px}
@@ -340,7 +337,7 @@ body.mapview .tbl{display:none}
   <div class="tbl">
     <div class="thead">
       <span>Name</span><span class="h-type">Type</span><span>Where</span>
-      <span>When</span><span class="h-dur">How long</span><span class="h-cost">Cost</span><span class="num">km</span>
+      <span>When</span><span class="h-cost">Cost</span>
     </div>
     <div id="rows"></div>
   </div>
@@ -892,10 +889,8 @@ function render(){
         <span class="c-type">${i.type?esc(i.type):'<span class="est" style="display:inline">unsorted</span>'}</span>
         <span class="c-where">${esc(wVenue)}${wSuburb?`<span class="tm">${esc(wSuburb)}</span>`:''}</span>
         <span class="c-when">${whenText(i)}</span>
-        <span class="c-dur">${i.ev ? '' : esc(i.dur||'')}</span>
         <span class="c-cost">${esc(i.cost||'')}</span>
-        <span class="c-km">${i.km!=null?i.km:'&mdash;'}<i> km</i></span>
-        <span class="mob">${esc(i.type)} &middot; ${esc(whereLine(i))} &middot; ${whenText(i).replace(/<[^>]+>/g,' &middot; ')}${i.ev?(i.recur?' &middot; '+esc(i.recur):''):' &middot; '+esc(i.dur||'')} &middot; ${esc(i.cost||'')}</span>
+        <span class="mob">${esc(i.type)} &middot; ${esc(whereLine(i))} &middot; ${whenText(i).replace(/<[^>]+>/g,' &middot; ')}${i.ev&&i.recur?' &middot; '+esc(i.recur):''} &middot; ${esc(i.cost||'')}</span>
       </button>
       <div class="detail"><div class="detail-in">
         <div>
