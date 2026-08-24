@@ -82,6 +82,9 @@ option{background:var(--ground);color:var(--ink)}
   display:flex;align-items:center;gap:10px;padding:7px 15px;cursor:pointer;
   font-family:var(--serif);font-size:16px;color:var(--ink);white-space:nowrap;
 }
+.ms-pop label .n{margin-left:auto;padding-left:14px;font-family:var(--util);font-size:11px;
+  color:var(--ink3);font-variant-numeric:tabular-nums}
+.ms-pop label.off .n{opacity:.5}
 .ms-pop label:hover{background:var(--surface)}
 .ms-pop label.off{color:var(--ink3);cursor:default}
 .ms-pop label.off:hover{background:none}
@@ -643,11 +646,18 @@ const VERB_OF={
 /* Drink is the one verb no type records. It comes off the place instead — which is
    what splitting `places.kind` from `places.offers` bought us. */
 /* Where, as a place you could name to someone. `location` is free text and holds
-   106 different strings — addresses, regions, routes and "Anywhere with a hose"
-   among them — so the suburb is read out of it against a curated list rather
-   than being the string itself. Longest match wins, so Geelong West does not
-   answer to Geelong. 345 of the 417 listings name a suburb; the rest genuinely
-   do not have one, and are simply not reachable from this filter. */
+   106 distinct strings — bare suburbs, but also street addresses, regions, routes
+   and "Anywhere with a hose" — so the answer is read out of the string rather
+   than being the string.
+
+   Four groups, in this order, because the order is what makes them work:
+   Home first (or "Anywhere - your backyard" lands in the Anywhere bucket), then
+   Car, then a real suburb, then everything left that means "no particular
+   place". A Geelong suburb answers as Geelong: nobody planning a Saturday
+   distinguishes Grovedale from Waurn Ponds, and eleven suburbs holding one
+   listing each is a longer menu that finds less. */
+const GEELONG=new Set(['Geelong','Geelong West','South Geelong','Belmont','Grovedale',
+  'Waurn Ponds','Norlane','Corio','Fyansford','Ceres']);
 const SUBURBS=['Aireys Inlet','Anglesea','Apollo Bay','Armstrong Creek','Barwon Heads',
  'Beech Forest','Bellarine','Bellbrae','Bells Beach','Belmont','Birregurra','Breamlea',
  'Cape Otway','Ceres','Connewarre','Corio','Cumberland River','Curlewis','Deans Marsh',
@@ -659,14 +669,25 @@ const SUBURBS=['Aireys Inlet','Anglesea','Apollo Bay','Armstrong Creek','Barwon 
  'Winchelsea','Wye River','You Yangs'];
 const SUB_BY_LEN=[...SUBURBS].sort((a,b)=>b.length-a.length);
 const rxEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const AT_HOME=/^home\b|backyard|neighbourhood/;
+const IN_CAR=/\bin the car\b/;
+const NO_FIXED=/anywhere|any beach|surf coast|bellarine wide/;
 function suburbOf(loc){
   const l=String(loc||'').toLowerCase().replace(/[\u2019']/g,'');
-  for(const s of SUB_BY_LEN){
+  if(!l) return null;
+  if(AT_HOME.test(l)) return 'Home';
+  if(IN_CAR.test(l))  return 'Car';
+  for(const s of SUB_BY_LEN){                 /* longest first: Geelong West beats Geelong */
     const t=s.toLowerCase().replace(/[\u2019']/g,'');
-    if(new RegExp('(^|[^a-z])'+rxEsc(t)+'([^a-z]|$)').test(l)) return s;
+    if(new RegExp('(^|[^a-z])'+rxEsc(t)+'([^a-z]|$)').test(l))
+      return GEELONG.has(s) ? 'Geelong' : s;
   }
+  if(NO_FIXED.test(l)) return 'Surf Coast wide';
   return null;
 }
+/* the three that are not towns lead the list; the towns follow, alphabetically */
+const PLACE_ORDER=['Surf Coast wide','Home','Car',
+  ...SUBURBS.filter(x=>!GEELONG.has(x)||x==='Geelong').sort()];
 
 const DRINK_KINDS=new Set(['pub','bar','brewery','winery','distillery','cidery']);
 function verbsOf(i){
@@ -1292,7 +1313,8 @@ function paintMulti(m, options, avail){
   m.pop.innerHTML=options.map(([v,l])=>{
     const n=avail(v), on=chosen.includes(v);
     return `<label class="${n||on?'':'off'}"><input type="checkbox" value="${esc(v)}"`
-      +`${on?' checked':''}${n||on?'':' disabled'}><span>${esc(l)}</span></label>`;
+      +`${on?' checked':''}${n||on?'':' disabled'}><span>${esc(l)}</span>`
+      +`<span class="n">${n}</span></label>`;
   }).join('') + (chosen.length?`<button type="button" class="ms-clear">Clear</button>`:'');
   m.pop.querySelectorAll('input').forEach(cb=>cb.addEventListener('change',()=>{
     S[m.key]=cb.checked ? [...S[m.key],cb.value] : S[m.key].filter(x=>x!==cb.value);
@@ -1345,7 +1367,7 @@ function refreshFacets(){
   const types=[...new Set(ALL.map(i=>i.type).filter(Boolean))].sort();
   paintMulti(MULTI.type, types.map(t=>[t,t]), t=>pt.filter(i=>i.type===t).length);
   /* only offer a suburb something is actually in */
-  const subs=SUBURBS.filter(x=>ALL.some(i=>suburbOf(i.loc)===x));
+  const subs=PLACE_ORDER.filter(x=>ALL.some(i=>suburbOf(i.loc)===x));
   paintMulti(MULTI.suburb, subs.map(x=>[x,x]), x=>ps.filter(i=>suburbOf(i.loc)===x).length);
   const costs=COST_ORDER.filter(c=>ALL.some(i=>i.cost===c));
   paintMulti(MULTI.cost, costs.map(c=>[c,c]), c=>pc.filter(i=>i.cost===c).length);
