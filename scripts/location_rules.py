@@ -46,6 +46,16 @@ RULES = {
     59:  ('Norlane',            'CHECK — pin says Bell Park; name says North Shore'),
     144: ('Barwon Heads',       'CHECK — river runs between both; pin says Barwon Heads'),
     43:  ('Birregurra',         'CHECK — trailhead; pin sits mid-trail at Benwerrin'),
+    # 43, 53, 58 and 144 stay as they are by decision, not oversight: naming a
+    # place after one suburb while its pin sits in another is a judgement about
+    # which of the two facts is wrong, and nobody has made it yet.
+    #
+    # 59 is gone from this list because it was a different bug. It read "Djila
+    # Tjarra Skatepark (North Shore / Norlane)", but Djila Tjarri is in Torquay
+    # on Merrijig Drive — the row had borrowed a name from a park 33 km away.
+    # Its own description, "two skateparks linked together, old and new", is
+    # Norlane exactly. So a59 became Norlane Skatepark (North Shore) and a51,
+    # filed as "Torquay North Skatepark", took the name it always had.
 
     # ── genuinely several places ──
     95:  ('Surf Coast headlands',   'two beaches -> the area that holds them'),
