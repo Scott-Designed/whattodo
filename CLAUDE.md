@@ -178,12 +178,15 @@ line each with the reason. **The rules propose; a person accepts** — no patter
 matcher knows that Falls Festival is not named after Lorne. Read the dry run
 before every `--write`, and add the exception rather than loosening a rule.
 
-32 of the 87 events will be renamed. Each one's `source_note` now
+32 of the 87 events were renamed 24 Aug 2026. Each one's `source_note` now
 carries `Published as "<old title>"`, so nothing the organiser wrote is lost.
 
 Renaming before the view is split would strip the venue out of the name while
 Where still showed the suburb alone, so `--write` refuses until `listings` has
-the column. Run the SQL first.
+the column. Both were done 24 Aug 2026, in that order — and the order matters
+in the other direction too: the renames were applied a few minutes before the
+page shipped, so the live site briefly showed bare names beside bare suburbs.
+Deploy the page first next time.
 
 ## Two meters — know which one you are spending
 
@@ -383,7 +386,7 @@ Things that cost time here:
   popups white over a dark page. It is inserted **first** in the head instead.
 - Never set `position` on a marker element. MapLibre positions its markers
   absolutely and this page's stylesheet now outranks it, so `.pin{position:relative}`
-  silently drops all 210 markers out of the map and stacks them down the page in
+  silently drops every marker out of the map and stacks them down the page in
   document order.
 - Pins are drawn straight after the map is constructed, not on `load`. They are
   HTML over the canvas, not part of the style, so they do not need the basemap —
@@ -395,17 +398,24 @@ share a pin, the pin carries the count, and the popup lists all of them. They ar
 **not** nudged apart: five coordinates that are not true is how this database got
 burned before.
 
-Under the map is a count of what is *not* on it — `210 of 360 on the map · 150
-have no coordinates yet`. A map that quietly shows two thirds of the database is
-a map that lies, so the gap is printed rather than hidden.
+Under the map is a count of what is *not* on it — `196 of 359 on the map · 163
+have no coordinates yet`. A map that quietly shows half the database is a map
+that lies, so the gap is printed rather than hidden.
+
+**Every pin has been checked against the water.** All 196 were probed at zoom 16
+against the basemap's own `water` layer (`queryRenderedFeatures` on the marker's
+projected point); none is in the sea. Re-run that check after any geocoding pass —
+it is the only test that catches a pin a few hundred metres offshore, which is
+close enough that reverse geocoding still snaps it to a coastal road and calls it
+land.
 
 ## Known outstanding
 
 - An activity's single `url` is whatever it is — a map pin for some, the venue's own
   site for others. The row labels it by inspection (`isMapLink`), so don't assume the
   slot means "map". 87 of 203 activities carry a website there. `Directions` is built
-  separately from `lat`/`lng`. 142 of 272 activities are pinned; the other 130 are
-  mostly the At home entries, which have nowhere to be
+  separately from `lat`/`lng`. 128 of 272 activities are pinned; the rest are the
+  At home entries and the roving ones, which have nowhere to be
 - 42 entries use Google Maps *search* URLs rather than pinned coordinates
 - Four events sit on estimated dates: Bells Beach Surf Film Festival, Deans Marsh
   Festival, Geelong Pride Film Festival, One Planet Festival
@@ -445,6 +455,19 @@ a map that lies, so the gap is printed rather than hidden.
 
 ## Gotchas already paid for
 
+- **DDL can be run from here after all.** PostgREST cannot create a table or
+  redefine a view, which is why every schema file says "run it in the SQL
+  editor" — but the Supabase **Management API** can:
+
+      POST https://api.supabase.com/v1/projects/{ref}/database/query
+      {"query": "..."}                      Authorization: Bearer sbp_…
+
+  It needs a Personal Access Token from supabase.com/dashboard/account/tokens,
+  which is **account-wide** — it can read and change every project on the
+  account, not just this one. Scott issued one on 24 Aug 2026 to apply
+  `VENUE_IN_LISTINGS.sql`. If `SUPABASE_ACCESS_TOKEN` is not in `.env`, it was
+  revoked afterwards and the SQL editor is the route again. Send a real
+  `User-Agent`; the default `Python-urllib` gets a Cloudflare 1010.
 - Vercel functions: `.mjs`, or a `package.json` with `"type": "module"`. A bare
   `.js` using `export default` silently fails to deploy and the route 404s.
 - Don't create Supabase tables in the Table Editor — run the SQL. A hand-made table
@@ -471,13 +494,17 @@ a map that lies, so the gap is printed rather than hidden.
 
 ## Next things worth doing
 
-1. **Run `supabase/VENUE_IN_LISTINGS.sql` in the Supabase SQL editor**, then
-   `python3 scripts/name_rules.py --write`. Until the first, the page shows the
-   suburb alone in Where and the second refuses to run.
-2. Work through the 44 imported events — `sync.py pending`. Each needs a
+1. Decide what happens to `Lorne Falls Festival (Spectate)` (15) — see Known
+   outstanding. It is a dated, verified row for a festival on hiatus.
+2. Build venue rows for the four dated events whose free text already names a
+   real place: `Baines Crescent outlets` (22), `Anglesea Community Hub` (30),
+   `Anglesea Community Precinct` (53), `Torquay Common` (77). Each one then
+   gets a pin and a tidier name. `name_rules.py` lists all 18 that have a date
+   and a time but no venue.
+3. Work through the 44 imported events — `sync.py pending`. Each needs a
    distance from Jan Juc and its date checked against the organiser's own page
    before `date_confidence` can go to high; until then the site shows "est.".
-3. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
+4. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.
    `add file.json` (or `-` for stdin) writes a researched entry, one object or a
@@ -487,7 +514,7 @@ a map that lies, so the gap is printed rather than hidden.
    only when it genuinely is a different thing. `--verified` requires a
    `source_note`; `--dry-run` checks without writing. An event's link is
    `info_url`/`ticket_url`, never `url`.
-4. Pin the 42 entries whose `url` is a Google Maps *search* rather than a
+5. Pin the 42 entries whose `url` is a Google Maps *search* rather than a
    coordinate — each one is a missing pin on the map
-5. Promote the Ideas Pipeline into the database
-6. A scheduled job that re-checks estimated event dates as real ones get announced
+6. Promote the Ideas Pipeline into the database
+7. A scheduled job that re-checks estimated event dates as real ones get announced
