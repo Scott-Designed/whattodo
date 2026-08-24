@@ -30,14 +30,18 @@ jobs:
   fetch:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Look, and add anything new as unverified
         env:
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
-          python3 scripts/scrape_events.py --write | tee run.txt
+          # pipefail, or `tee` succeeding masks a crash in the script and the
+          # job goes green on a total failure. 2>&1 so a traceback reaches the
+          # summary instead of vanishing.
+          set -o pipefail
+          python3 scripts/scrape_events.py --write 2>&1 | tee run.txt
 
       - name: Put the run in the job summary
         if: always()
