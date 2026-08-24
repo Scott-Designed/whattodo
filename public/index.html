@@ -332,6 +332,7 @@ body.mapview .tbl{display:none}
   <div class="controls">
     <div class="ctrl ms" id="ms-verb"></div>
     <div class="ctrl ms" id="ms-type"></div>
+    <div class="ctrl ms" id="ms-suburb"></div>
     <div class="seg" id="whenseg" role="group" aria-label="When">
       <button type="button" data-w="today" aria-pressed="false">Today</button>
       <button type="button" data-w="tomorrow" aria-pressed="false">Tomorrow</button>
@@ -517,7 +518,7 @@ async function fetchWeather(){
             rain:j.current.precipitation,rain48:past,cloud:j.current.cloud_cover};
   }catch(e){ clearTimeout(t); return null; }
 }
-const S={when:'any',verb:[],type:[],km:999,cost:[],who:[],wx:'',sort:'when',q:''};
+const S={when:'any',verb:[],type:[],suburb:[],km:999,cost:[],who:[],wx:'',sort:'when',q:''};
 
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -641,6 +642,32 @@ const VERB_OF={
   community:['join'], volunteering:['join'], camping:['stay']};
 /* Drink is the one verb no type records. It comes off the place instead — which is
    what splitting `places.kind` from `places.offers` bought us. */
+/* Where, as a place you could name to someone. `location` is free text and holds
+   106 different strings — addresses, regions, routes and "Anywhere with a hose"
+   among them — so the suburb is read out of it against a curated list rather
+   than being the string itself. Longest match wins, so Geelong West does not
+   answer to Geelong. 345 of the 417 listings name a suburb; the rest genuinely
+   do not have one, and are simply not reachable from this filter. */
+const SUBURBS=['Aireys Inlet','Anglesea','Apollo Bay','Armstrong Creek','Barwon Heads',
+ 'Beech Forest','Bellarine','Bellbrae','Bells Beach','Belmont','Birregurra','Breamlea',
+ 'Cape Otway','Ceres','Connewarre','Corio','Cumberland River','Curlewis','Deans Marsh',
+ 'Drysdale','Eastern View','Fairhaven','Forrest','Freshwater Creek','Fyansford','Geelong',
+ 'Geelong West','Grovedale','Indented Head','Inverleigh','Jan Juc','Kennett River','Lara',
+ 'Lavers Hill','Leopold','Little River','Lorne','Moggs Creek','Moriac','Mt Duneed','Norlane',
+ 'Ocean Grove','Point Addis','Point Lonsdale','Portarlington','Queenscliff','Skenes Creek',
+ 'Snake Valley','South Geelong','St Leonards','Torquay','Wallington','Waurn Ponds','Werribee',
+ 'Winchelsea','Wye River','You Yangs'];
+const SUB_BY_LEN=[...SUBURBS].sort((a,b)=>b.length-a.length);
+const rxEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function suburbOf(loc){
+  const l=String(loc||'').toLowerCase().replace(/[\u2019']/g,'');
+  for(const s of SUB_BY_LEN){
+    const t=s.toLowerCase().replace(/[\u2019']/g,'');
+    if(new RegExp('(^|[^a-z])'+rxEsc(t)+'([^a-z]|$)').test(l)) return s;
+  }
+  return null;
+}
+
 const DRINK_KINDS=new Set(['pub','bar','brewery','winery','distillery','cidery']);
 function verbsOf(i){
   const v=new Set(VERB_OF[i.type]||[]);
@@ -978,6 +1005,7 @@ function ok(i){
   if(atHomeHidden(i)) return false;
   if(S.verb.length && !verbsOf(i).some(v=>S.verb.includes(v))) return false;
   if(S.type.length && !S.type.includes(i.type)) return false;
+  if(S.suburb.length && !S.suburb.includes(suburbOf(i.loc))) return false;
   if(i.km!=null && i.km>S.km) return false;
   if(S.cost.length && !S.cost.includes(i.cost)) return false;
   if(S.who.length && !(i.ages||[]).some(a=>S.who.includes(a)||a==='all-ages')) return false;
@@ -1288,6 +1316,7 @@ function afterFacetChange(key){
 
 makeMulti('ms-verb','verb','Anything','What do you want to do');
 makeMulti('ms-type','type','All types','Type of listing');
+makeMulti('ms-suburb','suburb','Anywhere','Suburb or town');
 makeMulti('ms-cost','cost','Any cost','Cost');
 makeMulti('ms-who','who','Anyone','Who it suits');
 
@@ -1305,15 +1334,19 @@ function refreshFacets(){
                   .join(' ').toLowerCase().includes(S.q))
     && (skip==='verb' || !S.verb.length || verbsOf(i).some(v=>S.verb.includes(v)))
     && (skip==='type' || !S.type.length || S.type.includes(i.type))
+    && (skip==='suburb' || !S.suburb.length || S.suburb.includes(suburbOf(i.loc)))
     && (skip==='cost' || !S.cost.length || S.cost.includes(i.cost))
     && (skip==='who'  || !S.who.length  || (i.ages||[]).some(a=>S.who.includes(a)||a==='all-ages'));
 
   const pool=k=>ALL.filter(i=>pass(i,k));
-  const pv=pool('verb'), pt=pool('type'), pc=pool('cost'), pw=pool('who');
+  const pv=pool('verb'), pt=pool('type'), pc=pool('cost'), pw=pool('who'), ps=pool('suburb');
 
   paintMulti(MULTI.verb, VERBS, v=>pv.filter(i=>verbsOf(i).includes(v)).length);
   const types=[...new Set(ALL.map(i=>i.type).filter(Boolean))].sort();
   paintMulti(MULTI.type, types.map(t=>[t,t]), t=>pt.filter(i=>i.type===t).length);
+  /* only offer a suburb something is actually in */
+  const subs=SUBURBS.filter(x=>ALL.some(i=>suburbOf(i.loc)===x));
+  paintMulti(MULTI.suburb, subs.map(x=>[x,x]), x=>ps.filter(i=>suburbOf(i.loc)===x).length);
   const costs=COST_ORDER.filter(c=>ALL.some(i=>i.cost===c));
   paintMulti(MULTI.cost, costs.map(c=>[c,c]), c=>pc.filter(i=>i.cost===c).length);
   paintMulti(MULTI.who, WHO, w=>pw.filter(i=>(i.ages||[]).some(a=>a===w||a==='all-ages')).length);
@@ -1344,7 +1377,7 @@ function paintChips(){
   const out=[];
   const label=(k,v)=>({verb:(VERBS.find(o=>o[0]===v)||[v,v])[1],
                        who:(WHO.find(o=>o[0]===v)||[v,v])[1]}[k] ?? v);
-  ['verb','type','cost','who'].forEach(k=>
+  ['verb','type','suburb','cost','who'].forEach(k=>
     S[k].forEach(v=>out.push([k, v, label(k,v)])));
   if(S.km!==999)     out.push(['km', 999, 'Within '+S.km+' km']);
   if(S.wx)           out.push(['wx', '', {auto:'Weather now',fine:'Fine',grey:'Grey & cold',
@@ -1380,7 +1413,7 @@ function syncMoreDot(){
 document.getElementById('q').addEventListener('input',e=>{
   S.q=e.target.value.trim().toLowerCase(); refreshFacets(); render();});
 
-const DEFAULTS={when:'any',verb:[],type:[],km:999,cost:[],who:[],wx:'',q:''};   /* sort is a view, not a filter */
+const DEFAULTS={when:'any',verb:[],type:[],suburb:[],km:999,cost:[],who:[],wx:'',q:''};   /* sort is a view, not a filter */
 function syncClear(){
   const on = Object.keys(DEFAULTS).some(k=>Array.isArray(DEFAULTS[k])
     ? S[k].length : S[k]!==DEFAULTS[k]);
