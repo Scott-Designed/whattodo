@@ -34,9 +34,8 @@ h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,6vw,76px);lette
 .sub{margin-top:14px;font-family:var(--util);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
 
 /* ── controls: dropdowns only ── */
-.controls{display:flex;flex-wrap:wrap;gap:14px;padding-bottom:40px}
+.controls{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding-bottom:26px}
 .ctrl{display:flex;flex-direction:column;gap:6px;min-width:0}
-.ctrl label{font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3)}
 select,input[type=search]{
   font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
   border:0;border-bottom:1px solid var(--rule2);padding:5px 26px 6px 0;min-width:150px;
@@ -58,6 +57,43 @@ option{background:var(--ground);color:var(--ink)}
 .clearbtn:hover{color:var(--ink2);border-bottom-color:var(--ink2)}
 .clearbtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 
+/* ── multi-select: several answers to one question, which a native select can
+      only do as a listbox. The button reads as the other controls do. ── */
+.ms{position:relative}
+.ms-btn{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--rule2);padding:5px 26px 6px 0;min-width:132px;
+  text-align:left;cursor:pointer;white-space:nowrap;position:relative;border-radius:0;
+}
+.ms-btn::after{content:"";position:absolute;right:6px;bottom:11px;
+  border-left:4px solid transparent;border-right:4px solid transparent;
+  border-top:5px solid currentColor;opacity:.8}
+.ms-btn:hover,.ms-btn[aria-expanded="true"]{border-bottom-color:var(--ink)}
+.ms-btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.ms-btn.on{font-style:italic}
+.ms-pop{
+  position:absolute;top:calc(100% + 6px);left:0;z-index:60;min-width:212px;
+  max-height:min(58vh,420px);overflow-y:auto;padding:8px 0;
+  background:var(--ground);border:1px solid var(--rule2);
+  box-shadow:0 6px 26px rgba(0,0,0,.22);
+}
+.ms-pop[hidden]{display:none}
+.ms-pop label{
+  display:flex;align-items:center;gap:10px;padding:7px 15px;cursor:pointer;
+  font-family:var(--serif);font-size:16px;color:var(--ink);white-space:nowrap;
+}
+.ms-pop label:hover{background:var(--surface)}
+.ms-pop label.off{color:var(--ink3);cursor:default}
+.ms-pop label.off:hover{background:none}
+.ms-pop input{accent-color:var(--ink);width:14px;height:14px;flex:none;margin:0}
+.ms-clear{
+  display:block;width:100%;text-align:left;padding:7px 15px;margin-top:4px;
+  border:0;border-top:1px solid var(--rule);background:transparent;cursor:pointer;
+  font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink3);
+}
+.ms-clear:hover{color:var(--ink)}
+
 /* ── the four secondary filters, folded away until asked for ── */
 .morebtn{
   font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
@@ -67,12 +103,12 @@ option{background:var(--ground);color:var(--ink)}
 .morebtn:hover,.morebtn[aria-expanded="true"]{border-bottom-color:var(--ink)}
 .morebtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .morebtn .dot{width:6px;height:6px;border-radius:50%;background:var(--ink);flex:none}
-.more{display:flex;flex-wrap:wrap;gap:14px 18px;padding:0 0 34px}
+.more{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding:0 0 30px}
 .more[hidden]{display:none}
 
 /* ── sort / view / search belong to the list, not to the filters ── */
-.toolbar{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end;padding-bottom:14px}
-.toolbar .grow{flex:1 1 200px}
+.toolbar{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding-bottom:12px}
+.toolbar .grow{flex:1 1 240px;margin-right:auto}
 .toolbar .grow input{width:100%}
 
 /* ── Add is a standing offer, not a filter ── */
@@ -132,7 +168,7 @@ option{background:var(--ground);color:var(--ink)}
 .review li a:hover{border-bottom-color:var(--ink)}
 .warn{font-family:var(--util);font-size:12px;color:var(--ink3);margin-top:8px}
 
-.tally{margin-left:auto;align-self:flex-end;font-family:var(--util);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding-bottom:8px;font-variant-numeric:tabular-nums}
+.tally{font-family:var(--util);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding-bottom:8px;font-variant-numeric:tabular-nums}
 
 /* ── table ── */
 .tbl{border-top:1px solid var(--ink)}
@@ -270,38 +306,31 @@ body.mapview .tbl{display:none}
   </header>
 
   <div class="controls">
-    <div class="ctrl"><label for="verb">Verb</label>
-      <select id="verb"><option value="">Anything</option></select></div>
-    <div class="ctrl"><label for="type">Type</label>
-      <select id="type"><option value="">All types</option></select></div>
-    <div class="ctrl"><label for="when">When</label>
-      <select id="when">
+    <div class="ctrl ms" id="ms-verb"></div>
+    <div class="ctrl ms" id="ms-type"></div>
+    <div class="ctrl">
+      <select id="when" aria-label="When">
         <option value="now">Now</option><option value="later">Later today</option>
         <option value="tonight">Tonight</option><option value="tomorrow">Tomorrow</option>
         <option value="any">Any time</option>
       </select></div>
-    <div class="ctrl"><label>&nbsp;</label>
-      <button id="morebtn" type="button" class="morebtn" aria-expanded="false"
-              aria-controls="more">Filters<span class="dot" id="moredot" hidden></span></button></div>
-    <div class="ctrl"><label>&nbsp;</label>
-      <button id="clear" type="button" class="clearbtn" hidden>Clear all</button></div>
+    <button id="morebtn" type="button" class="morebtn" aria-expanded="false"
+            aria-controls="more">Filters<span class="dot" id="moredot" hidden></span></button>
+    <button id="clear" type="button" class="clearbtn" hidden>Clear all</button>
   </div>
 
   <div class="more" id="more" hidden>
-    <div class="ctrl"><label for="km">Distance</label>
-      <select id="km">
+    <div class="ctrl">
+      <select id="km" aria-label="Distance from Jan Juc">
         <option value="999">Any distance</option><option value="5">Within 5 km</option>
         <option value="15">Within 15 km</option><option value="30">Within 30 km</option>
         <option value="60">Within 60 km</option>
       </select></div>
-    <div class="ctrl"><label for="cost">Cost</label>
-      <select id="cost"><option value="">Any cost</option><option value="Free">Free</option>
-        <option value="cheapish">Free or cheap</option><option value="Moderate">Moderate</option></select></div>
-    <div class="ctrl"><label for="who">Who</label>
-      <select id="who"><option value="">Anyone</option><option value="toddler">Toddlers</option>
-        <option value="kids">Kids</option><option value="teens">Teens</option><option value="adults">Adults</option></select></div>
-    <div class="ctrl"><label for="wx">Weather</label>
-      <select id="wx"><option value="">Doesn't matter</option>
+    <div class="ctrl ms" id="ms-cost"></div>
+    <div class="ctrl ms" id="ms-who"></div>
+    <div class="ctrl">
+      <select id="wx" aria-label="Weather">
+        <option value="">Any weather</option>
         <option value="auto">Detect automatically</option><option value="fine">Fine</option>
         <option value="grey">Grey &amp; cold</option><option value="rain">Raining</option></select></div>
   </div>
@@ -360,19 +389,19 @@ body.mapview .tbl{display:none}
   <script id="additions" type="application/json">[]</script>
 
   <div class="toolbar">
-    <div class="ctrl"><label for="sort">Sort</label>
-      <select id="sort"><option value="near">Closest first</option><option value="when">Soonest first</option>
-        <option value="best">Best rated</option><option value="new">Recently added</option>
-        <option value="az">A &ndash; Z</option></select></div>
-    <div class="ctrl"><label>View</label>
+    <div class="ctrl grow">
+      <input id="q" type="search" aria-label="Search" placeholder="Search name, place or tag"></div>
+    <div class="ctrl">
+      <select id="sort" aria-label="Sort"><option value="near">Closest first</option>
+        <option value="when">Soonest first</option><option value="best">Best rated</option>
+        <option value="new">Recently added</option><option value="az">A &ndash; Z</option></select></div>
+    <div class="ctrl">
       <div class="seg" id="viewseg" role="group" aria-label="How to show the listings">
         <button type="button" data-v="list" aria-pressed="true">List</button>
         <button type="button" data-v="map" aria-pressed="false">Map</button>
       </div></div>
-    <div class="ctrl grow"><label for="q">Search</label>
-      <input id="q" type="search" placeholder="Name, place or tag"></div>
-    <div class="tally" id="tally"></div>
   </div>
+  <div class="tally" id="tally"></div>
 
   <div class="tbl">
     <div id="rows"></div>
@@ -462,7 +491,7 @@ async function fetchWeather(){
             rain:j.current.precipitation,rain48:past,cloud:j.current.cloud_cover};
   }catch(e){ clearTimeout(t); return null; }
 }
-const S={when:'now',verb:'',type:'',km:999,cost:'',who:'',wx:'',sort:'near',q:''};
+const S={when:'now',verb:[],type:[],km:999,cost:[],who:[],wx:'',sort:'near',q:''};
 
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -922,17 +951,16 @@ function atHomeHidden(i){
   /* "At home" is a theme you choose, not the answer to "what's on near me". With no
      theme picked and nothing searched, keep these out of the default list — they
      outnumber the real places and they are all zero km, so they used to lead it. */
-  return !S.verb && !S.type && !S.q && (i.themes||[]).includes('home');
+  return !S.verb.length && !S.type.length && !S.q && (i.themes||[]).includes('home');
 }
 function ok(i){
   if(!whenOK(i)) return false;
   if(atHomeHidden(i)) return false;
-  if(S.verb && !verbsOf(i).includes(S.verb)) return false;
-  if(S.type && i.type!==S.type) return false;
+  if(S.verb.length && !verbsOf(i).some(v=>S.verb.includes(v))) return false;
+  if(S.type.length && !S.type.includes(i.type)) return false;
   if(i.km!=null && i.km>S.km) return false;
-  if(S.cost==='cheapish'){if(!['Free','Cheap'].includes(i.cost))return false}
-  else if(S.cost && i.cost!==S.cost) return false;
-  if(S.who && !(i.ages||[]).some(a=>a===S.who||a==='all-ages')) return false;
+  if(S.cost.length && !S.cost.includes(i.cost)) return false;
+  if(S.who.length && !(i.ages||[]).some(a=>S.who.includes(a)||a==='all-ages')) return false;
   if(S.wx && suits(i)===false) return false;
   if(S.q){const h=[i.name,i.loc,i.place,i.type,i.desc,(i.tags||[]).join(' ')].join(' ').toLowerCase();
     if(!h.includes(S.q))return false}
@@ -979,7 +1007,7 @@ function render(){
   syncClear();
   const list=ALL.filter(ok).sort(sortFn);
   VISIBLE=list;
-  const hidden = !S.verb && !S.type && !S.q ? ALL.filter(i=>whenOK(i)&&(i.themes||[]).includes('home')).length : 0;
+  const hidden = !S.verb.length && !S.type.length && !S.q ? ALL.filter(i=>whenOK(i)&&(i.themes||[]).includes('home')).length : 0;
   document.getElementById('tally').textContent =
     list.length+' listed'+(hidden?' · '+hidden+' at home':'');
   document.getElementById('rows').innerHTML = list.length ? list.map(i=>{
@@ -1174,60 +1202,132 @@ async function showView(v){
 viewBtns.forEach(b=>b.addEventListener('click',()=>showView(b.dataset.v)));
 S.view='list';
 rebuild();
-const verbSel=document.getElementById('verb'), typeSel=document.getElementById('type');
-/* Counts are computed against the other filter, not baked, so a type that says 19
-   returns 19. A count that lies is worse than no count. */
-function refreshFacets(){
-  const keepV=verbSel.value, keepT=typeSel.value;
-  const forVerb = S.type ? ALL.filter(i=>i.type===S.type) : ALL;
-  verbSel.innerHTML='<option value="">Anything</option>'+VERBS.map(([k,l])=>{
-    const n=forVerb.filter(i=>verbsOf(i).includes(k)).length;
-    return `<option value="${k}"${n?'':' disabled'}>${l} (${n})</option>`}).join('');
-  verbSel.value=keepV;
+/* ── multi-select ───────────────────────────────────────────────────────────
+   One question, several answers. Each instance owns an array on S; the button
+   summarises it, the panel holds the checkboxes. Options with nothing behind
+   them are shown but not selectable — a filter that silently drops a choice is
+   worse than one that shows you the choice is empty. */
+const MULTI={};
+function makeMulti(hostId, key, allLabel, label){
+  const host=document.getElementById(hostId);
+  host.innerHTML=`<button type="button" class="ms-btn" aria-expanded="false"`
+    +` aria-haspopup="true">${allLabel}</button>`
+    +`<div class="ms-pop" hidden role="group" aria-label="${label}"></div>`;
+  const btn=host.querySelector('.ms-btn'), pop=host.querySelector('.ms-pop');
+  const m={host, btn, pop, key, allLabel, options:[]};
+  btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    const open=btn.getAttribute('aria-expanded')==='true';
+    closeAllMulti();
+    if(!open){ btn.setAttribute('aria-expanded','true'); pop.hidden=false; }
+  });
+  pop.addEventListener('click',e=>e.stopPropagation());
+  MULTI[key]=m; return m;
+}
+function closeAllMulti(){
+  Object.values(MULTI).forEach(m=>{
+    m.btn.setAttribute('aria-expanded','false'); m.pop.hidden=true;});
+}
+document.addEventListener('click',closeAllMulti);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAllMulti(); });
 
-  const forType = S.verb ? ALL.filter(i=>verbsOf(i).includes(S.verb)) : ALL;
+/* `avail` counts what the other filters leave, so an impossible option greys out.
+   The number itself is not printed — the row of listings is the answer. */
+function paintMulti(m, options, avail){
+  m.options=options;
+  const chosen=S[m.key];
+  m.pop.innerHTML=options.map(([v,l])=>{
+    const n=avail(v), on=chosen.includes(v);
+    return `<label class="${n||on?'':'off'}"><input type="checkbox" value="${esc(v)}"`
+      +`${on?' checked':''}${n||on?'':' disabled'}><span>${esc(l)}</span></label>`;
+  }).join('') + (chosen.length?`<button type="button" class="ms-clear">Clear</button>`:'');
+  m.pop.querySelectorAll('input').forEach(cb=>cb.addEventListener('change',()=>{
+    S[m.key]=cb.checked ? [...S[m.key],cb.value] : S[m.key].filter(x=>x!==cb.value);
+    afterFacetChange(m.key);
+  }));
+  const c=m.pop.querySelector('.ms-clear');
+  if(c) c.addEventListener('click',()=>{S[m.key]=[];afterFacetChange(m.key);});
+
+  const labels=chosen.map(v=>(options.find(o=>o[0]===v)||[v,v])[1]);
+  m.btn.textContent = !labels.length ? m.allLabel
+    : labels.length===1 ? labels[0] : `${labels[0]} +${labels.length-1}`;
+  m.btn.classList.toggle('on', !!labels.length);
+}
+function afterFacetChange(key){
+  /* Dated things are a diary, not a directory — they only read in date order */
+  if(key==='verb' && S.verb.some(v=>v==='listen'||v==='watch')){
+    S.sort='when'; document.getElementById('sort').value='when';
+  }
+  refreshFacets(); render();
+}
+
+makeMulti('ms-verb','verb','Anything','What do you want to do');
+makeMulti('ms-type','type','All types','Type of listing');
+makeMulti('ms-cost','cost','Any cost','Cost');
+makeMulti('ms-who','who','Anyone','Who it suits');
+
+const COST_ORDER=['Free','Cheap','Moderate','Splurge'];
+const WHO=[['toddler','Toddlers'],['kids','Kids'],['teens','Teens'],['adults','Adults']];
+function refreshFacets(){
+  /* Availability is measured against everything else that is on — When and
+     Distance included — because the grey state is the only signal left once the
+     counts are gone, and an option that looks live but returns nothing is the
+     lie the numbers used to prevent. A facet never counts against itself, or
+     picking one option would grey out its own siblings. */
+  const pass=(i,skip)=>
+       whenOK(i) && !(i.km!=null && i.km>S.km) && !(S.wx && suits(i)===false)
+    && (!S.q || [i.name,i.loc,i.place,i.type,i.desc,(i.tags||[]).join(' ')]
+                  .join(' ').toLowerCase().includes(S.q))
+    && (skip==='verb' || !S.verb.length || verbsOf(i).some(v=>S.verb.includes(v)))
+    && (skip==='type' || !S.type.length || S.type.includes(i.type))
+    && (skip==='cost' || !S.cost.length || S.cost.includes(i.cost))
+    && (skip==='who'  || !S.who.length  || (i.ages||[]).some(a=>S.who.includes(a)||a==='all-ages'));
+
+  const pool=k=>ALL.filter(i=>pass(i,k));
+  const pv=pool('verb'), pt=pool('type'), pc=pool('cost'), pw=pool('who');
+
+  paintMulti(MULTI.verb, VERBS, v=>pv.filter(i=>verbsOf(i).includes(v)).length);
   const types=[...new Set(ALL.map(i=>i.type).filter(Boolean))].sort();
-  typeSel.innerHTML='<option value="">All types</option>'+types.map(k=>{
-    const n=forType.filter(i=>i.type===k).length;
-    return `<option value="${k}"${n?'':' disabled'}>${k} (${n})</option>`}).join('');
-  typeSel.value=keepT;
+  paintMulti(MULTI.type, types.map(t=>[t,t]), t=>pt.filter(i=>i.type===t).length);
+  const costs=COST_ORDER.filter(c=>ALL.some(i=>i.cost===c));
+  paintMulti(MULTI.cost, costs.map(c=>[c,c]), c=>pc.filter(i=>i.cost===c).length);
+  paintMulti(MULTI.who, WHO, w=>pw.filter(i=>(i.ages||[]).some(a=>a===w||a==='all-ages')).length);
 }
 refreshFacets();
-[['when','when'],['verb','verb'],['type','type'],['km','km'],['cost','cost'],
- ['who','who'],['wx','wx'],['sort','sort']].forEach(([id,key])=>{
+[['when','when'],['km','km'],['wx','wx'],['sort','sort']].forEach(([id,key])=>{
   document.getElementById(id).addEventListener('change',e=>{
     S[key]= key==='km' ? +e.target.value : e.target.value;
     if(key==='wx' && e.target.value==='auto') return void useAuto(e.target);
-    /* Dated things are a diary, not a directory — they only read in date order */
-    if(key==='verb' && ['listen','watch'].includes(e.target.value)){
-      S.sort='when'; document.getElementById('sort').value='when';
-    }
-    if(key==='verb'||key==='type') refreshFacets();
+    if(key!=='sort') refreshFacets();
     render()})});
 
 /* the four secondary filters, and a dot when any of them is doing something */
 const moreBtn=document.getElementById('morebtn'), moreBox=document.getElementById('more');
-moreBtn.addEventListener('click',()=>{
+moreBtn.addEventListener('click',e=>{
+  e.stopPropagation(); closeAllMulti();
   const open=moreBtn.getAttribute('aria-expanded')==='true';
   moreBtn.setAttribute('aria-expanded',String(!open));
   moreBox.hidden=open;
 });
+moreBox.addEventListener('click',e=>e.stopPropagation());
 function syncMoreDot(){
-  const on = S.km!==999 || S.cost || S.who || S.wx;
+  const on = S.km!==999 || S.cost.length || S.who.length || S.wx;
   document.getElementById('moredot').hidden = !on;
 }
-document.getElementById('q').addEventListener('input',e=>{S.q=e.target.value.trim().toLowerCase();render()});
+document.getElementById('q').addEventListener('input',e=>{
+  S.q=e.target.value.trim().toLowerCase(); refreshFacets(); render();});
 
-const DEFAULTS={when:'now',verb:'',type:'',km:999,cost:'',who:'',wx:'',q:''};   /* sort is a view, not a filter */
+const DEFAULTS={when:'now',verb:[],type:[],km:999,cost:[],who:[],wx:'',q:''};   /* sort is a view, not a filter */
 function syncClear(){
-  const on = Object.keys(DEFAULTS).some(k=>S[k]!==DEFAULTS[k]);
+  const on = Object.keys(DEFAULTS).some(k=>Array.isArray(DEFAULTS[k])
+    ? S[k].length : S[k]!==DEFAULTS[k]);
   document.getElementById('clear').hidden = !on;
   syncMoreDot();
 }
 document.getElementById('clear').addEventListener('click',()=>{
-  Object.assign(S,DEFAULTS);
+  Object.keys(DEFAULTS).forEach(k=>S[k]=Array.isArray(DEFAULTS[k])?[]:DEFAULTS[k]);
   S.sort='near'; document.getElementById('sort').value='near';
-  ['when','verb','type','km','cost','who','wx'].forEach(id=>document.getElementById(id).value=String(DEFAULTS[id]));
+  ['when','km','wx'].forEach(id=>document.getElementById(id).value=String(DEFAULTS[id]));
   refreshFacets();
   document.getElementById('km').value='999';
   document.getElementById('q').value='';
