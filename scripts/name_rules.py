@@ -16,7 +16,7 @@ line each with the reason. OVERRIDE is for the handful where the right name is
 a rewrite, not a subtraction.
 
 The gate that stops this doing damage: **a name may only shed a place when the
-event has a venue_id.** A linked venue is a real row with an address and, in
+event has a place_id.** A linked venue is a real row with an address and, in
 most cases, coordinates, so the Where column definitely has something to show.
 An event with only free text ("Various venues – Surf Coast", "Rotates — check
 website", a bare suburb) keeps every word of its name. Link its venue and it
@@ -176,21 +176,21 @@ def req(method, path, body=None, extra=None):
 def view_shows_the_venue():
     """The renames only make sense once the page can print the venue instead."""
     try:
-        req('GET', '/rest/v1/listings?select=venue&limit=1')
+        req('GET', '/rest/v1/listings?select=place&limit=1')
         return True
     except SystemExit:
         return False
 
 def proposals():
-    events = req('GET', '/rest/v1/events?select=id,name,type,venue,venue_id,location,source_note&order=id')
-    venues = {v['id']: v for v in req('GET', '/rest/v1/venues?select=id,name,suburb')}
+    events = req('GET', '/rest/v1/events?select=id,name,type,venue,place_id,location,source_note&order=id')
+    places = {p['id']: p for p in req('GET', '/rest/v1/places?select=id,name,suburb')}
     out = []
     for e in events:
-        v = venues.get(e['venue_id'])
+        v = places.get(e['place_id'])
         new, why = tidy(e['name'], venue=v['name'] if v else None,
                         suburb=v['suburb'] if v else None,
                         location=e['location'], free_venue=e['venue'],
-                        type_=e['type'], linked=e['venue_id'] is not None)
+                        type_=e['type'], linked=e['place_id'] is not None)
         if new != e['name']:
             out.append((e, new, why, v))
     return out
@@ -214,7 +214,7 @@ def main():
     # it should say where. These are the ones that cannot be renamed, and the
     # reason their names still carry a suburb or a region.
     homeless = [e for e in req('GET', '/rest/v1/events?select=id,name,starts_on,'
-                               'time_text,venue,venue_id&venue_id=is.null&order=id')
+                               'time_text,venue,place_id&place_id=is.null&order=id')
                 if e['starts_on'] and e['time_text']]
     if homeless:
         print(f"\n{len(homeless)} dated events have no venue — a date and a time "

@@ -340,7 +340,7 @@ def worth_adding(g):
     return name, None
 
 def ensure_venue(g, src, registry, made, write, organisers=frozenset()):
-    """venue_id for this gig, creating the room if it is new and solid.
+    """place_id for this gig, creating the room if it is new and solid.
 
     A gig read off a venue's own listing carries no location of its own — the
     venue is the site we are reading, so the source row is the answer. That is
@@ -365,13 +365,13 @@ def ensure_venue(g, src, registry, made, write, organisers=frozenset()):
     if not name: return None, why
     row = {'name': name, 'suburb': g.get('venue_suburb') or None,
            'address': (g.get('venue_address') or '').split(',')[0].strip() or None,
-           'kind': 'event venue',
+           'kind_legacy': 'event venue',
            'source_note': f"added from a ticketing listing for an event held there, "
                           f"{E.today().isoformat()}"}
     if not write:
         made.append(('would add', name, row['suburb']))
         return None, f'new venue "{name}" — would be added'
-    got = E.db('POST', '/rest/v1/venues', row, {'Prefer': 'return=representation'})
+    got = E.db('POST', '/rest/v1/places', row, {'Prefer': 'return=representation'})
     vid = got[0]['id'] if got else None
     if vid: registry[venue_key(name)] = vid
     made.append(('added', name, row['suburb']))
@@ -384,13 +384,13 @@ def build(venue, g, registry):
     to a community organisation that runs events all over the shire, or to a
     promoter who hires a hall — The Sound Doctor puts its gigs on at Anglesea
     Memorial Hall. So the venue comes from the event where the event says, and
-    venue_id is set only when that name matches a row we already hold. No match
+    place_id is set only when that name matches a row we already hold. No match
     means null, not a guess: attributing a wildflower show to a live music
     promoter because they share a hall is how this table got muddled.
     """
     vname = g.get('venue_name') or venue['name']
     vsub  = g.get('venue_suburb') or (venue.get('suburb') if not g.get('venue_name') else None)
-    vid   = g.pop('_venue_id', None)
+    vid   = g.pop('_place_id', None)
     return {
         'name'           : g['name'][:200],
         'type'           : 'gig',
@@ -398,7 +398,7 @@ def build(venue, g, registry):
         'ends_on'        : g.get('ends_on'),
         'time_text'      : g.get('time_text'),
         'venue'          : vname,
-        'venue_id'       : vid,
+        'place_id'       : vid,
         'location'       : vsub,
         'description'    : g.get('description'),
         'info_url'       : g.get('url'),
@@ -419,7 +419,7 @@ def main(argv):
     globals()['SKIP'] = skip
 
     E.load_env()
-    venues = E.db('GET', '/rest/v1/venues?select=id,name,suburb,kind,website,events_url,ticketing_url'
+    venues = E.db('GET', '/rest/v1/places?select=id,name,suburb,kind_legacy,website,events_url,ticketing_url'
                          '&order=name')
     live = [v for v in venues if (v.get('events_url') or v.get('ticketing_url')
                                   or v.get('website'))]
@@ -437,11 +437,11 @@ def main(argv):
 
     registry   = {venue_key(v['name']): v['id'] for v in venues}
     organisers = {venue_key(v['name']) for v in venues
-                  if (v.get('kind') or '').lower() == 'organiser'}
+                  if (v.get('kind_legacy') or '').lower() == 'organiser'}
     made = []
-    existing = E.db('GET', '/rest/v1/events?select=id,name,starts_on,venue_id,verified,source_note')
+    existing = E.db('GET', '/rest/v1/events?select=id,name,starts_on,place_id,verified,source_note')
     by_name  = {E.norm(e['name']): e for e in existing}
-    by_slot  = {(e.get('venue_id'), e.get('starts_on')): e for e in existing if e.get('venue_id')}
+    by_slot  = {(e.get('place_id'), e.get('starts_on')): e for e in existing if e.get('place_id')}
     seen     = E.Seen(SEEN_FILE)
     horizon  = (E.today() + datetime.timedelta(days=HORIZON)).isoformat()
     today    = E.today().isoformat()
@@ -455,13 +455,13 @@ def main(argv):
             quiet.append(v); continue
         for g in sorted(gigs, key=lambda x: x['starts_on']):
             vid, vnote = ensure_venue(g, v, registry, made, write, organisers)
-            g['_venue_id'] = vid
+            g['_place_id'] = vid
             row = build(v, g, registry)
             if vnote: print(f"       venue: {vnote}")
             key = f"{v['id']}:{g['starts_on']}:{E.norm(g['name'])[:40]}"
             if key in seen:
                 continue
-            hit = (by_slot.get((row['venue_id'], g['starts_on'])) if row['venue_id'] else None) \
+            hit = (by_slot.get((row['place_id'], g['starts_on'])) if row['place_id'] else None) \
                   or by_name.get(E.norm(g['name']))
             if hit:
                 dupe.append((hit, row))

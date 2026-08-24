@@ -68,9 +68,9 @@ ended up in both sheets with two different dates, one of them wrong.
 
 ## Venues
 
-`supabase/VENUES_RUN_THIS.sql` creates a `venues` table and seeds 38 of them from
-Scott's music venue spreadsheet, then adds `venue_id` to both `events` and
-`activities` and rebuilds `listings` so an event inherits its venue's coordinates.
+`supabase/VENUES_RUN_THIS.sql` created the table (then `venues`, now `places`) and seeded 38 of them from
+Scott's music venue spreadsheet, then added `venue_id` to both `events` and
+`activities` (now `place_id`) and rebuilt `listings` so an event inherits its venue's coordinates.
 **Run it in the Supabase SQL editor** — PostgREST cannot create tables, so this
 cannot be applied from a script.
 
@@ -258,7 +258,7 @@ shaky and inventing more is exactly how it got burned — fill it in on review.
 ## The venue feed — one worker, driven by the database
 
 `scrape_venues.py` reads gigs from the venues themselves. **The registry is the
-`venues` table, not the code**: any row with an `events_url` gets read, and a row
+`places` table, not the code**: any row with an `events_url` gets read, and a row
 with only a `website` gets its usual gig paths tried as a convenience (the run
 says which one worked so you can pin it down). Adding a venue is filling in a
 cell — never editing this script. A source that would need a per-venue special
@@ -546,14 +546,39 @@ caught it before it shipped; clicking around the page would not have.
 - Sunset is computed in-page (no API) for the When filter. Verified against
   WillyWeather: 22 Aug 2026 gives sunrise 6:59, sunset 5:52pm.
 
-## Places — a taxonomy, written but NOT YET RUN
+## Places — a taxonomy, RUN 24 Aug 2026
 
-`supabase/PLACES_TAXONOMY.sql` renames `venues` to `places` (and `venue_id` to
-`place_id`), and splits `kind` into two columns. **It has not been applied.**
-Until it is, the table is still `venues`, the view's column is still `venue`,
-and `scripts/classify_places.py --write` refuses. The page already reads
-`r.place ?? r.venue`, so it works either side of the migration — that fallback
-is the transition guard and can go once the migration lands.
+`supabase/PLACES_TAXONOMY.sql` renamed `venues` to `places` (and `venue_id` to
+`place_id`), and split `kind` into two columns. **Applied 24 Aug 2026** via the
+Management API, in one transaction. `listings` now carries `place` and
+`place_kind` instead of `venue`; there is no `venue_id` anywhere.
+
+`classify_places.py --write` ran straight after: **101 places, 89 with a kind,
+12 left null**, 43 carrying at least one offer (live-music 38, food 35,
+drinks 35, tickets 2). `place_kind` reaches 113 of the 417 listings.
+
+The page's `r.place ?? r.venue` fallback is now dead weight on the `venue` side
+— harmless, and worth deleting next time that block is touched.
+
+**Renaming the table broke two scripts, and one of them runs unattended.**
+`scrape_venues.py` is on the Mon/Thu Action; it wrote `kind: 'event venue'`,
+which the new foreign key rejects, and read `venue_id` throughout. Both it and
+`name_rules.py` were repointed at `places`/`place_id` in the same commit as the
+migration. Two traps worth remembering if this pattern repeats:
+
+- **`kind` changed meaning, it did not just move.** `kind` is now the checked
+  vocabulary and the old free text is `kind_legacy`. `scrape_venues.py` decided
+  which names were organisers with `kind == 'organiser'` — a legacy value — so
+  reading the new column would have silently stopped detecting them rather than
+  erroring. Provenance text new rows write goes to `kind_legacy`.
+- **`name_rules.py`'s safety gate probed `listings?select=venue`.** After the
+  rename that probe fails, so the gate would have reported "the page cannot
+  print the venue yet" when in fact the opposite was true. A guard that fails
+  closed on a schema change is still a guard that lies. It reads `place` now.
+
+`events.venue` — the free-text column — is deliberately **not** renamed, and
+`eventlib.py`'s `venue_name`/`venue_suburb` keys are its own vocabulary, not
+the database's. Neither needed touching.
 
 Why the split. `venues.kind` was doing two jobs badly. 40 of 79 rows said
 "event venue", which records how the row got created rather than what the place
@@ -573,9 +598,21 @@ pub, and every "Hotel" in the music sheet is one; the place that is actually
 accommodation, Mantra Lorne, was never labelled a hotel. Pubs are `pub`, places
 you sleep are `accommodation`, food and drink live in `offers`.
 
-`classify_places.py` proposes a kind and offers for all 79 — 28 kinds, one left
-null (`Bloom`, which has nothing on file but a name and a suburb). Read the dry
-run before `--write`. Its ordering is the rule and it is load-bearing: first
+`classify_places.py` proposed a kind and offers for all 101 — 28 kinds used, 12
+left null. Read the dry run before `--write`.
+
+The 12 with no kind are not failures; they are places the vocabulary has no word
+for: four shops (`4 Pines X Boardriders Torquay`, `Patagonia Torquay`), three
+organisations that are not rooms (`Bellarine Catchment Network`, `Surf Coast
+Environment Group`, `The Book Club Social`), two walks, a boat ramp, a lake, and
+`Bloom`, which still has nothing on file but a name and a suburb.
+
+**`The Sound Doctor` (32) is filed as `hall` and probably should not be.** Its
+`kind_legacy` says Live Music Venue, so the rules had no reason to doubt it, but
+this file records elsewhere that it is a promoter who hires Anglesea Memorial
+Hall — an organiser, not a room. There is no `organiser` kind to move it to, and
+inventing one to hold a single row is how `kind` got into trouble the first
+time. Left as it is, flagged here, for a person to decide. Its ordering is the rule and it is load-bearing: first
 match wins, so the noun a name ends on must be tested before the geography it
 mentions, or Bells Beach Brewing files as a beach and Fishermans Beach Reserve
 does too. Both did, on the first pass.
@@ -588,10 +625,9 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
 
 ## Next things worth doing
 
-1. **Run `supabase/PLACES_TAXONOMY.sql`**, then
-   `python3 scripts/classify_places.py --write`. Read the dry run first. Auto
-   mode would not run the migration unattended — it renames tables and drops
-   the view — so it needs the SQL editor or an explicit go-ahead.
+1. Give `The Sound Doctor` (place 32) the right kind, or decide `hall` will do
+   — see the Places section. The other 11 unclassified places need a word the
+   vocabulary does not have yet (shops, organisations, two walks, a boat ramp).
 2. Build place rows for the four dated events whose free text already names a
    real place: `Baines Crescent outlets` (22), `Anglesea Community Hub` (30),
    `Anglesea Community Precinct` (53), `Torquay Common` (77). Each one then
