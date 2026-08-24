@@ -24,11 +24,16 @@ Three things about the source that the code below exists to handle:
 Nothing is ever inserted verified. New rows show up in `sync.py pending`.
 """
 import os, sys, json, re, html, pathlib, datetime, urllib.request, urllib.error, urllib.parse
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import eventlib as E
 
 SOURCE   = 'https://www.surfcoastevents.com.au'
 API      = SOURCE + '/wp-json/tribe/events/v1/events'
 ROOT     = pathlib.Path(__file__).resolve().parent.parent
-SEEN     = ROOT / 'scripts' / 'events_seen.json'
+SEEN     = E.ROOT / 'scripts' / 'events_seen.json'
+SEEN_NOTE = ('Series already offered by scrape_events.py. Delete a line to be '
+             'offered it again — otherwise something you rejected comes back '
+             'on Thursday.')
 HORIZON  = 270          # days ahead to bother with
 UA       = 'whattodo-janjuc/1.0 (+https://whattodo-nu.vercel.app)'
 
@@ -82,26 +87,6 @@ def fetch_all(horizon=HORIZON):
     return out
 
 # ── tidying ─────────────────────────────────────────────────────────────────
-def text(s, limit=600):
-    """Source text is third-party HTML. Strip it to plain prose; never eval it."""
-    s = re.sub(r'(?is)<(script|style).*?</\1>', ' ', s or '')
-    s = re.sub(r'(?s)<[^>]+>', ' ', s)
-    s = html.unescape(s)
-    s = re.sub(r'\s+', ' ', s).strip()
-    # Stripping their markup leaves the venue name stuttering at the end
-    # ("Torquay Torquay Torquay"). Collapse any word repeated back to back.
-    s = re.sub(r'\b(\w[\w\'-]*)(\s+\1\b)+', r'\1', s, flags=re.I)
-    if len(s) > limit:
-        cut = s[:limit].rsplit(' ', 1)[0]
-        s = cut + '…'
-    return s or None
-
-def clean_url(u):
-    u = (u or '').strip()
-    if not u.startswith(('http://', 'https://')): return None
-    if 'maps.app.goo.gl' in u: return None     # these get fabricated — CLAUDE.md
-    return u
-
 def day(s):  return datetime.date.fromisoformat(s[:10])
 def clock(s):
     h, m = int(s[11:13]), int(s[14:16])
@@ -147,7 +132,7 @@ def build(slug, instances):
 
     # The organiser's own link if the source has one, else the source's page for
     # it. Both came from the source; neither is invented here.
-    info = clean_url(first.get('website')) or clean_url(first.get('url'))
+    info = E.clean_url(first.get('website')) or E.clean_url(first.get('url'))
 
     note = f"surfcoastevents.com.au/{slug}"
     if len(instances) > 1:
@@ -162,7 +147,7 @@ def build(slug, instances):
         'time_text'      : time_text(first),
         'venue'          : place,
         'location'       : where,
-        'description'    : text(first.get('description') or first.get('excerpt')),
+        'description'    : E.text(first.get('description') or first.get('excerpt')),
         'info_url'       : info,
         'date_confidence': 'medium',
         'added_by'       : 'surfcoastevents',
@@ -188,58 +173,19 @@ def collapse(events):
     # than pushing two rows with the same name at a database that refuses them.
     best = {}
     for slug, r in rows.items():
-        k = norm(r['name'])
+        k = E.norm(r['name'])
         if k not in best or len(series[slug]) > len(series[best[k]]):
             best[k] = slug
     keep = {}
     for k, slug in best.items():
-        dupes = [s for s, r in rows.items() if norm(r['name']) == k and s != slug]
+        dupes = [s for s, r in rows.items() if E.norm(r['name']) == k and s != slug]
         if dupes:
             rows[slug]['source_note'] += f"; also listed as {', '.join(sorted(dupes))}"
         keep[slug] = rows[slug]
     return dict(sorted(keep.items()))
 
-# ── the database ────────────────────────────────────────────────────────────
-def load_env():
-    f = ROOT / '.env'
-    if f.exists():
-        for line in f.read_text().splitlines():
-            if '=' in line and not line.strip().startswith('#'):
-                k, v = line.split('=', 1)
-                os.environ.setdefault(k.strip(), v.strip())
-
-def db(method, path, body=None, extra=None):
-    url = (os.environ.get('SUPABASE_URL') or '').rstrip('/')
-    key = os.environ.get('SUPABASE_SERVICE_KEY') or ''
-    if not url or not key:
-        sys.exit("Set SUPABASE_URL and SUPABASE_SERVICE_KEY (environment or .env).")
-    r = urllib.request.Request(url + path, method=method,
-        data=json.dumps(body).encode() if body is not None else None)
-    r.add_header('apikey', key); r.add_header('Authorization', 'Bearer ' + key)
-    r.add_header('Content-Type', 'application/json')
-    for k, v in (extra or {}).items(): r.add_header(k, v)
-    try:
-        with urllib.request.urlopen(r, timeout=45) as resp:
-            raw = resp.read()
-            return json.loads(raw) if raw else []
-    except urllib.error.HTTPError as e:
-        sys.exit(f"{method} {path} -> {e.code}\n{e.read().decode()[:400]}")
-
-def norm(s):
-    return re.sub(r'[^a-z0-9]+', '', html.unescape(s or '').lower())
-
-def seen_ids():
-    if SEEN.exists():
-        try: return set(json.loads(SEEN.read_text()).get('offered') or [])
-        except json.JSONDecodeError: pass
-    return set()
-
-def save_seen(ids):
-    SEEN.write_text(json.dumps(
-        {'note': 'Series already offered by scrape_events.py. Delete a line to be '
-                 'offered it again — otherwise something you rejected comes back '
-                 'every week.',
-         'offered': sorted(ids)}, indent=1) + '\n')
+# The database, text tidying and the seen-file all live in eventlib now, so
+# this script and scrape_venues.py cannot drift apart on them.
 
 # ── main ────────────────────────────────────────────────────────────────────
 def main(argv):
@@ -252,7 +198,8 @@ def main(argv):
     cands = collapse(raw)
     log(f"  {len(raw)} listings -> {len(cands)} series in the next {HORIZON} days")
 
-    already = seen_ids()
+    seen    = E.Seen(SEEN)
+    already = seen.ids
     fresh   = {s: r for s, r in cands.items() if s not in already}
 
     if as_json and not need_db:
@@ -260,12 +207,12 @@ def main(argv):
         log(f"wrote {len(fresh)} row(s) to {as_json} — check them, then `sync.py add`")
         return
 
-    load_env()
-    existing = db('GET', '/rest/v1/events?select=id,name,starts_on,verified,source_note,added_by')
+    E.load_env()
+    existing = E.db('GET', '/rest/v1/events?select=id,name,starts_on,verified,source_note,added_by')
     by_name  = {}
     by_slug  = {}
     for e in existing:
-        by_name.setdefault(norm(e['name']), e)
+        by_name.setdefault(E.norm(e['name']), e)
         m = re.search(r'surfcoastevents\.com\.au/([a-z0-9\-]+)', e.get('source_note') or '')
         if m: by_slug[m.group(1)] = e
 
@@ -276,7 +223,7 @@ def main(argv):
             if prior.get('starts_on') and prior['starts_on'] != row['starts_on']:
                 drift.append((prior, row))
             continue
-        hit = by_name.get(norm(row['name']))
+        hit = by_name.get(E.norm(row['name']))
         if hit:
             clash.append((hit, row)); continue
         if slug in already: continue
@@ -308,15 +255,16 @@ def main(argv):
 
     # ── write ──
     for slug, r in new:
-        got = db('POST', '/rest/v1/events', r, {'Prefer': 'return=representation'})
+        got = E.db('POST', '/rest/v1/events', r, {'Prefer': 'return=representation'})
         print(f"added event {got[0]['id'] if got else '?'}: {r['name']}")
     for old, r in drift:
         if old['verified']: continue      # a human vouched for that date; ask them
-        db('PATCH', f"/rest/v1/events?id=eq.{old['id']}",
+        E.db('PATCH', f"/rest/v1/events?id=eq.{old['id']}",
            {'starts_on': r['starts_on'], 'source_note': r['source_note']})
         print(f"moved event {old['id']}: {old['starts_on']} -> {r['starts_on']}")
 
-    save_seen(already | set(cands))
+    for slug in cands: seen.add(slug)
+    seen.save(SEEN_NOTE)
     print(f"\n{len(new)} added unverified. Review: python3 scripts/sync.py pending")
 
 if __name__ == '__main__':

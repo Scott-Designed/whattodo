@@ -43,12 +43,25 @@ jobs:
           set -o pipefail
           python3 scripts/scrape_events.py --write 2>&1 | tee run.txt
 
+      - name: Read each venue's own ticketing page
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -o pipefail
+          python3 scripts/scrape_venues.py --write 2>&1 | tee venues.txt
+
       - name: Put the run in the job summary
         if: always()
         run: |
           {
+            echo '## Surf Coast Events calendar'
             echo '```'
-            cat run.txt 2>/dev/null || echo 'the run produced nothing — check the step above'
+            cat run.txt 2>/dev/null || echo 'produced nothing — check the step above'
+            echo '```'
+            echo '## Venue ticketing pages'
+            echo '```'
+            cat venues.txt 2>/dev/null || echo 'produced nothing — check the step above'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -56,7 +69,7 @@ jobs:
         run: |
           git config user.name  'events bot'
           git config user.email 'noreply@github.com'
-          git add scripts/events_seen.json
+          git add scripts/events_seen.json scripts/venues_seen.json
           git diff --cached --quiet && { echo 'nothing new to remember'; exit 0; }
           # [skip ci] because the site reads Supabase live — a redeploy adds nothing.
           git commit -m "Events: remember this week's listings [skip ci]"

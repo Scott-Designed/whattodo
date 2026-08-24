@@ -1,0 +1,183 @@
+"""Shared plumbing for the event scrapers.
+
+Two jobs read from the outside world — `scrape_events.py` (the Surf Coast
+Events calendar) and `scrape_venues.py` (each venue's own ticketing page).
+What they have in common lives here so they cannot quietly drift apart:
+talking to Supabase, cleaning third-party text, remembering what has already
+been offered, and asking a site's robots.txt for permission before reading it.
+
+Nothing here calls a model. A run costs nothing on the API meter.
+"""
+import os, re, sys, json, html, pathlib, datetime, urllib.request, urllib.error, urllib.parse
+import urllib.robotparser as robotparser
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+UA   = 'whattodo-janjuc/1.0 (+https://whattodo-nu.vercel.app; community events listing)'
+
+def log(*a): print(*a, file=sys.stderr)
+
+# ── the database ────────────────────────────────────────────────────────────
+def load_env():
+    f = ROOT / '.env'
+    if f.exists():
+        for line in f.read_text().splitlines():
+            if '=' in line and not line.strip().startswith('#'):
+                k, v = line.split('=', 1)
+                os.environ.setdefault(k.strip(), v.strip())
+
+def db(method, path, body=None, extra=None):
+    url = (os.environ.get('SUPABASE_URL') or '').rstrip('/')
+    key = os.environ.get('SUPABASE_SERVICE_KEY') or ''
+    if not url or not key:
+        sys.exit("Set SUPABASE_URL and SUPABASE_SERVICE_KEY (environment or .env).")
+    r = urllib.request.Request(url + path, method=method,
+        data=json.dumps(body).encode() if body is not None else None)
+    r.add_header('apikey', key); r.add_header('Authorization', 'Bearer ' + key)
+    r.add_header('Content-Type', 'application/json')
+    for k, v in (extra or {}).items(): r.add_header(k, v)
+    try:
+        with urllib.request.urlopen(r, timeout=45) as resp:
+            raw = resp.read()
+            return json.loads(raw) if raw else []
+    except urllib.error.HTTPError as e:
+        sys.exit(f"{method} {path} -> {e.code}\n{e.read().decode()[:400]}")
+
+# ── reading other people's sites ────────────────────────────────────────────
+_ROBOTS = {}
+
+def robots_ok(url):
+    """Ask the host's robots.txt before reading, and obey a refusal.
+
+    We fetch robots.txt ourselves rather than letting RobotFileParser.read() do
+    it, because that uses Python's default user-agent, which a lot of firewalls
+    answer with 403 — and RobotFileParser reads a 403 as "forbidden from the
+    whole site". That turned a site whose robots.txt plainly allows us into a
+    silent skip. A missing or unreadable robots.txt means no rules; only an
+    actual 401/403 on robots.txt itself is treated as a refusal.
+    """
+    try:
+        p = urllib.parse.urlsplit(url)
+        root = f"{p.scheme}://{p.netloc}"
+    except ValueError:
+        return False
+    if root not in _ROBOTS:
+        rp = robotparser.RobotFileParser()
+        req = urllib.request.Request(root + '/robots.txt')
+        req.add_header('User-Agent', UA)
+        try:
+            with urllib.request.urlopen(req, timeout=12) as r:
+                rp.parse(r.read(200_000).decode('utf-8', 'replace').splitlines())
+        except urllib.error.HTTPError as e:
+            if e.code in (401, 403): rp.disallow_all = True   # a real refusal
+            else: rp = None                                   # 404 etc: no rules
+        except Exception:
+            rp = None                                         # unreachable: no rules
+        _ROBOTS[root] = rp
+    rp = _ROBOTS[root]
+    if rp is None: return True
+    # Ask as ourselves and as a plain crawler; obey the stricter answer.
+    return rp.can_fetch(UA, url) and rp.can_fetch('*', url)
+
+def fetch(url, cap=250_000, timeout=15):
+    """GET a page, honouring robots.txt. Returns None rather than raising."""
+    if not robots_ok(url):
+        return None
+    q = urllib.request.Request(url)
+    q.add_header('User-Agent', UA)
+    q.add_header('Accept', 'text/html,application/json;q=0.9,*/*;q=0.5')
+    try:
+        with urllib.request.urlopen(q, timeout=timeout) as r:
+            return r.read(cap).decode('utf-8', 'replace')
+    except Exception:
+        return None
+
+# ── tidying third-party text ────────────────────────────────────────────────
+def text(s, limit=600):
+    """Strip someone else's HTML to plain prose. Their markup is data, never
+    instructions, and nothing here evaluates it."""
+    s = re.sub(r'(?is)<(script|style).*?</\1>', ' ', s or '')
+    s = re.sub(r'(?s)<[^>]+>', ' ', s)
+    s = html.unescape(s)
+    s = re.sub(r'\s+', ' ', s).strip()
+    # stripped markup leaves venue names stuttering; collapse repeats
+    s = re.sub(r"\b(\w[\w'-]*)(\s+\1\b)+", r'\1', s, flags=re.I)
+    if len(s) > limit:
+        s = s[:limit].rsplit(' ', 1)[0] + '…'
+    return s or None
+
+def clean_url(u):
+    u = (u or '').strip()
+    if not u.startswith(('http://', 'https://')): return None
+    if 'maps.app.goo.gl' in u: return None      # these get fabricated — CLAUDE.md
+    return u
+
+def norm(s):
+    return re.sub(r'[^a-z0-9]+', '', html.unescape(s or '').lower())
+
+def clock(hhmm):
+    h, m = int(hhmm[:2]), int(hhmm[3:5])
+    ap = 'am' if h < 12 else 'pm'
+    hh = h % 12 or 12
+    return f"{hh}:{m:02d}{ap}" if m else f"{hh}{ap}"
+
+# ── schema.org Event, wherever it appears ───────────────────────────────────
+def jsonld_events(page):
+    """Every schema.org Event in a page's JSON-LD blocks, flattened."""
+    if not page or 'application/ld+json' not in page: return []
+    out = []
+    for block in re.findall(r'(?is)<script[^>]*application/ld\+json[^>]*>(.*?)</script>', page):
+        try: doc = json.loads(block)
+        except json.JSONDecodeError: continue
+        stack = [doc]
+        while stack:
+            o = stack.pop()
+            if isinstance(o, list): stack.extend(o); continue
+            if not isinstance(o, dict): continue
+            stack.extend(v for v in o.values() if isinstance(v, (dict, list)))
+            t = o.get('@type')
+            t = ' '.join(t) if isinstance(t, list) else str(t or '')
+            if 'Event' in t and t != 'EventVenue' and o.get('startDate'):
+                out.append(o)
+    return out
+
+def from_jsonld(o):
+    """schema.org Event -> the fields this database keeps. None if unusable."""
+    start = str(o.get('startDate') or '')
+    m = re.match(r'(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}))?', start)
+    if not m: return None
+    day, hhmm = m.group(1), m.group(2)
+    end = str(o.get('endDate') or '')
+    me = re.match(r'(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}))?', end)
+    tt = None
+    if hhmm:
+        tt = clock(hhmm)
+        if me and me.group(2) and me.group(1) == day:
+            tt += '–' + clock(me.group(2))
+    name = o.get('name')
+    name = ' '.join(name) if isinstance(name, list) else name
+    return {
+        'name'     : html.unescape(str(name or '')).strip(),
+        'starts_on': day,
+        'ends_on'  : me.group(1) if me and me.group(1) > day else None,
+        'time_text': tt,
+        'description': text(o.get('description')),
+        'url'      : clean_url(o.get('url')),
+    }
+
+# ── remembering what has been offered ───────────────────────────────────────
+class Seen:
+    """Every source id ever offered, so something rejected does not come back
+    next Thursday. Delete a line in the file to be offered it again."""
+    def __init__(self, path):
+        self.path = pathlib.Path(path)
+        self.ids = set()
+        if self.path.exists():
+            try: self.ids = set(json.loads(self.path.read_text()).get('offered') or [])
+            except json.JSONDecodeError: pass
+    def __contains__(self, k): return k in self.ids
+    def add(self, k): self.ids.add(k)
+    def save(self, note):
+        self.path.write_text(json.dumps(
+            {'note': note, 'offered': sorted(self.ids)}, indent=1) + '\n')
+
+def today(): return datetime.date.today()

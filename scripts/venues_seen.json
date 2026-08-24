@@ -1,0 +1,4 @@
+{
+ "note": "Gigs already offered by scrape_venues.py. Delete a line to be offered it again — otherwise something you rejected comes back next week.",
+ "offered": []
+}

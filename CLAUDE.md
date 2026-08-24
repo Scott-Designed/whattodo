@@ -11,7 +11,9 @@ api/enrich.mjs        Vercel function: Claude drafts missing fields, user approv
                       Takes a name OR a url. Events lead with the url.
 supabase/             schema, seed data, setup SQL
 scripts/              configure.py (keys into the page), sync.py (seed/export/moderate),
-                      scrape_events.py (the Surf Coast Events feed)
+                      eventlib.py (shared plumbing for both scrapers),
+                      scrape_events.py (the Surf Coast Events feed),
+                      scrape_venues.py (each venue's own ticketing page)
 .github/workflows/events.yml  runs that feed Mon + Thu
 tools/event-inbox.html  published Artifact — capture links and poster photos on the go
 ```
@@ -113,6 +115,76 @@ Those need venue rows of their own before the map can show everything. The sprea
 and per-venue Facebook/Instagram/Oztix feed URLs, which is the raw material for
 an automated what's-on check later.
 
+## The name says what, the Where column says where
+
+An event called "Open Mic Night – Torquay Hotel" in a row whose next column
+reads *Torquay Hotel* prints the venue twice, and on a phone the duplicate is
+what pushes the actual event off the edge. Names carry the thing; Where carries
+the place.
+
+Two halves make that work:
+
+- **`listings` has a `venue` column of its own.** It used to fold the two facts
+  into one — `coalesce(e.location, e.venue) as location` — so the page could
+  print the suburb or the venue but never both, and it printed the suburb.
+  `supabase/VENUE_IN_LISTINGS.sql` splits them. For a linked event the suburb
+  comes from the venue row, not the event's own free text: `venues` is curated
+  and geocoded, while `events.location` came off the feed and has drifted
+  (event 20 said Torquay for a gig at The Sound Doctor, which is in Anglesea).
+  Activities get the column too — a union needs the same shape both sides — but
+  it stays null unless the activity is one of the licensed venues, because an
+  activity is usually its own venue and printing it twice helps nobody.
+- **`scripts/name_rules.py` takes the place back out of the names.** Dry run by
+  default, `--write` to apply, `--check` for a non-zero exit if anything drifts.
+
+The gate that keeps the rules from doing damage: **a name may only shed a place
+when the event has a `venue_id`.** A linked venue is a real row with an address,
+so Where definitely has something to show. An event carrying only free text
+("Various venues – Surf Coast", "Rotates — check website", a bare suburb) keeps
+every word of its name — which is why *Repair Café Surf Coast* and *ANGAIR
+Wildflower & Art Weekend* were left alone. Link a venue and the row becomes
+eligible, which is the right incentive.
+
+What the rules do, in order: drop a venue after `–` or `at` at the end, drop one
+before `–` or `presents` at the front, drop one mid-name after `at`, then drop a
+bare leading **suburb** — suburb only, or "Great Ocean Road Running Festival"
+loses its own name to a venue string that mentions the road. Two adjustments
+follow: a chunk that mentions a place without being one is a series, and keeps
+its name in brackets (*Night Markets (Geelong After Dark)*); and a one-word
+remainder is too bare to stand in a list, so it gains its type (*Ceramics* →
+*Ceramics Workshop*).
+
+That bracket rule is deliberately narrow — it wants two non-place words. A place
+plus one word is an organisation named after its town, not a banner: the Torquay
+RSL *runs* the dawn service, it is not what the dawn service is called.
+
+**A dated event happens somewhere.** If a row has a date and a time then it has
+a place, and the place belongs in Where. The dry run prints every dated event
+with no `venue_id` under the renames — 18 of them — because that is the same
+list as the names that still have to carry a suburb. Several only need a venue
+row built from the text they already hold (`Baines Crescent outlets`, `Anglesea
+Community Precinct`, `Torquay Common`); the rest genuinely have no single place.
+*Repair Café Surf Coast* was in that list on a false premise — the database said
+"Rotates — check website" but repaircafesurfcoast.tech says "Where: Aireys Inlet
+Community Hall", one hall, every session. Given a venue, the region came out of
+the name.
+
+`KEEP` is for names where the place **is** the name — Lorne Pier to Pub Swim,
+Portarlington Mussel Festival, Rip Curl Pro Bells Beach. `OVERRIDE` is for the
+few where the right answer is a rewrite rather than a subtraction (Torquay
+Library – School Holiday Program → *Torquay Library Activities*, Dawn Service –
+Torquay RSL → *Anzac Day Dawn Service*, Repair Café Surf Coast → *Repair Café*). Both are one
+line each with the reason. **The rules propose; a person accepts** — no pattern
+matcher knows that Falls Festival is not named after Lorne. Read the dry run
+before every `--write`, and add the exception rather than loosening a rule.
+
+32 of the 87 events will be renamed. Each one's `source_note` now
+carries `Published as "<old title>"`, so nothing the organiser wrote is lost.
+
+Renaming before the view is split would strip the venue out of the name while
+Where still showed the suburb alone, so `--write` refuses until `listings` has
+the column. Run the SQL first.
+
 ## Two meters — know which one you are spending
 
 Researching a listing inside Claude Code costs nothing beyond the Claude
@@ -180,6 +252,50 @@ for margin nobody needs. Weekly is the floor, not a comfort.
 The feed does not set `km`. Distances in this database are already known to be
 shaky and inventing more is exactly how it got burned — fill it in on review.
 
+## The venue feed — one worker, driven by the database
+
+`scrape_venues.py` reads gigs from the venues themselves. **The registry is the
+`venues` table, not the code**: any row with an `events_url` gets read, and a row
+with only a `website` gets its usual gig paths tried as a convenience (the run
+says which one worked so you can pin it down). Adding a venue is filling in a
+cell — never editing this script. A source that would need a per-venue special
+case is a source we do not take.
+
+    python3 scripts/scrape_venues.py                    # look and report
+    python3 scripts/scrape_venues.py --write            # insert, unverified
+    python3 scripts/scrape_venues.py --only oztix       # one platform
+    python3 scripts/scrape_venues.py --skip humanitix   # leave a platform alone
+
+Ladder, best first: schema.org `Event` on the page → ticketing links followed and
+read (schema.org, or Oztix's patterned `<title>`) → report and stop. Never guess.
+
+**Confidence.** A ticket page is the organiser's own, so it is first-party and
+sufficient on its own. A date read from a machine-readable `startDate` lands
+`high`; a date picked out of a title by regex lands `medium`, because a regex can
+misfire and a wrong date wearing a confident badge is what this project has
+already paid for. Nothing is inserted `verified` either way.
+
+**It sets `venue_id`**, because it knows which venue it is reading. The
+surfcoastevents feed cannot and does not.
+
+**Cross-source duplicates** are caught on venue + date as well as name — the same
+gig reaches us as "Telenova" from Humanitix and "Telenova at The Sound Doctor"
+from surfcoastevents, and a name check alone would miss it.
+
+What the audit of all 78 venues found (24 Aug 2026): **zero** publish an events
+feed. 12 are automatable via a ticketing platform, 13 have a site with nothing
+machine-readable, 4 have a dead URL, and **49 have no website recorded at all** —
+that last number, not the parsers, is what caps coverage at 15%.
+
+Platforms: Oztix 6 venues (no JSON-LD; its `<title>` is template-generated and
+carries name, venue, suburb, date), Humanitix 2 (clean schema.org), TryBooking 2,
+Eventbrite 2 (has a free API — use that, don't scrape it).
+
+**Who is asking matters.** Every request identifies as `whattodo-janjuc` and
+honours robots.txt. Humanitix permits that crawler but disallows `ClaudeBot`, so
+**an assistant must not run the Humanitix path on your behalf** — pass
+`--skip humanitix` when Claude is driving. Your GitHub Action is fine.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
@@ -207,6 +323,27 @@ shaky and inventing more is exactly how it got burned — fill it in on review.
   Evening" and "Nerf Battle" among them. That is not an approximation, it is fiction
   wearing the costume of data, and on a map it stacks 50 false pins on one spot. 48
   were cleared 24 Aug 2026; a null pin is honest, a wrong one is not.
+- **The placeholder was in the sea, and so was Jan Juc.** -38.3655,144.2978 is not
+  the Jan Juc town centre — it is 2.3 km offshore in Bass Strait. The page's own `JJ`
+  constant carried that value too, so the map's home mark, the sunset calculation and
+  the weather lookup were all reading a point in the water. Real Jan Juc is
+  **-38.34456, 144.29517**. Fixed 24 Aug 2026, along with the twelve listings still
+  pinned to the old value. Nobody noticed for months because the list view never draws
+  a coordinate — you cannot see a wrong pin until you put it on a map.
+- **Two decimal places is not a coordinate, it is a guess.** 0.01 degree is about 1.1 km,
+  so a pin written as -38.38,144.28 is a kilometre-wide claim; on the Surf Coast that
+  puts it out to sea. Five listings had them, all citizen-science programs whose own
+  `location` said "Anywhere", "Surf Coast wide", "multiple hotspots". They are now null.
+  Nothing in this database should carry fewer than four decimal places.
+- **How to tell a wrong pin from a right one without a map**: reverse-geocode it. A
+  Nominatim reverse lookup on a coastal point that comes back as bare "Victoria,
+  Australia" — no road, no suburb, no town in the `address` object — is a point with
+  nothing under it, which on this coast means open water. That check found every bad
+  pin here in one pass, and it is cheap enough to run over the whole table.
+- **A suburb centroid is not the place.** "Bells Beach" geocodes to an administrative
+  polygon whose centre is 2.6 km from the beach — the same trap as the Winchelsea halls.
+  Check the `type` Nominatim returns: `administrative` means you got a boundary, not a
+  building or a feature.
 - Geocode, never estimate. OpenStreetMap Nominatim works from here (1 req/sec, real
   User-Agent). Record what it actually matched: a result resolving to "Ashmore Road,
   Torquay" is street-level, not the same fact as "50, Prospect Road, Ceres", which is
@@ -221,13 +358,54 @@ shaky and inventing more is exactly how it got burned — fill it in on review.
   treats null as furthest, so unlocated ideas fall to the bottom of Closest first
   instead of burying the real places. Never write 0 to mean "don't know".
 
+## The map
+
+The page has two views of one filtered list — `List` and `Map`, switched by the
+segmented control under Sort. Both read the same `ok()` filter, so whatever the
+dropdowns say, the map shows exactly that and nothing else.
+
+MapLibre GL JS, pinned to **5.24.0** off jsDelivr. 6.x is ESM-only, split across a
+shared chunk and a module worker, which wants a bundler; this file has no build
+step, so the UMD build that puts `maplibregl` on `window` is the one that fits.
+The library is fetched **only when someone opens the map** — if jsDelivr is
+unreachable the map says so and the list is untouched. Nothing about the list may
+ever depend on a third party to render this database.
+
+Basemap is CARTO's **Positron** (light) / **Dark Matter** (dark), vector, no API
+key, swapped from the page's own `prefers-color-scheme`. Attribution rides along
+in their TileJSON and fills the control in by itself — adding a `customAttribution`
+on top prints it twice.
+
+Things that cost time here:
+
+- MapLibre's stylesheet and this page's own use the same selectors at the same
+  weight, so whichever loads later wins. Appended to `<head>` it repaints the
+  popups white over a dark page. It is inserted **first** in the head instead.
+- Never set `position` on a marker element. MapLibre positions its markers
+  absolutely and this page's stylesheet now outranks it, so `.pin{position:relative}`
+  silently drops all 210 markers out of the map and stacks them down the page in
+  document order.
+- Pins are drawn straight after the map is constructed, not on `load`. They are
+  HTML over the canvas, not part of the style, so they do not need the basemap —
+  and an animated `fitBounds` started before the tiles arrive gets dropped and
+  leaves the map on its opening view. The first fit jumps; later ones ease.
+
+Several listings genuinely share one coordinate — five sit on Bells Beach. Those
+share a pin, the pin carries the count, and the popup lists all of them. They are
+**not** nudged apart: five coordinates that are not true is how this database got
+burned before.
+
+Under the map is a count of what is *not* on it — `210 of 360 on the map · 150
+have no coordinates yet`. A map that quietly shows two thirds of the database is
+a map that lies, so the gap is printed rather than hidden.
+
 ## Known outstanding
 
 - An activity's single `url` is whatever it is — a map pin for some, the venue's own
   site for others. The row labels it by inspection (`isMapLink`), so don't assume the
   slot means "map". 87 of 203 activities carry a website there. `Directions` is built
-  separately from `lat`/`lng`; 186 of 203 are pinned, so a map view is nearer than
-  this list once implied — about 17 activities lack coordinates
+  separately from `lat`/`lng`. 142 of 272 activities are pinned; the other 130 are
+  mostly the At home entries, which have nowhere to be
 - 42 entries use Google Maps *search* URLs rather than pinned coordinates
 - Four events sit on estimated dates: Bells Beach Surf Film Festival, Deans Marsh
   Festival, Geelong Pride Film Festival, One Planet Festival
@@ -240,6 +418,22 @@ shaky and inventing more is exactly how it got burned — fill it in on review.
   events already there and were skipped. None has a `km` yet.
 - Imported events carry no `km` and no `cost` (the source publishes no price at
   all — 0 of 101 listings had one)
+- **`Lorne Falls Festival (Spectate)` (15) should not be in the database.**
+  fallsfestival.com's own front page says the team are "taking this New Years'
+  season off to rest, recover and recalibrate" and names no 2026/27 dates; the
+  festival has not run since 2022 and the Lorne site — a 68ha farm at Murroon,
+  not the foreshore the row describes — was sold in 2025. The row carries
+  28–31 Dec 2026, `verified = true`, and a description of watching it from town,
+  which was never possible from 20km inland. This is the Arts Trail failure
+  again. Delete it, or park it with no date.
+- `Lorne Schoolies Week` (23) was deleted 24 Aug 2026 at Scott's request. It was
+  a warning to stay away rather than something to do.
+- Two rows are the same market: `Torquay Farmers Market` (5) and the feed's
+  import (83). Renaming made them adjacent and obvious. Merge them.
+- Four event names still carry their recurrence — "– every Saturday", "– first
+  Sunday of Month". The `recurrence` column says `weekly`/`monthly` but has
+  nowhere to put the day, so the name is the only place *Saturday* is written
+  down. Left alone until `time_text` carries it ("Saturdays, 8:30am–1pm").
 - The moderation queue is empty. `Ashmore Arts` (169) and `The Fives` (168) are both
   verified; both had their distance cleared rather than guessed and still need real ones,
   as does `Bird Rock Farm` (171)
@@ -265,15 +459,25 @@ shaky and inventing more is exactly how it got burned — fill it in on review.
 - GitHub secrets are set from the terminal — `… | gh secret set NAME` — not by
   pasting into the web form. Pasting put the text of the shell command into the
   secret, and the failure surfaced three layers away as `unknown url type`.
+- `RobotFileParser.read()` fetches robots.txt with Python's own user-agent, which
+  plenty of firewalls answer with 403 — and the parser reads a 403 as "forbidden
+  from the entire site". That silently skipped a venue whose robots.txt plainly
+  allowed us. `eventlib.robots_ok` fetches robots.txt itself with our real UA and
+  only treats a 401/403 **on robots.txt** as a refusal.
+- Python buffers stdout when it is redirected to a file, so a long background run
+  looks like it produced nothing until it exits. It has not hung.
 - Sunset is computed in-page (no API) for the When filter. Verified against
   WillyWeather: 22 Aug 2026 gives sunrise 6:59, sunset 5:52pm.
 
 ## Next things worth doing
 
-1. Work through the 44 imported events — `sync.py pending`. Each needs a
+1. **Run `supabase/VENUE_IN_LISTINGS.sql` in the Supabase SQL editor**, then
+   `python3 scripts/name_rules.py --write`. Until the first, the page shows the
+   suburb alone in Where and the second refuses to run.
+2. Work through the 44 imported events — `sync.py pending`. Each needs a
    distance from Jan Juc and its date checked against the organiser's own page
    before `date_confidence` can go to high; until then the site shows "est.".
-2. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
+3. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.
    `add file.json` (or `-` for stdin) writes a researched entry, one object or a
@@ -283,6 +487,7 @@ shaky and inventing more is exactly how it got burned — fill it in on review.
    only when it genuinely is a different thing. `--verified` requires a
    `source_note`; `--dry-run` checks without writing. An event's link is
    `info_url`/`ticket_url`, never `url`.
-3. Pin the 42 unpinned map URLs, which unblocks a map view
-4. Promote the Ideas Pipeline into the database
-5. A scheduled job that re-checks estimated event dates as real ones get announced
+4. Pin the 42 entries whose `url` is a Google Maps *search* rather than a
+   coordinate — each one is a missing pin on the map
+5. Promote the Ideas Pipeline into the database
+6. A scheduled job that re-checks estimated event dates as real ones get announced
