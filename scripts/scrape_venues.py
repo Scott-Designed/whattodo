@@ -339,7 +339,7 @@ def worth_adding(g):
         return None, f'"{name}" has no street address'
     return name, None
 
-def ensure_venue(g, src, registry, made, write):
+def ensure_venue(g, src, registry, made, write, organisers=frozenset()):
     """venue_id for this gig, creating the room if it is new and solid.
 
     A gig read off a venue's own listing carries no location of its own — the
@@ -353,6 +353,13 @@ def ensure_venue(g, src, registry, made, write):
             return None, 'organiser listing gave no venue'
         return src['id'], None
     key = venue_key(g.get('venue_name'))
+    # Some listings name an organiser where the room should be — The Sewing
+    # Collective runs its nights somewhere different each time, exactly as The
+    # Sound Doctor does. There is no way to tell from the data, so this is
+    # learned: mark one `kind = 'organiser'` in the venues table and it is never
+    # mistaken for a room again.
+    if key and key in organisers:
+        return None, f'"{g["venue_name"]}" is an organiser, not a room — venue left unset'
     if key and key in registry: return registry[key], None
     name, why = worth_adding(g)
     if not name: return None, why
@@ -428,7 +435,9 @@ def main(argv):
         print("\n  Nothing to read. Put a ticketing page in venues.events_url and run again.")
         return
 
-    registry = {venue_key(v['name']): v['id'] for v in venues}
+    registry   = {venue_key(v['name']): v['id'] for v in venues}
+    organisers = {venue_key(v['name']) for v in venues
+                  if (v.get('kind') or '').lower() == 'organiser'}
     made = []
     existing = E.db('GET', '/rest/v1/events?select=id,name,starts_on,venue_id,verified,source_note')
     by_name  = {E.norm(e['name']): e for e in existing}
@@ -445,7 +454,7 @@ def main(argv):
         if not gigs:
             quiet.append(v); continue
         for g in sorted(gigs, key=lambda x: x['starts_on']):
-            vid, vnote = ensure_venue(g, v, registry, made, write)
+            vid, vnote = ensure_venue(g, v, registry, made, write, organisers)
             g['_venue_id'] = vid
             row = build(v, g, registry)
             if vnote: print(f"       venue: {vnote}")
