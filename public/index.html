@@ -125,6 +125,9 @@ option{background:var(--ground);color:var(--ink)}
 .c-type,.c-where,.c-when,.c-cost{font-size:15px;color:var(--ink2);line-height:1.3}
 .est{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-top:3px}
 .tm{display:block;font-family:var(--serif);font-size:14px;color:var(--ink3);line-height:1.3;margin-top:1px}
+/* How often it repeats, beside the day — "Saturday" alone reads as one Saturday. */
+.rep{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink3);margin-left:7px;white-space:nowrap}
 .mob{display:none}
 
 .detail{display:none;padding:2px 0 30px}
@@ -789,7 +792,10 @@ function whenText(i){
     : (d>1&&d<7) ? dt.toLocaleDateString('en-AU',{weekday:'long'}) : dated;
   const mark = i.conf==='low' ? 'estimated' : i.conf==='medium' ? 'est.' : '';
   const time = i.time ? String(i.time).replace(/\s*(mon|tues|wednes|thurs|fri|satur|sun)days?\s*$/i,'') : '';
-  return lbl + (time?`<span class="tm">${esc(time)}</span>`:'') + (mark?`<span class="est">${mark}</span>`:'');
+  /* A rolled weekly event shows its next Saturday; without this it reads as the
+     only Saturday. Annual sits beside a far-off date for the same reason. */
+  const rep = i.recur && i.recur!=='none' ? `<span class="rep">${esc(i.recur)}</span>` : '';
+  return lbl + rep + (time?`<span class="tm">${esc(time)}</span>`:'') + (mark?`<span class="est">${mark}</span>`:'');
 }
 function whenOK(i){
   if(S.when==='any') return true;
@@ -890,7 +896,7 @@ function render(){
         <span class="c-where">${esc(wVenue)}${wSuburb?`<span class="tm">${esc(wSuburb)}</span>`:''}</span>
         <span class="c-when">${whenText(i)}</span>
         <span class="c-cost">${esc(i.cost||'')}</span>
-        <span class="mob">${esc(i.type)} &middot; ${esc(whereLine(i))} &middot; ${whenText(i).replace(/<[^>]+>/g,' &middot; ')}${i.ev&&i.recur?' &middot; '+esc(i.recur):''} &middot; ${esc(i.cost||'')}</span>
+        <span class="mob">${esc(i.type)} &middot; ${esc(whereLine(i))} &middot; ${whenText(i).replace(/<[^>]+>/g,' &middot; ')} &middot; ${esc(i.cost||'')}</span>
       </button>
       <div class="detail"><div class="detail-in">
         <div>
