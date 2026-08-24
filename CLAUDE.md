@@ -82,6 +82,12 @@ is a legitimate source (`https://nominatim.openstreetmap.org/search?format=json`
 its policy is max 1 request/second and a real User-Agent. Geocoding is a separate
 pass, not something to eyeball.
 
+34 of the 38 venues are geocoded (24 Aug 2026) — 11 to the building, 14 to the
+street, 9 by name and suburb where the sheet had no address; every row's
+`source_note` says which. Four did not resolve in OpenStreetMap under any query
+tried and are deliberately left null: Eureka Hotel Geelong, Princess Park
+Playground, The Whiskery, Torquay Common.
+
 Five events are linked so far — the licensed venues. The other 38 happen at parks,
 beaches, reserves, halls and cenotaphs, which the music spreadsheet never covered.
 Those need venue rows of their own before the map can show everything. The spreadsheet also holds a `Barwon Heads Hotel` gig history

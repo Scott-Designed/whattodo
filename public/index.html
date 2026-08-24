@@ -13,15 +13,15 @@
   --rule:#CFD0C9; --rule2:#B9BBB2;
   --serif:'Sunset',Georgia,'Times New Roman',serif;
   --util:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --pad:64px;
+  --pad:64px; --ctrl-invert:none;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
-  --rule:#2C3126; --rule2:#3C4234;
+  --rule:#2C3126; --rule2:#3C4234; --ctrl-invert:invert(.92);
 }}
 :root[data-theme="dark"]{
   --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
-  --rule:#2C3126; --rule2:#3C4234;
+  --rule:#2C3126; --rule2:#3C4234; --ctrl-invert:invert(.92);
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased}
@@ -143,6 +143,62 @@ option{background:var(--ground);color:var(--ink)}
 .none{padding:80px 0;text-align:center;color:var(--ink3);font-size:20px}
 footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--rule);font-family:var(--util);font-size:11.5px;line-height:1.8;color:var(--ink3);max-width:78ch}
 
+/* ── list / map switch ── */
+.seg{display:flex;border:1px solid var(--rule2);width:max-content;max-width:100%}
+.seg button{font-family:var(--serif);font-size:16px;line-height:1.2;padding:6px 17px 7px;border:0;
+  border-right:1px solid var(--rule2);background:transparent;color:var(--ink2);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+.seg button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* ── map ── */
+#mapwrap{display:none}
+body.mapview #mapwrap{display:block}
+body.mapview .tbl{display:none}
+#map{height:min(72vh,640px);width:100%;background:var(--surface);border-top:1px solid var(--ink)}
+.mapnote{font-family:var(--util);font-size:11.5px;line-height:1.75;color:var(--ink3);
+  margin:0;padding:11px 0 0;border-top:1px solid var(--rule)}
+.mapnote b{font-weight:600;color:var(--ink2)}
+.mapstate{display:grid;place-items:center;height:100%;text-align:center;padding:0 24px;
+  font-family:var(--serif);font-size:19px;color:var(--ink3);line-height:1.5}
+
+/* A pin is the page's own mark, not a map library's balloon. */
+.pin{width:13px;height:13px;border-radius:50%;background:var(--ground);border:1.5px solid var(--ink);
+  cursor:pointer;display:grid;place-items:center;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--ground) 65%,transparent)}
+.pin:hover,.pin.on{background:var(--ink)}
+.pin b{font-family:var(--util);font-size:9px;font-weight:600;color:var(--ink);line-height:1}
+.pin:hover b,.pin.on b{color:var(--ground)}
+.pin.multi{width:20px;height:20px}
+.pin.home{width:9px;height:9px;background:var(--ink);border-color:var(--ink);cursor:default;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--ground) 65%,transparent)}
+
+.maplibregl-popup-content{background:var(--ground);color:var(--ink);border:1px solid var(--ink);
+  border-radius:0;box-shadow:none;padding:15px 17px 16px;font-family:var(--serif);max-width:290px}
+.maplibregl-popup-tip{display:none}
+.maplibregl-popup-close-button{font-family:var(--util);font-size:17px;line-height:1;color:var(--ink3);
+  background:none;padding:5px 8px 6px;right:0;top:0}
+.maplibregl-popup-close-button:hover{background:none;color:var(--ink)}
+.pop{max-height:270px;overflow-y:auto}
+.pop h4{font-family:var(--serif);font-weight:400;font-size:19px;letter-spacing:-.01em;line-height:1.2;margin:0 0 4px}
+.pop h4~h4{margin-top:15px;padding-top:13px;border-top:1px solid var(--rule)}
+.pop .meta{font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);margin:0 0 7px}
+.pop p.txt{margin:0 0 9px;font-size:15px;line-height:1.5;color:var(--ink2)}
+.pop a{font-family:var(--util);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);
+  text-decoration:none;border-bottom:1px solid var(--rule2);margin-right:15px;white-space:nowrap}
+.pop a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.maplibregl-ctrl-group{border-radius:0!important;box-shadow:none!important;border:1px solid var(--rule2);
+  background:var(--ground)}
+.maplibregl-ctrl-group button{border-radius:0!important;background:var(--ground)}
+.maplibregl-ctrl-group button+button{border-top:1px solid var(--rule2)}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon{filter:var(--ctrl-invert)}
+.maplibregl-ctrl-attrib{font-family:var(--util);font-size:10px;
+  background:color-mix(in srgb,var(--ground) 82%,transparent)!important}
+.maplibregl-ctrl-attrib a,.maplibregl-ctrl-attrib{color:var(--ink3)}
+.maplibregl-ctrl-scale{font-family:var(--util);font-size:10px;border-radius:0;color:var(--ink3);
+  border-color:var(--rule2);background:color-mix(in srgb,var(--ground) 82%,transparent)}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:1180px){
   .thead,.rowline{grid-template-columns:minmax(0,2.6fr) minmax(0,1.3fr) minmax(0,1.1fr) minmax(0,.8fr) 70px}
@@ -164,6 +220,8 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--rule);font-fa
   select,input[type=search]{min-width:0;width:100%;font-size:16px}
   .ctrl{flex:1 1 42%}
   .tally{width:100%;margin-left:0;padding-bottom:0}
+  #map{height:min(76vh,560px)}
+  .seg button{padding:6px 13px 7px;font-size:15px}
 }
 </style>
 
