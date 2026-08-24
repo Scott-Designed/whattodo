@@ -3,6 +3,12 @@
 A community listings site for Jan Juc and the Surf Coast, Victoria. Live at
 **https://whattodo-nu.vercel.app** (Vercel project `whattodo`).
 
+**The site is called `Notice`** (renamed 24 Aug 2026; it was "What to do"), and
+the listing area is the **Notice Board**, which is where its count lives —
+"Notice Board · 395 things pinned". The repo, the Vercel project, the URL and
+this file keep the old name: renaming those buys nothing and breaks the deploy
+hook. So `whattodo` is the project and `Notice` is the product.
+
 ## Shape of it
 
 ```
