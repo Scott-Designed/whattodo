@@ -192,7 +192,7 @@ option{background:var(--ground);color:var(--ink)}
 .tbl{border-top:1px solid var(--ink)}
 .rowline{
   display:grid;
-  grid-template-columns:minmax(0,2.7fr) minmax(0,.85fr) minmax(0,1.35fr) minmax(0,1.1fr) minmax(0,.9fr);
+  grid-template-columns:minmax(0,1fr) 92px 200px 132px 140px;
   gap:0 16px;align-items:baseline;
 }
 
@@ -290,11 +290,11 @@ body.mapview .tbl{display:none}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:1180px){
-  .rowline{grid-template-columns:minmax(0,2.6fr) minmax(0,1.35fr) minmax(0,1.15fr) minmax(0,.95fr)}
+  .rowline{grid-template-columns:minmax(0,1fr) 190px 128px 136px}
   .c-type{display:none}
 }
 @media (max-width:940px){
-  .rowline{grid-template-columns:minmax(0,2.4fr) minmax(0,1.35fr) minmax(0,1.15fr)}
+  .rowline{grid-template-columns:minmax(0,1fr) 180px 128px}
   .c-extra{display:none}
   .detail-in{grid-template-columns:1fr}
 }
@@ -933,7 +933,13 @@ function whenText(i){
      into the open row; the list says when, not how often or how sure. */
   const lbl = d===0?'Today' : d===1?'Tomorrow'
     : (d>1&&d<7) ? 'This '+dt.toLocaleDateString('en-AU',{weekday:'long'}) : dated;
-  const time = i.time ? String(i.time).replace(/\s*(mon|tues|wednes|thurs|fri|satur|sun)days?\s*$/i,'') : '';
+  /* The line above already says which day. A weekday inside the time text is
+     the same fact twice — "12 Sept / Saturday, from early morning" — so it comes
+     off either end. Three rows lead with one, none of them is only a weekday. */
+  const DAY=/(mon|tues|wednes|thurs|fri|satur|sun)days?/i;
+  const time = i.time ? String(i.time)
+    .replace(new RegExp('^\\s*'+DAY.source+'\\s*[,\u2013-]?\\s*','i'),'')
+    .replace(new RegExp('\\s*'+DAY.source+'\\s*$','i'),'').trim() : '';
   return lbl + (time?`<span class="tm">${esc(time)}</span>`:'');
 }
 function whenOK(i){
