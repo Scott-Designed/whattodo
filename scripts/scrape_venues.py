@@ -30,11 +30,13 @@ host's robots.txt (see eventlib.robots_ok). Humanitix permits that crawler but
 refuses ClaudeBot, so an assistant must not fetch those pages on your behalf —
 run this yourself the first time.
 """
-import sys, re, json, html, datetime, urllib.parse
+import sys, re, json, html, time, datetime, urllib.parse
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))
 import eventlib as E
 
 SKIP = set()          # platforms to leave alone this run, via --skip
+LINK_CAP = 80         # ticket pages fetched per venue, per platform
+POLITE   = 0.25       # seconds between fetches to one host
 SEEN_FILE = E.ROOT / 'scripts' / 'venues_seen.json'
 SEEN_NOTE = ('Gigs already offered by scrape_venues.py. Delete a line to be offered '
              'it again — otherwise something you rejected comes back next week.')
@@ -54,6 +56,11 @@ TICKETERS = [
 # note that a venue uses it and leave the row for a human.
 API_INSTEAD = {'Eventbrite'}
 
+# A host page links to its own help pages, search, categories and back to
+# itself. Fetching those is rude to them and pointless for us.
+NOT_AN_EVENT = re.compile(r'(?i)/(host|search|help|support|about|terms|privacy|blog|'
+                          r'categor|collection|organiser|profile|login|signup|gift|'
+                          r'checkout|refund|contact)(/|$|\?)')
 LISTING_WHEN_ANY = re.compile(r'(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day,\s+[A-Z][a-z]{2}\s+\d{1,2},\s+\d{4}')
 MONTHS = {m.lower(): i for i, m in enumerate(
     ['January','February','March','April','May','June','July','August',
@@ -243,6 +250,7 @@ def gigs_for(venue):
     found = list(direct)
     for key, label, pat in TICKETERS:
         links = sorted(set(re.findall(pat, page)))
+        links = [l for l in links if not NOT_AN_EVENT.search(l)]
         if key in SKIP:
             if links: how.append(f'{label} ({len(links)} links) skipped')
             continue
@@ -252,7 +260,8 @@ def gigs_for(venue):
             how.append(f'{label} ({len(links)}) — has a free API, left for a human')
             continue
         got = 0
-        for link in links[:80]:
+        for link in links[:LINK_CAP]:
+            time.sleep(POLITE)
             tp = E.fetch(link)
             if tp is None: continue
             rows = [g for g in (E.from_jsonld(o) for o in E.jsonld_events(tp)) if g]
@@ -262,7 +271,8 @@ def gigs_for(venue):
                 one = from_oztix(tp, link)
                 if one: rows = [one]
             found += rows; got += len(rows)
-        if got: how.append(f'{label} ({got} of {len(links)} links)')
+        if got: how.append(f'{label} ({got} gigs from {min(len(links), LINK_CAP)} '
+                           f'of {len(links)} links)')
         elif links: how.append(f'{label} ({len(links)} links, nothing readable)')
     # The same gig is often reachable at two urls, and an organiser's /host
     # page lists every one of them a second time. Collapse on name and date.
