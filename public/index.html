@@ -326,6 +326,7 @@ body.mapview .tbl{display:none}
     <div class="seg" id="whenseg" role="group" aria-label="When">
       <button type="button" data-w="today" aria-pressed="false">Today</button>
       <button type="button" data-w="tomorrow" aria-pressed="false">Tomorrow</button>
+      <button type="button" data-w="week" aria-pressed="false">This week</button>
       <button type="button" data-w="any" aria-pressed="true">Any time</button>
     </div>
     <button id="morebtn" type="button" class="morebtn" aria-expanded="false"
@@ -409,8 +410,8 @@ body.mapview .tbl{display:none}
     <div class="ctrl">
       <input id="q" type="search" aria-label="Search" placeholder="Search"></div>
     <div class="ctrl">
-      <select id="sort" aria-label="Sort"><option value="near">Closest first</option>
-        <option value="when">Soonest first</option><option value="best">Best rated</option>
+      <select id="sort" aria-label="Sort"><option value="when">Soonest first</option>
+        <option value="near">Closest first</option><option value="best">Best rated</option>
         <option value="new">Recently added</option><option value="az">A &ndash; Z</option></select></div>
     <div class="ctrl">
       <div class="seg" id="viewseg" role="group" aria-label="How to show the listings">
@@ -507,7 +508,7 @@ async function fetchWeather(){
             rain:j.current.precipitation,rain48:past,cloud:j.current.cloud_cover};
   }catch(e){ clearTimeout(t); return null; }
 }
-const S={when:'any',verb:[],type:[],km:999,cost:[],who:[],wx:'',sort:'near',q:''};
+const S={when:'any',verb:[],type:[],km:999,cost:[],who:[],wx:'',sort:'when',q:''};
 
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -951,6 +952,10 @@ function whenOK(i){
   if(S.when==='any') return true;
   if(!i.ev) return true;
   const d=daysAway(nextDate(i));
+  /* "This week" is exactly the span the date labels name as a day — Today,
+     Tomorrow, This Thursday. Day 7 is the same weekday as today and prints as
+     a date, so it belongs to the week after. */
+  if(S.when==='week') return d!=null && d>=0 && d<7;
   return S.when==='tomorrow' ? d===1 : d===0;
 }
 function atHomeHidden(i){
@@ -1375,7 +1380,7 @@ function syncClear(){
 }
 document.getElementById('clear').addEventListener('click',()=>{
   Object.keys(DEFAULTS).forEach(k=>S[k]=Array.isArray(DEFAULTS[k])?[]:DEFAULTS[k]);
-  S.sort='near'; document.getElementById('sort').value='near';
+  S.sort='when'; document.getElementById('sort').value='when';
   ['km','wx'].forEach(id=>document.getElementById(id).value=String(DEFAULTS[id]));
   [...document.getElementById('whenseg').children].forEach(x=>
     x.setAttribute('aria-pressed', String(x.dataset.w===DEFAULTS.when)));
