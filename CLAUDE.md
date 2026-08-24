@@ -423,6 +423,30 @@ it is the only test that catches a pin a few hundred metres offshore, which is
 close enough that reverse geocoding still snaps it to a coastal road and calls it
 land.
 
+## A weekly event still happens next week
+
+`recurrence` used to be display-only — printed in the row, never read by the
+filter. An event therefore surfaced only on the single date in `starts_on`, so a
+standing Saturday gig was invisible six days in seven and fell out of the list
+entirely the day after. Three were already stale when this was found: live music
+at Blackman's and the Aireys Pub, and the Belmont Sunday Market.
+
+`nextDate()` rolls **weekly** and **fortnightly** events forward by 7 or 14 days.
+That is safe because it preserves the weekday, so the rolled date is the truth and
+not a guess. It feeds the list filter, the When filter, Soonest first, and the
+date label.
+
+**Monthly and annual are deliberately not rolled.** Adding a month turns "third
+Sunday" into "the 20th"; adding a year moves the weekday too. Either would publish
+a date nobody announced — the Arts Trail failure exactly. Those need a person to
+set the next `starts_on`, which is the same gap as the recurrence-in-the-name item
+below.
+
+Parse *and* format in UTC inside that function. The first version parsed
+`"YYYY-MM-DDT00:00:00"` as local time and formatted with `toISOString()`, which
+shifts back a day at +10 — every rolled Saturday gig landed on Friday. A unit test
+caught it before it shipped; clicking around the page would not have.
+
 ## Known outstanding
 
 - An activity's single `url` is whatever it is — a map pin for some, the venue's own
@@ -431,6 +455,11 @@ land.
   separately from `lat`/`lng`. 128 of 272 activities are pinned; the rest are the
   At home entries and the roving ones, which have nowhere to be
 - 42 entries use Google Maps *search* URLs rather than pinned coordinates
+- `Gather` (activity 291, venue 84) and `Gather Athletics Shop Run` (event 89),
+  both Ocean Grove, added 24 Aug 2026 from photographs in the event inbox. Neither
+  has a `km`. The run's `recurrence = weekly` rests on Scott confirming it is still
+  current, **not** on the source: the Instagram post behind it is dated 20 March and
+  its caption reads as a one-off. Recheck if it goes quiet.
 - Four events sit on estimated dates: Bells Beach Surf Film Festival, Deans Marsh
   Festival, Geelong Pride Film Festival, One Planet Festival
 - Ideas Pipeline (177 rows, in the old spreadsheet) is not in the database
