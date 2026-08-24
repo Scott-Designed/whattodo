@@ -207,6 +207,14 @@ def paged(src, page, limit=6):
 
 def gigs_for(venue):
     """Everything readable for one venue, plus a note on how we got it."""
+    # --skip has to cover the venue's own events_url too, not just links found
+    # on it: pinning a Humanitix host page as the source would otherwise walk
+    # straight past the guard and fetch the very thing we agreed not to.
+    pinned = (venue.get('events_url') or venue.get('ticketing_url') or '').lower()
+    for key, label, _ in TICKETERS:
+        if key in SKIP and key in pinned:
+            return [], f'{label} skipped (it is this venue\'s events_url)'
+
     src, page, hint = source_page(venue)
     if src is None: return [], hint
     if page is None:
