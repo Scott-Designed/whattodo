@@ -636,7 +636,7 @@ body.mapview .tbl{display:none}
   </div>
 
   <footer>
-    Distances are approximate driving distances from Jan Juc. Open a listing to see how sure its date is &mdash; some are worked out rather than read off the organiser&rsquo;s own page, and those say so. Built from the Notice community database.
+    Distances are approximate driving distances from Jan Juc. Built from the Notice community database.
   </footer>
 </div>
 
@@ -1347,10 +1347,10 @@ function render(){
           ${i.time?`<p class="dl"><b>Time</b><span>${esc(i.time)}</span></p>`:''}
           ${!i.ev&&i.dur?`<p class="dl"><b>How long</b><span>${esc(i.dur)}</span></p>`:''}
           ${i.ev&&i.recur?`<p class="dl"><b>How often</b><span>${esc(i.recur)}</span></p>`:''}
-          ${i.ev&&i.conf&&i.conf!=='high'?`<p class="dl"><b>Date</b><span>${
-            i.conf==='low'?'Estimated — check with the organiser before you go'
-                          :'Not read off the organiser\u2019s own page — worth checking'
-            }</span></p>`:''}
+          <!-- date_confidence is deliberately not printed. Scott is happy with the
+               dates as they stand (25 Aug 2026). The column still records what was
+               actually checked; nothing was raised to high to silence the label.
+               No backticks in here: this comment sits inside a template literal. -->
           ${!i.ev&&(i.season||[]).length?`<p class="dl"><b>Season</b><span>${esc(i.season.join(', '))}</span></p>`:''}
           ${i.rating?`<p class="dl"><b>Rating</b><span>${i.rating} / 5</span></p>`:''}
         </div>

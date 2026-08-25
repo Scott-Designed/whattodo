@@ -100,7 +100,40 @@ Bells Beach surf comp at Bells Beach Brewing.
 check website", "Surf Coast Shire", bare "Torquay". They name no single place you
 can stand at, so inventing a pin for them would be the placeholder problem again.
 
-No two venues share a coordinate. Four Winchelsea ones briefly did — OpenStreetMap
+## Aliases, and the duplicates the scraper makes
+
+`places.aliases` (a `text[]`, added 25 Aug 2026) holds the other names a source
+calls a place. `scrape_venues.py` builds its match registry from **name plus
+every alias**, which is the only thing that makes a merge stick: the ticket
+listing says "Blackman's Brewery, Torquay", the row is called "Blackmans
+Brewery", `venue_key` normalises punctuation but not a trailing suburb, so
+without the alias the scraper simply creates the duplicate again on Thursday.
+**Merging two places means three steps, not one** — repoint the events, add the
+loser's name to the winner's `aliases`, then delete the loser.
+
+Three were merged 25 Aug 2026, all created by the venue scraper on 24 Aug from
+ticket listings:
+
+- 93 `Blackman's Brewery, Torquay` → 49 (event 120)
+- 94 `Elephant & Castle Hotel Geelong` → 12 (event 121)
+- 95 `Oneday Estate Winery & Function Centre` → 24 (events 122–124)
+
+`Blackmans Brewery Geelong` (92, Grovedale) looks like a fourth and is not — it
+is the second taproom, a genuinely different building, and it now has its own
+pin.
+
+**The duplicate caught a wrong address.** Row 24 `Oneday Estate` carried
+2255 Portarlington Rd off the music spreadsheet; onedayestate.com.au says
+45 Curlewis Rd, Curlewis VIC 3222. The row the scraper made was the correct one.
+Two rows disagreeing is a better bug report than one row being quietly wrong —
+the same way the Torquay Farmers Market error surfaced.
+
+No two venues share a coordinate — **with one honest exception**. `The HOOP
+Gallery` (98) and the `Australian National Surfing Museum` (46) are both at
+77 Beach Rd, Torquay, because the gallery is the Torquay Multi-Arts Centre
+inside that complex. That is two things in one building, which the map already
+handles (five listings share the Bells Beach pin); it is not the placeholder
+problem. Four Winchelsea ones briefly did — OpenStreetMap
 has the town but not its halls — and were resolved by finding the real addresses
 instead of accepting the town centre: the Globe Theatre is 17 Willis St (its
 heritage listing says so), the Shire Hall is on Main St, Lions Park is on Barwon
@@ -244,8 +277,9 @@ Three things about that source, each of which the script exists to handle:
   updated silently; drift on a row you **verified** is reported and left alone,
   every run, until you deal with it. Your verification is not overwritten by a bot.
 - **It is a curated calendar, not the organiser's own page.** Everything lands
-  `date_confidence = 'medium'`, which is why the site shows it as "est.". Only a
-  human who has read a first-party page may raise it to `high`.
+  `date_confidence = 'medium'`. Only a human who has read a first-party page may
+  raise it to `high`. **The page no longer prints that distinction** (25 Aug 2026)
+  — see the date-confidence note below.
 
 Nothing is ever inserted `verified`. New rows appear in `sync.py pending` like any
 community addition. `scripts/events_seen.json` records every series ever offered,
@@ -328,7 +362,13 @@ honours robots.txt. Humanitix permits that crawler but disallows `ClaudeBot`, so
   `maps.app.goo.gl` links. `api/enrich.mjs` strips them server-side.
 - **Never state a date without a source.** The Surf Coast Arts Trail sat in the
   database on the wrong date for months. Events carry `date_confidence`
-  (high/medium/low) and the site shows "est." on anything below high.
+  (high/medium/low). The column is still filled in honestly on every row; what
+  changed on 25 Aug 2026 is that the **page stopped showing it**. Scott is happy
+  with the dates as they stand, and a hedge on every imported row was teaching
+  the reader to ignore the whole column. Nothing was raised to `high` to make the
+  label go away — the record of what was actually checked is intact, so putting
+  the label back is a one-line change in `render()` whenever it earns its place.
+  Do not read the missing label as permission to guess a date.
 - **A first-party page is enough on its own.** The event's own ticket page, the
   venue's own gig listing, the organiser's own site — these are authoritative for
   that event's own date and time. One of them is sufficient for `high` confidence.
@@ -690,6 +730,12 @@ caught it before it shipped; clicking around the page would not have.
   Sunday of Month". The `recurrence` column says `weekly`/`monthly` but has
   nowhere to put the day, so the name is the only place *Saturday* is written
   down. Left alone until `time_text` carries it ("Saturdays, 8:30am–1pm").
+- `Point Lonsdale Dog Beach` (place 91) will not geocode. Nominatim has no such
+  feature under that name or "Narrows Beach", and the nearest candidate
+  ("Point Lonsdale (Back) Surf") is not provably the same spot. Left null.
+- `Barwon Heads Community Park Playground` (89) is pinned at the park polygon's
+  centre, which reverse-geocodes to the pony club inside the same park. Right
+  precinct, possibly not the playground — worth a better point if it matters.
 - The moderation queue is empty. `Ashmore Arts` (169) and `The Fives` (168) are both
   verified; both had their distance cleared rather than guessed and still need real ones,
   as does `Bird Rock Farm` (171)
@@ -839,8 +885,15 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
    and a time but no venue.
 3. Work through the 101 unverified events — `sync.py pending`. Reviewing one is
    now about its **place**, not its distance: `km` stays null (see the events
-   feed section). 60 are pinned, 25 point at a place row with no coordinates,
-   16 carry free text only. Scott is happy with the dates as they stand.
+   feed section), and the dates stand as they are. After the 25 Aug geocoding
+   pass **84 of the 101 are pinned**, 1 is linked to an unpinned place
+   (Point Lonsdale Dog Beach), and 16 carry free text only. The 16 are the
+   remaining work: six name only a suburb, four name a real place that has no
+   row yet (`The Mac`, `Anglesea Community Precinct`, `Torquay Common`,
+   `Surf Coast Walk`), two are genuinely shire-wide, and four are the
+   `Quiet Club` nights, whose venue was the ticketing platform's own boilerplate
+   ("Hosted on Humanitix") and is now null — a person has to find where they
+   actually happen, and Claude must not read Humanitix to do it.
 4. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.

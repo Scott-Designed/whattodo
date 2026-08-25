@@ -425,7 +425,7 @@ def main(argv):
     globals()['SKIP'] = skip
 
     E.load_env()
-    venues = E.db('GET', '/rest/v1/places?select=id,name,suburb,kind_legacy,website,events_url,ticketing_url'
+    venues = E.db('GET', '/rest/v1/places?select=id,name,aliases,suburb,kind_legacy,website,events_url,ticketing_url'
                          '&order=name')
     live = [v for v in venues if (v.get('events_url') or v.get('ticketing_url')
                                   or v.get('website'))]
@@ -441,7 +441,14 @@ def main(argv):
         print("\n  Nothing to read. Put a ticketing page in venues.events_url and run again.")
         return
 
+    # A place answers to its own name and to every alias on the row. Aliases are
+    # what a merged duplicate leaves behind: the ticket listing calls it
+    # "Blackman's Brewery, Torquay" and the row is called "Blackmans Brewery",
+    # so without this the scraper creates the duplicate again on the next run.
     registry   = {venue_key(v['name']): v['id'] for v in venues}
+    for v in venues:
+        for a in (v.get('aliases') or []):
+            registry.setdefault(venue_key(a), v['id'])
     organisers = {venue_key(v['name']) for v in venues
                   if (v.get('kind_legacy') or '').lower() == 'organiser'}
     made = []
