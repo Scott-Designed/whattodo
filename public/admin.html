@@ -1045,6 +1045,11 @@ async function load(){
   drawTheme(); drawLock(!!PASS);
   const ghRuns = fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=20`)
     .then(r => r.ok ? r.json() : {workflow_runs:[]}).then(d => d.workflow_runs || []).catch(() => []);
+  // ?t= busts THIS browser's cache. It does not reliably bust raw's CDN, which
+  // caches on the path for 300s and whose edges expire independently — right
+  // after a run is committed, two people can genuinely see different logs for a
+  // few minutes. Measured, not guessed. Fine for a twice-weekly job; if the log
+  // looks a run behind, it is the CDN, not the automation.
   const ghLog = fetch(RAW + '?t=' + Date.now())
     .then(r => r.ok ? r.json() : []).catch(() => []);
 

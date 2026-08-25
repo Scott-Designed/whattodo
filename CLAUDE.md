@@ -471,6 +471,13 @@ token, and no redeploy needed, which is why the commit can keep `[skip ci]`.
 scraper changes its wording the numbers go null and the page still prints every
 line. Never make the page depend on a regex in `run_log.py`.
 
+**The log can be up to five minutes stale, and that is not a fault.** raw caches
+on the path for 300s, **ignores the query string**, and its edges expire
+independently — measured 25 Aug 2026, when curl here and the browser on the
+deployed page disagreed for about nine minutes after a commit. The `?t=` in the
+fetch busts the browser's own cache and nothing more. So a page that looks a run
+behind just after a run is the CDN, not a broken automation. Don't go hunting.
+
 Two things in the workflow that are easy to get wrong:
 
 - Each scraper now records its exit code and lets the job carry on, so one
