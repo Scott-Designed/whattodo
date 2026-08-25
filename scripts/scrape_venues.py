@@ -322,7 +322,13 @@ def dedupe(rows):
 # venue from — unlike the surfcoastevents feed, whose "venue" is as often a town
 # or a beach. The guards below are what keep the difference honest.
 
-GENERIC = {'online','tba','tbc','various','venue','virtual','zoom','to be advised'}
+# Names that are not places. The last two are a ticketing platform's own
+# boilerplate: Humanitix publishes `location.name = "Hosted on Humanitix"` when
+# the organiser has set no physical venue, and that string reached four Quiet
+# Club rows as if it were an address you could stand at. A platform naming
+# itself is the absence of a venue, not a venue.
+GENERIC = {'online','tba','tbc','various','venue','virtual','zoom','to be advised',
+           'hosted on humanitix','hosted online'}
 
 def venue_key(name):
     """Match key that forgives 'The' and punctuation — Blackmans/Blackman's."""
@@ -390,6 +396,11 @@ def build(venue, g, registry):
     promoter because they share a hall is how this table got muddled.
     """
     vname = g.get('venue_name') or venue['name']
+    # A generic is worse than nothing in the Where column: it prints as though
+    # the row knows where it happens. `worth_adding` already refuses to make a
+    # place from one; this refuses to write it as free text either.
+    if (vname or '').strip().lower() in GENERIC:
+        vname = None
     vsub  = g.get('venue_suburb') or (venue.get('suburb') if not g.get('venue_name') else None)
     vid   = g.pop('_place_id', None)
     return {
