@@ -458,9 +458,9 @@ adding one is two lines: the symbol, and the map entry.
   every name would step left and right down the list.
 - **Both ends of a row leave the same white space, and `--gut` is that number.**
   The icon's ink starts `--gut` in from the left edge and the pin's ink ends
-  `--gut` in from the right — 40px, so the marks hang inside the page's own 64px
-  margin, which the full-bleed list can do and the text columns cannot. One
-  number moves both ends; 64 would line the icons up with the masthead instead.
+  `--gut` in from the right — 60px, just inside the page's own 64px margin,
+  which the full-bleed list can do and the text columns cannot. One number moves
+  both ends; 64 would line the icons up with the masthead exactly.
   Two things make it hold: the row's right padding is `--gut + 40px`, the pin's
   lane, so the text stops ~24px short of the mark; and the pin is aligned to the
   *end* of its 36px button rather than centred in it, because an emoji's advance
