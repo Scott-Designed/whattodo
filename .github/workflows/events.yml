@@ -94,7 +94,30 @@ jobs:
           # [skip ci] because the site reads Supabase live, and the back-of-house
           # page reads this log from raw.githubusercontent — neither needs a build.
           git commit -m "Events: remember this week's listings [skip ci]"
-          git push
+
+          # A full run takes about fifteen minutes, so main can easily move
+          # underneath it — and since the run log is committed on nearly every
+          # run now, a plain push loses that race often rather than rarely.
+          # It happened on the first real run of this workflow (25 Aug 2026):
+          # both scrapers succeeded, the database was written, and the whole job
+          # went red on `! [rejected] main -> main (fetch first)`.
+          #
+          # These three files are append-only ledgers, so rebasing on top of
+          # whatever landed is the right move. A conflict is not — it means two
+          # runs raced or somebody hand-edited a ledger, and quietly picking a
+          # side would drop a record. Fail loudly instead.
+          for attempt in 1 2 3; do
+            if git push; then
+              echo "pushed on attempt $attempt"; exit 0
+            fi
+            echo "push rejected — main moved; rebasing and trying again"
+            git pull --rebase --autostash origin main || {
+              echo "rebase hit a conflict in the ledgers — not guessing which side wins"
+              exit 1
+            }
+          done
+          echo "could not push the ledgers after three attempts"
+          exit 1
 
       - name: Fail the job if either scraper crashed
         if: always()

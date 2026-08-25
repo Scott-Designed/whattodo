@@ -195,6 +195,40 @@ export default async function handler(req, res) {
   if (!passwordOk(password)) return res.status(401).json({error: 'wrong_password'});
   if (action === 'check') return res.status(200).json({ok: true});
 
+  // ── run the scrapers now, as the Action ─────────────────────────────────
+  // This is the honest way to read Humanitix on demand. Humanitix's robots.txt
+  // permits `whattodo-janjuc` and disallows `ClaudeBot`, so a run driven by an
+  // assistant has to pass --skip humanitix and those venues come back "skipped
+  // this run". Pressing this dispatches the GitHub Action, which is not Claude
+  // and is the same job that runs Mon and Thu — so it reads them normally.
+  //
+  // Dispatching needs a token; the public API is read-only. Fine-grained PAT
+  // with Actions: read and write on this repo, or a classic one with `workflow`.
+  if (action === 'dispatch') {
+    const token = process.env.GITHUB_TOKEN;
+    if (!token) return res.status(501).json({error: 'no_github_token',
+      message: 'Set GITHUB_TOKEN in the Vercel project (Actions: read and write) ' +
+               'to run the job from here. Until then, press it on GitHub or run ' +
+               'the scrapers in a terminal.'});
+    const repo = process.env.GITHUB_REPO || 'Scott-Designed/whattodo';
+    const r = await fetch(
+      `https://api.github.com/repos/${repo}/actions/workflows/events.yml/dispatches`,
+      {method: 'POST',
+       headers: {Authorization: 'Bearer ' + token,
+                 Accept: 'application/vnd.github+json',
+                 'X-GitHub-Api-Version': '2022-11-28',
+                 'User-Agent': 'whattodo-janjuc',
+                 'Content-Type': 'application/json'},
+       body: JSON.stringify({ref: 'main'})});
+    // 204 No Content is success here; anything else carries a reason.
+    if (r.status === 204) return res.status(200).json({ok: true, repo});
+    const detail = await r.text();
+    return res.status(502).json({error: 'dispatch_failed', status: r.status,
+      message: r.status === 403 || r.status === 401
+        ? 'GitHub refused the token — it needs Actions: read and write on this repo.'
+        : detail.slice(0, 300)});
+  }
+
   if (!WRITABLE[table]) return res.status(400).json({error: 'bad_table',
     message: `table must be one of ${Object.keys(WRITABLE).join(', ')}`});
   const rowId = Number(id);

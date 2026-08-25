@@ -426,6 +426,26 @@ Things that are load-bearing:
   the standing item on the list. Flagging both put 73 rows on the worklist, half
   of them finished. `mapsSearch()` tells them apart.
 
+### Run it now
+
+The Automations tab has a **Run the scrapers now** button. It does not fetch
+anything itself — it dispatches the GitHub Action, and that indirection is the
+point rather than a convenience: the job runs as itself, identifying as
+`whattodo-janjuc`, which is the identity Humanitix's robots.txt permits. It is
+therefore the honest way to pick up the Humanitix venues on demand, which a run
+driven from a Claude session cannot do.
+
+It needs `GITHUB_TOKEN` in the Vercel project — a fine-grained PAT with
+**Actions: read and write** on this repo, or a classic one with `workflow`. The
+public API is read-only, so without it the button answers 501 with that message
+and the page offers the terminal commands instead. **A browser cannot do this
+job itself**: CORS blocks reading humanitix.com from the page, so there is no
+version of this button that scrapes client-side.
+
+Under the button, a disclosure holds the by-hand equivalent
+(`scrape_venues.py --only humanitix`). Scott's own terminal is not Claude
+either, so that path is fine.
+
 ### Where the events come from
 
 The Automations tab lists **every source anything is ever read from** — the
@@ -453,6 +473,19 @@ Six Humanitix sources show as skipped because the run that filled the log was
 driven from here, and Humanitix disallows `ClaudeBot`. The scheduled Action
 reads them normally; the page says so under the table.
 
+**`skipped` is drawn green, on purpose.** It was orange, and Scott read it as
+"this automation is broken" — which is the opposite of true. A skipped source is
+a working automation that this particular run did not exercise, so it says
+*reading · not this run* in the same green as a live one. Orange is reserved for
+things that genuinely need a person, like Eventbrite.
+
+The aggregator table's venue count is the **union** of what is on file and what
+the last run actually reached. Stored URLs alone undercount, because the scraper
+also *discovers* a platform link by trying a venue's usual gig paths — Elephant
+& Castle's TryBooking page is found at `/events` and appears on no row, so a
+URL-only count showed TryBooking as "none on file" while its status said
+"reading".
+
 ### How the runs went
 
 Run history is GitHub's public API — `api.github.com/repos/Scott-Designed/whattodo/actions/runs`
@@ -478,7 +511,23 @@ deployed page disagreed for about nine minutes after a commit. The `?t=` in the
 fetch busts the browser's own cache and nothing more. So a page that looks a run
 behind just after a run is the CDN, not a broken automation. Don't go hunting.
 
-Two things in the workflow that are easy to get wrong:
+**The push races the run, and the run is long.** The commit step lost that race
+on the very first real run of this workflow (25 Aug 2026): both scrapers
+succeeded, the database was written, and the job went red on
+`! [rejected] main -> main (fetch first)` because the run took **14m50s** and
+three commits landed on `main` while it worked. Nothing was saved — no run log,
+no seen ledgers.
+
+That step is now a rebase-and-retry loop, three attempts. The three files are
+append-only ledgers so rebasing on top of whatever landed is right; a *conflict*
+is not, because it means two runs raced or somebody hand-edited a ledger, and
+picking a side silently would drop a record — so it fails loudly instead.
+
+Note this got worse rather than appearing from nowhere: the step used to commit
+only when a seen-ledger changed, which was seldom. Now it commits a run log on
+nearly every run, so a rare race became a frequent one.
+
+Two more things in the workflow that are easy to get wrong:
 
 - Each scraper now records its exit code and lets the job carry on, so one
   source being down does not skip the other; a final step fails the job if
@@ -1053,7 +1102,8 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
 
 ## Next things worth doing
 
-0. **`/admin` cannot save until three variables exist in the Vercel project.**
+0. **`/admin` cannot save until three variables exist in the Vercel project**
+   (a fourth, `GITHUB_TOKEN`, is optional and only powers the Run-now button).
    Checked against the live deploy 25 Aug 2026: the function answers 501
    `not_configured`, because the Vercel project only ever held
    `ANTHROPIC_API_KEY` — the scrapers read Supabase from **GitHub** secrets, so

@@ -116,6 +116,9 @@ pre.out{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px
   line-height:1.5;background:var(--surface);border:1px solid var(--rule);
   padding:12px 14px;overflow-x:auto;margin:8px 0 0;white-space:pre;color:var(--ink2)}
 .stepname{font-weight:600;font-size:12px;margin:14px 0 0}
+.subhead{font-family:var(--util);font-size:11px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink2);margin:28px 0 4px;
+  padding-bottom:6px;border-bottom:1px solid var(--rule2)}
 
 /* ── the board ── */
 .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
@@ -198,13 +201,40 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
   <div class="grid" id="autolist"></div>
 
   <h2>Where the events come from</h2>
-  <p class="note">Every source anything is ever read from, and what happens when we
-     try. The registry is the <b>Places</b> table, not a list in the code: a place with
-     an <span class="mono">events_url</span> gets read, and a place with only a
+  <p class="note">Two different things, so they are listed separately. An
+     <b>aggregator</b> carries many venues at once — one parser reaches all of them, so
+     it is where automation actually pays. A <b>venue</b> speaks only for itself.</p>
+
+  <h3 class="subhead">Aggregators — one parser, many venues</h3>
+  <p class="note">What is tracked, how it is read, and whether that is automated. The
+     count is how many places on file reach us through each one.</p>
+  <div id="aggregators"></div>
+
+  <h3 class="subhead">Venues &amp; convenors — each speaking for itself</h3>
+  <p class="note">The registry is the <b>Places</b> table, not a list in the code: a place
+     with an <span class="mono">events_url</span> gets read, and a place with only a
      <span class="mono">website</span> gets its usual gig paths tried. Adding a source
      means filling in that cell — never editing a script.</p>
   <div class="flags" id="srcstates"></div>
   <div id="sources"></div>
+
+  <h2>Run it now</h2>
+  <p class="note">Presses the same job the schedule presses. Worth doing when you
+     have just filled in an <span class="mono">events_url</span> and want to see
+     whether it reads — and it is the honest way to pick up the Humanitix venues on
+     demand, since the Action is not Claude and their robots.txt lets it in.</p>
+  <div class="controls" style="align-items:flex-start">
+    <button class="btn" id="runnow">Run the scrapers now</button>
+    <div class="msg" id="runmsg" style="margin-left:0"></div>
+  </div>
+  <details style="margin:2px 0 18px">
+    <summary style="cursor:pointer;color:var(--ink3);font-size:12.5px">Or run them yourself</summary>
+    <pre class="out">python3 scripts/scrape_venues.py --only humanitix   # look first
+python3 scripts/scrape_venues.py --only humanitix --write</pre>
+    <p class="note" style="margin:8px 0 0">Your terminal is not Claude either, so this
+       path is fine. An assistant driving the same script must pass
+       <span class="mono">--skip humanitix</span>.</p>
+  </details>
 
   <h2>How the runs went</h2>
   <p class="note">Straight off GitHub's public API — no token, because the repo is
@@ -562,6 +592,147 @@ function drawAutos(){
   });
 }
 
+/* ── run it now ────────────────────────────────────────────────────────────
+   Dispatches the GitHub Action rather than doing any fetching here. That is
+   deliberate and not just convenience: the job runs as itself, identifying as
+   whattodo-janjuc, which is the identity Humanitix's robots.txt permits. A
+   button that scraped from this page would be the page's visitor doing it, and
+   the browser could not read those hosts anyway. */
+async function runNow(){
+  const msg = $('#runmsg'), btn = $('#runnow');
+  if (!PASS){ msg.className = 'msg bad'; msg.textContent = 'Unlock first — top right.'; return; }
+  btn.disabled = true;
+  msg.className = 'msg'; msg.textContent = 'Asking GitHub to start it…';
+
+  const [code, out] = await post({action:'dispatch'});
+  if (code !== 200){
+    btn.disabled = false;
+    msg.className = 'msg bad';
+    msg.innerHTML = esc(out.message || out.error || ('error ' + code));
+    return;
+  }
+
+  // Dispatch returns before the run exists, so watch for one that started after
+  // the press rather than reporting success and leaving you to guess.
+  const since = Date.now() - 60000;
+  msg.textContent = 'Started. Waiting for GitHub to pick it up…';
+  for (let i = 0; i < 40; i++){
+    await new Promise(s => setTimeout(s, 5000));
+    let runs = [];
+    try {
+      runs = (await (await fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=5`))
+              .json()).workflow_runs || [];
+    } catch { continue; }
+    const mine = runs.find(r => new Date(r.run_started_at).getTime() > since);
+    if (!mine) continue;
+    DATA.runs = runs; drawAutos();
+    if (mine.status !== 'completed'){
+      msg.textContent = `Run #${mine.run_number} is ${mine.status.replace('_',' ')}…`;
+      continue;
+    }
+    const ok = mine.conclusion === 'success';
+    msg.className = 'msg ' + (ok ? 'good' : 'bad');
+    msg.innerHTML = `Run #${mine.run_number} ${esc(mine.conclusion)}. ` +
+      `<a href="${esc(mine.html_url)}" target="_blank" rel="noopener">Open on GitHub ↗</a>` +
+      `<br><span style="color:var(--ink3)">The log this page reads is behind a
+       5-minute CDN cache — reload in a few minutes to see what it found.</span>`;
+    btn.disabled = false;
+    return;
+  }
+  btn.disabled = false;
+  msg.className = 'msg';
+  msg.innerHTML = 'Still running after 3 minutes — ' +
+    `<a href="https://github.com/${REPO}/actions" target="_blank" rel="noopener">watch it on GitHub ↗</a>`;
+}
+
+/* ── aggregators ───────────────────────────────────────────────────────────
+   A platform carrying many venues is worth a parser; a single pub is not. So
+   these are listed apart from the venues, and the count beside each is what
+   the parser buys you.
+
+   What each row says about *how* it is read is a fact about the parser, not
+   something discoverable at runtime, so it is written down here and kept in
+   step with CLAUDE.md. The counts and the live status are computed. */
+const AGGREGATORS = [
+  {name:'Surf Coast Events', host:null, what:'The shire’s whole calendar',
+   how:'WordPress + The Events Calendar, so it publishes a real JSON API. The only genuine feed anywhere in this project — nothing here parses its HTML.',
+   auto:'full',
+   note:'A curated calendar, not the organiser’s own page, so everything it gives lands date_confidence = medium.'},
+  {name:'Oztix', host:'oztix', what:'Ticketing platform',
+   how:'No JSON-LD. The date is read out of a template-generated <title> by regex, with no weekday to check it against.',
+   auto:'full',
+   note:'That missing checksum is exactly why Oztix dates land medium while a venue’s own gig listing lands high.'},
+  {name:'Humanitix', host:'humanitix', what:'Ticketing platform',
+   how:'Clean schema.org — the tidiest source of the lot.',
+   auto:'full',
+   note:'robots.txt permits whattodo-janjuc and disallows ClaudeBot. The scheduled Action reads it normally; a run driven by an assistant must pass --skip humanitix, which is why these show as skipped above.'},
+  {name:'TryBooking', host:'trybooking', what:'Ticketing platform',
+   how:'Read from the event page.', auto:'full', note:null},
+  {name:'Eventbrite', host:'eventbrite', what:'Ticketing platform',
+   how:'Detected, but deliberately not scraped — it has a free API and that is the right way in.',
+   auto:'none',
+   note:'Standing job: wire up the API rather than parsing pages.'},
+  {name:'Moshtix', host:'moshtix', what:'Ticketing platform',
+   how:'Recognised if one turns up; none on file yet.', auto:'none', note:null},
+];
+const AUTO_STATE = {
+  full: {label:'automated',      tag:'live'},
+  part: {label:'partly',         tag:'warn'},
+  none: {label:'not automated',  tag:'warn'},
+};
+
+function drawAggregators(){
+  const last = DATA.log[0];
+  const seen = [];
+  for (const s of (last?.steps || [])) for (const src of (s.sources || [])) seen.push(src);
+
+  const rows = AGGREGATORS.map(a => {
+    // What the last run actually did with it.
+    const mine = a.host
+      ? seen.filter(s => s.via?.some(v => v.toLowerCase() === a.name.toLowerCase()))
+      : seen.filter(s => s.name === 'surfcoastevents.com.au');
+
+    // Which places reach us through this platform. Stored URLs alone undercount,
+    // because the scraper also *discovers* a platform link by trying a venue's
+    // usual gig paths — Elephant & Castle's TryBooking page is found at /events
+    // and is on no row. So it is the union of what is on file and what the last
+    // run actually reached, deduped by name.
+    const byUrl = a.host
+      ? DATA.places.filter(p => [p.events_url, p.ticketing_url, p.website]
+          .some(u => (u || '').toLowerCase().includes(a.host)))
+      : [];
+    const names = new Set([...byUrl.map(p => p.name), ...mine.map(s => s.name)]);
+    const places = [...names];
+    let state = 'untried';
+    if (mine.length){
+      if (mine.some(s => s.state === 'read'))         state = 'read';
+      else if (mine.every(s => s.state === 'skipped')) state = 'skipped';
+      else state = mine[0].state;
+    }
+    return {...a, places, count: a.host ? places.length : null, state, tried: mine.length};
+  });
+
+  $('#aggregators').innerHTML = `<table><thead><tr>
+      <th>Aggregator</th><th>What it is</th><th>Venues</th><th>How it is read</th>
+      <th>Automated</th><th>Last run</th>
+    </tr></thead><tbody>${rows.map(r => {
+      const au = AUTO_STATE[r.auto];
+      const st = SRC_STATE[r.state] || {label:r.state, tag:''};
+      return `<tr>
+        <td><div class="rowname">${esc(r.name)}</div></td>
+        <td>${esc(r.what)}</td>
+        <td>${r.count === null ? '<span style="color:var(--ink3)">shire-wide</span>'
+             : r.count ? `<b>${r.count}</b><div style="color:var(--ink3);font-size:11.5px">${
+                 esc(r.places.sort().join(', '))}</div>`
+             : '<span style="color:var(--ink3)">none yet</span>'}</td>
+        <td>${esc(r.how)}${r.note ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(r.note)}</span>` : ''}</td>
+        <td><span class="tag ${au.tag}">${esc(au.label)}</span></td>
+        <td>${r.tried ? `<span class="tag ${st.tag}">${esc(st.label)}</span>`
+             : '<span class="tag">not in last run</span>'}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
 /* ── where the events come from ────────────────────────────────────────────
    The registry is the `places` table — any row with an events_url gets read,
    any row with only a website gets its gig paths tried. So the full list of
@@ -573,7 +744,10 @@ const SRC_STATE = {
   nothing: {label:'nothing to read',     tag:''},
   dead:    {label:'site did not answer', tag:'dead'},
   refused: {label:'robots.txt says no',  tag:''},
-  skipped: {label:'skipped this run',    tag:'warn'},
+  // Green, deliberately. A skipped source is a working automation that simply
+  // was not exercised by this particular run — the schedule reads it normally.
+  // Orange here read as "broken", which is the opposite of true.
+  skipped: {label:'reading · not this run', tag:'live'},
   manual:  {label:'needs a person',      tag:'warn'},
   untried: {label:'not tried yet',       tag:''},
   nourl:   {label:'no website on file',  tag:''},
@@ -586,15 +760,9 @@ function sourceRows(){
   for (const s of (last?.steps || []))
     for (const src of (s.sources || [])) seen.set(src.name, src);
 
+  // The calendar is not a place and speaks for the whole shire, so it belongs
+  // in the aggregator table above, not here among the individual venues.
   const rows = [];
-  // The calendar is not a place row — it is the one genuine feed in the project.
-  const cal = seen.get('surfcoastevents.com.au');
-  rows.push({
-    name: 'surfcoastevents.com.au', what: 'The whole shire’s calendar',
-    how: cal?.how || 'WordPress JSON API — The Events Calendar',
-    via: ['JSON API'], state: cal ? cal.state : 'untried', hint: cal?.hint,
-    url: 'https://www.surfcoastevents.com.au/wp-json/tribe/events/v1/events',
-  });
 
   for (const p of DATA.places){
     const src = seen.get(p.name);
@@ -1012,7 +1180,8 @@ $('#theme').onclick = () => {
 
 /* ── tabs ──────────────────────────────────────────────────────────────────*/
 const TABS = ['autos','events','activities','places'];
-const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces(); drawSources(); };
+const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces();
+                          drawSources(); drawAggregators(); };
 
 function show(tab){
   for (const b of document.querySelectorAll('nav.tabs button'))
@@ -1023,6 +1192,7 @@ function show(tab){
 }
 document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => show(b.dataset.tab));
 $('#lock').onclick = unlock;
+$('#runnow').onclick = runNow;
 
 // Each tab owns its own filters; nothing is shared but the flag-chip helper.
 const wire = (map, filter, redraw) => {
@@ -1082,7 +1252,7 @@ async function load(){
     ${DATA.events.length} events · ${DATA.places.length} venues ·
     last run ${last ? esc(ago(last.recorded_at)) : DATA.runs[0] ? esc(ago(DATA.runs[0].run_started_at)) : 'unknown'}`;
 
-  drawAutos(); drawSources(); redrawAll();
+  drawAutos(); drawAggregators(); drawSources(); redrawAll();
   const tab = location.hash.slice(1);
   if (TABS.includes(tab)) show(tab);
 }
