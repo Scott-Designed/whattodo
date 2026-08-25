@@ -431,8 +431,11 @@ land.
 
 ## Type icons in the row gutter
 
-Scott's own artwork, from `../Notice.Place/Icons/SVG/`. Three are in so far:
-`skatepark` → skate, `bike track` → bike, `cafe` → coffee.
+Scott's own artwork. Five are in so far: `skatepark` → skate, `bike track` →
+bike, `cafe` → coffee (from `../Notice.Place/Icons/SVG/`), plus `nature` →
+nature and `sport`/`sport-event` → run (from `../Notice.Place/Icons Test/SVG/`,
+which is a two-colour direction still being tried). That reaches 111 of 417
+rows.
 
 Each icon is a `<symbol>` in a hidden `<svg class="sprite">` at the top of the
 body, and a row draws it with `<use href="#i-…">`. **Do not inline the path per
@@ -447,10 +450,33 @@ adding one is two lines: the symbol, and the map entry.
   step left and right down the list.
 - `fill:currentColor`, so one copy serves both colour schemes. The artwork ships
   as `fill="black"`; that gets swapped on import.
+- **Two-colour icons: the black follows the row, the yellow does not.** The
+  test set is `#FFBB02` plus black. The yellow is the accent and is held in
+  `--icon-accent`; the black is ink and becomes `currentColor` like the mono
+  icons. That is the only treatment where nothing disappears — checked all four
+  combinations side by side. Keeping the black literal is crisper for `nature`,
+  whose dark centre sits *on* the yellow, but it erases the runner's head, which
+  floats on the page ground and vanishes in dark mode.
+- **The accent is an inline `style` on the path, not a CSS rule, and has to be.**
+  `<use>` clones the symbol into a shadow tree that a selector in this stylesheet
+  cannot reach — `.c-icon .accent{}` matches nothing and fails silently. An
+  inline style is part of what gets cloned, and `--icon-accent` still reaches it
+  because custom properties inherit across the boundary.
+- **The two-colour icons are full-strength at rest while the mono ones are
+  dimmed to `--ink3`.** The yellow cannot dim, so a two-tone icon currently shows
+  a saturated yellow beside a muted grey detail, which reads more like a fault
+  than a decision. Unresolved, and a real choice: either dim the whole icon at
+  rest and let it bloom on hover (the idiom the 📌 already uses), or drop the
+  resting dim and show every icon at full strength.
 - **The bike does not survive 28px.** Its frame and spokes merge and it reads as
   a cog. Checked at 2×; it is the artwork meeting the size, not a bug. The other
   two are fine. Any icon with this much line detail will need a simplified
-  small-size version before the set reaches all 26 types.
+  small-size version before the set reaches all 26 types. The two-colour pair
+  hold up far better at this size than the bike does — solid masses survive the
+  reduction where line work does not, which is the useful lesson for the rest of
+  the set. The runner is unmistakable; `nature` reads as a starburst or a sun
+  rather than as anything specifically natural, so it may be carrying the wrong
+  shape rather than the wrong size.
 
 ## Light, dark, or follow the system
 
