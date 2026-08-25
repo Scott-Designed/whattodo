@@ -893,8 +893,14 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
    row yet (`The Mac`, `Anglesea Community Precinct`, `Torquay Common`,
    `Surf Coast Walk`), two are genuinely shire-wide, and four are the
    `Quiet Club` nights, whose venue was the ticketing platform's own boilerplate
-   ("Hosted on Humanitix") and is now null — a person has to find where they
-   actually happen, and Claude must not read Humanitix to do it.
+   ("Hosted on Humanitix") and is now null. **Re-running the scraper will not
+   fix those four** — the boilerplate *is* the listing's schema.org
+   `location.name`, which is what Humanitix publishes when the organiser has
+   set no physical venue. The venue is missing from the source, not from us,
+   so someone has to ask The Sewing Collective. (The Mon/Thu Action reads
+   Humanitix perfectly legitimately as `whattodo-janjuc`; it is only an
+   interactive Claude fetch, which goes out as ClaudeBot, that their robots.txt
+   refuses. Do not confuse the two — the worker is not blocked.)
 4. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.
