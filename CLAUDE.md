@@ -575,6 +575,44 @@ runs against the live database, and a case that passes validation is a real
 write. One did, and it overwrote Aireys Pub's coordinate with a Jan Juc one
 (restored the same day by re-geocoding from the `source_note`).
 
+## Eventbrite, and the organiser-is-not-the-venue trap
+
+Two Eventbrite organiser pages were registered 25 Aug 2026 (Scott's links):
+
+- `Torquay Bowls Club` (place 35) — an existing row the venue scraper had been
+  reporting as "nothing machine-readable", because the club's own site carries
+  no gig page. Its `events_url` is now the Eventbrite organiser page. 1 event.
+- `Creative Geelong Makers Hub` (place 103) — new. 9 events.
+
+**The organiser on an Eventbrite page is not the venue.** The second one was
+first created as *Creative Geelong Inc*, which is the organiser — Scott caught
+it. The venue is in the event data: all nine events give
+`location.name = "Creative Geelong Makers Hub"`, 15/132 Little Malop Street,
+Centrepoint Arcade. Read the location off the events; do not name a venue after
+whoever is selling the tickets. The organiser's name is kept in `aliases` so the
+scraper can still match the listing back to this row.
+
+That row's coordinate is the **arcade**, not the unit. Nominatim has no house
+number on Little Malop Street and returns three separate segments of it up to a
+kilometre apart, so a street match would have been a coin toss; `Centrepoint
+Arcade` resolves as `type=pedestrian` — a real feature, and the building the
+address names. `kind` is null: it is a workshop and market space and
+`place_kinds` has no honest word for it, so it sits in the back-of-house "no
+kind" flag for a person to decide.
+
+**Nothing reads either of them yet.** `scrape_venues.py` has
+`API_INSTEAD = {'Eventbrite'}` — it detects the events (it reports "Eventbrite
+(9) — has a free API, left for a human") and deliberately refuses to scrape.
+
+Worth knowing before that is revisited: the premise has weakened. Eventbrite's
+event pages carry **clean schema.org JSON-LD**, and `eventlib.jsonld_events`
+already parses them today — the same shape this file praises Humanitix for. One
+caveat found while checking: a workshop is typed `EducationEvent`, not `Event`,
+so any stricter filter than `jsonld_events` will silently drop them. robots.txt
+allows `/o/` and `/e/` for our UA and names no AI crawler. So reading the pages
+needs no token, while the API needs one stored in two places. **Scott has not
+decided** — offered 25 Aug 2026 and left open, so `API_INSTEAD` stands.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

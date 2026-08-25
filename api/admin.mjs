@@ -184,9 +184,9 @@ function clean(patch) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({error: 'POST only'});
 
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY)
-    return res.status(501).json({error: 'not_configured',
-      message: 'Set SUPABASE_URL and SUPABASE_SERVICE_KEY in the Vercel project.'});
+  // The password gates everything. The Supabase keys are checked further down,
+  // after the actions that do not touch the database — otherwise pressing Run
+  // now reports "set SUPABASE_URL", which is true but has nothing to do with it.
   if (!process.env.ADMIN_PASSWORD)
     return res.status(501).json({error: 'no_password',
       message: 'Set ADMIN_PASSWORD in the Vercel project to enable editing.'});
@@ -228,6 +228,11 @@ export default async function handler(req, res) {
         ? 'GitHub refused the token — it needs Actions: read and write on this repo.'
         : detail.slice(0, 300)});
   }
+
+  // Everything past here reads or writes the database.
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY)
+    return res.status(501).json({error: 'not_configured',
+      message: 'Set SUPABASE_URL and SUPABASE_SERVICE_KEY in the Vercel project.'});
 
   if (!WRITABLE[table]) return res.status(400).json({error: 'bad_table',
     message: `table must be one of ${Object.keys(WRITABLE).join(', ')}`});
