@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Back of house — Notice</title>
+<script>
+/* Before the first paint, and sharing the site's own key, so walking from the
+   list to the back of house does not flash a different scheme. */
+try{var t=localStorage.getItem('notice.theme');
+    if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}
+</script>
+<link rel="stylesheet" href="/sunset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap">
+<style>
+/* The site's tokens, unchanged. Same three-state shape: bare :root is light,
+   the media query is guarded against an explicit light, [data-theme=dark] wins
+   over both. Do not redefine a colour anywhere else in this file. */
+:root{
+  --ground:#EAEAEA; --surface:#E1E2DC; --ink:#1B2114; --ink2:#4A5142; --ink3:#787E6E;
+  --rule:#CFD0C9; --rule2:#B9BBB2;
+  --serif:'Sunset',Georgia,'Times New Roman',serif;
+  --util:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --accent:#FFBB02;
+  --bad:#B23A2E; --good:#3F6B32;
+  --pad:40px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
+  --rule:#2C3126; --rule2:#3C4234;
+  --bad:#E0705F; --good:#8FBF7A;
+}}
+:root[data-theme="dark"]{
+  --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
+  --rule:#2C3126; --rule2:#3C4234;
+  --bad:#E0705F; --good:#8FBF7A;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--util);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.page{padding:0 var(--pad) 120px;max-width:1400px;margin:0 auto}
+@media (max-width:700px){:root{--pad:18px}}
+
+/* ── masthead ── */
+header{padding:52px 0 26px;display:flex;align-items:flex-start;
+  justify-content:space-between;gap:18px;flex-wrap:wrap}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(38px,5vw,58px);
+  letter-spacing:-.025em;line-height:.95;margin:0}
+h1 a{text-decoration:none}
+.sub{margin-top:12px;font-size:11.5px;font-weight:500;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink3)}
+.hdrbtns{display:flex;align-items:center;gap:9px;margin-top:8px}
+.pill{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
+  font-size:12px;font-weight:600;letter-spacing:.05em;padding:6px 13px;
+  border:1px solid var(--rule2);border-radius:999px;background:none;
+  color:var(--ink2);cursor:pointer;font-family:var(--util)}
+.pill:hover{border-color:var(--ink3);color:var(--ink)}
+.pill.on{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.pill.locked{border-color:var(--bad);color:var(--bad)}
+
+/* ── tabs ── */
+nav.tabs{display:flex;gap:0;border-bottom:1px solid var(--rule2);margin-bottom:26px;
+  overflow-x:auto}
+nav.tabs button{background:none;border:none;border-bottom:2px solid transparent;
+  font-family:var(--util);font-size:12.5px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink3);padding:12px 18px 10px;cursor:pointer;
+  margin-bottom:-1px;white-space:nowrap}
+nav.tabs button:hover{color:var(--ink)}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs .tally{font-size:11px;color:var(--ink3);font-weight:500;margin-left:6px}
+
+/* ── panels, cards, rules ── */
+section[hidden]{display:none}
+h2{font-family:var(--serif);font-weight:400;font-size:26px;letter-spacing:-.01em;
+  margin:34px 0 4px}
+h2:first-child{margin-top:0}
+.note{color:var(--ink3);font-size:12.5px;margin:0 0 16px;max-width:70ch}
+.card{border:1px solid var(--rule2);background:var(--surface);padding:16px 18px;
+  margin-bottom:10px}
+.card h3{font-family:var(--util);font-size:14px;font-weight:600;margin:0 0 3px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card .why{color:var(--ink3);font-size:12.5px;margin:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.kv{display:flex;flex-wrap:wrap;gap:4px 22px;margin-top:10px;
+  font-size:12px;color:var(--ink2)}
+.kv b{font-weight:600;color:var(--ink3);text-transform:uppercase;
+  letter-spacing:.08em;font-size:10.5px;margin-right:5px}
+
+/* a small state word — live / dead / by hand / ok / failed */
+.tag{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--rule2);color:var(--ink3);padding:1px 6px;border-radius:2px;
+  white-space:nowrap}
+.tag.live{border-color:var(--good);color:var(--good)}
+.tag.dead{border-color:var(--bad);color:var(--bad)}
+.tag.warn{border-color:var(--accent);color:var(--ink2);background:color-mix(in oklab,var(--accent) 22%,transparent)}
+
+/* the one thing that should shout */
+.alarm{border:1px solid var(--bad);background:color-mix(in oklab,var(--bad) 10%,transparent);
+  padding:16px 18px;margin-bottom:18px}
+.alarm h3{font-family:var(--util);font-size:14px;font-weight:600;margin:0 0 6px;color:var(--bad)}
+.alarm ul{margin:8px 0 0;padding-left:18px;font-size:13px}
+.alarm li{margin-bottom:3px}
+
+/* ── run history ── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink3);padding:0 10px 7px 0;
+  border-bottom:1px solid var(--rule2);white-space:nowrap}
+td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+tr.clickable{cursor:pointer}
+tr.clickable:hover td{background:var(--surface)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+pre.out{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
+  line-height:1.5;background:var(--surface);border:1px solid var(--rule);
+  padding:12px 14px;overflow-x:auto;margin:8px 0 0;white-space:pre;color:var(--ink2)}
+.stepname{font-weight:600;font-size:12px;margin:14px 0 0}
+
+/* ── the board ── */
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+input[type=search],input[type=text],input[type=number],input[type=date],select,textarea{
+  font-family:var(--util);font-size:13px;color:var(--ink);background:var(--ground);
+  border:1px solid var(--rule2);padding:7px 10px;border-radius:0;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+input[type=search]{min-width:260px;flex:1}
+textarea{width:100%;resize:vertical;font-family:var(--util);line-height:1.5}
+label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink3);margin:0 0 4px}
+
+/* the worklist: every flag, counted, clickable */
+.flags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.flagbtn{font-family:var(--util);font-size:11.5px;font-weight:500;cursor:pointer;
+  border:1px solid var(--rule2);background:none;color:var(--ink2);padding:4px 10px;
+  border-radius:999px}
+.flagbtn:hover{border-color:var(--ink3);color:var(--ink)}
+.flagbtn.on{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.flagbtn b{font-weight:600;margin-left:5px;opacity:.65}
+.rowname{font-family:var(--serif);font-size:17px;line-height:1.2}
+.rowflags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.rowflags span{font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink3);border:1px solid var(--rule2);padding:0 5px;border-radius:2px}
+.empty{color:var(--ink3);font-size:13px;padding:30px 0}
+
+/* ── the editor ── */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;
+  display:flex;justify-content:flex-end}
+.drawer{background:var(--ground);width:min(620px,100%);height:100%;overflow-y:auto;
+  border-left:1px solid var(--rule2);padding:24px var(--pad) 80px}
+.drawer header{padding:0 0 16px;border-bottom:1px solid var(--rule2);margin-bottom:18px}
+.drawer h2{font-size:30px;margin:0}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.f-wide{grid-column:1/-1}
+.checks{display:flex;flex-wrap:wrap;gap:3px 14px}
+.checks label{font-size:12.5px;color:var(--ink2);display:flex;align-items:center;gap:5px}
+.drawerbar{position:sticky;bottom:0;background:var(--ground);border-top:1px solid var(--rule2);
+  padding:14px 0 0;margin-top:24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{font-family:var(--util);font-size:13px;font-weight:600;padding:9px 18px;
+  border:1px solid var(--ink);background:var(--ink);color:var(--ground);cursor:pointer}
+.btn.ghost{background:none;color:var(--ink2);border-color:var(--rule2)}
+.btn.ghost:hover{color:var(--ink);border-color:var(--ink3)}
+.btn.danger{background:none;color:var(--bad);border-color:var(--bad)}
+.btn[disabled]{opacity:.4;cursor:default}
+.msg{font-size:12.5px;margin-left:auto;text-align:right}
+.msg.bad{color:var(--bad)}
+.msg.good{color:var(--good)}
+.msg ul{margin:4px 0 0;padding-left:16px;text-align:left}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div>
+    <h1><a href="/">Notice</a> — back of house</h1>
+    <div class="sub" id="sub">reading…</div>
+  </div>
+  <div class="hdrbtns">
+    <button class="pill" id="lock">Locked</button>
+    <button class="pill" id="theme">Auto</button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="autos"      aria-selected="true">Automations</button>
+  <button role="tab" data-tab="events"     aria-selected="false">Events <span class="tally" id="t-events"></span></button>
+  <button role="tab" data-tab="activities" aria-selected="false">Activities <span class="tally" id="t-activities"></span></button>
+  <button role="tab" data-tab="places"     aria-selected="false">Places <span class="tally" id="t-places"></span></button>
+</nav>
+
+<section id="tab-autos">
+  <div id="alarm"></div>
+
+  <h2>What runs by itself</h2>
+  <p class="note">Everything scheduled, plus the things that only run when you ask.
+     The two scrapers are steps in one GitHub Action, so they share a schedule and
+     either can fail without stopping the other.</p>
+  <div class="grid" id="autolist"></div>
+
+  <h2>How the runs went</h2>
+  <p class="note">Straight off GitHub's public API — no token, because the repo is
+     public. Press a run to read what the scrapers actually printed; that output is
+     committed into the repo by the run itself, since a job summary on github.com is
+     somewhere nobody looks.</p>
+  <div id="runs"></div>
+</section>
+
+<section id="tab-events" hidden>
+  <h2>Events</h2>
+  <p class="note">Things that happen on a date and then are over. A date is what
+     separates these from everything else — so what matters here is when, where, and
+     how well the date is actually known. Recurring ones are still events; the
+     <em>How often</em> filter holds the list down to the genuine one-offs.</p>
+  <div class="controls">
+    <input type="search" id="eq" placeholder="Search names, venues, descriptions…">
+    <select id="etype"><option value="">Any type</option></select>
+    <select id="erec">
+      <option value="">However often</option>
+      <option value="once">Happens once</option>
+      <option value="repeat">Repeats</option>
+    </select>
+    <select id="ewhen">
+      <option value="">Any time</option>
+      <option value="upcoming">Still to come</option>
+      <option value="past">Already been</option>
+    </select>
+    <select id="esort">
+      <option value="date">Soonest first</option>
+      <option value="name">A–Z</option>
+      <option value="newest">Newest first</option>
+      <option value="flags">Most to fix</option>
+    </select>
+  </div>
+  <div class="flags" id="eflags"></div>
+  <div id="elist"></div>
+</section>
+
+<section id="tab-activities" hidden>
+  <h2>Activities</h2>
+  <p class="note">The evergreen half — places and things that are simply there, with no
+     date on them. What matters here is whether each one can be found: a real
+     coordinate, a driving distance, and a link that points at a place rather than a
+     search for one.</p>
+  <div class="controls">
+    <input type="search" id="aq" placeholder="Search names, suburbs, descriptions…">
+    <select id="atype"><option value="">Any type</option></select>
+    <select id="asort">
+      <option value="name">A–Z</option>
+      <option value="km">Closest first</option>
+      <option value="newest">Newest first</option>
+      <option value="flags">Most to fix</option>
+    </select>
+  </div>
+  <div class="flags" id="aflags"></div>
+  <div id="alist"></div>
+</section>
+
+<section id="tab-places" hidden>
+  <h2>Places</h2>
+  <p class="note">The venues both of the above hang off — a curated, geocoded row per
+     building. Linking an event to one of these is what gives it a pin, a suburb and a
+     line on the map. Filling in a place’s <span class="mono">events_url</span> is also
+     the entire registry for the venue scraper: it reads any row that has one.</p>
+  <div class="controls">
+    <input type="search" id="pq" placeholder="Search places, suburbs, aliases…">
+    <select id="pkind"><option value="">Any kind</option></select>
+    <select id="psort">
+      <option value="name">A–Z</option>
+      <option value="events">Most listings</option>
+      <option value="flags">Most to fix</option>
+    </select>
+  </div>
+  <div class="flags" id="pflags"></div>
+  <div id="plist"></div>
+</section>
+
+</div>
+<div id="editor"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Back of house.
+
+   Reads with the anon key, exactly like the public site — everything here is
+   already public. Writes go through /api/admin, which holds the service key and
+   re-checks every rule server-side; nothing in this file is a security control.
+
+   Run history comes from GitHub's public API, and what the scrapers printed
+   comes from scripts/run_log.json on raw.githubusercontent.com. Both send
+   Access-Control-Allow-Origin:*, so neither needs a token or a redeploy.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const SUPABASE_URL  = "https://xpnsrtylcqjcoqitskwy.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwbnNydHlsY3FqY29xaXRza3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczNzI1MzcsImV4cCI6MjEwMjk0ODUzN30.Jf2hG4g55IZamv_5OECQK5rBz6o_a4lZRo3Mthp62KE";
+const REPO = "Scott-Designed/whattodo";
+const RAW  = `https://raw.githubusercontent.com/${REPO}/main/scripts/run_log.json`;
+
+const sb = p => fetch(SUPABASE_URL + '/rest/v1/' + p,
+  {headers:{apikey:SUPABASE_ANON, Authorization:'Bearer ' + SUPABASE_ANON}})
+  .then(r => r.ok ? r.json() : Promise.reject(new Error(p + ': ' + r.status)));
+
+const $  = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TODAY = new Date().toISOString().slice(0,10);
+
+let DATA = {activities:[], events:[], places:[], types:[], conditions:[],
+            place_kinds:[], place_offers:[], runs:[], log:[]};
+
+/* ── flags: the worklist ────────────────────────────────────────────────────
+   Each one is a known way a row is unfinished, drawn from the standing list in
+   CLAUDE.md. They are computed here rather than stored, so fixing a row clears
+   its flag the moment it is saved.
+
+   `at-home` entries are exempt from the pin and distance flags on purpose:
+   km = 0 means *here*, and "Board Game Evening" has nowhere to be. Flagging
+   them would bury the 160-odd real places that genuinely want a coordinate. */
+const coarse = v => v !== null && v !== undefined && v !== '' &&
+                    (String(v).split('.')[1] || '').length < 4;
+
+/* A Google Maps link is only a *search* when it is looking a name up. The 36
+   rows written as `maps?q=-38.3721,144.2829` are a point — the pin is right
+   there in the URL — and calling those unfinished would bury the 37 that
+   genuinely are a query string with a place name in it. */
+const mapsSearch = u => {
+  if (!/google\.[^/]+\/maps/.test(u || '')) return false;
+  if (/\/maps\/search/.test(u)) return true;
+  const q = /[?&]q=([^&]+)/.exec(u);
+  return !!q && !/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(decodeURIComponent(q[1]));
+};
+
+function flagsFor(r, kind){
+  const f = [];
+  if (kind === 'events'){
+    if (!r.place_id)                                 f.push('no place');
+    if (r.starts_on && r.starts_on < TODAY &&
+        (!r.recurrence || r.recurrence === 'none'))  f.push('in the past');
+    if (r.date_confidence !== 'high')                f.push('soft date');
+    if (!r.info_url && !r.ticket_url)                f.push('no link');
+    if (r.km === null)                               f.push('no distance');
+    if (!r.verified)                                 f.push('unverified');
+    if (!r.starts_on)                                f.push('no date');
+  } else {
+    const home = r.type === 'at-home';
+    if (!home && (r.lat === null || r.lng === null))  f.push('no pin');
+    if (coarse(r.lat) || coarse(r.lng))               f.push('coarse pin');
+    // A Maps *search* link is a query, not a place — a standing item on the
+    // list in CLAUDE.md. It never resolves to one point.
+    if (mapsSearch(r.url))                            f.push('maps search');
+    if (!home && r.km === null)                       f.push('no distance');
+    if (!r.verified)                                  f.push('unverified');
+    if (!r.description)                               f.push('no description');
+  }
+  return f;
+}
+function placeFlags(p){
+  const f = [];
+  if (p.lat === null || p.lng === null) f.push('no pin');
+  if (coarse(p.lat) || coarse(p.lng))   f.push('coarse pin');
+  if (!p.kind)                          f.push('no kind');
+  if (!p.website && !p.events_url)      f.push('no website');
+  // A place nothing points at is either a duplicate or a row waiting for work.
+  if (!p.__events)                      f.push('no events');
+  return f;
+}
+
+/* ── the form, described rather than written out three times ────────────────
+   kind: text | area | num | date | select | multi | list | bool
+   `list` is a text[] typed as commas; `multi` is a text[] with a vocabulary. */
+const FIELDS = {
+  activities: [
+    {f:'name', kind:'text', wide:1}, {f:'type', kind:'select', vocab:'types'},
+    {f:'location', kind:'text'}, {f:'km', kind:'num', step:'0.1', hint:'driving km from Jan Juc · 0 means here · empty means nowhere to measure'},
+    {f:'cost', kind:'select', opts:['Free','Cheap','Moderate','Splurge']},
+    {f:'duration', kind:'text'}, {f:'daypart', kind:'select', opts:['day','night','both']},
+    {f:'rating', kind:'num', step:'1'},
+    {f:'place_id', kind:'select', vocab:'places', hint:'only if this IS one of the licensed venues'},
+    {f:'lat', kind:'text', hint:'four decimal places minimum — geocode, never estimate'},
+    {f:'lng', kind:'text'},
+    {f:'url', kind:'text', wide:1},
+    {f:'description', kind:'area', wide:1}, {f:'notes', kind:'area', wide:1},
+    {f:'tags', kind:'list', wide:1}, {f:'ages', kind:'list'}, {f:'season', kind:'list'},
+    {f:'conditions', kind:'multi', vocab:'conditions', wide:1},
+    {f:'added_by', kind:'text'}, {f:'verified', kind:'bool'},
+    {f:'source_note', kind:'area', wide:1, hint:'what you actually checked — required to mark verified'},
+  ],
+  events: [
+    {f:'name', kind:'text', wide:1}, {f:'type', kind:'select', vocab:'types'},
+    {f:'starts_on', kind:'date'}, {f:'ends_on', kind:'date'},
+    {f:'time_text', kind:'text'},
+    {f:'recurrence', kind:'select', opts:['none','weekly','fortnightly','monthly','annual']},
+    {f:'date_confidence', kind:'select', opts:['high','medium','low'], hint:'high needs a first-party page'},
+    {f:'place_id', kind:'select', vocab:'places', hint:'links the pin, the suburb and the map'},
+    {f:'venue', kind:'text', hint:'free text, for one-offs and “various venues”'},
+    {f:'location', kind:'text'}, {f:'km', kind:'num', step:'0.1'},
+    {f:'cost', kind:'text'}, {f:'artist', kind:'text'}, {f:'genre', kind:'text'},
+    {f:'info_url', kind:'text', wide:1}, {f:'ticket_url', kind:'text', wide:1},
+    {f:'description', kind:'area', wide:1},
+    {f:'ages', kind:'list'},
+    {f:'conditions', kind:'multi', vocab:'conditions', wide:1},
+    {f:'added_by', kind:'text'}, {f:'verified', kind:'bool'},
+    {f:'source_note', kind:'area', wide:1},
+  ],
+  places: [
+    {f:'name', kind:'text', wide:1}, {f:'suburb', kind:'text'},
+    {f:'kind', kind:'select', vocab:'place_kinds'},
+    {f:'address', kind:'text', wide:1},
+    {f:'lat', kind:'text'}, {f:'lng', kind:'text'},
+    {f:'website', kind:'text', wide:1},
+    {f:'events_url', kind:'text', wide:1, hint:'fill this in and the venue scraper reads it — that is the whole registry'},
+    {f:'ticketing_url', kind:'text', wide:1},
+    {f:'facebook', kind:'text'}, {f:'instagram', kind:'text'},
+    {f:'offers', kind:'multi', vocab:'place_offers', wide:1},
+    {f:'aliases', kind:'list', wide:1, hint:'the other names a source calls this — what makes a merge stick'},
+    {f:'source_note', kind:'area', wide:1},
+  ],
+};
+
+/* ── the automations, described ────────────────────────────────────────────
+   Written down rather than discovered, because half of them are not the kind
+   of thing you can enumerate at runtime: a Vercel build hook and a dead API
+   key do not announce themselves. Keep this list honest by hand. */
+const AUTOMATIONS = [
+  {name:'Surf Coast events calendar', state:'live', when:'Mon & Thu, 7am Melbourne',
+   what:'Reads surfcoastevents.com.au’s JSON API, groups the recurring series back together, and inserts anything new as unverified. Drifting dates on verified rows are reported, never overwritten.',
+   where:'scripts/scrape_events.py', kind:'GitHub Action step', sched:true},
+  {name:'Venue ticketing pages', state:'live', when:'Mon & Thu, 7am Melbourne',
+   what:'Reads gigs from the venues themselves — the registry is any place row with an events_url, not a list in the code. Merges the venue’s own listing with its ticket pages on date.',
+   where:'scripts/scrape_venues.py', kind:'GitHub Action step', sched:true},
+  {name:'Remember what was offered', state:'live', when:'end of every run',
+   what:'Commits events_seen.json, venues_seen.json and run_log.json back to the repo, so something you rejected is not offered again on Thursday — and so this page can read what the run did.',
+   where:'.github/workflows/events.yml', kind:'GitHub Action step', sched:true},
+  {name:'Deploy on push', state:'live', when:'every push to main',
+   what:'GitHub is connected to the Vercel project, which serves public/ and the functions in api/. No build step. A bad change is reverted and redeployed in about six seconds.',
+   where:'vercel.json', kind:'Vercel build hook'},
+  {name:'Autofill', state:'dead', when:'when somebody presses it',
+   what:'Claude drafts the missing fields for a listing on the public site. Every call currently returns “credit balance is too low” — the Anthropic account needs topping up. Nothing else on the site depends on it.',
+   where:'api/enrich.mjs', kind:'On demand · costs API credits'},
+  {name:'Edits from this page', state:'live', when:'when you press Save',
+   what:'The only write path from a browser. Holds the service key server-side, checks the vocabularies, the URL rules and the four-decimal coordinate rule, then patches one row.',
+   where:'api/admin.mjs', kind:'On demand'},
+  {name:'Run by hand', state:'manual', when:'never scheduled',
+   what:'name_rules.py takes the venue back out of event names · classify_places.py proposes a kind and offers · location_rules.py · sync.py add/pending/verify/reject · configure.py puts the keys into the page. All dry-run by default; read the run before --write.',
+   where:'scripts/', kind:'Terminal'},
+];
+
+/* ── when the schedule next fires ───────────────────────────────────────────
+   cron '0 21 * * 0,3' — Sunday and Wednesday, 21:00 UTC. Computed in UTC and
+   printed in Melbourne time, so the answer stays right across daylight saving
+   (GitHub's cron does not follow it; the job simply drifts to 8am over summer). */
+function nextRun(from = new Date()){
+  const d = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate(), 21, 0, 0));
+  for (let i = 0; i < 14; i++){
+    if (d > from && [0,3].includes(d.getUTCDay())) return d;
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  return null;
+}
+const melb = d => d.toLocaleString('en-AU',
+  {timeZone:'Australia/Melbourne', weekday:'short', day:'numeric', month:'short',
+   hour:'numeric', minute:'2-digit'});
+function ago(iso){
+  const s = (Date.now() - new Date(iso)) / 1000;
+  if (s < 3600) return Math.round(s/60) + ' min ago';
+  if (s < 86400) return Math.round(s/3600) + 'h ago';
+  return Math.round(s/86400) + ' days ago';
+}
+
+/* ── automations tab ───────────────────────────────────────────────────────*/
+function drawAutos(){
+  const last = DATA.log[0];
+  const due  = nextRun();
+
+  // The one thing that should interrupt: a date that moved at the source on a
+  // row somebody vouched for. Nothing updates those and nothing will.
+  const waiting = [];
+  for (const s of (last?.steps || []))
+    for (const d of (s.drift || [])) if (d.locked) waiting.push(d);
+
+  let alarm = '';
+  if (waiting.length) alarm += `<div class="alarm">
+    <h3>${waiting.length} date${waiting.length>1?'s':''} moved at the source and ${waiting.length>1?'were':'was'} left alone</h3>
+    <p class="why">These rows are verified, so the scraper reported the change rather than
+       overwriting your judgement. Check the organiser’s own page, then fix or keep the date here.</p>
+    <ul>${waiting.map(d => `<li><a href="#" data-goto="e${d.id}">${esc(d.name)}</a> —
+       ${esc(d.from)} → <b>${esc(d.to)}</b></li>`).join('')}</ul></div>`;
+  if (last && !last.ok) alarm += `<div class="alarm"><h3>The last run failed</h3>
+    <p class="why">${last.steps.filter(s=>!s.ok).map(s=>esc(s.name) + (s.ran ? ` exited ${s.exit}` : ' never ran')).join(' · ')}.
+       The output is under “How the runs went”.</p></div>`;
+  if (!DATA.log.length) alarm += `<div class="card"><h3>No run recorded yet <span class="tag warn">waiting</span></h3>
+    <p class="why">scripts/run_log.json is empty. The next scheduled run writes the first record —
+       ${due ? esc(melb(due)) : 'soon'}. Until then this page can still show GitHub’s own history below.</p></div>`;
+  $('#alarm').innerHTML = alarm;
+
+  $('#autolist').innerHTML = AUTOMATIONS.map(a => `
+    <div class="card">
+      <h3>${esc(a.name)} <span class="tag ${a.state==='live'?'live':a.state==='dead'?'dead':''}">${
+        a.state==='manual' ? 'by hand' : esc(a.state)}</span></h3>
+      <p class="why">${esc(a.what)}</p>
+      <div class="kv">
+        <span><b>runs</b>${esc(a.when)}</span>
+        <span><b>kind</b>${esc(a.kind)}</span>
+        <span><b>where</b><span class="mono">${esc(a.where)}</span></span>
+        ${a.sched && due ? `<span><b>next</b>${esc(melb(due))}</span>` : ''}
+      </div>
+    </div>`).join('');
+
+  // GitHub's history is the spine; the committed log fills in what was printed.
+  const byId = Object.fromEntries(DATA.log.filter(r => r.run_id).map(r => [String(r.run_id), r]));
+  if (!DATA.runs.length){
+    $('#runs').innerHTML = `<p class="empty">GitHub returned no runs — it may be rate-limiting
+      this address (60 an hour, unauthenticated). Try again shortly.</p>`;
+    return;
+  }
+  $('#runs').innerHTML = `<table><thead><tr>
+      <th>Run</th><th>When</th><th>Started by</th><th>Took</th><th>Result</th><th>What it did</th>
+    </tr></thead><tbody>${DATA.runs.map(r => {
+      const rec = byId[String(r.id)];
+      const secs = r.updated_at && r.run_started_at
+        ? Math.max(0, Math.round((new Date(r.updated_at) - new Date(r.run_started_at))/1000)) : null;
+      const ok = r.conclusion === 'success';
+      const did = rec
+        ? [rec.steps.reduce((n,s)=>n+(s.added||0),0) + ' added',
+           rec.needs_you ? `<b>${rec.needs_you} waiting on you</b>` : null]
+          .filter(Boolean).join(' · ')
+        : '<span style="color:var(--ink3)">not recorded</span>';
+      return `<tr class="clickable" data-run="${r.id}">
+        <td class="mono">#${r.run_number}</td>
+        <td>${esc(melb(new Date(r.run_started_at)))}<br>
+            <span style="color:var(--ink3);font-size:11.5px">${esc(ago(r.run_started_at))}</span></td>
+        <td>${r.event === 'schedule' ? 'the schedule' : r.event === 'workflow_dispatch' ? 'you, by hand' : esc(r.event)}</td>
+        <td>${secs === null ? '—' : secs + 's'}</td>
+        <td><span class="tag ${ok?'live':'dead'}">${esc(r.conclusion || r.status)}</span></td>
+        <td>${did}</td>
+      </tr>
+      <tr id="out-${r.id}" hidden><td colspan="6">${
+        rec ? rec.steps.map(s => `<div class="stepname">${esc(s.name)}
+                <span class="tag ${s.ok?'live':'dead'}">${s.ran ? (s.ok?'ok':'exit '+s.exit) : 'never ran'}</span></div>
+              <pre class="out">${esc(s.text || '(no output)')}</pre>`).join('')
+            : `<p class="note" style="margin:10px 0">This run happened before the log existed,
+               so only GitHub has its output.</p>`}
+        <p class="note" style="margin:10px 0 0"><a href="${esc(r.html_url)}" target="_blank" rel="noopener">Open this run on GitHub ↗</a></p>
+      </td></tr>`;
+    }).join('')}</tbody></table>`;
+
+  $('#runs').querySelectorAll('tr[data-run]').forEach(tr => tr.onclick = () => {
+    const out = $('#out-' + tr.dataset.run); out.hidden = !out.hidden;
+  });
+  $('#alarm').querySelectorAll('[data-goto]').forEach(a => a.onclick = e => {
+    e.preventDefault();
+    const id = +a.dataset.goto.slice(1);
+    show('events'); openEditor('events', DATA.events.find(x => x.id === id));
+  });
+}
+
+/* ── flag chips, shared by all three tabs ──────────────────────────────────*/
+function drawFlags(el, list, filter, redraw){
+  const counts = {};
+  for (const r of list) for (const f of r.__flags) counts[f] = (counts[f] || 0) + 1;
+  el.innerHTML = Object.entries(counts).sort((a,b) => b[1]-a[1])
+      .map(([f,n]) => `<button class="flagbtn ${filter.flag===f?'on':''}" data-flag="${esc(f)}">${esc(f)}<b>${n}</b></button>`).join('')
+    + (filter.flag ? `<button class="flagbtn" data-flag="">clear</button>` : '');
+  el.querySelectorAll('[data-flag]').forEach(b => b.onclick = () => {
+    filter.flag = b.dataset.flag === filter.flag ? '' : b.dataset.flag; redraw();
+  });
+}
+const hit = (r, q, extra = []) => !q ||
+  [r.name, r.location, r.description, r.type, ...extra]
+    .some(v => String(v ?? '').toLowerCase().includes(q));
+
+/* ── events: things that happen on a date and then are over ────────────────
+   Kept apart from activities because almost nothing about them is the same
+   question. An event is asked "when is it, where is it, and how sure are we";
+   an activity is asked "can it be found on a map". One table serving both was
+   showing every row an empty When column or an empty Km one. */
+let EFILTER = {q:'', type:'', rec:'', when:'', sort:'date', flag:''};
+
+function drawEvents(){
+  const list = DATA.events.map(r => ({...r, __flags: flagsFor(r,'events')}));
+  drawFlags($('#eflags'), list, EFILTER, drawEvents);
+
+  const q = EFILTER.q.toLowerCase().trim();
+  let out = list.filter(r => {
+    if (EFILTER.type && r.type !== EFILTER.type) return false;
+    if (EFILTER.flag && !r.__flags.includes(EFILTER.flag)) return false;
+    // "Happens once" is the real one-off: no recurrence, or explicitly none.
+    const repeats = r.recurrence && r.recurrence !== 'none';
+    if (EFILTER.rec === 'once' && repeats) return false;
+    if (EFILTER.rec === 'repeat' && !repeats) return false;
+    // A repeating event is never "already been" — it comes round again.
+    const past = r.starts_on && r.starts_on < TODAY && !repeats;
+    if (EFILTER.when === 'past' && !past) return false;
+    if (EFILTER.when === 'upcoming' && past) return false;
+    const place = DATA.places.find(p => p.id === r.place_id);
+    return hit(r, q, [r.venue, r.artist, place?.name]);
+  });
+
+  out.sort({
+    // Undated things sort last rather than first — an empty string would win.
+    date:   (a,b) => (a.starts_on || '9999').localeCompare(b.starts_on || '9999'),
+    name:   (a,b) => a.name.localeCompare(b.name),
+    newest: (a,b) => String(b.created_at).localeCompare(String(a.created_at)),
+    flags:  (a,b) => b.__flags.length - a.__flags.length || a.name.localeCompare(b.name),
+  }[EFILTER.sort]);
+
+  $('#t-events').textContent = DATA.events.length;
+  if (!out.length){ $('#elist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
+
+  $('#elist').innerHTML = `<table><thead><tr>
+      <th>Name</th><th>Type</th><th>When</th><th>How often</th><th>Where</th><th>Date from</th><th></th>
+    </tr></thead><tbody>${out.map(r => {
+      const place = DATA.places.find(p => p.id === r.place_id);
+      const repeats = r.recurrence && r.recurrence !== 'none';
+      const past = r.starts_on && r.starts_on < TODAY && !repeats;
+      return `<tr class="clickable" data-id="${r.id}">
+        <td><div class="rowname">${esc(r.name)}</div>
+            ${r.__flags.length ? `<div class="rowflags">${r.__flags.map(f=>`<span>${esc(f)}</span>`).join('')}</div>` : ''}</td>
+        <td>${esc(r.type || '—')}</td>
+        <td${past ? ' style="color:var(--ink3)"' : ''}>${esc(r.starts_on || '—')}
+            ${r.time_text ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(r.time_text)}</span>` : ''}</td>
+        <td>${repeats ? esc(r.recurrence) : '<span style="color:var(--ink3)">once</span>'}</td>
+        <td>${place ? esc(place.name) : r.venue ? esc(r.venue) : '<span style="color:var(--ink3)">—</span>'}
+            ${r.location ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(r.location)}</span>` : ''}</td>
+        <td><span class="tag ${r.date_confidence==='high'?'live':r.date_confidence==='low'?'dead':''}">${esc(r.date_confidence || '—')}</span></td>
+        <td style="text-align:right;color:var(--ink3)">edit →</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+  $('#elist').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
+    openEditor('events', DATA.events.find(x => x.id === +tr.dataset.id)));
+}
+
+/* ── activities: the evergreen half ────────────────────────────────────────*/
+let AFILTER = {q:'', type:'', sort:'name', flag:''};
+
+function drawActivities(){
+  const list = DATA.activities.map(r => ({...r, __flags: flagsFor(r,'activities')}));
+  drawFlags($('#aflags'), list, AFILTER, drawActivities);
+
+  const q = AFILTER.q.toLowerCase().trim();
+  let out = list.filter(r => {
+    if (AFILTER.type && r.type !== AFILTER.type) return false;
+    if (AFILTER.flag && !r.__flags.includes(AFILTER.flag)) return false;
+    return hit(r, q, [(r.tags || []).join(' ')]);
+  });
+
+  out.sort({
+    name:   (a,b) => a.name.localeCompare(b.name),
+    // null km is "nowhere to measure", which belongs at the bottom, not the top.
+    km:     (a,b) => (a.km ?? 1e9) - (b.km ?? 1e9) || a.name.localeCompare(b.name),
+    newest: (a,b) => String(b.created_at).localeCompare(String(a.created_at)),
+    flags:  (a,b) => b.__flags.length - a.__flags.length || a.name.localeCompare(b.name),
+  }[AFILTER.sort]);
+
+  $('#t-activities').textContent = DATA.activities.length;
+  if (!out.length){ $('#alist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
+
+  $('#alist').innerHTML = `<table><thead><tr>
+      <th>Name</th><th>Type</th><th>Where</th><th>Km</th><th>Pinned</th><th>Cost</th><th></th>
+    </tr></thead><tbody>${out.map(r => `
+      <tr class="clickable" data-id="${r.id}">
+        <td><div class="rowname">${esc(r.name)}</div>
+            ${r.__flags.length ? `<div class="rowflags">${r.__flags.map(f=>`<span>${esc(f)}</span>`).join('')}</div>` : ''}</td>
+        <td>${esc(r.type || '—')}</td>
+        <td>${esc(r.location || '—')}</td>
+        <td>${r.km === null || r.km === undefined ? '<span style="color:var(--ink3)">—</span>' : esc(r.km)}</td>
+        <td>${r.lat && r.lng ? '<span class="tag live">yes</span>' : '<span class="tag">no</span>'}</td>
+        <td>${esc(r.cost || '—')}</td>
+        <td style="text-align:right;color:var(--ink3)">edit →</td>
+      </tr>`).join('')}</tbody></table>`;
+  $('#alist').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
+    openEditor('activities', DATA.activities.find(x => x.id === +tr.dataset.id)));
+}
+
+/* ── places ────────────────────────────────────────────────────────────────*/
+let PFILTER = {q:'', kind:'', sort:'name', flag:''};
+
+function drawPlaces(){
+  // How many events lean on each place — a place with none is either a
+  // duplicate the scraper made or a row still waiting for work.
+  for (const p of DATA.places)
+    p.__events = DATA.events.filter(e => e.place_id === p.id).length
+               + DATA.activities.filter(a => a.place_id === p.id).length;
+
+  const flagged = DATA.places.map(p => ({...p, __flags: placeFlags(p)}));
+  drawFlags($('#pflags'), flagged, PFILTER, drawPlaces);
+
+  const q = PFILTER.q.toLowerCase().trim();
+  let list = flagged.filter(p => {
+    if (PFILTER.kind && p.kind !== PFILTER.kind) return false;
+    if (PFILTER.flag && !p.__flags.includes(PFILTER.flag)) return false;
+    if (!q) return true;
+    return [p.name, p.suburb, p.address, ...(p.aliases||[])]
+      .some(v => String(v ?? '').toLowerCase().includes(q));
+  });
+  list.sort({
+    name:   (a,b) => a.name.localeCompare(b.name),
+    events: (a,b) => b.__events - a.__events || a.name.localeCompare(b.name),
+    flags:  (a,b) => b.__flags.length - a.__flags.length || a.name.localeCompare(b.name),
+  }[PFILTER.sort]);
+
+  $('#t-places').textContent = DATA.places.length;
+  if (!list.length){ $('#plist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
+  $('#plist').innerHTML = `<table><thead><tr>
+      <th>Place</th><th>Kind</th><th>Suburb</th><th>Pinned</th><th>Listings</th><th>Feed</th><th></th>
+    </tr></thead><tbody>${list.map(p => `
+      <tr class="clickable" data-id="${p.id}">
+        <td><div class="rowname">${esc(p.name)}</div>
+            ${p.aliases?.length ? `<div style="color:var(--ink3);font-size:11.5px">also: ${esc(p.aliases.join(', '))}</div>` : ''}
+            ${p.__flags.length ? `<div class="rowflags">${p.__flags.map(f=>`<span>${esc(f)}</span>`).join('')}</div>` : ''}</td>
+        <td>${esc(p.kind || '—')}</td>
+        <td>${esc(p.suburb || '—')}</td>
+        <td>${p.lat && p.lng ? '<span class="tag live">yes</span>' : '<span class="tag">no</span>'}</td>
+        <td>${p.__events || '—'}</td>
+        <td>${p.events_url ? '<span class="tag live">read</span>' : p.website ? '<span class="tag">tried</span>' : '—'}</td>
+        <td style="text-align:right;color:var(--ink3)">edit →</td>
+      </tr>`).join('')}</tbody></table>`;
+  $('#plist').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
+    openEditor('places', DATA.places.find(x => x.id === +tr.dataset.id)));
+}
+
+/* ── the editor ────────────────────────────────────────────────────────────*/
+let OPEN = null;
+
+function control(spec, row){
+  const v = row[spec.f];
+  const id = 'f-' + spec.f;
+  const lab = `<label class="fieldlab" for="${id}">${esc(spec.f.replace(/_/g,' '))}</label>`;
+  const hint = spec.hint ? `<div style="color:var(--ink3);font-size:11px;margin-top:3px">${esc(spec.hint)}</div>` : '';
+  let input;
+  if (spec.kind === 'area')
+    input = `<textarea id="${id}" rows="3">${esc(v ?? '')}</textarea>`;
+  else if (spec.kind === 'bool')
+    input = `<label class="checks" style="gap:7px"><input type="checkbox" id="${id}" ${v?'checked':''}> marked verified</label>`;
+  else if (spec.kind === 'multi'){
+    const has = new Set(v || []);
+    input = `<div class="checks" id="${id}">${DATA[spec.vocab].map(o =>
+      `<label><input type="checkbox" value="${esc(o.name)}" ${has.has(o.name)?'checked':''}> ${esc(o.name)}</label>`).join('')}</div>`;
+  }
+  else if (spec.kind === 'list')
+    input = `<input type="text" id="${id}" value="${esc((v||[]).join(', '))}" placeholder="comma separated">`;
+  else if (spec.kind === 'select'){
+    let opts;
+    if (spec.vocab === 'places')
+      opts = DATA.places.slice().sort((a,b)=>a.name.localeCompare(b.name))
+        .map(p => `<option value="${p.id}" ${v===p.id?'selected':''}>${esc(p.name)}${p.suburb?', '+esc(p.suburb):''}</option>`);
+    else if (spec.vocab)
+      opts = DATA[spec.vocab].map(o => `<option ${v===o.name?'selected':''}>${esc(o.name)}</option>`);
+    else
+      opts = spec.opts.map(o => `<option ${v===o?'selected':''}>${esc(o)}</option>`);
+    input = `<select id="${id}"><option value="">— none —</option>${opts.join('')}</select>`;
+  }
+  else input = `<input type="${spec.kind==='num'?'number':spec.kind==='date'?'date':'text'}"
+      ${spec.step?`step="${spec.step}"`:''} id="${id}" value="${esc(v ?? '')}">`;
+  return `<div class="${spec.wide?'f-wide':''}">${lab}${input}${hint}</div>`;
+}
+
+function readControl(spec){
+  const el = document.getElementById('f-' + spec.f);
+  if (spec.kind === 'bool')  return el.checked;
+  if (spec.kind === 'multi') return [...el.querySelectorAll('input:checked')].map(i => i.value);
+  if (spec.kind === 'list')  return el.value.split(',').map(s => s.trim()).filter(Boolean);
+  const v = el.value;
+  if (v === '') return null;
+  if (spec.kind === 'num')   return Number(v);
+  if (spec.f === 'place_id') return Number(v);
+  return v;
+}
+
+function openEditor(table, row){
+  if (!row) return;
+  OPEN = {table, row};
+  const specs = FIELDS[table];
+  $('#editor').innerHTML = `<div class="scrim"><div class="drawer">
+    <header>
+      <div class="sub">${esc(table)} · id ${row.id}</div>
+      <h2>${esc(row.name)}</h2>
+    </header>
+    <div class="fields">${specs.map(s => control(s, row)).join('')}</div>
+    <div class="drawerbar">
+      <button class="btn" id="save">Save</button>
+      <button class="btn ghost" id="close">Close</button>
+      <button class="btn danger" id="del">Delete</button>
+      <div class="msg" id="msg"></div>
+    </div>
+  </div></div>`;
+
+  $('#close').onclick = closeEditor;
+  $('.scrim').onclick = e => { if (e.target === $('.scrim')) closeEditor(); };
+  $('#save').onclick = save;
+  $('#del').onclick  = remove;
+  document.addEventListener('keydown', onEsc);
+}
+const onEsc = e => { if (e.key === 'Escape') closeEditor(); };
+function closeEditor(){
+  document.removeEventListener('keydown', onEsc);
+  $('#editor').innerHTML = ''; OPEN = null;
+}
+
+// Only what actually changed is sent. That keeps an unrelated edit from
+// tripping over a field that was already wrong — you can fix a name on a row
+// whose coordinate has two decimal places without being asked to geocode first.
+function diff(){
+  const out = {};
+  for (const s of FIELDS[OPEN.table]){
+    const now = readControl(s), was = OPEN.row[s.f] ?? null;
+    const same = Array.isArray(now) || Array.isArray(was)
+      ? JSON.stringify(now ?? []) === JSON.stringify(was ?? [])
+      : String(now ?? '') === String(was ?? '');
+    if (!same) out[s.f] = now;
+  }
+  return out;
+}
+
+function say(html, cls){ $('#msg').className = 'msg ' + (cls||''); $('#msg').innerHTML = html; }
+
+async function post(body){
+  const r = await fetch('/api/admin', {method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({password: PASS, ...body})});
+  return [r.status, await r.json().catch(() => ({}))];
+}
+
+async function save(){
+  if (!PASS) return say('Unlock first — the button at the top right.', 'bad');
+  const patch = diff();
+  if (!Object.keys(patch).length) return say('Nothing changed.', '');
+  say('Saving…');
+  const [code, out] = await post({action:'update', table:OPEN.table, id:OPEN.row.id, patch});
+  if (code === 200){
+    Object.assign(OPEN.row, out.row);
+    const arr = DATA[OPEN.table]; const i = arr.findIndex(x => x.id === out.row.id);
+    if (i > -1) arr[i] = out.row;
+    say('Saved.', 'good');
+    redrawAll();
+    openEditor(OPEN.table, out.row);            // redraw so the flags settle
+    say('Saved.', 'good');
+  } else if (out.complaints){
+    say('Not saved:<ul>' + out.complaints.map(c => `<li>${esc(c)}</li>`).join('') + '</ul>', 'bad');
+  } else say(esc(out.message || out.error || ('error ' + code)), 'bad');
+}
+
+async function remove(){
+  if (!PASS) return say('Unlock first.', 'bad');
+  if (!confirm(`Delete “${OPEN.row.name}” from ${OPEN.table}? This cannot be undone here.`)) return;
+  let [code, out] = await post({action:'delete', table:OPEN.table, id:OPEN.row.id});
+  if (code === 409){
+    // Verified means somebody vouched for it. Deleting takes a second press.
+    if (!confirm(out.message + '\n\nDelete it anyway?')) return;
+    [code, out] = await post({action:'delete', table:OPEN.table, id:OPEN.row.id, force:true});
+  }
+  if (code === 200){
+    DATA[OPEN.table] = DATA[OPEN.table].filter(x => x.id !== OPEN.row.id);
+    closeEditor(); redrawAll();
+  } else say(esc(out.message || out.error || ('error ' + code)), 'bad');
+}
+
+/* ── the lock ──────────────────────────────────────────────────────────────
+   The password only ever unlocks writing; every read on this page is the same
+   public data the site serves. It is checked by the function, not here. */
+let PASS = '';
+try { PASS = sessionStorage.getItem('notice.admin') || ''; } catch(e){}
+
+function drawLock(ok){
+  const b = $('#lock');
+  b.textContent = ok ? 'Unlocked' : 'Locked';
+  b.classList.toggle('on', !!ok);
+  b.classList.toggle('locked', !ok);
+}
+async function unlock(){
+  if (PASS){                       // pressing it while unlocked locks it again
+    PASS = ''; try{ sessionStorage.removeItem('notice.admin'); }catch(e){}
+    return drawLock(false);
+  }
+  const p = prompt('Admin password (ADMIN_PASSWORD in the Vercel project)');
+  if (p === null) return;
+  const r = await fetch('/api/admin', {method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({password:p, action:'check'})});
+  if (r.ok){
+    PASS = p; try{ sessionStorage.setItem('notice.admin', p); }catch(e){}
+    drawLock(true);
+  } else {
+    const o = await r.json().catch(() => ({}));
+    alert(o.message || (r.status === 401 ? 'That is not the password.' : 'Could not check: ' + r.status));
+    drawLock(false);
+  }
+}
+
+/* ── theme, the site's own three states ────────────────────────────────────*/
+function drawTheme(){
+  let t = null; try{ t = localStorage.getItem('notice.theme'); }catch(e){}
+  $('#theme').textContent = t === 'light' ? 'Light' : t === 'dark' ? 'Dark' : 'Auto';
+}
+$('#theme').onclick = () => {
+  let t = null; try{ t = localStorage.getItem('notice.theme'); }catch(e){}
+  const next = t === 'light' ? 'dark' : t === 'dark' ? null : 'light';
+  try{ next ? localStorage.setItem('notice.theme', next) : localStorage.removeItem('notice.theme'); }catch(e){}
+  if (next) document.documentElement.dataset.theme = next;
+  else delete document.documentElement.dataset.theme;
+  drawTheme();
+};
+
+/* ── tabs ──────────────────────────────────────────────────────────────────*/
+const TABS = ['autos','events','activities','places'];
+const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces(); };
+
+function show(tab){
+  for (const b of document.querySelectorAll('nav.tabs button'))
+    b.setAttribute('aria-selected', String(b.dataset.tab === tab));
+  for (const id of TABS)
+    $('#tab-' + id).hidden = id !== tab;
+  location.hash = tab;
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => show(b.dataset.tab));
+$('#lock').onclick = unlock;
+
+// Each tab owns its own filters; nothing is shared but the flag-chip helper.
+const wire = (map, filter, redraw) => {
+  for (const [sel, key] of Object.entries(map)){
+    const el = $(sel);
+    const ev = el.tagName === 'SELECT' ? 'onchange' : 'oninput';
+    el[ev] = e => { filter[key] = e.target.value; redraw(); };
+  }
+};
+wire({'#eq':'q', '#etype':'type', '#erec':'rec', '#ewhen':'when', '#esort':'sort'},
+     EFILTER, () => drawEvents());
+wire({'#aq':'q', '#atype':'type', '#asort':'sort'}, AFILTER, () => drawActivities());
+wire({'#pq':'q', '#pkind':'kind', '#psort':'sort'}, PFILTER, () => drawPlaces());
+
+/* ── load ──────────────────────────────────────────────────────────────────
+   Everything at once. GitHub and raw are allowed to fail without taking the
+   database views down with them — an outage at github.com should not stop you
+   editing a listing. */
+async function load(){
+  drawTheme(); drawLock(!!PASS);
+  const ghRuns = fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=20`)
+    .then(r => r.ok ? r.json() : {workflow_runs:[]}).then(d => d.workflow_runs || []).catch(() => []);
+  const ghLog = fetch(RAW + '?t=' + Date.now())
+    .then(r => r.ok ? r.json() : []).catch(() => []);
+
+  try {
+    const [activities, events, places, types, conditions, place_kinds, place_offers, runs, log] =
+      await Promise.all([
+        sb('activities?select=*&order=name'), sb('events?select=*&order=name'),
+        sb('places?select=*&order=name'), sb('types?select=*'), sb('conditions?select=*'),
+        sb('place_kinds?select=*'), sb('place_offers?select=*'), ghRuns, ghLog,
+      ]);
+    DATA = {activities, events, places, types, conditions, place_kinds, place_offers,
+            runs, log: Array.isArray(log) ? log : []};
+  } catch (e) {
+    $('#sub').textContent = 'could not read the database — ' + e.message;
+    return;
+  }
+
+  // Each tab only offers the types its own rows actually use — an event
+  // dropdown listing 'skatepark' is 20 dead options to scroll past.
+  const typesIn = rows => [...new Set(rows.map(r => r.type).filter(Boolean))].sort();
+  const opts = list => '<option value="">Any type</option>' +
+    list.map(n => `<option>${esc(n)}</option>`).join('');
+  $('#etype').innerHTML = opts(typesIn(DATA.events));
+  $('#atype').innerHTML = opts(typesIn(DATA.activities));
+  $('#pkind').innerHTML = '<option value="">Any kind</option>' +
+    DATA.place_kinds.map(k => `<option>${esc(k.name)}</option>`).join('');
+
+  const last = DATA.log[0];
+  $('#sub').innerHTML = `${DATA.activities.length} places &amp; activities ·
+    ${DATA.events.length} events · ${DATA.places.length} venues ·
+    last run ${last ? esc(ago(last.recorded_at)) : DATA.runs[0] ? esc(ago(DATA.runs[0].run_started_at)) : 'unknown'}`;
+
+  drawAutos(); redrawAll();
+  const tab = location.hash.slice(1);
+  if (TABS.includes(tab)) show(tab);
+}
+load();
+</script>
+</body>
+</html>

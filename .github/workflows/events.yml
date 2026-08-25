@@ -32,24 +32,42 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Each scraper records its own exit code and lets the job continue. One
+      # source being down is not a reason to skip the other, and the job is
+      # still failed at the end — see "Fail the job if either scraper crashed".
+      # pipefail, or `tee` succeeding masks a crash in the script and the job
+      # goes green on a total failure. 2>&1 so a traceback reaches the record
+      # instead of vanishing.
       - name: Look, and add anything new as unverified
         env:
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
-          # pipefail, or `tee` succeeding masks a crash in the script and the
-          # job goes green on a total failure. 2>&1 so a traceback reaches the
-          # summary instead of vanishing.
-          set -o pipefail
+          # +e because GitHub runs this under `bash -e`, which would abort the
+          # step on a crash before the exit code was ever written down. pipefail
+          # so `tee` succeeding cannot mask that crash.
+          set +e -o pipefail
           python3 scripts/scrape_events.py --write 2>&1 | tee run.txt
+          echo "$?" > run.rc
+          exit 0
 
       - name: Read each venue's own ticketing page
+        if: always()
         env:
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
-          set -o pipefail
+          set +e -o pipefail
           python3 scripts/scrape_venues.py --write 2>&1 | tee venues.txt
+          echo "$?" > venues.rc
+          exit 0
+
+      # The job summary below is a page on github.com nobody visits. This is the
+      # same information written into the repo, where the back-of-house page can
+      # read it off raw.githubusercontent.com without a token or a redeploy.
+      - name: Record what this run did
+        if: always()
+        run: python3 scripts/run_log.py
 
       - name: Put the run in the job summary
         if: always()
@@ -65,12 +83,23 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # always(), because a crashed run is exactly the one worth having on file.
       - name: Remember what was offered
+        if: always()
         run: |
           git config user.name  'events bot'
           git config user.email 'noreply@github.com'
-          git add scripts/events_seen.json scripts/venues_seen.json
+          git add scripts/events_seen.json scripts/venues_seen.json scripts/run_log.json
           git diff --cached --quiet && { echo 'nothing new to remember'; exit 0; }
-          # [skip ci] because the site reads Supabase live — a redeploy adds nothing.
+          # [skip ci] because the site reads Supabase live, and the back-of-house
+          # page reads this log from raw.githubusercontent — neither needs a build.
           git commit -m "Events: remember this week's listings [skip ci]"
           git push
+
+      - name: Fail the job if either scraper crashed
+        if: always()
+        run: |
+          rc1=$(cat run.rc    2>/dev/null || echo 1)
+          rc2=$(cat venues.rc 2>/dev/null || echo 1)
+          echo "scrape_events.py exited $rc1, scrape_venues.py exited $rc2"
+          [ "$rc1" = 0 ] && [ "$rc2" = 0 ]

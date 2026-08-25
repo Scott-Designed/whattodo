@@ -13,13 +13,18 @@ hook. So `whattodo` is the project and `Notice` is the product.
 
 ```
 public/index.html     the entire site — one file, no build step, no framework
+public/admin.html     back of house: the automations, every listing, and an editor
+public/sunset.css     the Sunset face, so admin.html can wear it too
 api/enrich.mjs        Vercel function: Claude drafts missing fields, user approves
                       Takes a name OR a url. Events lead with the url.
+api/admin.mjs         Vercel function: the only write path from a browser.
+                      Holds the service key; needs ADMIN_PASSWORD.
 supabase/             schema, seed data, setup SQL
 scripts/              configure.py (keys into the page), sync.py (seed/export/moderate),
                       eventlib.py (shared plumbing for both scrapers),
                       scrape_events.py (the Surf Coast Events feed),
-                      scrape_venues.py (each venue's own ticketing page)
+                      scrape_venues.py (each venue's own ticketing page),
+                      run_log.py (records what a scheduled run did → run_log.json)
 .github/workflows/events.yml  runs that feed Mon + Thu
 tools/event-inbox.html  published Artifact — capture links and poster photos on the go
 ```
@@ -279,11 +284,16 @@ Three things about that source, each of which the script exists to handle:
 
   **As of 25 Aug 2026 every event in the database is verified**, so that first
   branch is now dead: the feed updates nothing and every drifting date is a line
-  in the job summary waiting for a person. That summary is a page on
-  github.com nobody visits. Until the drift report reaches somewhere Scott
-  actually looks, a date that moves at the source goes stale here silently —
-  which is the Arts Trail failure with a different cause. This is the most
-  likely way this database goes wrong next.
+  in the job summary waiting for a person.
+
+  That used to be the end of the sentence, and it was the most likely way this
+  database went wrong next — a job summary is a page on github.com nobody
+  visits, so a date that moved at the source went stale here silently. **Fixed
+  25 Aug 2026**: the run now writes `scripts/run_log.json` and commits it, and
+  the back-of-house page reads it and puts every locked drift in a red box at
+  the top, each one a link straight into that event's editor. See the Back of
+  house section. The report reaching somewhere Scott looks is the whole point;
+  if that page stops being opened, this hazard is back.
 - **It is a curated calendar, not the organiser's own page.** Everything lands
   `date_confidence = 'medium'`. Only a human who has read a first-party page may
   raise it to `high`. **The page no longer prints that distinction** (25 Aug 2026)
@@ -363,6 +373,102 @@ Eventbrite 2 (has a free API — use that, don't scrape it).
 honours robots.txt. Humanitix permits that crawler but disallows `ClaudeBot`, so
 **an assistant must not run the Humanitix path on your behalf** — pass
 `--skip humanitix` when Claude is driving. Your GitHub Action is fine.
+
+## Back of house — /admin
+
+`public/admin.html`, live at **https://whattodo-nu.vercel.app/admin**. One page,
+no build step, same as the site. Four tabs: **Automations**, **Events**,
+**Activities**, **Places**. Built 25 Aug 2026.
+
+**It is a page on the site, not an Artifact, and that was forced.** A published
+Claude Artifact's CSP blocks every external host — it cannot reach Supabase at
+all, so it could never be live and an edit made in one could never be written
+back. The runtime capabilities an Artifact *can* have (self-publishing,
+downloads, calling the viewer's claude.ai connectors) do not include "fetch a
+URL". Don't re-litigate this next session: if the answer has to be live data,
+it has to be served from Vercel.
+
+**Reads use the anon key, exactly like index.html.** Everything the page shows
+is already public — the listings, the venues, the vocabularies. It reads the
+raw `activities`, `events` and `places` tables rather than the `listings` view,
+because the view flattens both halves into one shape and the editor needs the
+real columns.
+
+**Writes go through `api/admin.mjs` and nothing else.** Anon may select and
+insert but never update or delete, and the service key must never be in the
+page, so the function holds it and is the entire write surface. It needs
+`ADMIN_PASSWORD` in the Vercel project — without it the endpoint refuses
+everything with `no_password`, which is the correct failure: no password, no
+writing. The password unlocks *writing only*; nothing on the page is hidden by
+it, because none of it is secret.
+
+The function re-checks every rule server-side — vocabularies, the URL rules, the
+date shape, the four-decimal coordinate rule, verified-needs-a-source_note. The
+same checks exist in the browser, and those are decoration: this is a public URL
+and the page cannot be trusted to have run them.
+
+Things that are load-bearing:
+
+- **Only what changed is sent.** The editor diffs the form against the row it
+  opened and patches the difference. That is what lets you fix a name on a row
+  whose coordinate has two decimal places without being told to geocode first —
+  the coordinate rule only fires if you touched the coordinate. Sending the
+  whole row would make every pre-existing flaw block every unrelated edit.
+- **A coordinate under four decimal places is refused, not warned about.** 0.01°
+  is 1.1km, which on this coast is often open water. A deliberate round number
+  written out (`-38.3400`) still passes; a guess usually will not.
+- **Deleting a verified row takes two presses.** Same guard as `sync.py reject`.
+- The flags are computed in the page, never stored, so fixing a row clears its
+  flag the moment it saves. `at-home` rows are exempt from the pin and distance
+  flags — `km = 0` means *here* and "Nerf Battle" has nowhere to be.
+- **A Google Maps `?q=-38.37,144.28` link is a pin, not a search.** All 36 of
+  those are coordinates and are fine; the 37 `/maps/search/Some+Name` ones are
+  the standing item on the list. Flagging both put 73 rows on the worklist, half
+  of them finished. `mapsSearch()` tells them apart.
+
+### How the runs went
+
+Run history is GitHub's public API — `api.github.com/repos/Scott-Designed/whattodo/actions/runs`
+— read straight from the browser with no token, because the repo is public and
+GitHub sends `Access-Control-Allow-Origin: *`. 60 requests an hour per address,
+which one person opening a page will never approach.
+
+**What the scrapers actually printed is not in any public API.** Job summaries
+are a UI feature and job logs need `actions:read`. So the run writes its own
+record: `scripts/run_log.py` parses `run.txt` and `venues.txt` into
+`scripts/run_log.json`, the workflow commits it with the seen ledgers, and the
+page reads it from **raw.githubusercontent.com** — also CORS-open, also no
+token, and no redeploy needed, which is why the commit can keep `[skip ci]`.
+
+**The raw text is the record; the parsed counts are a convenience.** If a
+scraper changes its wording the numbers go null and the page still prints every
+line. Never make the page depend on a regex in `run_log.py`.
+
+Two things in the workflow that are easy to get wrong:
+
+- Each scraper now records its exit code and lets the job carry on, so one
+  source being down does not skip the other; a final step fails the job if
+  either crashed. **`set +e` is required** for that — GitHub runs steps under
+  `bash -e`, which aborts the step on a crash before the exit code is written.
+- The commit step is `if: always()`, because a crashed run is exactly the one
+  worth having on file.
+
+### Serving it locally
+
+The iCloud sandbox problem is real but narrower than recorded: `python3 -m
+http.server` fails because argparse evaluates `os.getcwd()` as a default at
+import time, while the cwd is still the denied iCloud path. **`os.chdir()` to an
+allowed directory first and everything works** — that is what the committed
+`.claude/launch.json` already does. Copy `public/` to the session scratchpad,
+point a config at the copy, and re-copy after each edit. **Do not commit that
+config**; the path is session-specific.
+
+`/api/admin` does not exist under a static server, so the lock cannot be tested
+locally. Test the function directly in node instead by importing the handler and
+passing a mock `req`/`res`. **Only refusal cases belong in that harness** — it
+runs against the live database, and a case that passes validation is a real
+write. One did, and it overwrote Aireys Pub's coordinate with a Jan Juc one
+(restored the same day by re-geocoding from the `source_note`).
 
 ## Research rules — this project has been burned before
 
@@ -889,6 +995,10 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
 
 ## Next things worth doing
 
+0. **Set `ADMIN_PASSWORD` in the Vercel project** or `/admin` can show everything
+   and save nothing — every write comes back `no_password`. Vercel dashboard →
+   whattodo → Settings → Environment Variables, any value, then redeploy.
+   The reading half of the page works without it.
 1. Give `The Sound Doctor` (place 32) the right kind, or decide `hall` will do
    — see the Places section. The other 11 unclassified places need a word the
    vocabulary does not have yet (shops, organisations, two walks, a boat ramp).
