@@ -149,6 +149,11 @@ def build(slug, instances):
         'location'       : where,
         'description'    : E.text(first.get('description') or first.get('excerpt')),
         'info_url'       : info,
+        # Explicitly null, never the column's {any-weather} default. That
+        # default was cut from 60% of entries to 16% in the Aug 2026 retag;
+        # a scraper quietly restoring it would undo that within months. No
+        # source publishes this vocabulary — a null is honest, a guess is not.
+        'conditions'     : None,
         'date_confidence': 'medium',
         'added_by'       : 'surfcoastevents',
         'source_note'    : note,

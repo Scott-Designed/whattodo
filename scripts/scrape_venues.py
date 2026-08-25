@@ -36,7 +36,8 @@ import eventlib as E
 
 SKIP = set()          # platforms to leave alone this run, via --skip
 LINK_CAP = 80         # ticket pages fetched per venue, per platform
-POLITE   = 0.25       # seconds between fetches to one host
+POLITE   = 1.0        # seconds between fetches to one host — one request a
+                      # second is plenty for a twice-weekly run over 15 sites
 SEEN_FILE = E.ROOT / 'scripts' / 'venues_seen.json'
 SEEN_NOTE = ('Gigs already offered by scrape_venues.py. Delete a line to be offered '
              'it again — otherwise something you rejected comes back next week.')
@@ -403,6 +404,11 @@ def build(venue, g, registry):
         'description'    : g.get('description'),
         'info_url'       : g.get('url'),
         'ticket_url'     : g.get('url'),
+        # Explicitly null, never the column's {any-weather} default. That
+        # default was cut from 60% of entries to 16% in the Aug 2026 retag;
+        # a scraper quietly restoring it would undo that within months. No
+        # source publishes this vocabulary — a null is honest, a guess is not.
+        'conditions'     : None,
         'date_confidence': g.get('conf', 'medium'),
         'added_by'       : 'venue-feed',
         'source_note'    : (f"read from {urllib.parse.urlsplit(g.get('url') or '').netloc} "
