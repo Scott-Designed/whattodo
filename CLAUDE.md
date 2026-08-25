@@ -445,24 +445,27 @@ body, and a row draws it with `<use href="#i-…">`. **Do not inline the path pe
 row** — it is ~4KB and the list is 400 rows. `ICON_OF` maps type → symbol id, so
 adding one is two lines: the symbol, and the map entry.
 
-- **24px means 24px of white, not 24px of box.** The 48×28 box is a container,
-  not the artwork. Centred in it, a narrow icon left ~7px of air each side, so
-  the gap the eye measured between the runner and its name was ~33px while the
-  skateboard's was 26 — the grid gap is 24 for both. The box now sits at the
-  slot's inner edge (`place-items:center end`) and every `<symbol>` carries
-  `preserveAspectRatio="xMaxYMid meet"`, so each icon's ink ends on one line,
-  24px from the name. The cost is that the icons' *left* edges are ragged by
-  their own proportions; the alignment that matters is the one to the text.
-  The slot stays 51px whether or not it holds anything.
-- **Both ends of a row leave the same white space.** The icon box starts on the
-  page margin (`--pad`) and the pin ends on it, so the list is not heavier at one
-  end than the other. Two things make that hold: the row's right padding is
-  `--pad + 40px`, which is the pin's lane — the text stops ~24px short of the
-  mark, the same gap the icon keeps from the name — and the pin is aligned to the
+- **Only one of the icon's two edges can be true, because the artwork is not one
+  width.** The ink inside the 48×28 box runs from 22.5px (the cup) to 48px (the
+  skateboard), so flush-left and a constant gap-to-the-name are the same
+  requirement only if every icon is drawn to the same width. Both have been
+  tried: `preserveAspectRatio="xMaxYMid meet"` put every icon's ink 24px from
+  its name and left the *left* edges ragged by up to 13px; `xMinYMid meet`, which
+  is what ships, starts every icon's ink on one line at `--gut` and lets the gap
+  to the name run 24–49px. **The real fix is in the artwork**: draw each icon to
+  fill the same 48px width and both edges come out true at once.
+- **The box is 48px wide and always drawn**, even for a type with no icon, or
+  every name would step left and right down the list.
+- **Both ends of a row leave the same white space, and `--gut` is that number.**
+  The icon's ink starts `--gut` in from the left edge and the pin's ink ends
+  `--gut` in from the right — 40px, so the marks hang inside the page's own 64px
+  margin, which the full-bleed list can do and the text columns cannot. One
+  number moves both ends; 64 would line the icons up with the masthead instead.
+  Two things make it hold: the row's right padding is `--gut + 40px`, the pin's
+  lane, so the text stops ~24px short of the mark; and the pin is aligned to the
   *end* of its 36px button rather than centred in it, because an emoji's advance
   width differs by platform and a fixed offset would only be true on this one.
-  The hit area runs inwards from there, into the padding. Costs about 40px of
-  name column, which at 1743px is two more clipped names out of 395.
+  The hit area runs inwards from there, into the padding.
 - **The slot is a fixed 48×28 box, not a fixed width.** The set is not one
   proportion — the skateboard is 3:1, the bike is square, the cup is taller than
   wide — so sizing on width alone made the cup 60px tall and pushed the 57px row
