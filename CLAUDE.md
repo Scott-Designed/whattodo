@@ -489,10 +489,11 @@ adding one is two lines: the symbol, and the map entry.
   width.** The ink inside the 48×28 box runs from 22.5px (the cup) to 48px (the
   skateboard), so flush-left and a constant gap-to-the-name are the same
   requirement only if every icon is drawn to the same width. Both have been
-  tried: `preserveAspectRatio="xMaxYMid meet"` put every icon's ink 24px from
-  its name and left the *left* edges ragged by up to 13px; `xMinYMid meet`, which
-  is what ships, starts every icon's ink on one line at `--gut` and lets the gap
-  to the name run 24–49px. **The real fix is in the artwork**: draw each icon to
+  tried: `xMinYMid meet` starts every icon's ink on one line at `--gut` and lets
+  the gap to the name run 24–49px; `xMaxYMid meet`, which is what ships, puts
+  every icon's ink 24px from its name and leaves the left edges ragged — 60px
+  for the skateboard, 85px for the cup, because the cup is portrait and the
+  skateboard is 3:1 and both have to fit 28px tall. **The real fix is in the artwork**: draw each icon to
   fill the same 48px width and both edges come out true at once.
 - **The box is 48px wide and always drawn**, even for a type with no icon, or
   every name would step left and right down the list.
