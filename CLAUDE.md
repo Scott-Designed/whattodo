@@ -462,12 +462,23 @@ adding one is two lines: the symbol, and the map entry.
   cannot reach — `.c-icon .accent{}` matches nothing and fails silently. An
   inline style is part of what gets cloned, and `--icon-accent` still reaches it
   because custom properties inherit across the boundary.
-- **The two-colour icons are full-strength at rest while the mono ones are
-  dimmed to `--ink3`.** The yellow cannot dim, so a two-tone icon currently shows
-  a saturated yellow beside a muted grey detail, which reads more like a fault
-  than a decision. Unresolved, and a real choice: either dim the whole icon at
-  rest and let it bloom on hover (the idiom the 📌 already uses), or drop the
-  resting dim and show every icon at full strength.
+- **Colour only appears on hover.** At rest every icon is the one grey, whether
+  its artwork is one colour or two, so a list of 400 rows is not a field of
+  yellow; hovering brings the ink up and lets the accent through. This settled
+  an inconsistency the two-colour set introduced — a saturated yellow beside a
+  dimmed grey detail read as a fault rather than a decision — and it matches
+  what the 📌 already does.
+
+  The mechanism: the inline fill cannot be overridden by a rule here, but it is
+  a `var()` lookup, so **the variable changes meaning per state** rather than
+  the path changing. `.c-icon{--icon-accent:currentColor}` collapses the icon to
+  one grey at rest; `.rowhead:hover .c-icon{--icon-accent:var(--accent)}` lets
+  the brand colour through. `--accent` on `:root` stays the single home of the
+  yellow. Note this makes `--icon-accent` a *state*, not a colour — do not put a
+  literal in it.
+
+  Being hover-only, no icon is ever coloured on a touch screen, which is the
+  same gap the row tint has.
 - **The bike does not survive 28px.** Its frame and spokes merge and it reads as
   a cog. Checked at 2×; it is the artwork meeting the size, not a bug. The other
   two are fine. Any icon with this much line detail will need a simplified

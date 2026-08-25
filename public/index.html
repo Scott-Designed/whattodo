@@ -21,7 +21,7 @@ try{var t=localStorage.getItem('notice.theme');
   --util:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
   --pad:64px; --ctrl-invert:none;
   --tint-l:.905; --tint-c:.115;
-  --icon-accent:#FFBB02;
+  --accent:#FFBB02;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
@@ -243,6 +243,18 @@ option{background:var(--ground);color:var(--ink)}
    The artwork is a <use> of a <symbol> declared once at the top of the page. */
 .sprite{position:absolute;width:0;height:0;overflow:hidden}
 .c-icon{width:51px;display:grid;place-items:center;color:var(--ink3)}
+/* ── colour only on hover ──
+   At rest every icon is one grey, whether its artwork is one colour or two, so
+   a list of 400 rows is not a field of yellow. Hovering a row brings the ink up
+   and lets the accent through.
+
+   The accent is an inline fill on the path (see below), which no rule here can
+   override — but it is a var() lookup, so swapping what the variable *means*
+   per state does the job without touching the path. At rest it resolves to
+   currentColor and the icon collapses to the single grey; on hover it resolves
+   to the brand colour. The yellow itself still lives in one place, --accent. */
+.c-icon{--icon-accent:currentColor}
+.rowhead:hover .c-icon{--icon-accent:var(--accent)}
 /* A fixed box, not a fixed width. The set is not one proportion — the skateboard
    is 3:1 and the coffee cup is taller than it is wide — so sizing on width alone
    would make an upright icon 60px tall and push the row open. Each <symbol>
