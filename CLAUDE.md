@@ -577,12 +577,27 @@ write. One did, and it overwrote Aireys Pub's coordinate with a Jan Juc one
 
 ## Eventbrite, and the organiser-is-not-the-venue trap
 
-Two Eventbrite organiser pages were registered 25 Aug 2026 (Scott's links):
+Three Eventbrite organiser pages were registered 25 Aug 2026 (Scott's links).
+**17 events are sitting behind them, detected and unread.**
 
 - `Torquay Bowls Club` (place 35) — an existing row the venue scraper had been
   reporting as "nothing machine-readable", because the club's own site carries
   no gig page. Its `events_url` is now the Eventbrite organiser page. 1 event.
 - `Creative Geelong Makers Hub` (place 103) — new. 9 events.
+- `Mt Rothwell Safe Haven` (place 104) — new, Little River, a fenced
+  conservation reserve at the You Yangs end of the region. 7 events.
+
+**Register the organiser, never the single event.** Scott sent Mt Rothwell as
+one event link (`/e/…into-the-woodlands…`), which dies once that night is over.
+The organiser page behind it (16088076701) carries all seven of their tours and
+whatever they list next, so that is what went in `events_url`. The rule
+generalises: an `/e/` link is a symptom, the `/o/` page is the source.
+
+Mt Rothwell is pinned to a **house-number** match — Nominatim's structured query
+resolves "5, Mount Rothwell Road, Little River" as `type=house`, the address the
+tickets publish. Nominatim also carries "Mount Rothwell Biodiversity
+Interpretation Centre" ~420m west on the same road; the published address won.
+No website is recorded because `mtrothwell.com.au` 404s.
 
 **The organiser on an Eventbrite page is not the venue.** The second one was
 first created as *Creative Geelong Inc*, which is the organiser — Scott caught
