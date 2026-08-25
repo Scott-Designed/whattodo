@@ -477,8 +477,9 @@ adding one is two lines: the symbol, and the map entry.
   yellow. Note this makes `--icon-accent` a *state*, not a colour — do not put a
   literal in it.
 
-  Being hover-only, no icon is ever coloured on a touch screen, which is the
-  same gap the row tint has.
+  A **pinned** row is the exception: it holds the hover look for good, tint and
+  coloured icon both, so what you have saved is picked out of the list without
+  hovering. That is also the one way either colour reaches a touch screen.
 - **The bike does not survive 28px.** Its frame and spokes merge and it reads as
   a cog. Checked at 2×; it is the artwork meeting the size, not a bug. The other
   two are fine. Any icon with this much line detail will need a simplified
@@ -527,10 +528,14 @@ shouting. Light and dark each set one `--tint-l`/`--tint-c` pair; the twelve
 hues are shared and are spaced roughly evenly around the wheel. Tuning the whole
 set is two numbers.
 
-Hover is a pointer idea, so nothing shows on a touch screen. That is the same
-trade the 📌 makes, and there it was solved by always showing it faintly —
-worth deciding whether the tint deserves the same, or whether colour on every
-row all the time is too much.
+**A pinned row keeps its tint permanently**, along with its icon in colour —
+`.rowhead.saved` matches everything `.rowhead:hover` does. So the saved rows are
+picked out of the list at a glance, and colour reaches a touch screen, where
+there is no hover at all.
+
+The class is set two ways and needs both: from `kept` in the row template, so it
+survives a re-render, and toggled directly on the pin click, because a click
+outside the saved view deliberately does not re-render.
 
 ## Saved listings — a wishlist with nobody logged in
 

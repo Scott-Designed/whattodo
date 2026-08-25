@@ -254,7 +254,7 @@ option{background:var(--ground);color:var(--ink)}
    currentColor and the icon collapses to the single grey; on hover it resolves
    to the brand colour. The yellow itself still lives in one place, --accent. */
 .c-icon{--icon-accent:currentColor}
-.rowhead:hover .c-icon{--icon-accent:var(--accent)}
+.rowhead:hover .c-icon,.rowhead.saved .c-icon{--icon-accent:var(--accent)}
 /* A fixed box, not a fixed width. The set is not one proportion — the skateboard
    is 3:1 and the coffee cup is taller than it is wide — so sizing on width alone
    would make an upright icon 60px tall and push the row open. Each <symbol>
@@ -269,7 +269,7 @@ option{background:var(--ground);color:var(--ink)}
    style is part of what gets cloned, and `--icon-accent` still reaches it
    because custom properties inherit across the boundary. So the colour is still
    one token in one place, it just has to be spent through var(). */
-.rowhead:hover .c-icon{color:var(--ink)}
+.rowhead:hover .c-icon,.rowhead.saved .c-icon{color:var(--ink)}
 
 .rec{border-bottom:1px solid var(--rule)}
 
@@ -320,7 +320,11 @@ option{background:var(--ground);color:var(--ink)}
 .rowhead[data-tint="involved"] {--tint:oklch(var(--tint-l) var(--tint-c) 350)}
 /* An unsorted row has no theme, keeps no data-tint, and falls back to --surface
    above — the grey it has always had. */
-.rowline:hover,.rowhead:hover .rowline{background:var(--tint)}
+/* A pinned row keeps the hover look for good — its theme colour and its icon in
+   colour — so what you have saved is picked out of the list without hovering
+   anything. This is also the one place the colour reaches a touch screen, where
+   there is no hover at all. */
+.rowline:hover,.rowhead:hover .rowline,.rowhead.saved .rowline{background:var(--tint)}
 .rowline:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 .c-name{font-size:19px;letter-spacing:-.01em;line-height:1.2}
 .c-type,.c-where,.c-when,.c-cost,.c-extra,.tm,.c-name .nm{
@@ -1256,7 +1260,7 @@ function render(){
     const [wVenue,wSuburb]=whereParts(i);
     const sk=keyOf(i), kept=SAVED.has(sk);
     return `<div class="rec">
-      <div class="rowhead"${(i.themes||[])[0]?` data-tint="${i.themes[0]}"`:''}>
+      <div class="rowhead${kept?' saved':''}"${(i.themes||[])[0]?` data-tint="${i.themes[0]}"`:''}>
       <button class="rowline" aria-expanded="false">
         <span class="c-icon" aria-hidden="true">${ICON_OF[i.type]?`<svg><use href="#i-${ICON_OF[i.type]}"/></svg>`:''}</span>
         <span class="c-name"><span class="nm">${esc(i.name)}</span>${i.added?`<span class="mine" title="${i.by?esc(i.by)+' added this — ':''}not checked yet">unverified</span>`:''}</span>
@@ -1603,6 +1607,7 @@ document.getElementById('rows').addEventListener('click',e=>{
   toggleSaved(k);
   const on=SAVED.has(k);
   b.classList.toggle('on',on);
+  b.closest('.rowhead').classList.toggle('saved',on);
   b.setAttribute('aria-pressed',String(on));
   b.title = on ? 'Saved — click to remove' : 'Save this';
   b.setAttribute('aria-label', (on?'Saved: ':'Save: ')+b.getAttribute('aria-label').replace(/^Saved?: /,''));
