@@ -995,10 +995,15 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
 
 ## Next things worth doing
 
-0. **Set `ADMIN_PASSWORD` in the Vercel project** or `/admin` can show everything
-   and save nothing — every write comes back `no_password`. Vercel dashboard →
-   whattodo → Settings → Environment Variables, any value, then redeploy.
-   The reading half of the page works without it.
+0. **`/admin` cannot save until three variables exist in the Vercel project.**
+   Checked against the live deploy 25 Aug 2026: the function answers 501
+   `not_configured`, because the Vercel project only ever held
+   `ANTHROPIC_API_KEY` — the scrapers read Supabase from **GitHub** secrets, so
+   the keys have never been needed on Vercel before. Add, then redeploy:
+   `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` (both are in `.env`) and
+   `ADMIN_PASSWORD` (anything you like). Vercel dashboard → whattodo →
+   Settings → Environment Variables, Production.
+   The reading half of the page works without any of them.
 1. Give `The Sound Doctor` (place 32) the right kind, or decide `hall` will do
    — see the Places section. The other 11 unclassified places need a word the
    vocabulary does not have yet (shops, organisations, two walks, a boat ramp).
