@@ -429,6 +429,72 @@ it is the only test that catches a pin a few hundred metres offshore, which is
 close enough that reverse geocoding still snaps it to a coastal road and calls it
 land.
 
+## Type icons in the row gutter
+
+Scott's own artwork, from `../Notice.Place/Icons/SVG/`. Three are in so far:
+`skatepark` → skate, `bike track` → bike, `cafe` → coffee.
+
+Each icon is a `<symbol>` in a hidden `<svg class="sprite">` at the top of the
+body, and a row draws it with `<use href="#i-…">`. **Do not inline the path per
+row** — it is ~4KB and the list is 400 rows. `ICON_OF` maps type → symbol id, so
+adding one is two lines: the symbol, and the map entry.
+
+- **The slot is a fixed 48×28 box, not a fixed width.** The set is not one
+  proportion — the skateboard is 3:1, the bike is square, the cup is taller than
+  wide — so sizing on width alone made the cup 60px tall and pushed the 57px row
+  open. Each symbol carries its own `viewBox` and scales to fit inside, centred.
+- **The empty slot is still drawn** for a type with no icon, or every name would
+  step left and right down the list.
+- `fill:currentColor`, so one copy serves both colour schemes. The artwork ships
+  as `fill="black"`; that gets swapped on import.
+- **The bike does not survive 28px.** Its frame and spokes merge and it reads as
+  a cog. Checked at 2×; it is the artwork meeting the size, not a bug. The other
+  two are fine. Any icon with this much line detail will need a simplified
+  small-size version before the set reaches all 26 types.
+
+## Light, dark, or follow the system
+
+The pill beside the saved count cycles **Auto → Light → Dark**. Auto is a real
+third state, not a default: it clears `notice.theme` and follows the system, so
+a laptop that flips at sunset takes the page with it. Storing `light` records
+that the reader has overruled that on purpose.
+
+The stylesheet already had the three-state shape — bare `:root` is light, the
+`prefers-color-scheme` block is guarded with `:not([data-theme="light"])`, and
+`[data-theme="dark"]` overrides both — so the switcher **sets or clears one
+attribute and redefines no colour**. Keep it that way.
+
+Two things are load-bearing:
+
+- **A script in `<head>` applies the stored choice before the first paint.**
+  Doing it with the rest of the JS at the end of the body draws the page in the
+  system scheme and then flips it.
+- **The basemap has to be told.** It is a CARTO stylesheet on a CDN and does not
+  read this page's tokens, so the click handler calls `MAP.setStyle()`.
+  `isDark()` already checked the attribute before the media query, so it was
+  right in all three states without changing it. The existing `matchMedia`
+  listener still handles a system change and correctly ignores it when the
+  reader has forced a scheme.
+
+## A row hovers in its own theme's colour
+
+`.rowhead` carries `data-tint="<first theme>"` and hover paints `--tint`, so
+running the eye down the list the colour says what kind of thing a row is before
+the type column is read. A row with no theme keeps the grey it always had.
+
+**The colours are `oklch` and that is not decoration.** Its lightness is
+perceptual, so all twelve hues land at the same brightness. The same twelve
+written in `hsl` at identical numbers give a yellow that reads almost white and
+a blue that reads nearly black — the list would look like some rows were
+shouting. Light and dark each set one `--tint-l`/`--tint-c` pair; the twelve
+hues are shared and are spaced roughly evenly around the wheel. Tuning the whole
+set is two numbers.
+
+Hover is a pointer idea, so nothing shows on a touch screen. That is the same
+trade the 📌 makes, and there it was solved by always showing it faintly —
+worth deciding whether the tint deserves the same, or whether colour on every
+row all the time is too much.
+
 ## Saved listings — a wishlist with nobody logged in
 
 Every row carries a 📌 in its right-hand gutter. It is invisible until you hover
