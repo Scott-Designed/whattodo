@@ -429,6 +429,38 @@ it is the only test that catches a pin a few hundred metres offshore, which is
 close enough that reverse geocoding still snaps it to a coastal road and calls it
 land.
 
+## Saved listings — a wishlist with nobody logged in
+
+Every row carries a 📌 in its right-hand gutter. It is invisible until you hover
+the row and stays lit once it is on; on a touch screen, where there is no hover,
+it is always faintly there. The count sits in an outline pill at the top right of
+the page, and pressing that pill holds the list down to what you saved — a chip
+reading *Saved only* and the usual Clear all are the ways back out.
+
+The keys live in this browser's `localStorage` under `notice.saved` and nowhere
+else. No account, no server, nothing about the reader leaves the page — which
+also means the list does not follow them to their phone, and clearing the browser
+clears it. A write can fail outright in private browsing; the pin still works for
+that visit rather than not working at all.
+
+Four things that are load-bearing:
+
+- **The key is `e13`/`a90`, not `13`.** Ids collide across the two tables, so a
+  bare id would file event 13 and activity 13 as the same saved thing — the same
+  collision `sync.py reject` still has. `keyOf()` puts the table letter on it.
+- **The pin is a sibling of the row button, never inside it.** A `<button>` inside
+  a `<button>` is invalid markup and swallows the row's own click. It sits in a
+  `.rowhead` wrapper and is positioned into the gutter `--pad` already leaves.
+- **It is `.savebtn`, not `.pin`.** `.pin` is the map's marker and any rule that
+  matches both ends up on the map, where a stray `position` drops every marker
+  out of the canvas.
+- **Toggling only re-renders inside the saved view**, where the row has just left
+  the list. Anywhere else a re-render would shut every open row on the page.
+
+Saving something is asking for it, so the At home entries the default list holds
+back are not held back from your own list (`ok()` skips `atHomeHidden` when the
+saved view is on). The map reads the same filter, so it shows your saved pins too.
+
 ## A weekly event still happens next week
 
 `recurrence` used to be display-only — printed in the row, never read by the

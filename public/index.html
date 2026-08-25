@@ -27,11 +27,33 @@
 body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased}
 .page{padding:0 var(--pad) 120px}
 
-header{padding:72px 0 40px}
+/* the title takes the row, the pill takes its right-hand end, and the date
+   line runs the full width underneath rather than being squeezed by the pill */
+header{padding:72px 0 40px;display:grid;grid-template-columns:minmax(0,1fr) auto;
+  align-items:start;column-gap:18px}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,6vw,76px);letter-spacing:-.025em;line-height:.95;margin:0}
 .srcbadge{font-family:var(--util);font-size:9.5px;font-weight:600;letter-spacing:.12em;
   text-transform:uppercase;color:var(--ink3);border:1px solid var(--rule2);padding:1px 6px;margin-left:10px}
-.sub{margin-top:14px;font-family:var(--util);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.sub{grid-column:1/-1;margin-top:14px;font-family:var(--util);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+
+/* ── what you have kept, counted, top right ──
+   An outline pill so it reads as a tally rather than a button to press first;
+   it fills in only while it is holding the list down to what you saved. */
+.savedpill{
+  grid-column:2;grid-row:1;justify-self:end;margin-top:9px;
+  display:inline-flex;align-items:center;gap:9px;white-space:nowrap;
+  font-family:var(--util);font-size:12.5px;font-weight:600;letter-spacing:.06em;
+  color:var(--ink2);background:transparent;border:1px solid var(--rule2);
+  border-radius:999px;padding:8px 15px;cursor:pointer;
+}
+.savedpill:hover{border-color:var(--ink);color:var(--ink)}
+.savedpill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+.savedpill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.savedpill b{font-weight:600;font-variant-numeric:tabular-nums}
+.savedpill.empty{color:var(--ink3)}
+/* grey until it is holding something, so the count and the colour say the same thing */
+.savedpill .ic{font-size:14px;line-height:1;filter:grayscale(1);opacity:.75}
+.savedpill:not(.empty) .ic{filter:none;opacity:1}
 
 /* ── controls: dropdowns only ── */
 .controls{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding-bottom:26px}
@@ -200,9 +222,28 @@ option{background:var(--ground);color:var(--ink)}
 }
 
 .rec{border-bottom:1px solid var(--rule)}
+
+/* ── keep this one ──
+   The pin sits in the row's right-hand gutter, as a sibling of the row button
+   and never inside it: a button within a button is invalid markup and eats the
+   row's own click. Hidden until the row is hovered, and it stays once it is on.
+   A touch screen has no hover, so there it is always showing. */
+.rowhead{position:relative}
+.savebtn{
+  position:absolute;top:0;bottom:0;right:max(4px,calc(var(--pad) - 44px));
+  width:36px;padding:0;border:0;background:none;cursor:pointer;
+  display:grid;place-items:center;font-size:15px;line-height:1;
+  opacity:0;filter:grayscale(1);transition:opacity .13s,filter .13s;
+}
+.rowhead:hover .savebtn,.savebtn:focus-visible{opacity:.5}
+.savebtn:hover{opacity:.85}
+.savebtn.on,.rowhead:hover .savebtn.on{opacity:1;filter:none}
+.savebtn:focus-visible{outline:2px solid var(--ink);outline-offset:-4px}
+@media (hover:none){.savebtn{opacity:.45}}
+
 .rowline{width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;
   cursor:pointer;padding:11px var(--pad);min-height:57px}
-.rowline:hover{background:var(--surface)}
+.rowline:hover,.rowhead:hover .rowline{background:var(--surface)}
 .rowline:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 .c-name{font-size:19px;letter-spacing:-.01em;line-height:1.2}
 .c-type,.c-where,.c-when,.c-cost,.c-extra,.tm,.c-name .nm{
@@ -309,9 +350,9 @@ body.mapview .tbl{display:none}
 }
 @media (max-width:700px){
   :root{--pad:20px}
-  header{padding:44px 0 30px}
   /* stacked, so a fixed height and a clipped name both stop making sense */
-  .rowline{grid-template-columns:1fr;gap:3px;padding:11px var(--pad);min-height:0}
+  .rowline{grid-template-columns:1fr;gap:3px;padding:11px 46px 11px var(--pad);min-height:0}
+  header{padding:44px 0 30px}
   .c-name{display:block}
   .c-name .nm{white-space:normal;overflow:visible;text-overflow:clip;display:inline}
   .c-where,.c-when{display:none}
@@ -329,6 +370,8 @@ body.mapview .tbl{display:none}
 <div class="page">
   <header>
     <h1>Notice</h1>
+    <button id="savedbtn" type="button" class="savedpill empty" aria-pressed="false"
+            aria-label="Saved listings"><span class="ic" aria-hidden="true">&#128204;</span><b>0</b></button>
     <div class="sub"><span id="sub">Jan Juc &amp; the Surf Coast</span><span id="src" class="srcbadge"></span></div>
   </header>
 
@@ -521,7 +564,34 @@ async function fetchWeather(){
             rain:j.current.precipitation,rain48:past,cloud:j.current.cloud_cover};
   }catch(e){ clearTimeout(t); return null; }
 }
-const S={when:'any',verb:[],type:[],suburb:[],km:999,cost:[],who:[],wx:'',sort:'when',q:''};
+const S={when:'any',verb:[],type:[],suburb:[],km:999,cost:[],who:[],wx:'',sort:'when',q:'',saved:false};
+
+/* ══ what you kept ══════════════════════════════════════════
+   A wishlist with no account behind it. The keys live in this browser and
+   nowhere else — no sign-in, nothing about you leaves the page — which also
+   means it does not follow you to your phone, and clearing the browser clears
+   it. Ids collide across the two tables (activity 83 and event 83 are
+   different things), so a key carries its table letter with it. */
+const SAVEKEY='notice.saved';
+const keyOf = i => (i.ev?'e':'a')+i.id;
+let SAVED=new Set();
+try{ SAVED=new Set(JSON.parse(localStorage.getItem(SAVEKEY)||'[]')) }catch(e){}
+const isSaved = i => SAVED.has(keyOf(i));
+function toggleSaved(k){
+  SAVED.has(k) ? SAVED.delete(k) : SAVED.add(k);
+  /* Private browsing refuses to write. The pin still works for this visit —
+     it just will not be there next time, which beats not working at all. */
+  try{ localStorage.setItem(SAVEKEY, JSON.stringify([...SAVED])) }catch(e){}
+}
+function syncSavedPill(){
+  const btn=document.getElementById('savedbtn');
+  btn.querySelector('b').textContent=SAVED.size;
+  btn.classList.toggle('empty', !SAVED.size);
+  btn.setAttribute('aria-pressed', String(S.saved));
+  btn.title = S.saved ? 'Showing what you saved — click to show everything again'
+    : SAVED.size ? SAVED.size+' saved — click to show only those'
+                 : 'Nothing saved yet — click the pin at the end of a row';
+}
 
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -1022,8 +1092,11 @@ function atHomeHidden(i){
   return !S.verb.length && !S.type.length && !S.q && (i.themes||[]).includes('home');
 }
 function ok(i){
+  if(S.saved && !isSaved(i)) return false;
   if(!whenOK(i)) return false;
-  if(atHomeHidden(i)) return false;
+  /* Something you saved is something you asked for, so the At home entries the
+     default list holds back are not held back from your own list. */
+  if(!S.saved && atHomeHidden(i)) return false;
   if(S.verb.length && !verbsOf(i).some(v=>S.verb.includes(v))) return false;
   if(S.type.length && !S.type.includes(i.type)) return false;
   if(S.suburb.length && !S.suburb.includes(suburbOf(i.loc))) return false;
@@ -1082,7 +1155,9 @@ function render(){
   paintChips();
   document.getElementById('rows').innerHTML = list.length ? list.map(i=>{
     const [wVenue,wSuburb]=whereParts(i);
+    const sk=keyOf(i), kept=SAVED.has(sk);
     return `<div class="rec">
+      <div class="rowhead">
       <button class="rowline" aria-expanded="false">
         <span class="c-name"><span class="nm">${esc(i.name)}</span>${i.added?`<span class="mine" title="${i.by?esc(i.by)+' added this — ':''}not checked yet">unverified</span>`:''}</span>
         <span class="c-type">${i.type?esc(i.type):'<span class="est" style="display:inline">unsorted</span>'}</span>
@@ -1094,6 +1169,10 @@ function render(){
           .flatMap(v=>String(v==null?'':v).split('\u001f')).map(v=>v.trim())
           .filter(Boolean).map(esc).join(' &middot; ')}</span>
       </button>
+      <button class="savebtn${kept?' on':''}" type="button" data-k="${sk}" aria-pressed="${kept}"
+              aria-label="${kept?'Saved':'Save'}: ${esc(i.name)}"
+              title="${kept?'Saved — click to remove':'Save this'}">\u{1F4CC}</button>
+      </div>
       <div class="detail"><div class="detail-in">
         <div>
           <p>${i.desc?esc(i.desc):'<em style="color:var(--ink3)">No description yet.</em>'}</p>
@@ -1119,7 +1198,9 @@ function render(){
           ${i.rating?`<p class="dl"><b>Rating</b><span>${i.rating} / 5</span></p>`:''}
         </div>
       </div></div>
-    </div>`}).join('') : '<div class="none">Nothing matches that.</div>';
+    </div>`}).join('') : `<div class="none">${S.saved
+      ? 'Nothing saved yet. Click the pin at the end of a row to keep it here.'
+      : 'Nothing matches that.'}</div>`;
 
   document.querySelectorAll('.rowline').forEach(b=>b.addEventListener('click',()=>{
     const r=b.closest('.rec'), o=r.classList.toggle('open');
@@ -1351,7 +1432,7 @@ function refreshFacets(){
      lie the numbers used to prevent. A facet never counts against itself, or
      picking one option would grey out its own siblings. */
   const pass=(i,skip)=>
-       whenOK(i) && !(i.km!=null && i.km>S.km) && !(S.wx && suits(i)===false)
+       (!S.saved || isSaved(i)) && whenOK(i) && !(i.km!=null && i.km>S.km) && !(S.wx && suits(i)===false)
     && (!S.q || [i.name,i.loc,i.place,i.type,i.desc,(i.tags||[]).join(' ')]
                   .join(' ').toLowerCase().includes(S.q))
     && (skip==='verb' || !S.verb.length || verbsOf(i).some(v=>S.verb.includes(v)))
@@ -1405,10 +1486,29 @@ function paintChips(){
   if(S.wx)           out.push(['wx', '', {auto:'Weather now',fine:'Fine',grey:'Grey & cold',
                                           rain:'Raining'}[S.wx] || S.wx]);
   if(S.q)            out.push(['q', '', '\u201c'+S.q+'\u201d']);
+  if(S.saved)        out.push(['saved', '', 'Saved only']);
   box.innerHTML=out.map(([k,v,l])=>
     `<button class="chip" type="button" data-k="${k}" data-v="${esc(String(v))}"`
     +` aria-label="Remove filter ${esc(l)}">${esc(l)}<span class="x">&times;</span></button>`).join('');
 }
+document.getElementById('savedbtn').addEventListener('click',()=>{
+  S.saved=!S.saved; refreshFacets(); render();
+});
+/* One listener for every pin, because the rows are rebuilt on every render.
+   Toggling only redraws the list when you are inside the saved view — the row
+   has just left it. Anywhere else a redraw would shut every open row. */
+document.getElementById('rows').addEventListener('click',e=>{
+  const b=e.target.closest('.savebtn'); if(!b) return;
+  const k=b.dataset.k;
+  toggleSaved(k);
+  const on=SAVED.has(k);
+  b.classList.toggle('on',on);
+  b.setAttribute('aria-pressed',String(on));
+  b.title = on ? 'Saved — click to remove' : 'Save this';
+  b.setAttribute('aria-label', (on?'Saved: ':'Save: ')+b.getAttribute('aria-label').replace(/^Saved?: /,''));
+  syncSavedPill();
+  if(S.saved) render();
+});
 document.getElementById('chips').addEventListener('click',e=>{
   const c=e.target.closest('.chip'); if(!c) return;
   const k=c.dataset.k, v=c.dataset.v;
@@ -1416,6 +1516,7 @@ document.getElementById('chips').addEventListener('click',e=>{
   else if(k==='km')  { S.km=999; document.getElementById('km').value='999'; }
   else if(k==='wx')  { S.wx=''; document.getElementById('wx').value=''; }
   else if(k==='q')   { S.q=''; document.getElementById('q').value=''; }
+  else if(k==='saved') S.saved=false;
   refreshFacets(); render();
 });
 
@@ -1435,12 +1536,13 @@ function syncMoreDot(){
 document.getElementById('q').addEventListener('input',e=>{
   S.q=e.target.value.trim().toLowerCase(); refreshFacets(); render();});
 
-const DEFAULTS={when:'any',verb:[],type:[],suburb:[],km:999,cost:[],who:[],wx:'',q:''};   /* sort is a view, not a filter */
+const DEFAULTS={when:'any',verb:[],type:[],suburb:[],km:999,cost:[],who:[],wx:'',q:'',saved:false};   /* sort is a view, not a filter */
 function syncClear(){
   const on = Object.keys(DEFAULTS).some(k=>Array.isArray(DEFAULTS[k])
     ? S[k].length : S[k]!==DEFAULTS[k]);
   document.getElementById('clear').hidden = !on;
   syncMoreDot();
+  syncSavedPill();
 }
 document.getElementById('clear').addEventListener('click',()=>{
   Object.keys(DEFAULTS).forEach(k=>S[k]=Array.isArray(DEFAULTS[k])?[]:DEFAULTS[k]);
