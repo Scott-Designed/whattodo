@@ -4,8 +4,13 @@
     {
       "name": "whattodo",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-c", "import os,http.server,socketserver;os.chdir(os.path.join(os.path.dirname(os.path.abspath('.claude/launch.json')),'public') if os.path.isdir('public') else 'public');socketserver.TCPServer.allow_reuse_address=True;socketserver.TCPServer(('127.0.0.1',4173),http.server.SimpleHTTPRequestHandler).serve_forever()"],
-      "port": 4173
+      "runtimeArgs": [
+        "-I",
+        "-c",
+        "import os,functools,http.server,socketserver;D=os.path.expanduser('~/.cache/notice-preview');H=functools.partial(http.server.SimpleHTTPRequestHandler,directory=D);socketserver.TCPServer.allow_reuse_address=True;socketserver.TCPServer(('127.0.0.1',int(os.environ.get('PORT','4173'))),H).serve_forever()"
+      ],
+      "port": 4173,
+      "autoPort": true
     }
   ]
 }

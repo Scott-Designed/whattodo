@@ -489,13 +489,35 @@ Two things in the workflow that are easy to get wrong:
 
 ### Serving it locally
 
-The iCloud sandbox problem is real but narrower than recorded: `python3 -m
-http.server` fails because argparse evaluates `os.getcwd()` as a default at
-import time, while the cwd is still the denied iCloud path. **`os.chdir()` to an
-allowed directory first and everything works** — that is what the committed
-`.claude/launch.json` already does. Copy `public/` to the session scratchpad,
-point a config at the copy, and re-copy after each edit. **Do not commit that
-config**; the path is session-specific.
+**The preview process cannot read the iCloud project. Full stop** — probed
+25 Aug 2026: `os.listdir()` on `public/` raises `PermissionError` from inside a
+launched dev server, though the same call from the Bash tool succeeds. The two
+run under different sandbox profiles. So the server has to serve a **copy**.
+
+There are two separate failures and it is worth knowing both, because fixing
+only the first gets you a server that starts and then 404s everything:
+
+1. **Imports fail** when the cwd is the denied path — Python stats the cwd while
+   searching `sys.path`. `python3 -I` drops the cwd from `sys.path` and fixes it.
+2. **Reads fail** regardless. `SimpleHTTPRequestHandler` turns the
+   `PermissionError` into a plain 404, so the symptom looks like a wrong path
+   rather than a denial.
+
+`.claude/launch.json` now serves **`~/.cache/notice-preview`**, which is outside
+iCloud, readable, and — unlike the session scratchpad — the same path every
+session, so the config is safe to commit. It also sets `"autoPort": true` and
+takes its port from `$PORT`, because 4173 is often held by another session.
+
+**It serves a copy, so re-copy after every edit:**
+
+    cp public/*.html public/*.css ~/.cache/notice-preview/
+
+`/api/admin` does not exist under a static server either, so the lock cannot be
+tested locally. Test the function directly in node instead by importing the
+handler and passing a mock `req`/`res`. **Only refusal cases belong in that
+harness** — it runs against the live database, and a case that passes validation
+is a real write. One did, and it overwrote Aireys Pub's coordinate with a Jan
+Juc one (restored the same day by re-geocoding from the `source_note`).
 
 `/api/admin` does not exist under a static server, so the lock cannot be tested
 locally. Test the function directly in node instead by importing the handler and
@@ -901,17 +923,19 @@ caught it before it shipped; clicking around the page would not have.
 
 ## Gotchas already paid for
 
-- **The preview pane cannot serve this project from iCloud.** The dev-server
-  process launched by `.claude/launch.json` starts with its cwd set to the
-  project directory, and the sandbox denies that path outright — it throws
-  `PermissionError` on `os.getcwd()` before running a line of its own code, so
-  it cannot read `public/` either. A committed `scripts/serve.py` would not help;
-  the launcher cannot read that file for the same reason. The working route is to
-  copy `public/index.html` somewhere outside iCloud (the session scratchpad) and
-  point a server at the copy, re-copying after every edit. That path is
-  session-specific, so **do not commit it into `launch.json`** — the file in git
-  is the original and should stay that way. Verifying against the deployed site
-  works too, once a push has built.
+- **The preview pane cannot serve this project from iCloud — it serves a copy.**
+  The dev-server process launched by `.claude/launch.json` starts with its cwd
+  set to the project directory, and the sandbox denies that path to *that*
+  process (the Bash tool can read it fine; different profiles). A committed
+  `scripts/serve.py` would not help; the launcher cannot read that file either.
+
+  **This was solved properly 25 Aug 2026** — `launch.json` serves
+  `~/.cache/notice-preview`, a stable path outside iCloud, with `-I`,
+  `"autoPort": true` and the port from `$PORT`. Re-copy after every edit with
+  `cp public/*.html public/*.css ~/.cache/notice-preview/`. See "Serving it
+  locally" under Back of house for the two distinct failures involved — the
+  second one 404s instead of erroring, which is what makes it confusing.
+  Verifying against the deployed site works too, once a push has built.
 
 - **DDL can be run from here after all.** PostgREST cannot create a table or
   redefine a view, which is why every schema file says "run it in the SQL
