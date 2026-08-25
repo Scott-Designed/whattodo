@@ -276,6 +276,14 @@ Three things about that source, each of which the script exists to handle:
   was built. So dates drift after import. Drift on an **unverified** row is
   updated silently; drift on a row you **verified** is reported and left alone,
   every run, until you deal with it. Your verification is not overwritten by a bot.
+
+  **As of 25 Aug 2026 every event in the database is verified**, so that first
+  branch is now dead: the feed updates nothing and every drifting date is a line
+  in the job summary waiting for a person. That summary is a page on
+  github.com nobody visits. Until the drift report reaches somewhere Scott
+  actually looks, a date that moves at the source goes stale here silently —
+  which is the Arts Trail failure with a different cause. This is the most
+  likely way this database goes wrong next.
 - **It is a curated calendar, not the organiser's own page.** Everything lands
   `date_confidence = 'medium'`. Only a human who has read a first-party page may
   raise it to `high`. **The page no longer prints that distinction** (25 Aug 2026)
@@ -737,7 +745,12 @@ caught it before it shipped; clicking around the page would not have.
 - `Barwon Heads Community Park Playground` (89) is pinned at the park polygon's
   centre, which reverse-geocodes to the pony club inside the same park. Right
   precinct, possibly not the playground — worth a better point if it matters.
-- The moderation queue is empty. `Ashmore Arts` (169) and `The Fives` (168) are both
+- **The moderation queue is empty because everything was verified in bulk**
+  (25 Aug 2026, all 101 at once, on Scott's instruction). Each row's
+  `source_note` says so, in those words. A `verified` flag on one of these
+  records that Scott accepted the queue, not that anyone read that row's own
+  page — treat it as weaker evidence than a flag set one row at a time, and do
+  not let it stop you questioning a date. `Ashmore Arts` (169) and `The Fives` (168) are both
   verified; both had their distance cleared rather than guessed and still need real ones,
   as does `Bird Rock Farm` (171)
 - Distances unverified; Waurn Ponds known wrong
@@ -884,23 +897,13 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
    `Anglesea Community Precinct` (53), `Torquay Common` (77). Each one then
    gets a pin and a tidier name. `name_rules.py` lists all 18 that have a date
    and a time but no venue.
-3. Work through the 101 unverified events — `sync.py pending`. Reviewing one is
-   now about its **place**, not its distance: `km` stays null (see the events
-   feed section), and the dates stand as they are. After the 25 Aug geocoding
-   pass **84 of the 101 are pinned**, 1 is linked to an unpinned place
-   (Point Lonsdale Dog Beach), and 16 carry free text only. The 16 are the
-   remaining work: six name only a suburb, four name a real place that has no
-   row yet (`The Mac`, `Anglesea Community Precinct`, `Torquay Common`,
-   `Surf Coast Walk`), two are genuinely shire-wide, and four are the
-   `Quiet Club` nights, whose venue was the ticketing platform's own boilerplate
-   ("Hosted on Humanitix") and is now null. **Re-running the scraper will not
-   fix those four** — the boilerplate *is* the listing's schema.org
-   `location.name`, which is what Humanitix publishes when the organiser has
-   set no physical venue. The venue is missing from the source, not from us,
-   so someone has to ask The Sewing Collective. (The Mon/Thu Action reads
-   Humanitix perfectly legitimately as `whattodo-janjuc`; it is only an
-   interactive Claude fetch, which goes out as ClaudeBot, that their robots.txt
-   refuses. Do not confuse the two — the worker is not blocked.)
+3. **Give the 16 place-less events a place.** Every event is verified now, so
+   `sync.py pending` is empty and this is what is actually left. Four only need
+   a place row built from the name they already carry (`The Mac`, `Anglesea
+   Community Precinct`, `Torquay Common`, `Surf Coast Walk`); six name only a
+   suburb and need a real start line; two are genuinely shire-wide; four are
+   the `Quiet Club` nights, parked 25 Aug 2026 — their venue is missing from
+   the source, not from us (see below).
 4. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.
