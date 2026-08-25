@@ -197,6 +197,15 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
      either can fail without stopping the other.</p>
   <div class="grid" id="autolist"></div>
 
+  <h2>Where the events come from</h2>
+  <p class="note">Every source anything is ever read from, and what happens when we
+     try. The registry is the <b>Places</b> table, not a list in the code: a place with
+     an <span class="mono">events_url</span> gets read, and a place with only a
+     <span class="mono">website</span> gets its usual gig paths tried. Adding a source
+     means filling in that cell — never editing a script.</p>
+  <div class="flags" id="srcstates"></div>
+  <div id="sources"></div>
+
   <h2>How the runs went</h2>
   <p class="note">Straight off GitHub's public API — no token, because the repo is
      public. Press a run to read what the scrapers actually printed; that output is
@@ -553,6 +562,107 @@ function drawAutos(){
   });
 }
 
+/* ── where the events come from ────────────────────────────────────────────
+   The registry is the `places` table — any row with an events_url gets read,
+   any row with only a website gets its gig paths tried. So the full list of
+   sources is every place, not just the ones a run mentioned: the 60-odd with
+   no website at all never appear in the scraper's output, and they are exactly
+   the number that caps coverage. Showing only what ran would hide the gap. */
+const SRC_STATE = {
+  read:    {label:'reading',             tag:'live'},
+  nothing: {label:'nothing to read',     tag:''},
+  dead:    {label:'site did not answer', tag:'dead'},
+  refused: {label:'robots.txt says no',  tag:''},
+  skipped: {label:'skipped this run',    tag:'warn'},
+  manual:  {label:'needs a person',      tag:'warn'},
+  untried: {label:'not tried yet',       tag:''},
+  nourl:   {label:'no website on file',  tag:''},
+};
+let SRCFILTER = {state:''};
+
+function sourceRows(){
+  const last = DATA.log[0];
+  const seen = new Map();
+  for (const s of (last?.steps || []))
+    for (const src of (s.sources || [])) seen.set(src.name, src);
+
+  const rows = [];
+  // The calendar is not a place row — it is the one genuine feed in the project.
+  const cal = seen.get('surfcoastevents.com.au');
+  rows.push({
+    name: 'surfcoastevents.com.au', what: 'The whole shire’s calendar',
+    how: cal?.how || 'WordPress JSON API — The Events Calendar',
+    via: ['JSON API'], state: cal ? cal.state : 'untried', hint: cal?.hint,
+    url: 'https://www.surfcoastevents.com.au/wp-json/tribe/events/v1/events',
+  });
+
+  for (const p of DATA.places){
+    const src = seen.get(p.name);
+    let state;
+    if (src) state = src.state;
+    else if (!p.website && !p.events_url && !p.ticketing_url) state = 'nourl';
+    else state = 'untried';
+    rows.push({
+      name: p.name, id: p.id,
+      what: [p.kind, p.suburb].filter(Boolean).join(' · ') || 'venue',
+      how: src ? src.how
+         : p.events_url ? 'has an events_url — read on the next run'
+         : p.website    ? 'website on file, gig paths get tried'
+         : 'nothing on file to look at',
+      via: src?.via?.length ? src.via : [],
+      own: src?.own, state, hint: src?.hint,
+      url: p.events_url || p.ticketing_url || p.website,
+    });
+  }
+  return rows;
+}
+
+function drawSources(){
+  const all = sourceRows();
+  const counts = {};
+  for (const r of all) counts[r.state] = (counts[r.state] || 0) + 1;
+
+  $('#srcstates').innerHTML = Object.entries(counts).sort((a,b) => b[1]-a[1])
+      .map(([s,n]) => `<button class="flagbtn ${SRCFILTER.state===s?'on':''}" data-s="${esc(s)}">${
+        esc(SRC_STATE[s]?.label || s)}<b>${n}</b></button>`).join('')
+    + (SRCFILTER.state ? '<button class="flagbtn" data-s="">clear</button>' : '');
+  $('#srcstates').querySelectorAll('[data-s]').forEach(b => b.onclick = () => {
+    SRCFILTER.state = b.dataset.s === SRCFILTER.state ? '' : b.dataset.s; drawSources();
+  });
+
+  // Working sources first — the point of the list is what is and is not running.
+  const order = ['read','skipped','manual','dead','refused','untried','nothing','nourl'];
+  const list = all.filter(r => !SRCFILTER.state || r.state === SRCFILTER.state)
+    .sort((a,b) => order.indexOf(a.state) - order.indexOf(b.state) ||
+                   a.name.localeCompare(b.name));
+
+  const skipped = counts.skipped ? `<p class="note" style="margin:12px 0 0">
+    ${counts.skipped} source${counts.skipped>1?'s were':' was'} skipped in the last run.
+    Humanitix permits <span class="mono">whattodo-janjuc</span> but disallows
+    <span class="mono">ClaudeBot</span>, so a run driven by an assistant passes
+    <span class="mono">--skip humanitix</span>. The scheduled Action reads them normally.</p>` : '';
+
+  $('#sources').innerHTML = `<table><thead><tr>
+      <th>Source</th><th>What it is</th><th>How it is read</th><th>Via</th><th>Status</th>
+    </tr></thead><tbody>${list.map(r => {
+      const st = SRC_STATE[r.state] || {label:r.state, tag:''};
+      return `<tr${r.id ? ` class="clickable" data-id="${r.id}"` : ''}>
+        <td><div class="rowname">${esc(r.name)}</div>
+            ${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener"
+               onclick="event.stopPropagation()"
+               style="color:var(--ink3);font-size:11px">${esc(r.url.replace(/^https?:\/\//,'').slice(0,52))} ↗</a>` : ''}</td>
+        <td>${esc(r.what)}</td>
+        <td>${esc(r.how)}${r.hint ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(r.hint)}</span>` : ''}</td>
+        <td>${r.own ? '<span class="tag live">own listing</span> ' : ''}${
+             r.via.map(v => `<span class="tag">${esc(v)}</span>`).join(' ')}</td>
+        <td><span class="tag ${st.tag}">${esc(st.label)}</span></td>
+      </tr>`;
+    }).join('')}</tbody></table>${skipped}`;
+
+  $('#sources').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
+    openEditor('places', DATA.places.find(x => x.id === +tr.dataset.id)));
+}
+
 /* ── flag chips, shared by all three tabs ──────────────────────────────────*/
 function drawFlags(el, list, filter, redraw){
   const counts = {};
@@ -902,7 +1012,7 @@ $('#theme').onclick = () => {
 
 /* ── tabs ──────────────────────────────────────────────────────────────────*/
 const TABS = ['autos','events','activities','places'];
-const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces(); };
+const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces(); drawSources(); };
 
 function show(tab){
   for (const b of document.querySelectorAll('nav.tabs button'))
@@ -967,7 +1077,7 @@ async function load(){
     ${DATA.events.length} events · ${DATA.places.length} venues ·
     last run ${last ? esc(ago(last.recorded_at)) : DATA.runs[0] ? esc(ago(DATA.runs[0].run_started_at)) : 'unknown'}`;
 
-  drawAutos(); redrawAll();
+  drawAutos(); drawSources(); redrawAll();
   const tab = location.hash.slice(1);
   if (TABS.includes(tab)) show(tab);
 }

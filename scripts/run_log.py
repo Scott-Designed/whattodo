@@ -51,20 +51,74 @@ def read_events(text):
                       # 'VERIFIED, left alone' means the bot would not touch it and
                       # is handing the decision to you. That is the whole signal.
                       'locked': lock.startswith('VERIFIED')})
+    listings = _int(r'^\s+(\d+) listings,', text)
+    series   = _int(r'(\d+) distinct series', text)
     return {
-        'listings':  _int(r'^\s+(\d+) listings,', text),
-        'series':    _int(r'(\d+) distinct series', text),
+        'listings':  listings,
+        'series':    series,
         'new':       _int(r'^NEW — (\d+)', text),
         'clashes':   _int(r'^SAME NAME already in the database — (\d+)', text),
         'added':     len(re.findall(r'^added event \d+:', text, re.M)),
         'moved':     len(re.findall(r'^moved event \d+:', text, re.M)),
         'drift':     drift,
+        # One source, shaped like the venue ones so the page can list them all
+        # together. It is the only real feed anywhere in this project.
+        'sources':   [{
+            'name':  'surfcoastevents.com.au',
+            'how':   f'WordPress JSON API ({listings} listings → {series} series)'
+                     if listings else 'WordPress JSON API',
+            'hint':  None,
+            'state': 'read' if listings else 'nothing',
+            'via':   ['The Events Calendar'],
+            'own':   False,
+        }],
     }
 
 
+def source_state(how):
+    """Sort one venue's result line into a word the page can colour.
+
+    The scraper prints a sentence per venue — "Oztix (10 gigs from 10 of 10
+    links)", "site did not respond", "nothing machine-readable [homepage; no
+    gig page found]". These are the states that sentence can be in, and they
+    are what tells you whether a source is working, broken, or simply has
+    nothing to read. Order matters: 'skipped' has to be tested before the
+    platform names, or a skipped Humanitix line reads as a successful one.
+    """
+    low = how.lower()
+    if 'skipped' in low:                   return 'skipped'
+    if 'did not respond' in low:           return 'dead'
+    if 'robots.txt' in low:                return 'refused'
+    if 'left for a human' in low:          return 'manual'
+    if 'nothing machine-readable' in low:  return 'nothing'
+    return 'read'
+
+
+PLATFORMS = ['Oztix', 'Humanitix', 'TryBooking', 'Eventbrite', 'Moshtix']
+
+
 def read_venues(text):
-    """What scrape_venues.py said."""
+    """What scrape_venues.py said, including a line per source it looked at."""
     m = re.search(r'^(\d+) new, (\d+) already in the database', text, re.M)
+
+    sources = []
+    for line in text.splitlines():
+        # "  Torquay Hotel — own listing (15 gigs over 2 pages); Oztix (14 …)"
+        hit = re.match(r'^  (\S.*?) — (.+?)\s*$', line)
+        if not hit or line.startswith('  ('):
+            continue
+        name, how = hit.group(1), hit.group(2)
+        # A trailing [..] is the scraper telling you how to pin this source down.
+        note = re.search(r'\[(.+)\]\s*$', how)
+        sources.append({
+            'name':  name,
+            'how':   re.sub(r'\s*\[.+\]\s*$', '', how),
+            'hint':  note.group(1) if note else None,
+            'state': source_state(how),
+            'via':   [p for p in PLATFORMS if p.lower() in how.lower()],
+            'own':   'own listing' in how,
+        })
+
     return {
         'venues':   _int(r'^\s+(\d+) venues,', text),
         'readable': _int(r'(\d+) with somewhere to look', text),
@@ -72,6 +126,7 @@ def read_venues(text):
         'dupes':    int(m.group(2)) if m else None,
         'rooms':    _int(r'rooms not previously on file — (\d+)', text),
         'added':    len(re.findall(r'^added event \d+:', text, re.M)),
+        'sources':  sources,
         'drift':    [],
     }
 

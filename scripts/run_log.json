@@ -1,1 +1,359 @@
-[]
+[
+ {
+  "recorded_at": "2026-08-25T12:43:32Z",
+  "run_id": null,
+  "run_number": null,
+  "trigger": "local",
+  "url": null,
+  "steps": [
+   {
+    "name": "Surf Coast events calendar",
+    "script": "scrape_events.py",
+    "exit": 0,
+    "text": "reading https://www.surfcoastevents.com.au/wp-json/tribe/events/v1/events \u2026\n  110 listings -> 49 series in the next 270 days\n\nsurfcoastevents.com.au \u2014 2026-08-25\n  110 listings, 49 distinct series, 144 events already in the database\n\nNEW \u2014 1\n  2026-09-03  cultural     Linda Judge Exhibition at Hoop Gallery         Torquay\n\nSAME NAME already in the database \u2014 3, skipped\n      34  Cadel Evans Great Ocean Road Race\n      25  Great Ocean Road Running Festival\n      36  Surf Coast Century\n\nnothing written. --write to insert the 1 new one(s) as unverified.",
+    "ok": true,
+    "ran": true,
+    "listings": 110,
+    "series": 49,
+    "new": 1,
+    "clashes": 3,
+    "added": 0,
+    "moved": 0,
+    "drift": [],
+    "sources": [
+     {
+      "name": "surfcoastevents.com.au",
+      "how": "WordPress JSON API (110 listings \u2192 49 series)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "The Events Calendar"
+      ],
+      "own": false
+     }
+    ]
+   },
+   {
+    "name": "Venue ticketing pages",
+    "script": "scrape_venues.py",
+    "exit": 0,
+    "text": "(skipping: humanitix)\n\nvenue feeds \u2014 2026-08-25\n  98 venues, 35 with somewhere to look\n\n  Aireys Pub \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Apollo Bay Hotel \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Barwon Club Hotel \u2014 Oztix (10 gigs from 10 of 10 links) [found at / \u2014 set events_url to lock it in]\n\n  Barwon Heads Hotel \u2014 own listing (13 gigs); Oztix (13 gigs from 13 of 13 links)\n     2027-02-18  Osees                                          NEW  [high]\n\n  Bellarine Catchment Network \u2014 Humanitix skipped (it is this venue's events_url)\n\n  Bellarine Estate Winery \u2014 Eventbrite (1) \u2014 has a free API, left for a human [found at / \u2014 set events_url to lock it in]\n\n  Bellbrae Estate \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Bird Rock \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  Blackmans Brewery \u2014 Humanitix skipped (it is this venue's events_url)\n\n  Bomboras \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Cuda Bar \u2014 site did not respond\n\n  Elephant & Castle Hotel \u2014 TryBooking (1 gigs from 1 of 1 links) [found at /events \u2014 set events_url to lock it in]\n\n  Flying Brick Cider Co \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Gather \u2014 robots.txt asks us not to read it\n\n  Grand Hotel Portarlington \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Great Ocean Road Brewhouse \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Lambys Tavern \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Last One Inn \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Little Creatures Brewery \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Lorne Hotel \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Oneday Estate \u2014 Humanitix (3 links) skipped [found at /events \u2014 set events_url to lock it in]\n\n  Piano Bar Geelong \u2014 site did not respond\n\n  Provenance Wines \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Queenscliff Brewhouse \u2014 site did not respond\n\n  Saints and Sailors \u2014 site did not respond\n\n  Surf Coast Environment Group \u2014 Humanitix skipped (it is this venue's events_url)\n\n  Surf Coast Shire Offices \u2014 nothing machine-readable [homepage; no gig page found]\n\n  The 18th Amendment Bar \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  The Book Club Social \u2014 Humanitix skipped (it is this venue's events_url)\n\n  The Sound Doctor \u2014 Humanitix skipped (it is this venue's events_url)\n\n  The Whiskery \u2014 site did not respond\n\n  The Wool Exchange Entertainment Complex \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  Torquay Bowls Club \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Torquay Hotel \u2014 own listing (15 gigs over 2 pages); Oztix (14 gigs from 14 of 14 links)\n     2026-09-12  Nektar Records feat. franck (UK)               already there as 32\n     2026-11-02  Jon Stevens \u2013 The Noiseworks + INXS Collecti   NEW  [high]\n     2027-01-10  Pete Murray \u2013 Beer Garden Performance          NEW  [high]\n\n  Workers Club Geelong \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n3 new, 1 already in the database, 31 venue(s) with nothing readable\nnothing written. --write to insert the 3 new one(s) as unverified.",
+    "ok": true,
+    "ran": true,
+    "venues": 98,
+    "readable": 35,
+    "new": 3,
+    "dupes": 1,
+    "rooms": null,
+    "added": 0,
+    "sources": [
+     {
+      "name": "Aireys Pub",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Apollo Bay Hotel",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Barwon Club Hotel",
+      "how": "Oztix (10 gigs from 10 of 10 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "Oztix"
+      ],
+      "own": false
+     },
+     {
+      "name": "Barwon Heads Hotel",
+      "how": "own listing (13 gigs); Oztix (13 gigs from 13 of 13 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Oztix"
+      ],
+      "own": true
+     },
+     {
+      "name": "Bellarine Catchment Network",
+      "how": "Humanitix skipped (it is this venue's events_url)",
+      "hint": null,
+      "state": "skipped",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false
+     },
+     {
+      "name": "Bellarine Estate Winery",
+      "how": "Eventbrite (1) \u2014 has a free API, left for a human",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "manual",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false
+     },
+     {
+      "name": "Bellbrae Estate",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Bird Rock",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Blackmans Brewery",
+      "how": "Humanitix skipped (it is this venue's events_url)",
+      "hint": null,
+      "state": "skipped",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false
+     },
+     {
+      "name": "Bomboras",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Cuda Bar",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Elephant & Castle Hotel",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at /events \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false
+     },
+     {
+      "name": "Flying Brick Cider Co",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Gather",
+      "how": "robots.txt asks us not to read it",
+      "hint": null,
+      "state": "refused",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Grand Hotel Portarlington",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Great Ocean Road Brewhouse",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Lambys Tavern",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Last One Inn",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Little Creatures Brewery",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Lorne Hotel",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Oneday Estate",
+      "how": "Humanitix (3 links) skipped",
+      "hint": "found at /events \u2014 set events_url to lock it in",
+      "state": "skipped",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false
+     },
+     {
+      "name": "Piano Bar Geelong",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Provenance Wines",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Queenscliff Brewhouse",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Saints and Sailors",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Surf Coast Environment Group",
+      "how": "Humanitix skipped (it is this venue's events_url)",
+      "hint": null,
+      "state": "skipped",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false
+     },
+     {
+      "name": "Surf Coast Shire Offices",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "The 18th Amendment Bar",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "The Book Club Social",
+      "how": "Humanitix skipped (it is this venue's events_url)",
+      "hint": null,
+      "state": "skipped",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false
+     },
+     {
+      "name": "The Sound Doctor",
+      "how": "Humanitix skipped (it is this venue's events_url)",
+      "hint": null,
+      "state": "skipped",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false
+     },
+     {
+      "name": "The Whiskery",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "The Wool Exchange Entertainment Complex",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Torquay Bowls Club",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     },
+     {
+      "name": "Torquay Hotel",
+      "how": "own listing (15 gigs over 2 pages); Oztix (14 gigs from 14 of 14 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Oztix"
+      ],
+      "own": true
+     },
+     {
+      "name": "Workers Club Geelong",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false
+     }
+    ],
+    "drift": []
+   }
+  ],
+  "ok": true,
+  "needs_you": 0
+ }
+]

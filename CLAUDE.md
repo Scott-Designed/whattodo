@@ -426,6 +426,33 @@ Things that are load-bearing:
   the standing item on the list. Flagging both put 73 rows on the worklist, half
   of them finished. `mapsSearch()` tells them apart.
 
+### Where the events come from
+
+The Automations tab lists **every source anything is ever read from** — the
+calendar plus all 98 places — with what was tried and what came back. The
+registry is the `places` table, so the list is built from place rows and not
+from anything in the code; a row's status comes from the last run's own output.
+
+`scrape_venues.py` already prints a sentence per venue ("Oztix (10 gigs from 10
+of 10 links)", "site did not respond", "nothing machine-readable [homepage; no
+gig page found]"), and `run_log.py` sorts those into states — reading, nothing
+to read, site did not answer, robots.txt says no, skipped, needs a person. The
+`[bracketed]` tail is the scraper telling you how to pin a source down ("found
+at / — set events_url to lock it in") and is printed under the row.
+
+**Ordering in `source_state()` is load-bearing**: `skipped` must be tested
+before the platform names, or a skipped Humanitix line reads as a successful
+Humanitix read.
+
+The headline the view exists to show, as of 25 Aug 2026: **5 reading, 18 with a
+site but nothing machine-readable, 5 dead, 1 refused by robots.txt, 1 needing a
+person (Eventbrite, which has a free API), and 63 with no website on file at
+all.** That last number is what caps coverage — not the parsers.
+
+Six Humanitix sources show as skipped because the run that filled the log was
+driven from here, and Humanitix disallows `ClaudeBot`. The scheduled Action
+reads them normally; the page says so under the table.
+
 ### How the runs went
 
 Run history is GitHub's public API — `api.github.com/repos/Scott-Designed/whattodo/actions/runs`
