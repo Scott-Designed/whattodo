@@ -442,6 +442,15 @@ body, and a row draws it with `<use href="#i-…">`. **Do not inline the path pe
 row** — it is ~4KB and the list is 400 rows. `ICON_OF` maps type → symbol id, so
 adding one is two lines: the symbol, and the map entry.
 
+- **24px means 24px of white, not 24px of box.** The 48×28 box is a container,
+  not the artwork. Centred in it, a narrow icon left ~7px of air each side, so
+  the gap the eye measured between the runner and its name was ~33px while the
+  skateboard's was 26 — the grid gap is 24 for both. The box now sits at the
+  slot's inner edge (`place-items:center end`) and every `<symbol>` carries
+  `preserveAspectRatio="xMaxYMid meet"`, so each icon's ink ends on one line,
+  24px from the name. The cost is that the icons' *left* edges are ragged by
+  their own proportions; the alignment that matters is the one to the text.
+  The slot stays 51px whether or not it holds anything.
 - **The slot is a fixed 48×28 box, not a fixed width.** The set is not one
   proportion — the skateboard is 3:1, the bike is square, the cup is taller than
   wide — so sizing on width alone made the cup 60px tall and pushed the 57px row
@@ -564,6 +573,22 @@ Four things that are load-bearing:
   out of the canvas.
 - **Toggling only re-renders inside the saved view**, where the row has just left
   the list. Anywhere else a re-render would shut every open row on the page.
+
+**Pressing one puts it in the board.** The 📌 travels down-left, which is where
+its needle points, shrinking as it goes — away from you, not smaller — and the
+board gives a little back on the way out. The overshoot is what reads as *in*:
+the travel is two pixels at this size and would pass for a wobble on its own.
+Coming out is the same move reversed and shorter, because taking something off
+a list is not an occasion.
+
+Three things that keep it honest: the animation is on a `.glyph` span inside the
+button, so the 36px hit area does not move with the mark; the class is removed
+and re-added around a forced reflow, or a second press on the same pin does
+nothing; and the page's blanket reduced-motion rule only turns off *transitions*,
+so `.savebtn .glyph` names `animation:none` itself. Unpinning inside the saved
+view fades the row and waits 260ms before the re-render, so the pin is seen
+coming out rather than vanishing with the row — and that wait is skipped
+entirely under reduced motion.
 
 Saving something is asking for it, so the At home entries the default list holds
 back are not held back from your own list (`ok()` skips `atHomeHidden` when the
