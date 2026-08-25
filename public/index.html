@@ -217,7 +217,7 @@ option{background:var(--ground);color:var(--ink)}
 .tbl{border-top:1px solid var(--ink);margin:0 calc(var(--pad) * -1)}
 .rowline{
   display:grid;
-  grid-template-columns:64px minmax(0,1fr) 92px 200px 132px 140px;
+  grid-template-columns:51px minmax(0,1fr) 92px 200px 132px 140px;
   gap:0 24px;align-items:center;
 }
 
@@ -226,8 +226,8 @@ option{background:var(--ground);color:var(--ink)}
    every name on the same left edge, which a collapsing column would not.
    The artwork is a <use> of a <symbol> declared once at the top of the page. */
 .sprite{position:absolute;width:0;height:0;overflow:hidden}
-.c-icon{width:64px;display:grid;place-items:center;color:var(--ink3)}
-.c-icon svg{width:60px;height:auto;fill:currentColor;display:block}
+.c-icon{width:51px;display:grid;place-items:center;color:var(--ink3)}
+.c-icon svg{width:48px;height:auto;fill:currentColor;display:block}
 .rowhead:hover .c-icon{color:var(--ink2)}
 
 .rec{border-bottom:1px solid var(--rule)}
@@ -349,18 +349,18 @@ body.mapview .tbl{display:none}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:1180px){
-  .rowline{grid-template-columns:64px minmax(0,1fr) 190px 128px 136px}
+  .rowline{grid-template-columns:51px minmax(0,1fr) 190px 128px 136px}
   .c-type{display:none}
 }
 @media (max-width:940px){
-  .rowline{grid-template-columns:64px minmax(0,1fr) 180px 128px}
+  .rowline{grid-template-columns:51px minmax(0,1fr) 180px 128px}
   .c-extra{display:none}
   .detail-in{grid-template-columns:1fr}
 }
 @media (max-width:700px){
   :root{--pad:20px}
   /* stacked, so a fixed height and a clipped name both stop making sense */
-  .rowline{grid-template-columns:64px 1fr;gap:3px 12px;padding:11px 46px 11px var(--pad);min-height:0;
+  .rowline{grid-template-columns:51px 1fr;gap:3px 12px;padding:11px 46px 11px var(--pad);min-height:0;
     align-items:start}
   .c-icon{grid-row:1;margin-top:3px}
   .c-name{grid-column:2}
