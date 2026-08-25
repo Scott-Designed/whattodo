@@ -258,8 +258,11 @@ fortnight). Twice a week means the worst case is hearing about an event five day
 out, and a skipped run still leaves days in hand. Daily is seven times the runs
 for margin nobody needs. Weekly is the floor, not a comfort.
 
-The feed does not set `km`. Distances in this database are already known to be
-shaky and inventing more is exactly how it got burned — fill it in on review.
+The feed does not set `km`, and **that is now the standing decision, not a gap**
+(25 Aug 2026): distance stays null on imported rows until there is a way to
+compute driving distance automatically. Distances here are already shaky, and
+hand-entering 101 of them is how a hundred more guesses get in. Do not fill `km`
+during a review.
 
 ## The venue feed — one worker, driven by the database
 
@@ -451,6 +454,15 @@ adding one is two lines: the symbol, and the map entry.
   24px from the name. The cost is that the icons' *left* edges are ragged by
   their own proportions; the alignment that matters is the one to the text.
   The slot stays 51px whether or not it holds anything.
+- **Both ends of a row leave the same white space.** The icon box starts on the
+  page margin (`--pad`) and the pin ends on it, so the list is not heavier at one
+  end than the other. Two things make that hold: the row's right padding is
+  `--pad + 40px`, which is the pin's lane — the text stops ~24px short of the
+  mark, the same gap the icon keeps from the name — and the pin is aligned to the
+  *end* of its 36px button rather than centred in it, because an emoji's advance
+  width differs by platform and a fixed offset would only be true on this one.
+  The hit area runs inwards from there, into the padding. Costs about 40px of
+  name column, which at 1743px is two more clipped names out of 395.
 - **The slot is a fixed 48×28 box, not a fixed width.** The set is not one
   proportion — the skateboard is 3:1, the bike is square, the cup is taller than
   wide — so sizing on width alone made the cup 60px tall and pushed the 57px row
@@ -822,9 +834,10 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
    `Anglesea Community Precinct` (53), `Torquay Common` (77). Each one then
    gets a pin and a tidier name. `name_rules.py` lists all 18 that have a date
    and a time but no venue.
-3. Work through the 44 imported events — `sync.py pending`. Each needs a
-   distance from Jan Juc and its date checked against the organiser's own page
-   before `date_confidence` can go to high; until then the site shows "est.".
+3. Work through the 101 unverified events — `sync.py pending`. Reviewing one is
+   now about its **place**, not its distance: `km` stays null (see the events
+   feed section). 60 are pinned, 25 point at a place row with no coordinates,
+   16 carry free text only. Scott is happy with the dates as they stand.
 4. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.

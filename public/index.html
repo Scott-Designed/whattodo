@@ -233,7 +233,7 @@ option{background:var(--ground);color:var(--ink)}
 .tbl{border-top:1px solid var(--ink);margin:0 calc(var(--pad) * -1)}
 .rowline{
   display:grid;
-  grid-template-columns:51px minmax(0,1fr) 92px 200px 132px 140px;
+  grid-template-columns:48px minmax(0,1fr) 92px 200px 132px 140px;
   gap:0 24px;align-items:center;
 }
 
@@ -242,7 +242,7 @@ option{background:var(--ground);color:var(--ink)}
    every name on the same left edge, which a collapsing column would not.
    The artwork is a <use> of a <symbol> declared once at the top of the page. */
 .sprite{position:absolute;width:0;height:0;overflow:hidden}
-.c-icon{width:51px;display:grid;place-items:center end;color:var(--ink3)}
+.c-icon{width:48px;display:grid;place-items:center end;color:var(--ink3)}
 /* ── colour only on hover ──
    At rest every icon is one grey, whether its artwork is one colour or two, so
    a list of 400 rows is not a field of yellow. Hovering a row brings the ink up
@@ -286,12 +286,18 @@ option{background:var(--ground);color:var(--ink)}
    The pin sits in the row's right-hand gutter, as a sibling of the row button
    and never inside it: a button within a button is invalid markup and eats the
    row's own click. Hidden until the row is hovered, and it stays once it is on.
-   A touch screen has no hover, so there it is always showing. */
+   A touch screen has no hover, so there it is always showing.
+
+   Both ends of a row leave the same white space. The mark is aligned to the end
+   of the button rather than centred in it, so what lands on the page margin is
+   the pin itself and not a box around it — an emoji's advance width is not the
+   same on every platform, and a fixed offset would only be true on this one. The
+   36px hit area then runs inwards, into the gutter the row's padding keeps clear. */
 .rowhead{position:relative}
 .savebtn{
-  position:absolute;top:0;bottom:0;right:max(4px,calc(var(--pad) - 44px));
+  position:absolute;top:0;bottom:0;right:var(--pad);
   width:36px;padding:0;border:0;background:none;cursor:pointer;
-  display:grid;place-items:center;font-size:15px;line-height:1;
+  display:grid;place-items:center end;font-size:15px;line-height:1;
   opacity:0;filter:grayscale(1);transition:opacity .13s,filter .13s;
 }
 .rowhead:hover .savebtn,.savebtn:focus-visible{opacity:.5}
@@ -331,7 +337,11 @@ option{background:var(--ground);color:var(--ink)}
 .rec.leaving{opacity:.2;transition:opacity .26s}
 
 .rowline{width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;
-  cursor:pointer;padding:11px var(--pad);min-height:57px}
+  cursor:pointer;min-height:57px;
+  /* the extra 40 on the right is the pin's lane: the mark itself sits on the
+     margin like the icon does, and the text stops ~24px short of it, which is
+     the same gap the icon keeps from the name at the other end */
+  padding:11px calc(var(--pad) + 40px) 11px var(--pad)}
 /* ── the hover colourway ──
    A row lights up in its own theme's colour, so running the eye down the list
    the colour says what kind of thing it is before the type column is read.
@@ -471,8 +481,8 @@ body.mapview .tbl{display:none}
 @media (max-width:700px){
   :root{--pad:20px}
   /* stacked, so a fixed height and a clipped name both stop making sense */
-  .rowline{grid-template-columns:51px 1fr;gap:3px 12px;padding:11px 46px 11px var(--pad);min-height:0;
-    align-items:start}
+  .rowline{grid-template-columns:48px 1fr;gap:3px 12px;min-height:0;align-items:start;
+    padding:11px calc(var(--pad) + 40px) 11px var(--pad)}
   .c-icon{grid-row:1;margin-top:3px}
   .c-name{grid-column:2}
   header{padding:44px 0 30px}
