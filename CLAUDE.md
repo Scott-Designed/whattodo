@@ -1,7 +1,8 @@
 # WhatToDo Jan Juc — working notes
 
 A community listings site for Jan Juc and the Surf Coast, Victoria. Live at
-**https://whattodo-nu.vercel.app** (Vercel project `whattodo`).
+**https://notice.place** (Vercel project `whattodo`; the
+`whattodo-nu.vercel.app` address still resolves and is the deploy's own URL).
 
 **The site is called `Notice`** (renamed 24 Aug 2026; it was "What to do"), and
 the listing area is the **Notice Board**, which is where its count lives —
@@ -417,7 +418,7 @@ honours robots.txt. Humanitix permits that crawler but disallows `ClaudeBot`, so
 
 ## Back of house — /admin
 
-`public/admin.html`, live at **https://whattodo-nu.vercel.app/admin**. One page,
+`public/admin.html`, live at **https://notice.place/admin**. One page,
 no build step, same as the site. Four tabs: **Automations**, **Events**,
 **Activities**, **Places**. Built 25 Aug 2026.
 
@@ -688,13 +689,56 @@ public/type.html        a kind        /type?t=cafe
 public/about.html       /about
 ```
 
-`vercel.json` already sets `cleanUrls`, so the links are `/place` and `/type`
-with no extension. **A plain static server does not do that**, and the symptom
-is that every nav menu item 404s in the preview and nowhere else — which reads
-as a broken page rather than a missing server feature. `.claude/launch.json`
-now overrides `translate_path` to fall back to `<path>.html` for an
-extensionless path that does not exist, so local and production agree. Restart
-the preview after pulling this, or the old server is still running.
+### The URL a subject page lives at
+
+```
+notice.place/place/aireys-inlet
+notice.place/type/surfing
+```
+
+Two rewrites in `vercel.json` point those at `place.html` and `type.html`. No
+build step and no file per town — the rewrite is server-side, so the browser
+still sees the path and the page reads its subject straight off it.
+
+**The slug is derived, never stored.** `slugify`/`unslug` in `notice-vocab.js`
+turn "Aireys Inlet" into `aireys-inlet` and back by comparing slugs against the
+vocabulary the site already has. A slug column would be a second copy of the
+vocabulary and would go stale the first time a type was renamed — the exact
+failure that file exists to prevent. Checked 27 Aug 2026: no two of the 50
+places and no two of the 43 types slug the same. The nine group names all slug
+to `the-…` and no type does, so a `/type/the-ocean` group page could share the
+namespace later without colliding.
+
+**`?p=` and `?t=` still work**, so anything shared before this does not break.
+`NoticePage.subject()` reads the path first and the query second; when the
+subject is real, `canonical()` puts the address bar back to the path form with
+`replaceState` — no reload, and no extra back-button entry for a URL the reader
+never chose. A made-up slug keeps the URL that was typed, because rewriting it
+would hide the mistake the page is about to explain.
+
+**Deliberately not nested, and deliberately not region-prefixed.** `surfing` is
+unique, so `/type/the-ocean/surfing` would disambiguate nothing while making
+the taxonomy load-bearing in every shared link — move a type between groups and
+the links break. And a region segment was left out because *the site has no
+name for its own region yet*: this file says "Jan Juc and the Surf Coast", the
+listings actually span the Surf Coast, the Bellarine, Geelong and the Otways,
+and "south west coast" already means Warrnambool in Victoria. If a second area
+ever happens it wants its own suburb list, venues, geocoding and person — which
+is a subdomain (`surfcoast.notice.place`), not a subfolder. Decided with Scott
+27 Aug 2026; `/place/x` → `/region/place/x` is one redirect rule if that turns
+out wrong.
+
+**A plain static server does none of this**, and the symptom is that every nav
+menu item 404s in the preview and nowhere else — which reads as a broken page
+rather than a missing server feature. `.claude/launch.json` overrides
+`translate_path` to stand in for both rules: `<path>.html` for an extensionless
+path, then the parent's `.html` for `/place/aireys-inlet`. Restart the preview
+after pulling, or the old server is still running.
+
+**Per-page metadata is still a real gap.** The `<title>` is set by JavaScript
+after load, so a crawler or a link preview reading the raw HTML sees
+"Place — Notice" for all 50 towns. That is a static-file problem, not a URL
+problem, and neither the rewrite nor the slug touches it.
 
 ### These are pages, not the board with a filter on it
 
