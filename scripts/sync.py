@@ -200,6 +200,19 @@ def check(row, i, types, conds):
             bad.append(f"{where}: {f} is a maps.app.goo.gl link — those get fabricated, use a real one")
     if row.get('verified') and not str(row.get('source_note') or '').strip():
         bad.append(f"{where}: claiming verified without a source_note — say where it came from")
+    # 0.01 degree is 1.1km, which on this coast is often open water. /admin has
+    # refused these since it was built; this path did not, so a 3-decimal pin
+    # walked straight in on 26 Aug 2026. Two write paths, one rule.
+    for f in ('lat','lng'):
+        v = row.get(f)
+        if v is None: continue
+        dp = len(str(v).split('.')[1]) if '.' in str(v) else 0
+        if dp < 4:
+            bad.append(f"{where}: {f} {v} has {dp} decimal places — under four is a "
+                       f"guess, not a coordinate. Geocode it or leave both null. "
+                       f"(A real match can land on a round number: OSM has the 18th "
+                       f"Amendment Bar at exactly -38.1480000. If that is what this is, "
+                       f"say so in source_note and write it through /admin.)")
     return bad
 
 def add(path, verified=False, dry=False, force=False):

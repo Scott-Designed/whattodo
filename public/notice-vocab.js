@@ -40,16 +40,35 @@ const rxEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const AT_HOME=/^home\b|backyard|neighbourhood/;
 const IN_CAR=/\bin the car\b/;
 const NO_FIXED=/anywhere|any beach|surf coast|bellarine wide/;
-function suburbOf(loc){
-  const l=String(loc||'').toLowerCase().replace(/[\u2019']/g,'');
-  if(!l) return null;
-  if(AT_HOME.test(l)) return 'Home';
-  if(IN_CAR.test(l))  return 'Car';
+const scanFor = l => {
   for(const s of SUB_BY_LEN){                 /* longest first: Geelong West beats Geelong */
     const t=s.toLowerCase().replace(/[\u2019']/g,'');
     if(new RegExp('(^|[^a-z])'+rxEsc(t)+'([^a-z]|$)').test(l))
       return GEELONG.has(s) ? 'Geelong' : s;
   }
+  return null;
+};
+/* An address ends with the suburb it is in, so read that chunk before scanning
+   the whole string. Longest-first is right within a scan and wrong across one:
+   "561 Cape Otway Road, Moriac" matched Cape Otway, because a road named after
+   a town is a longer string than the town you are actually standing in — and
+   that put the Moriac General Store on a page 90km away. Found 26 Aug 2026 in
+   the first big research pass, which added three rows with the same shape.
+
+   The whole-string scan stays as the fallback, and has to: it is what reads
+   "Torquay Foreshore" and "Anywhere along the Surf Coast Walk", and what
+   rescues an address whose last chunk is a postcode or "Victoria". */
+function suburbOf(loc){
+  const l=String(loc||'').toLowerCase().replace(/[\u2019']/g,'');
+  if(!l) return null;
+  if(AT_HOME.test(l)) return 'Home';
+  if(IN_CAR.test(l))  return 'Car';
+  if(l.includes(',')){
+    const tail = scanFor(l.split(',').pop().trim());
+    if(tail) return tail;
+  }
+  const whole = scanFor(l);
+  if(whole) return whole;
   if(NO_FIXED.test(l)) return 'Surf Coast wide';
   return null;
 }

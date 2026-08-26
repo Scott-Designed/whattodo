@@ -777,6 +777,52 @@ is now that space.
 - **The board does not link to these pages yet.** A suburb or a type printed in
   a row is still plain text. Linking them is the natural follow-up.
 
+## Researching listings in bulk — the group prompts
+
+`prompts/by-group.md` holds nine prompts, one per group, written 26 Aug 2026 to
+be pasted into a Cowork session with this folder open. Each is a loop: it works
+every type in its group thinnest-first, dry-runs, writes, logs to
+`prompts/log/<group>.md`, and does not stop to ask between types. They all point
+at `prompts/RESEARCH_RULES.md` rather than repeating the rules — one copy.
+
+`scripts/have.py` is what they read first: `have.py <type>` lists what is already
+there, `have.py <group>` does every type in a group thinnest-first, and
+`have.py places` shows the places table and which rows have a feed.
+
+**The hospitality pass ran first — 71 rows, group 26 → 120.** Discipline held
+where it was checked mechanically: everything unverified, every row with a
+`source_note`, no `km` invented, three pins left null rather than guessed. Four
+things went wrong, and all four were the same shape — *a rule that lived only in
+prose*:
+
+- **A road named after a town beat the town.** `suburbOf()` scanned longest-first
+  over the whole string, so "561 Cape Otway Road, Moriac" filed the Moriac
+  General Store under Cape Otway, 90 km away. It now reads the last
+  comma-separated chunk first and falls back to the old scan. Two rows moved,
+  nothing else did. **Write `location` ending in the suburb.**
+- **`sync.py add` never checked coordinate precision** — only `/admin` did — so a
+  three-decimal pin walked in. Both write paths check it now. Note the honest
+  exception: a real OSM node can sit on a round number (the 18th Amendment Bar
+  is at exactly -38.1480000), and that case goes in through `/admin` with the
+  reason in `source_note`.
+- **`add`'s duplicate check misses a suffix.** `Common Ground Project` landed
+  beside `Common Ground Project – Freshwater Creek`. Merged onto the lower id
+  26 Aug 2026, the way the Torquay Farmers Market pair was. Search the
+  distinctive word, not the whole name.
+- **A Google Maps *search* url got written and logged as "per policy".** It is
+  not, and never was. 37 of those are still in the table as a standing defect.
+
+The generalisable bit: **a rule the tooling does not enforce is a rule a research
+pass will break**, however plainly the prose states it — and it will report the
+break as a decision rather than a mistake. Before the next big pass, put the rule
+in `check()`.
+
+Still open from that pass: **19 pre-existing activities carry a pin under four
+decimal places** (three at 2dp, one at 1dp), which the 24 Aug sweep missed
+because it only looked at the citizen-science rows. Several share a coordinate
+exactly, which reads as copy-paste rather than geocoding. Not touched — nulling
+19 pins takes them off the map, and that is Scott's call.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
