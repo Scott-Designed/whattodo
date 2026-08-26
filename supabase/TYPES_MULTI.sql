@@ -55,8 +55,8 @@ insert into types (name, band) values
   ('at-home','places'),
 
   ('cafe','food'),('bakery','food'),('restaurant','food'),('bar','food'),
-  ('pub','food'),('winery','food'),('market','food'),('shop','food'),
-  ('produce','food'),('farm life','food'),
+  ('pub','food'),('winery','food'),('brewery','food'),('market','food'),
+  ('shop','food'),('produce','food'),('farm life','food'),
 
   ('arts','culture'),('art gallery','culture'),('theatre','culture'),
   ('museum','culture'),('cinema','culture'),('cultural','culture'),
