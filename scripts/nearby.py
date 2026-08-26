@@ -56,15 +56,32 @@ ENDPOINTS = ['https://overpass-api.de/api/interpreter',
 BBOX = '-39.00,143.30,-37.80,144.85'
 
 # One query covers both passes; `--kinds` filters the cache afterwards.
+#
+# **OSM's tags are not a category system, and this list is the scar tissue.**
+# The hospitality round-two pass found two venues the food query could not see:
+# the Little River Hotel is tagged `tourism=hotel` because it has rooms, and
+# Kennett River's Kafe Koala is tagged `shop=convenience` because it is also the
+# general store. Both are pubs/cafes to anyone standing outside them. A tag says
+# what one contributor thought the building was, so widen the net and judge
+# afterwards — the cost of a wrong extra name is one look, and the cost of a
+# missing one is a gap nobody knows is there.
+#
+# `convenience` in particular is noisy: in Geelong it is servos and milk bars, in
+# Kennett River it is the only shop in town. Keep it, and judge by the town.
 KIND_TAGS = {
     'food': {'amenity': {'cafe', 'restaurant', 'pub', 'bar', 'fast_food',
-                         'ice_cream', 'biergarten'},
-             'shop': {'bakery', 'deli', 'pastry', 'confectionery', 'coffee'},
-             'craft': {'brewery', 'winery', 'distillery'}},
+                         'ice_cream', 'biergarten', 'food_court'},
+             'shop': {'bakery', 'deli', 'pastry', 'confectionery', 'coffee',
+                      'convenience'},
+             'craft': {'brewery', 'winery', 'distillery'},
+             'tourism': {'hotel', 'guest_house'}},
     'produce': {'shop': {'greengrocer', 'farm', 'garden_centre', 'butcher', 'seafood',
-                         'cheese', 'wine', 'health_food', 'alcohol', 'deli'},
+                         'cheese', 'wine', 'health_food', 'alcohol', 'deli',
+                         'chocolate', 'honey', 'dairy', 'convenience', 'confectionery',
+                         'nursery', 'florist'},
                 'amenity': {'marketplace'},
-                'landuse': {'orchard'}},
+                'craft': {'winery', 'distillery'},
+                'landuse': {'orchard', 'vineyard'}},
 }
 ALL_TAGS = {}
 for kd in KIND_TAGS.values():

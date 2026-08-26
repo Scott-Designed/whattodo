@@ -210,46 +210,107 @@ existing name you had to think about.
 
 ## 5 · The produce
 
-> market 13 · produce 10 · nursery 7 · farm life 6 · shop 2
+> market 13 · produce 16 · nursery 7 · shop 6 · farm life 6
+
+Rewritten 27 Aug 2026 after the two hospitality passes. Three things they taught
+that change this one:
+
+- **OSM is the wrong net for markets.** A monthly market in a shire carpark is
+  not a mapped point of interest. `nearby.py --kinds=produce` will find shops and
+  farm gates and almost no markets, so markets are source-driven, not map-driven.
+- **All 13 markets we hold are events, and ten are `monthly` or `annual`** — the
+  two recurrences that deliberately never roll forward. They are all current
+  today; they go stale one at a time, silently, and only a person can move them.
+- **A url is null or it is the venue's own.** `sync.py` now refuses a Google
+  Maps search link outright, because two passes wrote them and one called it
+  policy.
 
 ```text
-Read prompts/RESEARCH_RULES.md and CLAUDE.md, then research listings for The produce group.
+First run `git pull`.
 
-Work its five types thinnest first: shop (2), farm life (6), nursery (7), produce (10), market (13).
-Target 12 rows per type, or every honest candidate if fewer.
+Read prompts/RESEARCH_RULES.md and CLAUDE.md, then research The produce group. Also read
+prompts/log/hospitality.md — the two hospitality passes logged produce candidates they
+deliberately left for you (The Olive Pit and The Beach House Lolly Shop in Ocean Grove, the
+Apollo Bay lolly shop, and others marked "produce pass"). Start from that list.
 
-This is a loop. For each type, in order:
-  1. `python3 scripts/have.py <type>`.
-  2. Search. Good sources: the Victorian Farmers Markets Association accredited list, the
-     Bellarine Taste Trail, farm gate and u-pick operators, the Otway produce trail, individual
-     nursery sites, Surf Coast Shire market pages, community market Facebook pages.
-  3. First-party source, geocode, build the row. km stays null.
-  4. Batch to scratch, `--dry-run`, fix, write.
-  5. Append to prompts/log/produce.md.
-  6. Next type, without asking.
+This group splits in two and the halves work differently. Do BOTH, in this order.
 
-Specific to this group:
-  - **A market is usually an event, not an activity.** It has a date and a recurrence, so it
-    goes to `events` with `starts_on`, `time_text` and `recurrence`. Get the recurrence right:
-    `weekly` and `fortnightly` roll forward safely because the weekday is preserved, but
-    **`monthly` and `annual` are deliberately never rolled**, so those need a real next date
-    read off the organiser's own page. A worked-out "third Sunday" is not a date.
-  - A market that runs at a fixed venue every week is worth checking against `places` — if the
-    venue is there, say so in the log so the event can be linked and get a pin.
-  - `shop` has two listings and is vague, which is why. Use it for the shops that are a reason
-    to go somewhere — a surf shop with a museum in it, a bookshop, a farm store — not for retail
-    in general. If a candidate is just a shop, leave it out and log the decision.
-  - `farm life` is a farm you can visit — animals, u-pick, open gate. A farm that only sells at
-    a market is `produce`, and the market gets its own row.
-  - Season matters here and comes from the source: strawberry picking, cherry season, olive
-    harvest. Put it in `season` and `notes`, never guess it from the month.
+── HALF ONE: market (13) — source-driven, not map-driven ──
 
-Do not stop until all five types have been through the loop. Post one summary: rows added per
-type, which markets need a real next date from a person, and any market whose venue is already
-a `places` row.
+Markets are events, not places, and OSM does not map them. Do not use nearby.py for this half.
+
+  1. Read the 13 we already hold: `python3 scripts/have.py market`. Ten are monthly or annual.
+  2. For EACH of those, open the organiser's own page and check the next date we hold is still
+     what they publish. Monthly and annual never roll forward, so a date that has passed is a
+     dead listing and a date that moved is a wrong one. Report every disagreement with the id —
+     do not edit existing rows, that goes through /admin.
+  3. Then find the markets we do not have. Sources: the Victorian Farmers Markets Association
+     accredited list, Surf Coast Shire and City of Greater Geelong event pages, Bellarine
+     Taste Trail, individual market Facebook pages, the towns' own community pages.
+  4. Write each as an EVENT: `starts_on`, `time_text`, `recurrence`, `location`, `info_url`.
+     An event's link is info_url or ticket_url, never url. The next date comes off the
+     organiser's own page — a worked-out "third Sunday" is not a date, and that is exactly
+     how this database published the Arts Trail wrong.
+  5. Where a market runs at a fixed venue, check `python3 scripts/have.py places` and note the
+     match in the log so the event can be linked and get a pin.
+  6. Three we hold have NO recurrence set at all (Aireys Inlet Market, Anglesea Twilight
+     Market, Riverbank Market). Find out what they actually are and report it.
+
+Three of our markets are called just "Community Market". That is what is left after the town was
+stripped out of the name, and on a Markets page they are indistinguishable. Say in the log what
+each one is actually called by its organiser — a rename is a /admin job, not yours.
+
+── HALF TWO: shop (6), farm life (6), nursery (7), produce (16) — town-driven ──
+
+Once: `python3 scripts/nearby.py --refresh`. One Overpass query for the whole region, cached.
+Do NOT run it again between towns — querying per town is what got the last run throttled, and a
+throttled town prints as an empty one, which hides the gaps this pass is looking for. If it says
+every endpoint refused, stop and tell me.
+
+Then walk every town in the Place menu, big ones first:
+
+  Torquay, Geelong, Ocean Grove, Barwon Heads, Queenscliff, Drysdale, Portarlington, Lorne,
+  Anglesea, Apollo Bay, then: Aireys Inlet, Armstrong Creek, Beech Forest, Bellarine, Bellbrae,
+  Bells Beach, Birregurra, Breamlea, Cape Otway, Connewarre, Cumberland River, Curlewis,
+  Deans Marsh, Eastern View, Fairhaven, Forrest, Freshwater Creek, Indented Head, Inverleigh,
+  Jan Juc, Kennett River, Lara, Lavers Hill, Leopold, Little River, Moggs Creek, Moriac,
+  Mt Duneed, Point Addis, Point Lonsdale, Skenes Creek, St Leonards, Wallington, Werribee,
+  Winchelsea, Wye River, You Yangs
+
+For each: `python3 scripts/nearby.py "<town>" --kinds=produce`, take every unlisted name as a
+candidate, confirm it first-party, geocode, write. `--radius=3000` for spread-out towns; Geelong
+at `--radius=4000` plus Geelong West, Newtown, Belmont, Grovedale, Waurn Ponds and South Geelong
+separately. Batch, `sync.py add --dry-run`, fix, write. Log per town. Do not ask between towns.
+
+What this group specifically needs you to judge:
+  - `shop` is the vague one and that is why it has six. Use it for shops that are a REASON TO GO
+    somewhere — a farm store, a bookshop, a surf shop with a museum in it. Not retail in general.
+    The hospitality pass's own test is the right one: is this a reason to go, or somewhere you
+    happen to end up. If it is just a shop, leave it out and log the decision.
+  - `farm life` is a farm you can VISIT — animals, u-pick, open gate. A farm that only sells at a
+    market is `produce`, and the market gets its own row in half one.
+  - `shop=convenience` is in the sweep on purpose and it is noisy: in Geelong it is servos and
+    milk bars, in Kennett River it is the only shop in town. Judge by the town.
+  - Season comes from the source, never from the month — strawberry picking, cherry season, olive
+    harvest, mussel season. Put it in `season` and `notes`.
+  - Several wineries and cafes already carry `produce` as a secondary type. Read
+    `python3 scripts/have.py produce` before you search or you will list a cellar door twice.
+
+Rules the tooling now enforces, so do not fight them: no `km` ever; no coordinate under four
+decimal places; no Google Maps search url — null is the honest value when a venue has no site.
+
+OSM tags are one contributor's opinion and the last pass proved it: a pub tagged `tourism=hotel`
+and a general store tagged `shop=convenience` were both invisible to the food query. So after you
+have worked a town's list, spend one look at the town itself and say in the log where OSM was
+thinner than reality.
+
+Do not stop until half one and every town in half two are done. A town with nothing is a real
+answer, one command, log it and move on.
+
+Summary at the end: market dates that disagree with their organiser (with ids), rows added per
+type and per town, markets whose venue is already a `places` row, towns where OSM was thin, and
+anything the 43-type vocabulary had no word for.
 ```
-
----
 
 ## 6 · The arts & culture
 
