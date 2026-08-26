@@ -23,7 +23,14 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import vm from 'node:vm';
 
-const SITE = 'https://notice.place';
+/* The host the request actually arrived on, not a constant. notice.place 308s
+   to www.notice.place, so a hardcoded apex would make every canonical and
+   og:url point at a redirect — naming a page's own address as somewhere it is
+   not. Falls back only if the header is missing. */
+function site(req){
+  const host = (req.headers && req.headers.host) || 'www.notice.place';
+  return 'https://' + host;
+}
 
 /* Read once per cold start, not once per request. */
 const cache = {};
@@ -111,7 +118,7 @@ export default function handler(req, res){
       return;
     }
 
-    const url  = `${SITE}/${kind}/${slug}`;
+    const url  = `${site(req)}/${kind}/${slug}`;
     const html = file(d.page)
       .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(d.title)} — Notice</title>`)
       .replace('</head>', head(d, url) + '\n</head>');
