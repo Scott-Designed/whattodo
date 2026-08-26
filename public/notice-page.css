@@ -33,11 +33,15 @@ body{margin:0;background:var(--ground);color:var(--ink);
 .page{padding:0 var(--pad) 120px;max-width:1180px}
 
 /* ── the masthead a subject gets ──
-   An eyebrow saying what kind of page this is, the subject at masthead size,
-   and one line of plain English underneath counting what is actually here.
-   The count is the page's own claim and is always drawn from the rows below,
-   never written into the markup. */
-.mast{padding:52px 0 30px}
+   The subject at masthead size, and one line of plain English underneath
+   counting what is actually here. The count is the page's own claim and is
+   always drawn from the rows below, never written into the markup.
+
+   There is no eyebrow over the name (dropped 27 Aug 2026). "PLACE" above
+   "Anglesea" said what the URL, the nav's lit item and the word Anglesea all
+   already said — three times over. About keeps one, because there the eyebrow
+   and the h1 are genuinely different words. */
+.mast{padding:58px 0 30px}
 .eyebrow{margin:0 0 14px;font-family:var(--util);font-size:11px;font-weight:600;
   letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
 .mast h1{margin:0;font-family:var(--serif);font-weight:400;
