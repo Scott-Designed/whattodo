@@ -27,6 +27,8 @@ api/enrich.mjs        Vercel function: Claude drafts missing fields, user approv
                       Takes a name OR a url. Events lead with the url.
 api/admin.mjs         Vercel function: the only write path from a browser.
                       Holds the service key; needs ADMIN_PASSWORD.
+api/subject.mjs       Vercel function: serves /place/<slug> and /type/<slug>
+                      with their title and description already in the HTML.
 supabase/             schema, seed data, setup SQL
 scripts/              configure.py (keys into notice-data.js), sync.py (seed/export/moderate),
                       eventlib.py (shared plumbing for both scrapers),
@@ -744,10 +746,47 @@ rather than a missing server feature. `.claude/launch.json` overrides
 path, then the parent's `.html` for `/place/aireys-inlet`. Restart the preview
 after pulling, or the old server is still running.
 
-**Per-page metadata is still a real gap.** The `<title>` is set by JavaScript
-after load, so a crawler or a link preview reading the raw HTML sees
-"Place — Notice" for all 50 towns. That is a static-file problem, not a URL
-problem, and neither the rewrite nor the slug touches it.
+### Each subject carries its own title and description
+
+`api/subject.mjs` serves `/place/<slug>` and `/type/<slug>`. The rewrites point
+at it rather than at the static file, and it reads the page off disk and edits
+the head on the way past — `<title>`, `description`, `canonical`, Open Graph
+and Twitter card.
+
+**The problem was link previews, never Google.** Google renders JavaScript, so
+a title set by `document.title` is indexed fine. iMessage, Slack, WhatsApp,
+Facebook and Twitter read the raw HTML and stop, so every one of the 93 subject
+pages was being shared as "Place — Notice" with no description — the same card
+93 times.
+
+**Why a function and not 93 generated files.** This project has no build step
+and should not get one. A file per subject would also be a second copy of the
+page shell and would drift from `place.html` the first time either was touched.
+
+**The vocabulary runs in a `node:vm` sandbox.** `notice-vocab.js` is a classic
+browser script so it cannot be imported, but it is pure data and functions with
+nothing of the DOM in it. Evaluating it keeps ONE copy of the suburb list, the
+type labels and the slug rules, which is the whole reason that file exists.
+**Keep it DOM-free** — a single `document.` in there breaks this function.
+`NOT_A_TOWN` moved there for the same reason: the description uses the same
+sentence the page does.
+
+**It does not query the database, on purpose.** A count would read better in a
+preview, but it would put a Supabase call in front of every page view and give
+these pages a way to fail that they do not currently have. The count is already
+on the page, where the reader is.
+
+**A made-up slug answers 404 and `noindex`**, with the real page as the body so
+it still explains itself. And if the function throws, it 302s to the
+query-string form: the metadata is lost, the page still opens.
+
+**The canonical names the host the request arrived on.** `notice.place` 308s to
+`www.notice.place`, so a hardcoded apex made every `canonical` and `og:url`
+point at a redirect.
+
+**Still no `og:image`.** There is no artwork cut for the 1200x630 slot, and a
+card with no picture beats one pointing at a picture that is not there. This is
+the one obvious thing left in the preview.
 
 ### These are pages, not the board with a filter on it
 
