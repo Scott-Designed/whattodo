@@ -97,6 +97,14 @@ ended up in both sheets with two different dates, one of them wrong.
   without lying — but that does not survive 43 types, where picking The ocean left
   38 dead entries to read past. Anything already ticked stays whatever its count,
   or it could not be unticked.
+- **With a group picked, the Type menu is that group's own types and nothing
+  else.** The first version showed every type still capable of narrowing the
+  list, which is a defensible answer to a different question and read as a bug:
+  The arts & culture offered `surfing`, because Bells Beach Surf Film Festival is
+  `festival · surfing · cinema` and therefore lands in three groups. True, and no
+  help. The first filter teaches the shape of the site, so the menu under it has
+  to be the fixed list that belongs to it. The film festival is still found by
+  surfing under The ocean, which is where anyone would look.
 - The **At home** group is hidden from the unfiltered list. Those entries are all
   `km = 0`, so under the default Closest first sort six of them led the page ahead
   of anywhere you would leave the house for. Picking The home or typing a search
@@ -1346,3 +1354,22 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
    coordinate — each one is a missing pin on the map
 6. Promote the Ideas Pipeline into the database
 7. A scheduled job that re-checks estimated event dates as real ones get announced
+8. **Type icons cover 72 of 419 rows.** Six symbols against 43 types. The set was
+   drawn for the old 26 and the split widened the gap — `surfing`, `swimming`,
+   `walk`, `night`, `gig` and `at-home` are all big now and all draw the empty
+   slot. See the icon section for what the artwork has to solve first (the bike
+   does not survive 28px, and only one of an icon's two edges can be true until
+   they are all drawn to the same width).
+9. **`places.offers` has a value that means nothing.** `tickets` records that the
+   row has an `events_url` for the scraper to read — a fact about our plumbing,
+   not about the place, and true of every venue that sells a ticket. It is on 2
+   of the 7 rows that have one, so it does not even work on its own terms. Delete
+   it. `live-music` is worth arguing about on the same grounds: it is true of 38
+   places, but a venue with gigs is already proved by having gig rows attached, so
+   storing it is a second copy that can go stale.
+10. **`Sport` listings from the events feed now arrive with no type.** The source
+   says only "Sport" and the vocabulary has running, cycling, swimming, surfing
+   and paddling — the feed never says which, so `scrape_events.py` writes nothing
+   rather than guessing. Those rows show as *unsorted* and need a person. That is
+   the intended behaviour, not a gap, but it means the Monday/Thursday run will
+   quietly accumulate untyped sport events if nobody looks.

@@ -1521,8 +1521,23 @@ function refreshFacets(){
 
   paintMulti(MULTI.group, GROUPS, g=>pv.filter(i=>groupsOf(i).includes(g)).length);
   /* Every type any row carries, not just its first — or a type that is only ever
-     a second one (cinema on a film festival) would be missing from the menu. */
-  const types=[...new Set(ALL.flatMap(typesOf))].sort();
+     a second one (cinema on a film festival) would be missing from the menu.
+
+     With a group picked, the menu is that group's own types and nothing else.
+     It used to be every type still capable of narrowing the list, which is a
+     defensible answer to a different question and read as a bug: picking The
+     arts & culture offered `surfing`, because the Bells Beach Surf Film
+     Festival is festival, surfing and cinema at once and lands in three groups.
+     True, and no help — the first filter is meant to teach the shape of the
+     site, so the menu under it has to be the fixed list that belongs to it.
+     The film festival is still reachable by surfing under The ocean, where a
+     reader would look for it anyway.
+
+     A type already ticked stays listed even when it leaves the group, or
+     picking a group would strip a filter you set with no way to put it back. */
+  const inGroup = t => !S.group.length || S.group.includes(GROUP_OF[t]);
+  const types=[...new Set(ALL.flatMap(typesOf))]
+                .filter(t=>inGroup(t)||S.type.includes(t)).sort();
   paintMulti(MULTI.type, types.map(t=>[t,t]), t=>pt.filter(i=>typesOf(i).includes(t)).length);
   /* only offer a suburb something is actually in */
   const subs=PLACE_ORDER.filter(x=>ALL.some(i=>suburbOf(i.loc)===x));
