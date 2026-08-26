@@ -7,7 +7,7 @@
       "runtimeArgs": [
         "-I",
         "-c",
-        "import os,functools,http.server,socketserver;D=os.path.expanduser('~/.cache/notice-preview');H=functools.partial(http.server.SimpleHTTPRequestHandler,directory=D);socketserver.TCPServer.allow_reuse_address=True;socketserver.TCPServer(('127.0.0.1',int(os.environ.get('PORT','4173'))),H).serve_forever()"
+        "import os, functools, http.server, socketserver\nD = os.path.expanduser('~/.cache/notice-preview')\nclass H(http.server.SimpleHTTPRequestHandler):\n    # vercel.json sets cleanUrls, so the deployed paths are /place and /type\n    # with no extension. Without this the nav menus 404 in the preview and\n    # only in the preview, which reads as a broken page rather than a\n    # missing server feature.\n    def translate_path(self, path):\n        p = super().translate_path(path)\n        if not os.path.exists(p) and not os.path.splitext(p)[1] and os.path.exists(p + '.html'):\n            return p + '.html'\n        return p\nH = functools.partial(H, directory=D)\nsocketserver.TCPServer.allow_reuse_address = True\nsocketserver.TCPServer(('127.0.0.1', int(os.environ.get('PORT', '4173'))), H).serve_forever()"
       ],
       "port": 4173,
       "autoPort": true

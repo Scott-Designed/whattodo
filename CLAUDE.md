@@ -652,9 +652,12 @@ public/about.html       /about
 ```
 
 `vercel.json` already sets `cleanUrls`, so the links are `/place` and `/type`
-with no extension. **A local static server does not do that** — the preview
-serves `place.html?p=Torquay`, and clicking a menu item locally 404s. That is
-the preview, not the page.
+with no extension. **A plain static server does not do that**, and the symptom
+is that every nav menu item 404s in the preview and nowhere else — which reads
+as a broken page rather than a missing server feature. `.claude/launch.json`
+now overrides `translate_path` to fall back to `<path>.html` for an
+extensionless path that does not exist, so local and production agree. Restart
+the preview after pulling this, or the old server is still running.
 
 ### These are pages, not the board with a filter on it
 
