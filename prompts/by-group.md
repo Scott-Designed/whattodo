@@ -449,9 +449,28 @@ first: the unit of work is a **town**, not a type, and the floor is per town.
 Read prompts/RESEARCH_RULES.md and CLAUDE.md, then do a depth pass on The hospitality group.
 The last pass got breadth — one or two venues per town. This pass gets depth.
 
-The unit of work is a TOWN, not a type. Work this list in order:
-  Torquay, Anglesea, Aireys Inlet, Jan Juc, Lorne, Barwon Heads, Ocean Grove, Queenscliff,
-  Portarlington, Point Lonsdale, Drysdale, Apollo Bay, Winchelsea, Geelong.
+The unit of work is a TOWN, not a type, and the list is EVERY town in the site's Place menu —
+all 47, not a shortlist of the ones with obvious main streets:
+
+  Aireys Inlet, Anglesea, Apollo Bay, Armstrong Creek, Barwon Heads, Beech Forest,
+  Bellarine, Bellbrae, Bells Beach, Birregurra, Breamlea, Cape Otway, Connewarre,
+  Cumberland River, Curlewis, Deans Marsh, Drysdale, Eastern View, Fairhaven, Forrest,
+  Freshwater Creek, Geelong, Indented Head, Inverleigh, Jan Juc, Kennett River, Lara,
+  Lavers Hill, Leopold, Little River, Lorne, Moggs Creek, Moriac, Mt Duneed,
+  Ocean Grove, Point Addis, Point Lonsdale, Portarlington, Queenscliff, Skenes Creek,
+  St Leonards, Torquay, Wallington, Werribee, Winchelsea, Wye River, You Yangs
+
+Work the big ones first — Torquay, Geelong, Anglesea, Lorne, Ocean Grove, Barwon Heads,
+Queenscliff, Aireys Inlet, Apollo Bay — then the rest in the order above.
+
+A town with nothing in it is a real answer and takes one command to establish. Log it and move
+on; do not skip it unchecked. Kennett River has a kiosk, Forrest has a brewery and a bakery,
+Wye River has a general store — the small ones are exactly where the site is thinnest.
+
+Geelong is not one town. `nearby.py Geelong` at the default radius will miss most of it, so run
+it at `--radius 4000` and then run Geelong West, Newtown, Belmont, Grovedale, Waurn Ponds and
+South Geelong separately. They all file under Geelong on the board, but they are separate
+strips on the ground.
 
 This is a loop. For each town, in order:
   1. `python3 scripts/nearby.py "<town>"` — every food and drink place OSM knows there, split
@@ -479,7 +498,7 @@ Judgement on what OSM offers:
   - Anything already listed with the wrong town, wrong type or a dead url: note it in the log
     with the id. Do not edit existing rows, that goes through /admin.
 
-Do not stop until all fourteen towns have been through the loop. There is no per-type target
+Do not stop until every town on the list has been through the loop. There is no per-type target
 this time — the target is that a person who lives in each of those towns would not be able to
 name three obvious places you missed.
 
