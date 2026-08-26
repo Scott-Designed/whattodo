@@ -923,6 +923,34 @@ pass will break**, however plainly the prose states it — and it will report th
 break as a decision rather than a mistake. Before the next big pass, put the rule
 in `check()`.
 
+**Round two proved that sentence twice over** (26–27 Aug 2026, 95 rows, ids
+364–458, every one of the 47 Place-menu towns swept). The two rules that had been
+moved into `check()` held perfectly: **no `km` invented, and not one coordinate
+under four decimal places.** The `suburbOf` fix held too — all 95 rows land in
+the town their address names. The rule still living only in prose was broken
+again, harder: **nine Google Maps search urls**, where round one wrote one. So
+`check()` refuses those now as well. Cleared 27 Aug 2026, each row's
+`source_note` saying what it used to hold.
+
+Round two's own finds are worth keeping:
+
+- **OSM's tags are not a category system.** A pub tagged `tourism=hotel` and a
+  cafe tagged `shop=convenience` are invisible to an `amenity` food query — the
+  Little River Hotel and Kennett River's Kafe Koala were both found only by
+  looking at the town by hand afterwards. `nearby.py`'s KIND_TAGS needs
+  `tourism=hotel`, and any sweep of it needs a by-hand pass behind it.
+- **OSM is stale in a useful way.** It still listed MoVida Lorne (now Totti's),
+  Growlers (now Ela) and The Ridge at Beech Forest (closed). A name that will not
+  confirm first-party is often a venue that has changed hands, which is worth
+  more than the listing would have been.
+- **Anglesea had a pub nobody had listed** — Klein's Anglesea Hotel. The first
+  pass filed "no pub in Anglesea" as fact.
+- `Love House` (400) supersedes `Captain Moonlite` (355) — same building at the
+  Anglesea SLSC, new operator. Two listings for one room; 355 needs removing or
+  marking closed through /admin.
+- Totti's Lorne (406) shares a coordinate with the Lorne Hotel (313) because it
+  is inside it. That is the HOOP Gallery case, not the placeholder case.
+
 Still open from that pass: **19 pre-existing activities carry a pin under four
 decimal places** (three at 2dp, one at 1dp), which the 24 Aug sweep missed
 because it only looked at the citizen-science rows. Several share a coordinate

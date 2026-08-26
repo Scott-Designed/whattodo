@@ -282,3 +282,291 @@ cafe 6→27 · winery 6→15 · restaurant 7→24. Group total 26 → 119.
 - **Le Comptoir Bakehouse** — Aireys Inlet, 85 Great Ocean Rd (id 363,
   unverified). French bakery, everyday 7am–2:30pm, own-site sourced, geocoded
   house-level. Corrects the pass's wrong claim that Aireys had no bakery.
+
+# Round two — the depth pass (26 Aug 2026)
+
+Unit of work is the town, driven by `scripts/nearby.py`'s Overpass sweep. The
+egress proxy only admits ~1 in 5 connections to overpass-api.de, so the sweep
+ran through a keep-alive tunnel helper (sweep.py, session-local) that retries
+until a connection sticks and then reuses it; the reports are nearby.py's own
+matching, unchanged.
+
+## round two — Torquay (+ Jan Juc spillover)
+
+OSM: 55 named, 9 already listed, 46 not. **Added 17 (ids 364–380):**
+Salty Dog Cafe · Fisho's · Bell Street Fish & Chips · Bells Bakery · 9grams ·
+Ginger Monkey · Mikro Coffee Roasters (OSM says Baines Cres, a directory says
+57 Geelong Rd — flagged on the row) · Bob Sugar · Il Matto · Italo's ·
+Pholklore · Samesyn · Third Wave Kiosk · Surfside Patisserie · Sandbah ·
+Solhouse · The Cave Woodfired Pizza (actually Jan Juc — Princes Tce, beside
+Bird Rock).
+
+Chains skipped: KFC, McDonald's, Subway, Zambrero, Betty's Burgers, La
+Porchetta, Bakers Delight, Squires Loft, Routleys (regional chain).
+Matcher notes: "Swell Foods & Coastal Catering" is Swell Café (OSM name);
+"The Beach Hotel" was FALSE-matched to Wye Beach Hotel — but the venue itself
+could not be confirmed to exist in Torquay VIC at all (UK-Torquay pollution);
+left unadded, someone local should say what OSM is pointing at.
+Checked, not added (no first-party confirmation or ends-up category):
+Las Olas (TA-only, may be closed) · Torquay Larder · Villa & Hutt · Panache ·
+Norden Fine · frenchy's · Point Danger Beach House (Surf Coast Times mention
+only) · Dough Bros · Flippin' Fresh · Jashin Courtyard · Rokuden · Sober Ramen
+· Torquay Thai · Lentil's Indian · Sizzling Indian · Quicksilver Bar 61 ·
+Zeally's Bar & Grill.
+
+## round two — Geelong (all strips)
+
+Swept Geelong at 4000m plus Geelong West, Newtown, Belmont, Grovedale, Waurn
+Ponds and South Geelong separately. OSM knows **383 named venues inside 4km**
+of the CBD alone; "take every name" is not an honest instruction against a
+regional city, so the judgment applied was the site's own test — venues a
+family or a visitor would *go to Geelong for*, not a business directory.
+
+**Added 19 (ids 381–399):** Fisherman's Pier · Wharf Shed Cafe · The Yot ·
+Igni · The Continental (own-site service times) · ALMA · The Hot Chicken
+Project · Sober Ramen · Geelong Cellar Door · Union Street Wine · Little Green
+Corner · Winter's Cafe (Pako/Newtown) · Cartel Roasters · James Street Bakery
+· Mavs Greek · Das Bierhaus · Hecho En Mexico · Tulip (site live but
+rate-limited — confirm hours) · Ket Baker (WALLINGTON original, Belmont
+second store in notes).
+
+Notable and deliberately left for a future pass (all real, all with sites):
+Bistrot St Jean / Bistrot Plume / La Cachette (the French cluster), Caruggi,
+Baah Lah, Osteria Fiorenza, Empire Grill, Lipari, Justin Lane, Rook, frankie,
+Sweet Cheeks, There There, Non Disclosure Bar, Archive Wine Bar, Beav's Bar,
+Murphys, Malt Shovel Taphouse, The Arborist, The Paddock Bakery (franchise),
+Panache Cafe & Creperie (couldn't read site — is this the ex-Queenscliff
+creperie?), plus ~60 suburban fish-and-chippers, kebab shops and franchise
+outlets that fail the "reason to go" test. Geelong depth is now defensible but
+not exhausted — the log above is the shortlist for round three.
+
+Matcher note: "Geelong Bakehouse" was FALSE-matched to "The Portarlington
+Bakehouse" (shared word 'bakehouse' + both keyword sets small) — Geelong
+Bakehouse itself was not assessed; and "The Brewery" at geelong.bellsbeachbrewing.com.au
+is apparently a Bells Beach Brewing Geelong venue — worth a person's look, that
+is news to this database.
+
+## round two — Anglesea
+
+OSM: 17 named, 2 listed, 15 not. **Added 6 (ids 400–405):** Love House
+(["restaurant","bar"], the surf club's restaurant — **supersedes Captain
+Moonlite, id 355: same building, new operator; 355 needs /admin removal or a
+closed note**) · Klein's Anglesea Hotel (["pub"], 1 Murch Cres, kids play area
+— the pub the whole first pass missed) · Morgans Bar & Grill (live acts — gig
+feed candidate; address discrepancy OSM 12-14 vs listings 87 GOR) · Minerva &
+the Bean · Umisango Anglesea (sister room in Lorne) · Fish by Moonlite.
+
+Checked, not added: Cannoli 73, Coast Side Cafe, Nördenfine Ice Cream, Uber
+Mama, Anglesea Pizza & Pasta, Anglesea Fish & Chips (second chippy), Jums
+Chicken, Yo! Chicken, Four Kings Crepe (no first-party trace / ends-up
+category). The "Anglesea Pub" OSM tag is Klein's Anglesea Hotel — the prompt's
+warning about contributor labels was right.
+
+## round two — Lorne
+
+OSM: 27 named, 3 listed, 24 not. **Added 6 (ids 406–411):** Totti's Lorne
+(Merivale's Italian in the Lorne Hotel — **MoVida Lorne closed permanently;
+OSM tag stale**; Lorne Hotel row 313 should note Merivale ownership + Totti's)
+· Lorne Beach Pavilion · Umisango Lorne (lat/lng NULL — not in OSM, needs a
+pin) · Moons Espresso & Juice Bar · Mexican Republic · The Salty Dog Fish &
+Chippery (no relation to Torquay's Salty Dog Cafe — logged as the near-dup
+thought).
+
+Checked, not added: The Larder (it is Mantra Lorne's in-house brasserie),
+Swingbridge Cafe (STILL unresolved — OSM lists it, but its old operators
+announce themselves as the Birregurra Grocer now; a person should walk past),
+Grandma Shields Bakery (OSM VIC tag conflicts with Tripadvisor's Lorne NSW —
+suspect bad import), Lorne Central, Maple Tree Seafood, Almyra, Saporitalia,
+Mestizio, Riverbank, Lorne Bowls Club, Lorne SLSC cafe, Summer Garden Bar
+(probably the Lorne Hotel's own garden), Chopstix, Pizza Pizza, Milkbar,
+Andrews Chicken Joint, Pit stop, Health & Hire kiosk.
+
+## round two — Ocean Grove
+
+OSM: 29 named, 3 listed, 26 not. **Added 6 (ids 412–417):** The Dill ·
+The Covenant Wine Bar · The Driftwood Café · Paradise Parlour (ice cream,
+conditions=warm) · Hello Birdie (family cafe, Grubb Rd) · Alchemy Bakehouse
+(71 Madeley St — DISTINCT from Queenscliff's Alchemy Woodfire Bakehouse,
+near-dup noted on the row).
+
+Checked, not added: Chang Noi Thai, King Koi, Ming Terrace, The Mex, Woodies
+Pizza, OG Pizza & Pasta, both unnamed fish'n'chip shops, Bean Squeeze
+(drive-through chain), Betty Blue Coffee Van, Groove, Parade Espresso Bar,
+Kiosk, Ocean Grove Bowls Club, The Olive Pit (deli — produce pass), The Beach
+House Lolly Shop (confectionery — belongs to a produce/shop pass, noted there).
+
+## round two — Barwon Heads
+
+OSM: 11 named, 3 listed, 8 not. **Added 3 (ids 418–420):** Barwon Orange (OSM
+misspells it "Bacman Orange") · Bakery Bar & Lounge (old bakery building,
+pizza-bar) · Gilligan's Fish & Chips.
+Matcher false negatives handled: "Annie's Provedore & Produce Store" is
+already listed (Annie's Provedore); false-positive: matcher paired Barwon Heads
+Hotel with "Barwon Heads Skatepark" — the hotel is listed, no harm done.
+Checked, not added: Shack Dining Co. (no trace found), Australian Ice Cream
+Company (van), Kebabs on the Coast, Barwon Heads Fish & Chips (second chippy).
+
+## round two — Queenscliff
+
+OSM: 8 named, 1 listed, 7 not — OSM is visibly thin here (no Alchemy, no
+Esplanade Hotel, no Athelstane House in its data; the sweep's own blind spot).
+**Added 3 (ids 421–423):** Trident Fish Bar · Panache Cafe & Creperie (68
+Hesse St — likely the creperie remembered from older Queenscliff guides; its
+domain would not render, flagged on the row) · Willow Tree Cafe.
+Checked, not added: Rip View Bistro (the bowls club's bistro), Wharf St Pantry
+and Ocean View Kiosk (no first-party trace), Scully's fish & chippery (second
+chippy; Trident is the town's).
+
+## round two — Aireys Inlet
+
+OSM: 9 named, 2 listed, 7 not. **Added 5 (ids 424–428):** Skinny Legs Cafe &
+Deli · The Captain of Aireys · Mr T & Me (lat/lng NULL — Nominatim only offers
+the town centroid) · Onda Food House · The Lighthouse Tea Rooms (own-site
+hours). All three of nearby.py's docstring known-misses are now in. "Le
+Comptoir" reported missing = Le Comptoir Bakehouse, already listed (matcher
+bias working as designed). Not added: Aireys Inlet Fish & Chips (no
+first-party trace).
+
+## round two — Apollo Bay
+
+OSM: 24 named, 2 listed, 22 not. **Added 4 (ids 429–432):** Apollo Bay
+Distillery ["bar","produce"] · Apollo Bay Seafood Cafe · Apollo Bay
+Fisherman's Co-op ["restaurant","produce"] (NOT IN OSM at all — found by the
+main-street double-check; lat/lng NULL, pin needed) · Dooley's Premium Ice
+Cream. GOR Brewhouse's OSM listing appears as bare "Brewhouse" (matched fine).
+Checked, not added: Casalingo, Sandy Feet, Waves, Coco, Iluka, George's, Rawr
+Bar, Icaro, Tiki Bar/Cafe 153, Dragon Bay Inn, Masala Bay, Chopstix ×2, lolly
+shop (produce pass), The Harbour Fish Shop (Co-op covers the harbour), The
+Icecream Tub (=Dooley's second door). La Bimba still unassessed — not in OSM
+either; round three.
+
+## round two — the hinterland and Bellarine small towns (part 1)
+
+**Added 8 (ids 433–440):**
+- Birregurra: **Brae** (Dan Hunter — how was this not in the database?), Yield
+  Restaurant & Providore, Otway Artisan Gluten Free (fully GF bakery).
+- Curlewis/Drysdale: Claribeaux (Curlewis Golf Club), Ground Zero Cafe.
+- Bellarine: Bennetts on Bellarine, Baie Wines (both small cellar doors).
+- Armstrong Creek: Town and Country Pizza (Warralily).
+
+**Nothing-there towns established by sweep (a real answer, one command each):**
+Bells Beach (0 food venues in OSM — correct, it's a beach), Breamlea (0),
+Cape Otway (0 — lightstation cafe not in OSM; known gap, it's a `places`/
+attraction question), Connewarre (0), Cumberland River (0 — the campground
+kiosk is not in OSM), Eastern View (0), Moggs Creek (0), Little River (0 in
+radius — town centre is beyond), Indented Head (0 — OSM thin, see below),
+Kennett River (0 — WRONG, the Kafe/kiosk exists; OSM gap, see part 2),
+Point Addis (0), You Yangs (0), Freshwater Creek (all listed already).
+
+**Checked, not added:** The Ridge Organic Store (Beech Forest) — CLOSED per
+Foursquare/Yelp, so Beech Forest honestly has nothing; Art Reach Studio
+(gallery, marginal); Salt Brewing Co "Deans Marsh" (OSM tag but
+saltbrewing.co/deans-marsh 404s — stale, log only); Bowside Cafe (Bellbrae,
+no trace); Cottage@Iona (Armstrong Ck, no trace); Café Zoo + Bungalow
+(Drysdale — real, roadside, round three); Enchanted Tastes (Birregurra).
+Matcher false negatives correctly skipped: "Jack Rabbit Winery"=Jack Rabbit
+Vineyard, "Le Comptoir"=Le Comptoir Bakehouse, "Forrest Brewery (Company)"=
+Forrest Brewing Company, Fairhaven's list = Aireys' venues re-reported.
+
+## round two — small towns (part 2)
+
+**Added 17 (ids 441–457):**
+- Inverleigh: Inverleigh Hotel. (Matilda's — no current trace; log.)
+- Wye River: Wye River General Store (the prompt called it, OSM had it).
+- Kennett River: Kafe Koala General Store — NOT in the OSM food sweep (tagged
+  as a convenience shop); found by the town double-check, as predicted.
+- Winchelsea: Winchelsea Tavern (20 Willis St — the town's SECOND pub,
+  distinct from The Barwon Hotel; Yelp calls it Winchelsea Hotel).
+- Lavers Hill: The Perch at Lavers Hill. (McDuff's Bakehouse — maps-only
+  trace; YatZies, Otway Junction Motor Inn — log.)
+- Point Lonsdale: Noble Rot Wine Store & Bar (OSM's anonymous "Wine Store &
+  Bar"; own-site hours). Cafe 3225, Lix Cafea — log.
+- St Leonards: St Leonards Hotel by the Sea (placeholder url — no site found)
+  · Salty Cow · Lenny's Ice Creamery. (Two Daughters, St Leonards Bakery,
+  Shugar Beach, chippies — log; the Murradoc strip is deeper than expected.)
+- Wallington: The Paddock Cafe.
+- Lara: Millar's Café (Westlakes) · Lara Hotel. (Founders and Co, Rod's
+  Bakery — real, round three; the rest of Lara's list is franchise sprawl.)
+- Portarlington: Pier St · Edina Waterfront Cafe · The Little Mussel Cafe
+  (Advance Mussel's farm-gate cafe, ["cafe","produce"]).
+- Werribee: Teddy Picker · Bridge Hotel Werribee — enough to feed a zoo day,
+  which is why Werribee is in the Place menu at all.
+
+**Leopold and Mt Duneed:** deliberately zero adds — both lists are franchise
+and takeaway sprawl (Rolling Pin's Leopold outlet already noted on the Ocean
+Grove row; Mt Duneed Estate already listed). Melaleuka Bakery (Leopold) is the
+one worth a round-three look.
+
+## round two — Little River addendum
+
+OSM food sweep said 0 — wrong: **The Little River Hotel** exists (tagged as
+tourism/hotel, invisible to the food query). Added as id 458. Second case
+(with Kafe Koala) of the sweep's tag blindness: pubs tagged `hotel` and cafes
+tagged `convenience` do not answer an amenity=food query. Worth remembering
+for the next nearby.py revision — or adding tourism=hotel to the KINDS.
+
+## Round two summary — 26 Aug 2026
+
+**95 rows added (ids 364–458), all unverified, all `added_by = 'Research'`.**
+The hospitality group now carries: cafe 65 · restaurant 66 · bar 25 · pub 24 ·
+bakery 21 · winery 17 · brewery 8 (a row counts in every type it carries).
+Every one of the 47 Place-menu towns has been through the loop, plus six
+Geelong strips swept separately.
+
+**Rows per town (round two):** Torquay 16 · Geelong (all strips) 18 ·
+Portarlington 3 · St Leonards 3 · Aireys Inlet 5 · Anglesea 6 · Lorne 6 ·
+Ocean Grove 6 · Apollo Bay 4 · Barwon Heads 3 · Queenscliff 3 · Birregurra 3 ·
+Lara 2 · Werribee 2 · Bellarine 2 (+ Baie at Curlewis) · Curlewis 2 ·
+Drysdale 1 · Jan Juc 1 (The Cave) · Wallington 2 (Ket Baker, Paddock) ·
+Inverleigh 1 · Wye River 1 · Kennett River 1 · Winchelsea 1 · Lavers Hill 1 ·
+Point Lonsdale 1 · Little River 1 · Armstrong Creek 1 · Freshwater Ck 0 (done
+round one) · Moriac 0 (done round one) · genuine zeros: Bells Beach, Breamlea,
+Cape Otway, Connewarre, Cumberland River, Eastern View, Moggs Creek, Point
+Addis, You Yangs, Indented Head, Beech Forest (store closed), Bellbrae (extra),
+Deans Marsh, Forrest, Leopold, Mt Duneed, Fairhaven (=Aireys).
+
+**Where OSM was thinner than reality:**
+- Queenscliff (8 names for a whole tourist town; no Alchemy, no Esplanade)
+- Kennett River & Little River (venues tagged shop/hotel, invisible to a food
+  query — Kafe Koala and the Little River Hotel both found by hand)
+- Apollo Bay harbour (Fisherman's Co-op absent entirely)
+- Umisango Lorne, La Bimba (Apollo Bay), Swing Bridge (Lorne) absent
+- Indented Head shows zero — believed nearly true (general store only), but a
+  local should confirm.
+- OSM staleness caught: "Movida Lorne" (now Totti's), "Growlers" (now Ela,
+  round one), "The Ridge" Beech Forest (closed), "Salt Brewing Deans Marsh"
+  (404), "The Beach Hotel" Torquay (unidentifiable).
+
+**Existing rows needing /admin correction (do not script-edit):**
+- **355 Captain Moonlite** — superseded by Love House (400) at the Anglesea
+  SLSC. Remove 355 or mark closed; the petition explains itself now.
+- **313 Lorne Hotel** — now a Merivale venue; add Totti's note, check
+  lornehotel.com.au still resolves (may redirect to merivale.com).
+- places 28 'Queenscliff Brewhouse' → The Esplanade Hotel Queenscliff (round
+  one finding, still open).
+- places 20 'Last One Inn' → 113 Great Ocean Rd (round one finding).
+- 370 Mikro Coffee Roasters — OSM (Baines Cres) vs directory (57 Geelong Rd)
+  address conflict, flagged on the row.
+- 402 Morgans Bar & Grill — OSM 12-14 vs listings 87 Great Ocean Rd.
+
+**Null pins needing a person (7):** 4 Kings (335), McGlashan's (348), Dinny
+Goonan (351), Umisango Lorne (408), Mr T & Me (426), Apollo Bay Fisherman's
+Co-op (431), plus Ela's url is still a Maps placeholder (352).
+
+**places/events_url candidates from round two:**
+- Piping Hot Chicken Shop (round one, still standing)
+- Morgans Bar & Grill, Anglesea — hosts live acts
+- Bells Beach Brewing GEELONG (?) — geelong.bellsbeachbrewing.com.au appeared
+  in OSM as "The Brewery": if Bells Beach Brewing has opened a Geelong venue,
+  that is both a listing and a place row nobody has
+- Totti's/Lorne Hotel under Merivale — merivale.com will carry what's-on pages
+- Lorne Beach Pavilion, Wharf Shed, Little Creatures — event-capable venues
+  already having sites worth a feed look on /admin.
+
+**Round three shortlist (logged, verified-adjacent, not added):** the Geelong
+French cluster (Bistrot St Jean, La Cachette, Bistrot Plume), Caruggi, Rook,
+frankie, Empire Grill, Archive Wine Bar, There There, Sweet Cheeks, La Bimba,
+Casalingo, Sandy Feet, Founders and Co (Lara), Rod's Bakery (Lara), Melaleuka
+Bakery (Leopold), Café Zoo + Bungalow (Drysdale), Two Daughters + St Leonards
+Bakery, Cottage@Iona, Torquay's long tail (Las Olas, Larder, Villa & Hutt,
+frenchy's, Point Danger Beach House, Norden Fine).

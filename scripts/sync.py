@@ -198,6 +198,16 @@ def check(row, i, types, conds):
             bad.append(f"{where}: {f} must start with http:// or https://")
         if u and 'maps.app.goo.gl' in str(u):
             bad.append(f"{where}: {f} is a maps.app.goo.gl link — those get fabricated, use a real one")
+        # A Google Maps *search* url is not a link to the place, it is a link to
+        # a search box. It reads as a filled-in field, so nobody goes back for
+        # the real one, and it is a missing pin forever. Two research passes have
+        # now written these while the rule sat in prose in RESEARCH_RULES.md —
+        # round one called it "a Maps-search placeholder used per policy". There
+        # is no such policy. Null is the honest value for a venue with no site.
+        if u and re.search(r'google\.[a-z.]+/maps/search/', str(u)):
+            bad.append(f"{where}: {f} is a Google Maps search link, not a link to the place. "
+                       f"There is no placeholder policy — leave the url null if the venue "
+                       f"has no site of its own.")
     if row.get('verified') and not str(row.get('source_note') or '').strip():
         bad.append(f"{where}: claiming verified without a source_note — say where it came from")
     # 0.01 degree is 1.1km, which on this coast is often open water. /admin has

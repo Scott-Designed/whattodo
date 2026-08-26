@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Type page concept — Running</title>
+<script>
+try{var t=localStorage.getItem('notice.theme');
+    if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}
+</script>
+<link rel="stylesheet" href="/sunset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/notice-page.css">
+<style>
+/* ══ concept scaffolding — would not survive into the real page ═══════ */
+body{padding-bottom:130px}
+.bar{position:sticky;top:0;z-index:90;background:var(--surface);
+  border-bottom:1px solid var(--rule2);padding:11px var(--pad);
+  display:flex;gap:20px;align-items:baseline;flex-wrap:wrap;
+  font-family:var(--util);font-size:12px;color:var(--ink3)}
+.bar b{font-weight:600;color:var(--ink);letter-spacing:.12em;text-transform:uppercase;font-size:11px}
+.bar .key{margin-left:auto;display:flex;gap:15px;align-items:center}
+.swatch{display:inline-block;width:20px;height:0;border-top:2px solid var(--rule2);
+  vertical-align:middle;margin-right:6px}
+.swatch.prop{border-top-style:dashed;border-top-color:var(--accent)}
+
+/* Anything the database cannot answer today is drawn dashed in the accent,
+   with what it would cost written on it. This project has been burned by
+   invented data; a mockup that hides which half is imaginary is the same
+   mistake in a nicer typeface. */
+.proposed{position:relative;border:1px dashed var(--accent);border-radius:3px;
+  padding:20px 20px 20px;margin-top:12px}
+.proposed::before{content:attr(data-note);position:absolute;top:-9px;left:14px;
+  background:var(--ground);padding:0 8px;font-family:var(--util);font-size:10px;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.proposed.flat{border:0;padding:0;margin-top:0}
+.proposed.flat::before{position:static;display:inline-block;background:none;
+  padding:0;margin-bottom:9px}
+
+/* ══ the chapters ═════════════════════════════════════════════════════ */
+.ch{margin-top:56px}
+.ch > h2{margin:0 0 2px;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);
+  padding-bottom:10px;border-bottom:1px solid var(--rule2);
+  display:flex;justify-content:space-between;align-items:baseline}
+.ch > h2 .n{font-variant-numeric:tabular-nums;opacity:.8}
+.ch > h2 + .sig{margin:11px 0 0;color:var(--ink3);font-size:14px;
+  font-family:var(--util);max-width:60ch;line-height:1.55}
+
+/* ── the intro: what running is, here ──
+   Editorial, one per type, and the only thing on the page written rather
+   than queried. Set wider and lighter than a listing so it reads as a
+   voice rather than a record. */
+.intro{margin-top:40px;display:grid;grid-template-columns:minmax(0,1fr) 210px;
+  gap:44px;align-items:start;padding-bottom:38px;border-bottom:1px solid var(--rule2)}
+.intro p{margin:0 0 15px;font-size:19px;line-height:1.5;color:var(--ink2);max-width:58ch}
+.intro p:first-child{font-size:22px;color:var(--ink);line-height:1.42}
+.intro p:last-child{margin-bottom:0}
+.facts{font-family:var(--util);font-size:12px;color:var(--ink3);
+  border-left:1px solid var(--rule2);padding-left:18px}
+.facts div{padding:7px 0}
+.facts div + div{border-top:1px solid var(--rule)}
+.intro .srcs{font-family:var(--util);font-size:12px;color:var(--ink3);
+  line-height:1.65;margin-top:22px;padding-top:14px;border-top:1px solid var(--rule);
+  max-width:58ch}
+.intro .srcs a{color:var(--ink2);text-decoration:none;
+  border-bottom:1px solid var(--rule2)}
+.intro .srcs a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.facts b{display:block;font-size:20px;font-weight:400;font-family:var(--serif);
+  color:var(--ink);letter-spacing:-.01em}
+
+/* ── a standing weekly run: its day is the fact you want first ── */
+.club{display:grid;grid-template-columns:104px minmax(0,1fr);gap:0 22px;
+  padding:17px 0;border-bottom:1px solid var(--rule)}
+.club .day{font-family:var(--util);font-size:12px;font-weight:600;color:var(--ink);
+  letter-spacing:.02em;padding-top:5px}
+.club .day span{display:block;font-weight:400;color:var(--ink3);
+  font-variant-numeric:tabular-nums}
+.club .nm{font-size:21px;letter-spacing:-.01em}
+.meta{font-family:var(--util);font-size:12px;color:var(--ink3);margin-top:3px}
+.meta i{font-style:normal}
+.meta i + i::before{content:" · ";opacity:.6}
+.club .desc{color:var(--ink2);font-size:16px;margin-top:7px;max-width:60ch}
+
+/* ── trails: half a map, half a list ──
+   The map is sticky so it stays beside whichever trail you have scrolled to,
+   and the list is the thing you read. Hovering a row lights its line. */
+.trailwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:0 40px;margin-top:20px;align-items:start}
+.mapcol{position:sticky;top:70px}
+#map{height:472px;border:1px solid var(--rule2);background:var(--surface)}
+.mapfoot{font-family:var(--util);font-size:11px;color:var(--ink3);margin-top:9px;
+  display:flex;justify-content:space-between;gap:12px}
+.trail{padding:16px 0;border-bottom:1px solid var(--rule);cursor:pointer;
+  border-left:2px solid transparent;padding-left:0;transition:border-color .12s,padding-left .12s}
+.trail:first-child{padding-top:0}
+.trail:hover,.trail.on{border-left-color:var(--accent);padding-left:14px}
+.trail .nm{font-size:20px;letter-spacing:-.01em;line-height:1.2}
+.trail .fig{font-family:var(--util);font-size:12px;font-weight:600;color:var(--ink2);
+  margin-top:7px;font-variant-numeric:tabular-nums}
+.trail .fig em{font-style:normal;font-weight:400;color:var(--ink3)}
+.trail .desc{color:var(--ink2);font-size:16px;margin-top:7px}
+.lnks{margin-top:10px;display:flex;flex-wrap:wrap;gap:15px}
+.lnks a{font-family:var(--util);font-size:12px;font-weight:500;color:var(--ink3);
+  text-decoration:none;border-bottom:1px solid var(--rule2);padding-bottom:2px}
+.lnks a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.lnks a.strava{color:var(--accent);border-bottom-color:var(--accent)}
+.pin{width:11px;height:11px;border-radius:50%;background:var(--accent);
+  border:2px solid var(--ground);box-shadow:0 0 0 1px var(--ink3)}
+
+/* ── worth following: photography of the place, credited to the person ──
+   Scott's move, and it is the right one — a clifftop at 6am sells the person
+   better than a headshot, and it sidesteps asking anyone for a portrait. */
+.folk{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));
+  gap:26px;margin-top:22px}
+.card .shot{aspect-ratio:5/4;border:1px solid var(--rule2);position:relative;
+  background:linear-gradient(150deg,
+    oklch(var(--tint-l,.86) var(--tint-c,.045) 240),
+    oklch(var(--tint-l,.86) var(--tint-c,.045) 62));
+  display:grid;place-items:center;overflow:hidden}
+.card .shot span{font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);
+  border:1px dashed var(--ink3);padding:6px 10px;border-radius:2px;
+  background:var(--ground);opacity:.9;text-align:center;max-width:80%}
+.card .cred{font-family:var(--util);font-size:10px;color:var(--ink3);margin-top:7px;
+  letter-spacing:.03em}
+.card .nm{font-size:19px;margin-top:9px;letter-spacing:-.01em}
+.card .why{color:var(--ink2);font-size:15px;margin-top:5px}
+.card .at{font-family:var(--util);font-size:12px;color:var(--ink3);margin-top:8px}
+
+/* ── shops ── */
+.shop{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:2px 22px;
+  align-items:baseline;padding:16px 0;border-bottom:1px solid var(--rule)}
+.shop .nm{font-size:20px;letter-spacing:-.01em}
+.shop .where{grid-column:2;grid-row:1;justify-self:end;font-family:var(--util);
+  font-size:12px;color:var(--ink2)}
+.shop .desc{grid-column:1;color:var(--ink2);font-size:16px;margin-top:6px;max-width:60ch}
+.shop .lnks{grid-column:1}
+.gap{font-family:var(--util);font-size:13px;color:var(--ink3);
+  padding:17px 0;line-height:1.6;max-width:58ch}
+
+/* ── the keeper ── */
+.keeper{display:flex;gap:17px;align-items:flex-start;padding:21px 23px;
+  background:var(--surface);border-left:2px solid var(--accent)}
+.mono{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--rule2);
+  display:grid;place-items:center;font-family:var(--util);font-size:13px;font-weight:600;
+  color:var(--ink3);letter-spacing:.04em}
+.keeper .who{font-family:var(--util);font-size:11px;font-weight:600;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink3)}
+.keeper .nm{font-size:20px;margin-top:4px}
+.keeper .note{color:var(--ink2);font-size:16px;margin-top:9px;max-width:58ch}
+.keeper .fine{font-family:var(--util);font-size:11px;color:var(--ink3);margin-top:12px}
+.keeper .fine a{color:var(--ink2)}
+
+/* MapLibre's own stylesheet and this one collide at equal weight — it is
+   linked FIRST in the head for that reason, same as index.html. */
+.maplibregl-ctrl-attrib{font-family:var(--util);font-size:10px}
+
+@media (max-width:900px){
+  .intro,.trailwrap{grid-template-columns:minmax(0,1fr);gap:26px}
+  .mapcol{position:static}
+  #map{height:320px}
+  .facts{border-left:0;padding-left:0;border-top:1px solid var(--rule2);padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <b>Type page concept · Running · chaptered</b>
+  <span class="key">
+    <span><span class="swatch"></span>real rows</span>
+    <span><span class="swatch prop"></span>needs data we don't have</span>
+  </span>
+</div>
+
+<div class="page">
+
+  <div class="mast">
+    <p class="eyebrow">Type</p>
+    <h1>Running</h1>
+    <p class="stand"><b>9 things</b> on the board — three of them every week,
+      six with a date on them — plus <b>4 routes</b> and the one shop.</p>
+  </div>
+
+  <!-- ══ 1 · the intro ══════════════════════════════════════════════ -->
+  <div class="proposed flat" data-note="proposed — needs a types.intro column · every claim below is lifted from a row that already says it">
+  <div class="intro">
+    <div>
+      <p>There is enough trail here for a hundred-kilometre race, and the
+        Surf Coast Century is exactly that — out of Anglesea, below the sea
+        cliffs, along remote beach, and back through the wildflower heathland.</p>
+      <p>The heath is the part that surprises people. Over a hundred species of
+        orchid bloom between Anglesea and Aireys Inlet in spring, on ground
+        internationally significant for its biodiversity, which ANGAIR have been
+        protecting since 1969. Inland it turns to forest: the Point Addis circuit
+        drops into ironbark and climbs back onto clifftop heathland above Jarosite
+        Headland, and further west the trails run up into Great Otway National
+        Park, where forty of them are mapped around Lorne alone.</p>
+      <p>None of which would matter without the people who turn out on it. Two
+        free parkruns anchor the Saturday, one on the coast and one inland. A shop
+        run leaves Ocean Grove at half past seven. And twice a year the whole
+        coast turns out properly — Anglesea in September, Lorne in May.</p>
+      <p class="srcs">Assembled from <a href="#">Surf Coast Century</a>,
+        <a href="#">Anglesea Heath</a>, <a href="#">ANGAIR Working Bees</a>,
+        <a href="#">Point Addis – Ironbark Basin Circuit</a> and
+        <a href="#">Lorne &amp; Otways Trails</a> — nothing here is a new claim.</p>
+    </div>
+    <div class="facts">
+      <div><b>100 km</b> longest event, the Century</div>
+      <div><b>100+</b> orchid species on the heath</div>
+      <div><b>40</b> trails mapped around Lorne</div>
+      <div><b>1969</b> ANGAIR protecting the heath since</div>
+      <div><b>3</b> standing weekly runs</div>
+    </div>
+  </div>
+  </div>
+
+  <!-- ══ 2 · every week ═════════════════════════════════════════════ -->
+  <section class="ch">
+    <h2>Every week<span class="n">3</span></h2>
+    <p class="sig">Standing runs anyone can turn up to. No entry, no sign-up, nobody
+      checking whether you belong there.</p>
+    <div id="clubs"></div>
+  </section>
+
+  <!-- ══ 3 · coming up ══════════════════════════════════════════════ -->
+  <section class="ch">
+    <h2>Coming up<span class="n">6</span></h2>
+    <div id="events"></div>
+  </section>
+
+  <!-- ══ 4 · trails ═════════════════════════════════════════════════ -->
+  <section class="ch">
+    <h2>Popular trails<span class="n">4</span></h2>
+    <p class="sig">The routes people here actually use, not every path on the map.
+      Hover one to find it.</p>
+    <div class="proposed" data-note="proposed — a route is a third shape: needs a line, a distance and a surface">
+      <div class="trailwrap">
+        <div class="mapcol">
+          <div id="map"></div>
+          <div class="mapfoot">
+            <span>4 routes · start points are real, the lines are schematic</span>
+            <span>Same basemap as the board</span>
+          </div>
+        </div>
+        <div id="trails"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 5 · shops ══════════════════════════════════════════════════ -->
+  <section class="ch">
+    <h2>Shops<span class="n">1</span></h2>
+    <p class="sig">Where to get fitted, and who runs the shop run.</p>
+    <div id="shops"></div>
+  </section>
+
+  <!-- ══ 6 · worth following ════════════════════════════════════════ -->
+  <section class="ch">
+    <h2>Worth following<span class="n">4</span></h2>
+    <p class="sig">People and clubs who post the thing you would only otherwise find
+      out by being there — the course change when the track floods, the 6am start.</p>
+    <div class="proposed" data-note="proposed — no image column exists anywhere in the database">
+      <div class="folk" id="folk"></div>
+    </div>
+  </section>
+
+  <!-- ══ 7 · kept by ════════════════════════════════════════════════ -->
+  <section class="ch">
+    <h2>Kept by</h2>
+    <div class="proposed" data-note="proposed — needs a person, and a way for them to edit">
+      <div class="keeper">
+        <div class="mono">—</div>
+        <div>
+          <div class="who">Kept by</div>
+          <div class="nm">Not kept yet</div>
+          <div class="note">This page is waiting on somebody who runs here. They would
+            decide what belongs on it, add the routes they actually use, and say when a
+            club has gone quiet — which is the one thing no scraper will ever notice.</div>
+          <div class="fine">Last checked by the database, 26 Aug 2026 ·
+            <a href="#">Offer to keep this page</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="also">
+    <h2>Other types</h2>
+    <div class="set">
+      <a href="/type/walk">Walks</a><a href="/type/cycling">Cycling</a>
+      <a href="/type/swimming">Swimming</a><a href="/type/mountain-biking">Mountain biking</a>
+      <a href="/type/beach">Beaches</a><a href="/type/parks-playgrounds">Parks &amp; playgrounds</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script>
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const metaOf = m => m&&m.length ? `<div class="meta">${m.map(x=>`<i>${esc(x)}</i>`).join('')}</div>` : '';
+
+/* ── real rows: the three weekly running listings ── */
+const CLUBS = [
+  {day:'Saturdays',at:'8:00am',nm:'Torquay parkrun',meta:['Torquay','Free','5 km'],
+   desc:'Free, weekly, timed 5 km. Walk it, run it, or push a pram — the last finisher gets the same clap as the first.'},
+  {day:'Saturdays',at:'8:00am',nm:'Trebeck Reserve parkrun',meta:['Winchelsea','Free','5 km'],
+   desc:'The same thing inland, on the river flat. Flatter and quieter than Torquay.'},
+  {day:'Saturdays',at:'7:30am',nm:'Gather Athletics shop run',meta:['Ocean Grove','Free','~30 min'],
+   desc:'Fifteen out, fifteen back, coffee after. The out-and-back means nobody gets dropped — you turn when the time is up, wherever you have got to.'}
+];
+
+/* ── real rows: the six dated running listings ── */
+const EVENTS = [
+  {when:'Sat 12 Sep',nm:'Surf Coast Century',meta:['Anglesea','Ticketed'],
+   desc:'50 km and 100 km, solo or in relay teams, below the sea cliffs and along remote beach.'},
+  {when:'Sun 29 Nov',nm:'Torquay Triathlon Super Sprint',meta:['Torquay','6am–10:30am']},
+  {when:'Sat 5 Dec',nm:'Afterglow Night Trail Runs',meta:['Torquay','21 / 13 / 5 km'],
+   desc:'Point Addis to Torquay along the Surf Coast Walk, day or night.'},
+  {when:'Sun 3 Jan',nm:'Tim Gates Classic',meta:['Fairhaven','All ages']},
+  {when:'Sun 3 Jan',nm:'Jim Wall Classic Iron Event',meta:['Torquay','Swim · run']},
+  {when:'Sat 16 May',nm:'Great Ocean Road Running Festival',meta:['Lorne','from 7am'],
+   desc:'A weekend of it, from 1 km kids’ runs to the marathon.'}
+];
+
+/* ── proposed: routes ──
+   Start and end points are real coordinates out of the database. The lines
+   between them are drawn straight and are NOT the trail — a real one is a
+   GPX file, which is the whole argument for Strava as a source. */
+const TRAILS = [
+  {id:'t1',nm:'Surf Coast Walk — Jan Juc to Torquay',km:'5.4 km',kind:'clifftop · sealed & sand',
+   desc:'Out and back along the top, dropping to the rockpools at the end. The one everyone starts with.',
+   line:[[144.29517,-38.34456],[144.30601,-38.34748],[144.32691,-38.33982]]},
+  {id:'t2',nm:'Point Addis to Bells Beach',km:'6.8 km',kind:'trail · exposed',
+   desc:'No shade and no water anywhere on it. Not a summer afternoon.',
+   line:[[144.25389,-38.39531],[144.252611,-38.38593],[144.28245,-38.36898]]},
+  {id:'t3',nm:'Ironbark Basin loop',km:'4.1 km',kind:'bush · undulating',
+   desc:'Soft underfoot and sheltered — where you go when the clifftop is blown out.',
+   line:[[144.2314,-38.3893],[144.2410,-38.3856],[144.2465,-38.3912],[144.2314,-38.3893]]},
+  {id:'t4',nm:'Spring Creek to Bells clifftop',km:'3.2 km',kind:'clifftop · gravel',
+   desc:'Short, steep at the creek, and the best view on this list for the effort.',
+   line:[[144.30601,-38.34748],[144.2960,-38.3560],[144.28245,-38.36898]]}
+];
+
+/* ── real row: the only running shop in the database ── */
+const SHOPS = [
+  {nm:'Gather',where:'Ocean Grove',
+   desc:'Run shop and coffee, and the start of the Saturday shop run. Filed in places with no kind, because the vocabulary has no word for a shop yet.',
+   lnks:[['Instagram','https://www.instagram.com/gatheroceangrove/'],['Directions','#']]}
+];
+
+/* ── proposed: people, shown through the place they run ── */
+const FOLK = [
+  {shot:'Clifftop, Jan Juc to Bells — first light',cred:'Photo — needs a credit field',
+   nm:'Torquay parkrun',why:'Posts the course change when the track floods, which is the only place it is announced.',at:'Weekly · Instagram'},
+  {shot:'Shop window, Ocean Grove — Saturday 7:20am',cred:'Photo — needs a credit field',
+   nm:'Gather Athletics',why:'The Saturday run and everything that gathers around it.',at:'Instagram'},
+  {shot:'Sea cliffs below Anglesea — race morning',cred:'Photo — needs a credit field',
+   nm:'Surf Coast Century',why:'Entries, course notes, and the volunteer calls that make it happen.',at:'Seasonal'},
+  {shot:'',cred:'',nm:'A local runner',why:'Named here only once they have said yes. A photo of a person needs a second yes again.',at:'Empty on purpose',open:true}
+];
+
+document.getElementById('clubs').innerHTML = CLUBS.map(c =>
+  `<div class="club"><div class="day">${c.day}<span>${c.at}</span></div><div>`
+  + `<div class="nm">${esc(c.nm)}</div>${metaOf(c.meta)}`
+  + `<div class="desc">${esc(c.desc)}</div>`
+  + `<div class="lnks"><a href="#">Details</a><a href="#">Directions</a></div></div></div>`).join('');
+
+document.getElementById('events').innerHTML = EVENTS.map(e =>
+  `<div class="row"><div class="nm">${esc(e.nm)}</div><div class="when">${esc(e.when)}</div>`
+  + metaOf(e.meta) + (e.desc?`<div class="desc">${esc(e.desc)}</div>`:'')
+  + `<div class="lnks"><a href="#">Details</a><a href="#">Directions</a></div></div>`).join('');
+
+document.getElementById('shops').innerHTML = SHOPS.map(s =>
+  `<div class="shop"><div class="nm">${esc(s.nm)}</div><div class="where">${esc(s.where)}</div>`
+  + `<div class="desc">${esc(s.desc)}</div>`
+  + `<div class="lnks">${s.lnks.map(l=>`<a href="${esc(l[1])}" rel="noopener">${esc(l[0])}</a>`).join('')}</div>`
+  + `</div>`).join('')
+  + `<div class="gap">That is the whole section. There is no running shop in Torquay on the
+     board yet, and <b style="font-weight:400;color:var(--ink)">shop</b> is not one of the 31 place kinds —
+     which is the same gap that leaves Patagonia and 4 Pines unclassified.</div>`;
+
+document.getElementById('folk').innerHTML = FOLK.map(f =>
+  `<div class="card">`
+  + `<div class="shot"><span>${f.open?'No photo · and no person named yet':esc(f.shot)}</span></div>`
+  + (f.cred?`<div class="cred">${esc(f.cred)}</div>`:'')
+  + `<div class="nm">${esc(f.nm)}</div><div class="why">${esc(f.why)}</div>`
+  + `<div class="at">${esc(f.at)}</div></div>`).join('');
+
+/* ══ trails + map ══════════════════════════════════════════════════════
+   Same library and basemap as the board. The list is the thing you read;
+   the map is there to answer "where is that" without leaving the page. */
+const list = document.getElementById('trails');
+list.innerHTML = TRAILS.map(t =>
+  `<div class="trail" data-id="${t.id}"><div class="nm">${esc(t.nm)}</div>`
+  + `<div class="fig">${esc(t.km)} <em>· ${esc(t.kind)}</em></div>`
+  + `<div class="desc">${esc(t.desc)}</div>`
+  + `<div class="lnks"><a href="#">Directions</a>`
+  + `<a class="strava" href="#" rel="noopener">Open in Strava</a>`
+  + `<a href="#">Download GPX</a></div></div>`).join('');
+
+const isDark = () => document.documentElement.dataset.theme === 'dark'
+  || (!document.documentElement.dataset.theme
+      && matchMedia('(prefers-color-scheme:dark)').matches);
+const BASEMAP = {light:'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+                 dark :'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'};
+const FC = {type:'FeatureCollection', features:TRAILS.map(t =>
+  ({type:'Feature',properties:{id:t.id},geometry:{type:'LineString',coordinates:t.line}}))};
+
+const map = new maplibregl.Map({container:'map', style:BASEMAP[isDark()?'dark':'light'],
+  center:[144.29,-38.365], zoom:11.4, attributionControl:{compact:true}});
+map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+
+/* Start points are real coordinates, so they are drawn as markers over the
+   canvas — the same HTML-pin approach the board uses. Never set `position`
+   on one of these; MapLibre places them absolutely. */
+TRAILS.forEach(t => {
+  const el = document.createElement('div'); el.className = 'pin';
+  new maplibregl.Marker({element:el}).setLngLat(t.line[0]).addTo(map);
+});
+
+map.on('load', () => {
+  map.addSource('trails',{type:'geojson',data:FC});
+  map.addLayer({id:'trail-base',type:'line',source:'trails',
+    layout:{'line-cap':'round','line-join':'round'},
+    paint:{'line-color':isDark()?'#7F8678':'#787E6E','line-width':2.5,'line-opacity':.75}});
+  map.addLayer({id:'trail-on',type:'line',source:'trails',filter:['==',['get','id'],''],
+    layout:{'line-cap':'round','line-join':'round'},
+    paint:{'line-color':'#FFBB02','line-width':5}});
+  fit(TRAILS);
+});
+
+function fit(ts){
+  const b = new maplibregl.LngLatBounds();
+  ts.forEach(t => t.line.forEach(c => b.extend(c)));
+  map.fitBounds(b,{padding:52,maxZoom:14,duration:ts.length===1?600:0});
+}
+function light(id){
+  if(map.getLayer('trail-on')) map.setFilter('trail-on',['==',['get','id'],id||'']);
+  list.querySelectorAll('.trail').forEach(r => r.classList.toggle('on', r.dataset.id===id));
+}
+list.querySelectorAll('.trail').forEach(r => {
+  r.addEventListener('mouseenter',() => light(r.dataset.id));
+  r.addEventListener('mouseleave',() => light(null));
+  r.addEventListener('click',() => fit(TRAILS.filter(t => t.id===r.dataset.id)));
+});
+</script>
+</body>
+</html>
