@@ -3,11 +3,11 @@
   "rewrites": [
     {
       "source": "/place/:slug",
-      "destination": "/place.html?p=:slug"
+      "destination": "/place?p=:slug"
     },
     {
       "source": "/type/:slug",
-      "destination": "/type.html?t=:slug"
+      "destination": "/type?t=:slug"
     }
   ],
   "headers": [
