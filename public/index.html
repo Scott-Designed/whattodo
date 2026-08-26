@@ -659,10 +659,13 @@ let REMOTE_OK = false;
 /* listings view -> the shape this page renders */
 function fromRow(r){
   const cond = r.conditions || [];
-  const themes = (THEME_OF[r.type]||[]).concat(r.is_event?['whatson']:[])
+  /* `types` while the view still called it `type`. A row that is a festival and a
+     surf thing and a film thing says so; the first one is what the row prints. */
+  const types = r.types?.length ? r.types : (r.type ? [r.type] : []);
+  const themes = types.flatMap(t=>THEME_OF[t]||[]).concat(r.is_event?['whatson']:[])
                    .concat(cond.includes('good-in-rain')?['rainy']:[]);
   return {
-    id:r.id, key:r.key, ev:r.is_event, name:r.name, type:r.type, loc:r.location,
+    id:r.id, key:r.key, ev:r.is_event, name:r.name, types, type:types[0]??null, loc:r.location,
     /* `venue` while the view still called it that; the table is `places` now */
     place:r.place ?? r.venue, placeKind:r.place_kind,
     km:r.km===null?null:Number(r.km), cost:r.cost, ages:r.ages||[], desc:r.description,
@@ -796,8 +799,11 @@ function dayparts(i){
     if(i.nightOnly) return ['night'];
     return ['day'];
   }
-  if(i.type==='night') return ['night'];
-  return NIGHTABLE.has(i.type) ? ['day','night'] : ['day'];
+  /* Read every type, not just the first: a glow-worm walk is `night` and `walk`,
+     and whichever way round they are written it is still a night thing. */
+  const ts=typesOf(i);
+  if(ts.includes('night')) return ['night'];
+  return ts.some(t=>NIGHTABLE.has(t)) ? ['day','night'] : ['day'];
 }
 /* "7:30pm–10:30pm" -> 19.5 ; "from sunset" -> whatever sunset is today */
 function startHour(t,sunset){
@@ -910,8 +916,14 @@ const PLACE_ORDER=['Surf Coast wide','Home','Car',
   ...SUBURBS.filter(x=>!GEELONG.has(x)||x==='Geelong').sort()];
 
 const DRINK_KINDS=new Set(['pub','bar','brewery','winery','distillery','cidery']);
+/* A listing carries a list of types and `type` is the first of them — the one the
+   row prints and draws an icon for. Two older shapes still reach here with a bare
+   string: the built-in copy baked into this file, and anything a visitor adds. So
+   read the list through this rather than touching `.types` directly. */
+const typesOf = i => i.types?.length ? i.types : (i.type ? [i.type] : []);
+
 function verbsOf(i){
-  const v=new Set(VERB_OF[i.type]||[]);
+  const v=new Set(typesOf(i).flatMap(t=>VERB_OF[t]||[]));
   if(DRINK_KINDS.has(i.placeKind)) v.add('drink');
   return [...v];
 }
@@ -1026,10 +1038,11 @@ document.getElementById('addform').addEventListener('submit',async e=>{
   e.preventDefault();
   const v=id=>document.getElementById(id).value.trim();
   const type=v('f-type'), ev=KIND==='event';
-  const item={ id:newId(), name:v('f-name'), type, loc:v('f-where'),
+  const types=type?[type]:[];
+  const item={ id:newId(), name:v('f-name'), types, type:type||null, loc:v('f-where'),
     km: v('f-km')===''?null:+v('f-km'), cost:v('f-cost'), desc:v('f-desc'),
     url:v('f-url')||null, cond:['any-weather'], ages:[], season:[],
-    themes:(THEME_OF[type]||[]).concat(ev?['whatson']:[]), added:true, ev };
+    themes:types.flatMap(t=>THEME_OF[t]||[]).concat(ev?['whatson']:[]), added:true, ev };
   if(ev){ item.date=v('f-date')||null; item.time=v('f-time')||null; item.conf='low'; item.recur=null; }
   else  { item.dur=v('f-dur'); item.nightOnly=v('f-when')==='night'; item.anyTime=v('f-when')==='both'; }
   
@@ -1254,13 +1267,13 @@ function ok(i){
      default list holds back are not held back from your own list. */
   if(!S.saved && atHomeHidden(i)) return false;
   if(S.verb.length && !verbsOf(i).some(v=>S.verb.includes(v))) return false;
-  if(S.type.length && !S.type.includes(i.type)) return false;
+  if(S.type.length && !typesOf(i).some(t=>S.type.includes(t))) return false;
   if(S.suburb.length && !S.suburb.includes(suburbOf(i.loc))) return false;
   if(i.km!=null && i.km>S.km) return false;
   if(S.cost.length && !S.cost.includes(i.cost)) return false;
   if(S.who.length && !(i.ages||[]).some(a=>S.who.includes(a)||a==='all-ages')) return false;
   if(S.wx && suits(i)===false) return false;
-  if(S.q){const h=[i.name,i.loc,i.place,i.type,i.desc,(i.tags||[]).join(' ')].join(' ').toLowerCase();
+  if(S.q){const h=[i.name,i.loc,i.place,typesOf(i).join(' '),i.desc,(i.tags||[]).join(' ')].join(' ').toLowerCase();
     if(!h.includes(S.q))return false}
   return true;
 }
@@ -1590,10 +1603,10 @@ function refreshFacets(){
      picking one option would grey out its own siblings. */
   const pass=(i,skip)=>
        (!S.saved || isSaved(i)) && whenOK(i) && !(i.km!=null && i.km>S.km) && !(S.wx && suits(i)===false)
-    && (!S.q || [i.name,i.loc,i.place,i.type,i.desc,(i.tags||[]).join(' ')]
+    && (!S.q || [i.name,i.loc,i.place,typesOf(i).join(' '),i.desc,(i.tags||[]).join(' ')]
                   .join(' ').toLowerCase().includes(S.q))
     && (skip==='verb' || !S.verb.length || verbsOf(i).some(v=>S.verb.includes(v)))
-    && (skip==='type' || !S.type.length || S.type.includes(i.type))
+    && (skip==='type' || !S.type.length || typesOf(i).some(t=>S.type.includes(t)))
     && (skip==='suburb' || !S.suburb.length || S.suburb.includes(suburbOf(i.loc)))
     && (skip==='cost' || !S.cost.length || S.cost.includes(i.cost))
     && (skip==='who'  || !S.who.length  || (i.ages||[]).some(a=>S.who.includes(a)||a==='all-ages'));
@@ -1602,8 +1615,10 @@ function refreshFacets(){
   const pv=pool('verb'), pt=pool('type'), pc=pool('cost'), pw=pool('who'), ps=pool('suburb');
 
   paintMulti(MULTI.verb, VERBS, v=>pv.filter(i=>verbsOf(i).includes(v)).length);
-  const types=[...new Set(ALL.map(i=>i.type).filter(Boolean))].sort();
-  paintMulti(MULTI.type, types.map(t=>[t,t]), t=>pt.filter(i=>i.type===t).length);
+  /* Every type any row carries, not just its first — or a type that is only ever
+     a second one (cinema on a film festival) would be missing from the menu. */
+  const types=[...new Set(ALL.flatMap(typesOf))].sort();
+  paintMulti(MULTI.type, types.map(t=>[t,t]), t=>pt.filter(i=>typesOf(i).includes(t)).length);
   /* only offer a suburb something is actually in */
   const subs=PLACE_ORDER.filter(x=>ALL.some(i=>suburbOf(i.loc)===x));
   paintMulti(MULTI.suburb, subs.map(x=>[x,x]), x=>ps.filter(i=>suburbOf(i.loc)===x).length);
