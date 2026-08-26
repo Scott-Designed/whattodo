@@ -13,7 +13,7 @@ try{var t=localStorage.getItem('notice.theme');
 <link rel="stylesheet" href="/notice-page.css">
 <link rel="stylesheet" href="/notice-nav.css">
 </head>
-<body>
+<body data-nav="type">
 <script src="/nav.js"></script>
 
 <div class="page">
@@ -42,7 +42,7 @@ const NP = NoticePage, esc = NP.esc;
 const ALL_TYPES = PLACE_TYPES.concat(EVENT_TYPES);
 const ASKED = NP.subject('type', 't', ALL_TYPES, 'cafe');
 const WANT = ASKED.value, KNOWN = WANT !== null;
-if(KNOWN) NP.canonical('type', WANT);
+if(KNOWN) NP.canonical(WANT);
 const LABEL = KNOWN ? typeLabel(WANT) : 'Not a type we use';
 
 document.title = LABEL + ' — Notice';
@@ -64,7 +64,7 @@ const GLOSS = {
   shop:'Places you go to buy something, as opposed to a market, which is an event.'};
 
 document.getElementById('also').innerHTML = ALL_TYPES.map(t =>
-  `<a href="/type/${slugify(t)}"${t===WANT?' aria-current="page"':''}>${esc(typeLabel(t))}</a>`).join('');
+  `<a href="/${slugify(t)}"${t===WANT?' aria-current="page"':''}>${esc(typeLabel(t))}</a>`).join('');
 
 const body = document.getElementById('body');
 const stand = document.getElementById('stand');

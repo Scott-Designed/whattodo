@@ -15,7 +15,7 @@ try{var t=localStorage.getItem('notice.theme');
 <link rel="stylesheet" href="/notice-page.css">
 <link rel="stylesheet" href="/notice-nav.css">
 </head>
-<body>
+<body data-nav="place">
 <script src="/nav.js"></script>
 
 <div class="page">
@@ -48,14 +48,14 @@ const NP = NoticePage, esc = NP.esc;
    quote it back. */
 const ASKED = NP.subject('place', 'p', PLACE_ORDER, 'Torquay');
 const WANT = ASKED.value, KNOWN = WANT !== null;
-if(KNOWN) NP.canonical('place', WANT);
+if(KNOWN) NP.canonical(WANT);
 
 document.title = (KNOWN ? WANT : 'Not a place we know') + ' — Notice';
 document.getElementById('title').textContent = KNOWN ? WANT : 'Not a place we know';
 
 const also = document.getElementById('also');
 also.innerHTML = PLACE_ORDER.map(x =>
-  `<a href="/place/${slugify(x)}"${x===WANT?' aria-current="page"':''}>${esc(x)}</a>`).join('');
+  `<a href="/${slugify(x)}"${x===WANT?' aria-current="page"':''}>${esc(x)}</a>`).join('');
 
 const body = document.getElementById('body');
 const stand = document.getElementById('stand');

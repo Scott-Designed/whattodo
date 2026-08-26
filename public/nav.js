@@ -17,24 +17,26 @@
 (function(){
   'use strict';
 
-  var here = location.pathname.replace(/\/index\.html$/,'/');
-  var qs   = new URLSearchParams(location.search);
-  /* The slug in the path, or the old query string for a link shared before the
-     paths existed. Compared as a slug either way, so both light the same row. */
-  var seg  = here.replace(/\.html$/,'').split('/').filter(Boolean)[1] || '';
-
   function esc(s){ return String(s).replace(/[&<>"]/g,
     function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c] }) }
 
-  /* Which nav item is the page you are on. A suburb page lights Place, a type
-     page lights Type — the dropdown is where you came through. */
-  /* The .html is optional because vercel.json sets cleanUrls, and the trailing
-     segment is optional because a subject page carries its slug in the path
-     (/place/aireys-inlet). Match all three shapes rather than caring which. */
-  var CUR = /\/about(\.html)?$/.test(here) ? 'about'
-          : /\/place(\.html)?(\/|$)/.test(here) ? 'place'
-          : /\/type(\.html)?(\/|$)/.test(here)  ? 'type'
-          : 'board';
+  /* Which nav item is the page you are on. The page says so itself, on its
+     <body>, because the URL no longer can: /anglesea and /surfing are both a
+     bare slug, and telling them apart needs the vocabulary — which loads after
+     this file, since the bar is drawn before the first paint. A page knowing
+     its own name needs nothing and cannot be wrong. */
+  var CUR = document.body.dataset.nav || 'board';
+
+  /* Which subject, for lighting one row inside a menu. Read late, inside the
+     fill functions, so slugify() exists by then. Three shapes still arrive:
+     the flat path, an old /place/<slug> mid-redirect, and an older ?p=. */
+  function currentSlug(param){
+    var parts = location.pathname.replace(/\.html$/,'').split('/').filter(Boolean);
+    var raw = (parts[0] === 'place' || parts[0] === 'type')
+      ? (parts[1] ? decodeURIComponent(parts[1]) : '')
+      : (parts[0] ? decodeURIComponent(parts[0]) : '');
+    return slugify(raw || new URLSearchParams(location.search).get(param) || '');
+  }
 
   /* ── the bar ── */
   var bar = document.createElement('nav');
@@ -70,8 +72,8 @@
               '<div class="grp">Not one town</div>' +
               ['Surf Coast wide','Home','Car'].map(link).join('');
     function link(x){
-      var on = CUR==='place' && slugify(seg || qs.get('p') || '')===slugify(x);
-      return '<a href="/place/'+slugify(x)+'"'+
+      var on = CUR==='place' && currentSlug('p')===slugify(x);
+      return '<a href="/'+slugify(x)+'"'+
              (on?' aria-current="page"':'')+'>'+esc(x)+'</a>' }
     box.innerHTML = out;
   }
@@ -83,8 +85,8 @@
     var groups = [['Places to go', PLACE_TYPES], ['What’s on', EVENT_TYPES]];
     box.innerHTML = groups.map(function(g){
       return '<div class="grp">'+g[0]+'</div>' + g[1].map(function(t){
-        var on = CUR==='type' && slugify(seg || qs.get('t') || '')===slugify(t);
-        return '<a href="/type/'+slugify(t)+'"'+
+        var on = CUR==='type' && currentSlug('t')===slugify(t);
+        return '<a href="/'+slugify(t)+'"'+
                (on?' aria-current="page"':'')+'>'+esc(typeLabel(t))+'</a>' }).join('');
     }).join('');
   }

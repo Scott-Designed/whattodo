@@ -1,13 +1,21 @@
 {
   "cleanUrls": true,
-  "rewrites": [
+  "redirects": [
     {
       "source": "/place/:slug",
-      "destination": "/api/subject?kind=place&slug=:slug"
+      "destination": "/:slug",
+      "permanent": true
     },
     {
       "source": "/type/:slug",
-      "destination": "/api/subject?kind=type&slug=:slug"
+      "destination": "/:slug",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/:slug",
+      "destination": "/api/subject?slug=:slug"
     }
   ],
   "functions": {

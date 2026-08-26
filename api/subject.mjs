@@ -1,6 +1,8 @@
 /* ══ api/subject.mjs ═══════════════════════════════════════════════════
-   Serves /place/<slug> and /type/<slug> with their metadata already in the
-   HTML, rather than written in by JavaScript after the page has loaded.
+   Serves /<slug> — /anglesea, /surfing — with its metadata already in the
+   HTML, rather than written in by JavaScript after the page has loaded. It
+   also decides which of the two subject pages a slug belongs to, because a
+   flat URL no longer says.
 
    Why this exists. Google renders JavaScript, so search was never the
    problem — link previews are. iMessage, Slack, WhatsApp, Facebook and
@@ -56,25 +58,38 @@ function vocab(){
 const esc = s => String(s == null ? '' : s)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-/* What each kind of page is called and says, in one place so the two branches
-   cannot drift apart. */
-function describe(kind, slug){
+/* Nothing that is already a page, an asset or an endpoint may be answered as a
+   subject. Vercel checks the filesystem before it reaches a rewrite, so these
+   requests should never arrive here — this is the second lock, for the day
+   somebody adds a suburb called Admin. */
+const RESERVED = new Set(['about','admin','api','index','place','type','favicon',
+  'robots','sitemap','nav','notice-data','notice-nav','notice-page','notice-vocab','sunset']);
+
+/* Which page a slug belongs to, and what it says. Places are tested before
+   types. No slug is currently both — checked across all 50 and all 43 on
+   27 Aug 2026 — so the order decides nothing today; it is written down so that
+   the day one collides, the answer is already fixed rather than accidental.
+   A town is the more specific thing and a person typing a town name means the
+   town, so the town wins. */
+function describe(slug){
   const {PLACE_ORDER, PLACE_TYPES, EVENT_TYPES, NOT_A_TOWN, unslug, typeLabel} = vocab();
-  if(kind === 'place'){
-    const name = unslug(slug, PLACE_ORDER);
-    if(!name) return null;
-    return {
-      page:  'place.html',
-      title: name,
-      desc:  NOT_A_TOWN[name] ||
-             `What's on in ${name}, and what's there anyway — from Notice, a community list for Jan Juc and the Surf Coast.`
-    };
-  }
+  if(!slug || RESERVED.has(slug)) return null;
+
+  const name = unslug(slug, PLACE_ORDER);
+  if(name) return {
+    page:  'place.html',
+    kind:  'place',
+    title: name,
+    desc:  NOT_A_TOWN[name] ||
+           `What's on in ${name}, and what's there anyway — from Notice, a community list for Jan Juc and the Surf Coast.`
+  };
+
   const type = unslug(slug, PLACE_TYPES.concat(EVENT_TYPES));
   if(!type) return null;
   const label = typeLabel(type);
   return {
     page:  'type.html',
+    kind:  'type',
     title: label,
     desc:  `${label} around Jan Juc and the Surf Coast, town by town — everywhere it is, grouped by where it is.`
   };
@@ -98,27 +113,24 @@ function head(d, url){
 }
 
 export default function handler(req, res){
-  const q = req.query || {};
-  const kind = q.kind === 'type' ? 'type' : 'place';
-  const slug = String(q.slug || '');
-  const param = kind === 'place' ? 'p' : 't';
+  const slug = String((req.query && req.query.slug) || '');
 
   try{
-    const d = describe(kind, slug);
+    const d = describe(slug);
 
-    /* A slug for a town or a type that does not exist is a 404, not a page
-       that quietly renders. The body is still the real page — it explains
-       itself and offers the list — but the status tells a crawler the truth
-       rather than leaving it to guess at a soft 404. */
+    /* A slug that is neither a town nor a type is a 404, not a page that
+       quietly renders. The body is still the real page — it explains itself
+       and offers the list — but the status tells a crawler the truth rather
+       than leaving it to guess at a soft 404. place.html is the body because
+       a made-up single word is far more often a misremembered town. */
     if(!d){
-      const html = file(kind + '.html');
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.status(404).send(html.replace(/<meta name="robots"[^>]*>/, '') 
+      res.status(404).send(file('place.html')
         .replace('</head>', '<meta name="robots" content="noindex">\n</head>'));
       return;
     }
 
-    const url  = `${site(req)}/${kind}/${slug}`;
+    const url  = `${site(req)}/${slug}`;
     const html = file(d.page)
       .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(d.title)} — Notice</title>`)
       .replace('</head>', head(d, url) + '\n</head>');
@@ -126,9 +138,12 @@ export default function handler(req, res){
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.status(200).send(html);
   }catch(e){
-    /* If this function is broken the page must still open. Falling back to the
-       query-string form gives up the metadata and keeps the site. */
-    res.setHeader('Location', `/${kind}?${param}=${encodeURIComponent(slug)}`);
+    /* If this function is broken the page must still open. The query-string
+       form is served straight off the filesystem and cannot depend on this,
+       so it gives up the metadata and keeps the site. A slug that got this far
+       without being classified is offered to the place page, which will say so
+       plainly if it is not a town. */
+    res.setHeader('Location', `/place?p=${encodeURIComponent(slug)}`);
     res.status(302).end();
   }
 }

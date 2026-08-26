@@ -27,8 +27,8 @@ api/enrich.mjs        Vercel function: Claude drafts missing fields, user approv
                       Takes a name OR a url. Events lead with the url.
 api/admin.mjs         Vercel function: the only write path from a browser.
                       Holds the service key; needs ADMIN_PASSWORD.
-api/subject.mjs       Vercel function: serves /place/<slug> and /type/<slug>
-                      with their title and description already in the HTML.
+api/subject.mjs       Vercel function: serves /<slug> — /anglesea, /surfing —
+                      with its title and description already in the HTML.
 supabase/             schema, seed data, setup SQL
 scripts/              configure.py (keys into notice-data.js), sync.py (seed/export/moderate),
                       eventlib.py (shared plumbing for both scrapers),
@@ -694,62 +694,76 @@ public/about.html       /about
 ### The URL a subject page lives at
 
 ```
-notice.place/place/aireys-inlet
-notice.place/type/surfing
+notice.place/anglesea
+notice.place/surfing
 ```
 
-Two rewrites in `vercel.json` point those at the `place` and `type` pages. No
-build step and no file per town — the rewrite is server-side, so the browser
-still sees the path and the page reads its subject straight off it.
+Flat. A town and a type sit at the top level with nothing in front of them —
+Scott's call, 27 Aug 2026, overriding the `/place/anglesea` shape that shipped
+earlier the same day. The reasoning against it was namespace collision; the
+reasoning for it is that the segment repeated what the nav, the URL and the
+word itself already said.
 
-**The rewrite destination must be the clean path, not the file.** With
-`cleanUrls` on, Vercel 308s `/place.html` to `/place`, so a destination written
-as `/place.html?p=:slug` collides with that redirect and every subject URL
-404s. It is `/place?p=:slug`. This shipped broken once (27 Aug 2026) and passed
-every local test first, because the preview server stands in for cleanUrls by
-*serving* the file and never issues the redirect that causes the collision.
-**A rewrite is the one thing the local preview cannot prove** — check it on the
-deploy.
+**Nothing collides today, and that was checked, not assumed.** No suburb slug
+equals a type slug (50 against 43), and none of either equals a page, an asset
+or an endpoint. **That check is now a standing cost of this shape**: a new type
+called `about`, or a suburb called `admin`, silently becomes unreachable. Run
+the collision check before adding either.
+
+Routing, and the order matters because Vercel's does:
+
+- **`redirects` run before the filesystem**, so `/place/:slug` and `/type/:slug`
+  301 to `/:slug`. Links shared in the few hours the old shape was live keep
+  working and are told, once, where the page moved to.
+- **`rewrites` run after the filesystem**, so `/about`, `/admin`, `/nav.js` and
+  every other real file is found first and never reaches the catch-all. This is
+  the only reason a single `/:slug` rewrite is safe. `api/subject.mjs` also
+  keeps a `RESERVED` set as a second lock.
+- `/place?p=` and `/type?t=` still work, served straight off the filesystem.
+
+**Which page a bare slug belongs to is decided in one place** —
+`api/subject.mjs`, which tests places before types. Nothing is currently both,
+so the order decides nothing today; it is written down so that the day one
+collides the answer is already fixed rather than accidental. A town is the more
+specific thing, so the town wins.
 
 **The slug is derived, never stored.** `slugify`/`unslug` in `notice-vocab.js`
-turn "Aireys Inlet" into `aireys-inlet` and back by comparing slugs against the
-vocabulary the site already has. A slug column would be a second copy of the
-vocabulary and would go stale the first time a type was renamed — the exact
-failure that file exists to prevent. Checked 27 Aug 2026: no two of the 50
-places and no two of the 43 types slug the same. The nine group names all slug
-to `the-…` and no type does, so a `/type/the-ocean` group page could share the
-namespace later without colliding.
+turn "Aireys Inlet" into `aireys-inlet` and back against the vocabulary the
+site already has. A slug column would be a second copy and would go stale the
+first time a type was renamed — the failure that file exists to prevent.
 
-**`?p=` and `?t=` still work**, so anything shared before this does not break.
-`NoticePage.subject()` reads the path first and the query second; when the
-subject is real, `canonical()` puts the address bar back to the path form with
-`replaceState` — no reload, and no extra back-button entry for a URL the reader
-never chose. A made-up slug keeps the URL that was typed, because rewriting it
-would hide the mistake the page is about to explain.
+**The nav reads `document.body.dataset.nav`, not the URL.** `/anglesea` and
+`/surfing` are both a bare slug, and telling them apart needs the vocabulary,
+which loads *after* `nav.js` — the bar is drawn before the first paint. A page
+naming itself needs nothing and cannot be wrong. Every page carries the
+attribute; a new page without one falls back to `board`.
 
-**Deliberately not nested, and deliberately not region-prefixed.** `surfing` is
-unique, so `/type/the-ocean/surfing` would disambiguate nothing while making
-the taxonomy load-bearing in every shared link — move a type between groups and
-the links break. And a region segment was left out because *the site has no
-name for its own region yet*: this file says "Jan Juc and the Surf Coast", the
-listings actually span the Surf Coast, the Bellarine, Geelong and the Otways,
-and "south west coast" already means Warrnambool in Victoria. If a second area
-ever happens it wants its own suburb list, venues, geocoding and person — which
-is a subdomain (`surfcoast.notice.place`), not a subfolder. Decided with Scott
-27 Aug 2026; `/place/x` → `/region/place/x` is one redirect rule if that turns
-out wrong.
+**Three URL shapes still reach `NoticePage.subject()`** and all three must keep
+working: the flat path, an old `/place/<slug>` (a bookmark can land before the
+301), and `?p=`. Whichever way it arrived, `canonical()` puts the address bar
+back to the flat form with `replaceState` — no reload, and no extra back-button
+entry for a URL the reader never chose. A made-up slug keeps the URL that was
+typed, because rewriting it would hide the mistake the page then explains.
 
-**A plain static server does none of this**, and the symptom is that every nav
-menu item 404s in the preview and nowhere else — which reads as a broken page
-rather than a missing server feature. `.claude/launch.json` overrides
-`translate_path` to stand in for both rules: `<path>.html` for an extensionless
-path, then the parent's `.html` for `/place/aireys-inlet`. Restart the preview
-after pulling, or the old server is still running.
+**A plain static server does none of this.** `.claude/launch.json` stands in
+for all three rules, and for the catch-all it borrows the real vocabulary —
+node evaluates `notice-vocab.js` exactly as the function does, so the preview
+cannot disagree with the deploy about which page `/surfing` is. **A rewrite is
+still the one thing local cannot prove** (see below); check routing on the
+deploy.
+
+**The `cleanUrls` collision, paid for once.** With `cleanUrls` on, Vercel 308s
+`/place.html` to `/place`, so a rewrite destination written as
+`/place.html?p=:slug` collides with that redirect and every subject URL 404s.
+Destinations must be the clean path. This shipped broken (27 Aug 2026) and
+passed every local test first, because the preview server stands in for
+cleanUrls by *serving* the file and never issues the redirect that causes the
+collision.
 
 ### Each subject carries its own title and description
 
-`api/subject.mjs` serves `/place/<slug>` and `/type/<slug>`. The rewrites point
-at it rather than at the static file, and it reads the page off disk and edits
+`api/subject.mjs` serves `/<slug>`. The catch-all rewrite points at it rather
+than at a static file, and it reads the page off disk and edits
 the head on the way past — `<title>`, `description`, `canonical`, Open Graph
 and Twitter card.
 

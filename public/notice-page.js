@@ -106,27 +106,35 @@
   var n = function(c, one, many){ return c + ' ' + (c === 1 ? one : many) };
 
   /* ── which subject this page is about, and its one true address ──
-     The path first — /place/aireys-inlet — and the query string second, so
-     ?p=Aireys%20Inlet still opens anything shared before 27 Aug 2026. Vercel
-     rewrites the path form to the file, and that rewrite is server-side, so
-     the browser still sees the path and this reads it straight.
+     The URL is flat — /anglesea, /surfing — so the slug is the whole path and
+     nothing in it says which of the two pages you are on. It does not need to:
+     the page knows what it is, and `seg` is its own name, used only to tell
+     "/place/anglesea" (an old link, mid-redirect) from "/anglesea".
 
-     Whichever way it arrived, the address bar is put back to the path form.
+     Three shapes reach here, and all three still have to work:
+       /anglesea            the flat path, what everything links to now
+       /place/anglesea      a link shared before 27 Aug 2026 — Vercel 301s it,
+                            but a bookmark can still land here first
+       /place?p=Anglesea    older still, served straight off the filesystem
+
+     Whichever way it arrived, the address bar is put back to the flat form.
      replaceState and not assign: no reload, and no second entry in the back
      button for a URL the reader never chose. */
   function subject(seg, param, list, fallback){
     var parts = location.pathname.replace(/\.html$/,'').split('/').filter(Boolean);
-    var raw = (parts[0] === seg && parts[1]) ? decodeURIComponent(parts[1])
-            : (new URLSearchParams(location.search).get(param) || '');
+    var raw = '';
+    if(parts[0] === seg)  raw = parts[1] ? decodeURIComponent(parts[1]) : '';
+    else if(parts[0])     raw = decodeURIComponent(parts[0]);
+    if(!raw) raw = new URLSearchParams(location.search).get(param) || '';
     if(!raw) return {value: fallback, raw: fallback};
     return {value: unslug(raw, list), raw: raw};
   }
 
-  /* Only ever called once the subject is known to be real. A made-up segment
+  /* Only ever called once the subject is known to be real. A made-up slug
      keeps the URL the reader typed — rewriting it would hide the mistake the
      page is about to explain. */
-  function canonical(seg, value){
-    var want = '/' + seg + '/' + slugify(value);
+  function canonical(value){
+    var want = '/' + slugify(value);
     if(location.pathname !== want)
       try{ history.replaceState(null, '', want + location.hash) }catch(e){}
   }
