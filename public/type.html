@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Type — Notice</title>
+<script>
+try{var t=localStorage.getItem('notice.theme');
+    if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}
+</script>
+<link rel="stylesheet" href="/sunset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/notice-page.css">
+<link rel="stylesheet" href="/notice-nav.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="page">
+  <div class="mast">
+    <p class="eyebrow">Type</p>
+    <h1 id="title">&nbsp;</h1>
+    <p class="stand" id="stand"></p>
+  </div>
+  <div id="body"></div>
+  <div class="also">
+    <h2>Other types</h2>
+    <div class="set" id="also"></div>
+  </div>
+</div>
+
+<script src="/notice-vocab.js"></script>
+<script src="/notice-data.js"></script>
+<script src="/notice-page.js"></script>
+<script>
+/* ══ a type ════════════════════════════════════════════════════════════
+   One kind of thing, everywhere it is, grouped by town — which is the one
+   arrangement the board cannot produce. Filtering the board to cafés gives a
+   flat list sorted by distance; what you actually want to know is which towns
+   have them, and that only appears when the list is grouped.
+   ═══════════════════════════════════════════════════════════════════════ */
+const NP = NoticePage, esc = NP.esc;
+const ALL_TYPES = PLACE_TYPES.concat(EVENT_TYPES);
+const WANT = new URLSearchParams(location.search).get('t') || 'cafe';
+const KNOWN = ALL_TYPES.includes(WANT);
+const LABEL = KNOWN ? typeLabel(WANT) : 'Not a type we use';
+
+document.title = LABEL + ' — Notice';
+document.getElementById('title').textContent = LABEL;
+
+/* One line about what the word means here, where the word alone is ambiguous.
+   Only the types that genuinely need it — a caption on "Beaches" would be
+   filler, and this list is a place a wrong claim could hide. */
+const GLOSS = {
+  'at-home':'Things that need nothing but your own house and garden.',
+  night:'Things that are better, or only possible, after dark.',
+  cultural:'Galleries, arts trails and the things a town puts on for itself.',
+  community:'Things a group runs and anyone can turn up to.',
+  volunteering:'Days out where the point is the work.',
+  water:'On the water rather than beside it — paddling, boating, swimming holes.',
+  surf:'Breaks, not surf shops.',
+  nursery:'Plant nurseries and growers open to visitors.',
+  'sport-event':'Runs, rides, swims and surf comps with a date on them.',
+  shop:'Places you go to buy something, as opposed to a market, which is an event.'};
+
+document.getElementById('also').innerHTML = ALL_TYPES.map(t =>
+  `<a href="/type?t=${encodeURIComponent(t)}"${t===WANT?' aria-current="page"':''}>${esc(typeLabel(t))}</a>`).join('');
+
+const body = document.getElementById('body');
+const stand = document.getElementById('stand');
+
+(async () => {
+  if(!KNOWN){
+    body.innerHTML = `<div class="note">The Notice Board has no type called <b>${esc(WANT)}</b>. `
+      + `The 26 it does use are below.</div>`;
+    return;
+  }
+  body.innerHTML = '<div class="note">Reading the board…</div>';
+
+  const all = await NP.rows();
+  if(!all){
+    body.innerHTML = '<div class="note">Could not reach the database, so this page has '
+      + 'nothing to show. The <a href="/">Notice Board</a> ships with a copy of the '
+      + 'listings built into it and will still work.</div>';
+    return;
+  }
+
+  /* typesOf, not `type`: a film festival is a festival AND a cinema thing, and
+     a type that is only ever a row's second one would otherwise have an empty
+     page. */
+  const mine = all.filter(i => typesOf(i).includes(WANT));
+
+  /* Group by town, in the site's own order — the three that are not towns last,
+     since "Surf Coast wide" is where a thing goes when it has no town. */
+  const groups = PLACE_ORDER
+    .map(x => [x, mine.filter(i => suburbOf(i.loc) === x)])
+    .filter(g => g[1].length);
+  const homeless = mine.filter(i => suburbOf(i.loc) === null);
+  if(homeless.length) groups.push(['Not said', homeless]);
+
+  stand.innerHTML = mine.length
+    ? `<b>${NP.n(mine.length,'thing','things')}</b> on the board`
+      + `${groups.length > 1 ? `, across ${NP.n(groups.length,'town','towns')}` : ''}.`
+      + (GLOSS[WANT] ? ' ' + GLOSS[WANT] : '')
+    : `Nothing on the board is filed as ${esc(LABEL.toLowerCase())} yet.`;
+
+  if(!mine.length){
+    body.innerHTML = `<div class="note">${esc(LABEL)} is one of the 26 types the database `
+      + `uses, but nothing carries it yet.</div>`;
+    return;
+  }
+
+  const dated = EVENT_TYPES.includes(WANT);
+  body.innerHTML = '<section class="sec">' + groups.map(g =>
+    `<h3 class="sub-h">${esc(g[0])}<span class="n">${g[1].length}</span></h3>`
+    + g[1].sort(dated ? NP.byDate : NP.byName).map(i => NP.row(i, 'type,suburb')).join('')
+  ).join('') + '</section>';
+})();
+</script>
+</body>
+</html>

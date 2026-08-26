@@ -1,0 +1,112 @@
+/* ══ notice-page.css ═══════════════════════════════════════════════════
+   The template a Place page, a Type page and About are all built from.
+
+   These are pages, not the board with a filter on it: one subject, said at
+   the top, and the listings underneath arranged the way that subject wants
+   them — a town groups by what is on and where to go, a type groups by town.
+   The board can do neither, which is the reason these exist.
+
+   The token block is the site's own, copied the way admin.html copies it —
+   there is no build step to share it with. Same three-state shape: bare :root
+   is light, the media query is guarded against an explicit light, and
+   [data-theme="dark"] wins over both. Do not redefine a colour below it.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{
+  --ground:#EAEAEA; --surface:#E1E2DC; --ink:#1B2114; --ink2:#4A5142; --ink3:#787E6E;
+  --rule:#CFD0C9; --rule2:#B9BBB2;
+  --serif:'Sunset',Georgia,'Times New Roman',serif;
+  --util:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --pad:64px;
+  --accent:#FFBB02;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
+  --rule:#2C3126; --rule2:#3C4234;
+}}
+:root[data-theme="dark"]{
+  --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
+  --rule:#2C3126; --rule2:#3C4234;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--serif);font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.page{padding:0 var(--pad) 120px;max-width:1180px}
+
+/* ── the masthead a subject gets ──
+   An eyebrow saying what kind of page this is, the subject at masthead size,
+   and one line of plain English underneath counting what is actually here.
+   The count is the page's own claim and is always drawn from the rows below,
+   never written into the markup. */
+.mast{padding:52px 0 30px}
+.eyebrow{margin:0 0 14px;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.mast h1{margin:0;font-family:var(--serif);font-weight:400;
+  font-size:clamp(44px,6vw,76px);letter-spacing:-.025em;line-height:.95}
+.stand{max-width:54ch;margin:18px 0 0;color:var(--ink2);font-size:19px}
+.stand b{font-weight:400;color:var(--ink)}
+
+/* ── a section of listings ── */
+.sec{margin-top:52px}
+.sec > h2{margin:0 0 4px;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);
+  padding-bottom:10px;border-bottom:1px solid var(--rule2)}
+.sec > h2 .n{float:right;font-variant-numeric:tabular-nums;color:var(--ink3);opacity:.8}
+.sub-h{margin:34px 0 0;font-family:var(--serif);font-weight:400;font-size:21px;
+  letter-spacing:-.01em;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+.sub-h .n{float:right;font-family:var(--util);font-size:11px;font-weight:500;
+  color:var(--ink3);padding-top:8px;font-variant-numeric:tabular-nums}
+
+/* ── one listing ──
+   Two columns and not the board's five: a page about one town has already said
+   where everything is, so the row spends its width on the name and the line
+   that tells you what the thing actually is. */
+.row{display:grid;grid-template-columns:minmax(0,1fr) 128px;gap:2px 22px;
+  align-items:baseline;padding:15px 0;border-bottom:1px solid var(--rule)}
+.row .nm{font-size:20px;letter-spacing:-.01em;color:var(--ink)}
+.row .meta{grid-column:1;font-family:var(--util);font-size:12px;color:var(--ink3);
+  letter-spacing:.02em}
+.row .meta i{font-style:normal}
+.row .meta i + i::before{content:" · ";opacity:.65}
+.row .desc{grid-column:1;max-width:64ch;margin-top:7px;color:var(--ink2);font-size:16px}
+.row .when{grid-column:2;grid-row:1;justify-self:end;text-align:right;
+  font-family:var(--util);font-size:12px;font-weight:500;color:var(--ink2);
+  font-variant-numeric:tabular-nums}
+.row .lnks{grid-column:1;margin-top:9px;display:flex;flex-wrap:wrap;gap:16px}
+.row .lnks a{font-family:var(--util);font-size:12px;font-weight:500;color:var(--ink3);
+  text-decoration:none;border-bottom:1px solid var(--rule2);padding-bottom:2px}
+.row .lnks a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+
+/* ── the strip of sibling pages at the foot ──
+   A page about Torquay should offer the next town rather than sending you back
+   to a filter to find it. */
+.also{margin-top:64px;padding-top:26px;border-top:1px solid var(--rule2)}
+.also h2{margin:0 0 16px;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.also .set{display:flex;flex-wrap:wrap;gap:9px}
+.also a{font-family:var(--util);font-size:13px;color:var(--ink2);text-decoration:none;
+  border:1px solid var(--rule2);border-radius:999px;padding:7px 14px}
+.also a:hover{color:var(--ink);border-color:var(--ink)}
+.also a[aria-current="page"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+
+/* ── the states a page can be in before or instead of its listings ── */
+.note{margin:44px 0;padding:20px 22px;background:var(--surface);
+  border-left:2px solid var(--rule2);color:var(--ink2);max-width:56ch}
+.note b{color:var(--ink);font-weight:400}
+.note a{color:var(--ink)}
+
+/* ── About: one column of prose ── */
+.doc{max-width:60ch;padding-bottom:40px}
+.doc h2{font-family:var(--util);font-size:11px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink3);margin:40px 0 12px}
+.doc p{margin:0 0 17px;color:var(--ink2);font-size:18px}
+.doc a{color:var(--ink);text-decoration:underline;
+  text-decoration-color:var(--rule2);text-underline-offset:3px}
+.doc a:hover{text-decoration-color:var(--ink)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:700px){
+  :root{--pad:20px}
+  .mast{padding:34px 0 22px}
+  .row{grid-template-columns:minmax(0,1fr)}
+  .row .when{grid-column:1;grid-row:auto;justify-self:start;text-align:left;margin-top:3px}
+}

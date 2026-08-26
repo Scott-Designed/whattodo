@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Place — Notice</title>
+<script>
+/* Before the first paint, and sharing the site's own key, so walking from the
+   board to a town does not flash a different scheme. */
+try{var t=localStorage.getItem('notice.theme');
+    if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}
+</script>
+<link rel="stylesheet" href="/sunset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/notice-page.css">
+<link rel="stylesheet" href="/notice-nav.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="page">
+  <div class="mast">
+    <p class="eyebrow">Place</p>
+    <h1 id="title">&nbsp;</h1>
+    <p class="stand" id="stand"></p>
+  </div>
+  <div id="body"></div>
+  <div class="also">
+    <h2>Other towns</h2>
+    <div class="set" id="also"></div>
+  </div>
+</div>
+
+<script src="/notice-vocab.js"></script>
+<script src="/notice-data.js"></script>
+<script src="/notice-page.js"></script>
+<script>
+/* ══ a town ════════════════════════════════════════════════════════════
+   One place, and the two questions you have about it: what is on there, and
+   what is there anyway. The board can only interleave those — it sorts one
+   list by soonest or by closest, and on a page about a single town closest
+   means nothing at all. Splitting them is the reason this page exists.
+   ═══════════════════════════════════════════════════════════════════════ */
+const NP = NoticePage, esc = NP.esc;
+const WANT = new URLSearchParams(location.search).get('p') || 'Torquay';
+
+/* Only a suburb the site actually knows. Anything else is a link somebody
+   made up, and a page that titles itself with whatever is in the query string
+   is a page that will happily say "Paris". */
+const KNOWN = PLACE_ORDER.includes(WANT);
+
+document.title = (KNOWN ? WANT : 'Not a place we know') + ' — Notice';
+document.getElementById('title').textContent = KNOWN ? WANT : 'Not a place we know';
+
+/* The three that are not towns get a line saying so, because "Home" and
+   "Surf Coast wide" are honest answers to Where and are not towns you drive to. */
+const NOT_A_TOWN = {
+  'Home':'Things you can do without leaving the house.',
+  'Car':'Things to do on the way, from the passenger seat.',
+  'Surf Coast wide':'Things with no single address — they move, or they are the whole coast.'};
+
+const also = document.getElementById('also');
+also.innerHTML = PLACE_ORDER.map(x =>
+  `<a href="/place?p=${encodeURIComponent(x)}"${x===WANT?' aria-current="page"':''}>${esc(x)}</a>`).join('');
+
+const body = document.getElementById('body');
+const stand = document.getElementById('stand');
+
+(async () => {
+  if(!KNOWN){
+    stand.textContent = '';
+    body.innerHTML = `<div class="note">The Notice Board has no town called <b>${esc(WANT)}</b>. `
+      + `Pick one from the list below, or go back to the <a href="/">Notice Board</a>.</div>`;
+    return;
+  }
+  body.innerHTML = '<div class="note">Reading the board…</div>';
+
+  const all = await NP.rows();
+  if(!all){
+    stand.textContent = '';
+    body.innerHTML = '<div class="note">Could not reach the database, so this page has '
+      + 'nothing to show. The <a href="/">Notice Board</a> ships with a copy of the '
+      + 'listings built into it and will still work.</div>';
+    return;
+  }
+
+  const mine = all.filter(i => suburbOf(i.loc) === WANT);
+  const on   = mine.filter(i => i.ev).sort(NP.byDate);
+  const go   = mine.filter(i => !i.ev).sort(NP.byName);
+
+  stand.innerHTML = mine.length
+    ? `<b>${NP.n(mine.length,'thing','things')}</b> pinned in ${esc(WANT)}`
+      + ` — ${NP.n(go.length,'place to go','places to go')}`
+      + ` and ${NP.n(on.length,'thing on','things on')}.`
+      + (NOT_A_TOWN[WANT] ? ' ' + NOT_A_TOWN[WANT] : '')
+    : `Nothing is pinned in ${esc(WANT)} yet.`;
+
+  if(!mine.length){
+    body.innerHTML = `<div class="note">${esc(WANT)} is a place the site knows about, but `
+      + `nothing on the board is there yet. You can add something from the `
+      + `<a href="/">Notice Board</a>.</div>`;
+    return;
+  }
+
+  /* What's on leads. A page about a town is most often opened because somebody
+     is deciding about this weekend, and a dated thing expires while a beach
+     does not. */
+  const sec = (title, list, skip) => list.length
+    ? `<section class="sec"><h2>${title}<span class="n">${list.length}</span></h2>`
+      + list.map(i => NP.row(i, skip)).join('') + '</section>'
+    : '';
+
+  body.innerHTML = sec("What&rsquo;s on", on, 'suburb') + sec('Places to go', go, 'suburb');
+})();
+</script>
+</body>
+</html>

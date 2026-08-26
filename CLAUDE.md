@@ -12,7 +12,14 @@ hook. So `whattodo` is the project and `Notice` is the product.
 ## Shape of it
 
 ```
-public/index.html     the entire site — one file, no build step, no framework
+public/index.html     the Notice Board — one file, no build step, no framework
+public/about.html     what this is, and what it will not do
+public/place.html     a town: what's on there, and what's there anyway
+public/type.html      one kind of thing, everywhere it is, grouped by town
+public/nav.js         the bar across all four, and its two menus
+public/notice-nav.css  ·  notice-page.css  ·  notice-page.js   the shared chrome
+public/notice-vocab.js  suburbOf, typesOf, nextDate — lifted out of index.html
+public/notice-data.js   the Supabase keys and fromRow — configure.py writes here
 public/admin.html     back of house: the automations, every listing, and an editor
 public/sunset.css     the Sunset face, so admin.html can wear it too
 api/enrich.mjs        Vercel function: Claude drafts missing fields, user approves
@@ -20,7 +27,7 @@ api/enrich.mjs        Vercel function: Claude drafts missing fields, user approv
 api/admin.mjs         Vercel function: the only write path from a browser.
                       Holds the service key; needs ADMIN_PASSWORD.
 supabase/             schema, seed data, setup SQL
-scripts/              configure.py (keys into the page), sync.py (seed/export/moderate),
+scripts/              configure.py (keys into notice-data.js), sync.py (seed/export/moderate),
                       eventlib.py (shared plumbing for both scrapers),
                       scrape_events.py (the Surf Coast Events feed),
                       scrape_venues.py (each venue's own ticketing page),
@@ -627,6 +634,109 @@ so any stricter filter than `jsonld_events` will silently drop them. robots.txt
 allows `/o/` and `/e/` for our UA and names no AI crawler. So reading the pages
 needs no token, while the API needs one stored in two places. **Scott has not
 decided** — offered 25 Aug 2026 and left open, so `API_INSTEAD` stands.
+
+## The nav bar, and the pages behind it
+
+Built 26 Aug 2026. The site is four pages now, not one, and they share a bar
+across the top: the **Notice** wordmark on the left, then **About**,
+**Noticeboard**, and two menus — **Place** and **Type**.
+
+```
+public/notice-nav.css   the bar
+public/nav.js           draws it, and works the two menus
+public/notice-page.css  the template place/type/about are built from
+public/notice-page.js   what a Place page and a Type page share
+public/place.html       a town        /place?p=Torquay
+public/type.html        a kind        /type?t=cafe
+public/about.html       /about
+```
+
+`vercel.json` already sets `cleanUrls`, so the links are `/place` and `/type`
+with no extension. **A local static server does not do that** — the preview
+serves `place.html?p=Torquay`, and clicking a menu item locally 404s. That is
+the preview, not the page.
+
+### These are pages, not the board with a filter on it
+
+This was the first shape tried and it was wrong. A Place menu that set
+`S.suburb=['Torquay']` and re-titled the masthead is cheaper and reuses
+everything, but it produces one flat list sorted by *closest first* on a page
+about a single town, which is a sort with nothing to say. What the two pages do
+that the board cannot:
+
+- **A town splits.** What's on (dated, soonest first) above Places to go
+  (evergreen, alphabetical). The board can only interleave them.
+- **A type groups by town.** "21 cafés across 11 towns" is the fact you want
+  from a type, and it only exists once the list is grouped.
+
+So each page arranges its own listings, and `row()` takes the facts the page has
+**already established at the top** and leaves them out — a Torquay page does not
+print Torquay 71 times. That is `skip`, and it is a comma list because a Type
+page groups by town and has therefore said two things (`'type,suburb'`).
+
+**`'suburb'`, never `'where'`.** The first version passed `'where'` and dropped
+the venue with the suburb, which left every gig on the Torquay page with nowhere
+to be. The town is the page's subject; the Torquay Hotel is still the thing you
+need to read.
+
+### What was lifted out of index.html, and why it had to be
+
+Three files came out of the one-file page so more than one page could read them.
+This is a **lift, not a copy**, and that is the whole point — two live copies of
+one fact is how this project put the same festival on two different dates.
+
+- **`notice-vocab.js`** — `suburbOf` and the suburb list, `typesOf`,
+  `THEME_OF`, `PLACE_TYPES`/`EVENT_TYPES`, and `todayISO`/`daysAway`/`nextDate`.
+  A suburb page that decided for itself what counts as "Torquay" would disagree
+  with the board sooner or later. `nextDate` in particular has already been
+  wrong once in a way only a test caught (the UTC parsing bug) — one copy, one
+  fix. Adding a type is still the four places listed above; `PLACE_TYPES` just
+  moved house.
+- **`notice-data.js`** — the connection and `fromRow`. **`scripts/configure.py`
+  writes the keys here now, not into `index.html`.** `admin.html` still carries
+  its own copy of the URL and anon key; that predates this and was left alone.
+- **`notice-page.js`** — `rows()`, `row()`, the date label. Only the two subject
+  pages use it.
+
+Load order is `notice-vocab.js` → `notice-data.js` → the page's own script.
+`fromRow` reads `THEME_OF`; classic scripts, no modules, nothing on `window`
+by hand.
+
+### The bar
+
+`nav.js` writes the bar into the page rather than each file carrying the markup,
+so it is in one place when it changes. **It is the first thing inside `<body>`,
+and that is load-bearing**: a classic script there runs before anything below it
+is parsed, so the bar is in the document for the first paint. Deferred at the
+end of the body it appears late and shoves the page down.
+
+`notice-nav.css` **names no colour** — every value is one of the site's own
+tokens, so the bar follows Auto/Light/Dark with the theme pill and never has to
+learn the three-state shape. It is `--surface` against the page's `--ground`, so
+it reads as raised in both schemes: a shade darker than the page in light, a
+shade lighter in dark. Scott chose theme-aware over a hardcoded white bar.
+
+`z-index:70` and not 60. The board's filter pops are 60 and live in the page's
+own stacking context, so the bar has to outrank them or the Type menu opens
+behind the Suburb one.
+
+**The menus are the vocabulary, not the data.** They list every suburb and every
+type, with no counts. A suburb with nothing in it is still a suburb, the count
+belongs on the page you land on rather than the menu you leave, and building
+them from `listings` would make the bar wait on a fetch before it could draw.
+
+The masthead's top padding dropped from 72px to 44px (26px on mobile) — the bar
+is now that space.
+
+### Deliberately not done
+
+- **No baked-in fallback on the subject pages.** index.html ships 160KB of JSON
+  so the board is never blank; a Place page says it could not reach the database
+  instead. Do not add the copy to three more files.
+- **No map on a town page.** It is the obvious next thing and it is real work —
+  MapLibre, the water check, the shared-coordinate pin. Not started.
+- **The board does not link to these pages yet.** A suburb or a type printed in
+  a row is still plain text. Linking them is the natural follow-up.
 
 ## Research rules — this project has been burned before
 
