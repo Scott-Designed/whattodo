@@ -425,3 +425,65 @@ rather have it than forty invented ones.
 Post one summary: the audit findings, rows added, and your recommendation on whether this group
 needs any more attention at all.
 ```
+
+---
+
+## 4b · The hospitality, round two — depth
+
+The first hospitality pass added 71 rows and stopped early. Two reasons, and
+neither was its sourcing, which was the part that worked:
+
+- **The prompt made town coverage the finish line.** "These eight towns should
+  all be represented" got read as one-per-town, and real finds were deferred in
+  writing: *"Napona / Parade Espresso (Ocean Grove), Ocean Grind (Torquay) —
+  real, but the towns are already represented."*
+- **It searched town names**, which cannot find a venue not named after its town.
+  Love House, Skinny Legs Café, The Captain of Aireys, Anglesea Pub, Mr. T & Me,
+  Onda Food House — all missed, all sitting in OpenStreetMap the whole time.
+  Anglesea finished on 5 listings against 17 that OSM already had.
+
+`scripts/nearby.py` is the fix for the second one. This prompt is the fix for the
+first: the unit of work is a **town**, not a type, and the floor is per town.
+
+```text
+Read prompts/RESEARCH_RULES.md and CLAUDE.md, then do a depth pass on The hospitality group.
+The last pass got breadth — one or two venues per town. This pass gets depth.
+
+The unit of work is a TOWN, not a type. Work this list in order:
+  Torquay, Anglesea, Aireys Inlet, Jan Juc, Lorne, Barwon Heads, Ocean Grove, Queenscliff,
+  Portarlington, Point Lonsdale, Drysdale, Apollo Bay, Winchelsea, Geelong.
+
+This is a loop. For each town, in order:
+  1. `python3 scripts/nearby.py "<town>"` — every food and drink place OSM knows there, split
+     into what we already list and what we do not. Try `--radius 3000` for the spread-out towns.
+  2. Take EVERY name under "NOT in the database" as a candidate. Do not pre-filter by whether
+     the town already has listings — that is the mistake this pass exists to correct.
+  3. For each candidate, find its own site or Instagram and confirm it is currently trading.
+     Then geocode it and build the row. Drop it only if you cannot source it or it has closed —
+     never because the town "has enough already".
+  4. `nearby.py`'s match is biased towards showing things as missing, so before writing, search
+     the existing names for the candidate's distinctive word. "Le Comptoir" will be reported as
+     missing even though "Le Comptoir Bakehouse" is already there.
+  5. Write the batch, `python3 scripts/sync.py add <file> --dry-run`, fix, then write for real.
+  6. Append to prompts/log/hospitality.md under a "round two — <town>" heading.
+  7. Go straight to the next town. Do not ask me between towns.
+
+Judgement on what OSM offers:
+  - `fast_food` and `ice_cream` include chains and pure takeaways. A fish and chip shop that is
+    part of a town's summer is worth listing; KFC is not. Use the site's own test — is this a
+    reason to go somewhere, or somewhere you happen to end up.
+  - OSM labels are contributors' opinions. Check the venue's own page before you pick the type:
+    the Anglesea "Pub" tag, a `restaurant` that is really a wine bar, a `cafe` that is a roaster.
+  - OSM is not complete either. When you have worked its list, spend one look at the town's own
+    main street — a strip that is obviously missing from OSM is worth saying so in the log.
+  - Anything already listed with the wrong town, wrong type or a dead url: note it in the log
+    with the id. Do not edit existing rows, that goes through /admin.
+
+Do not stop until all fourteen towns have been through the loop. There is no per-type target
+this time — the target is that a person who lives in each of those towns would not be able to
+name three obvious places you missed.
+
+When every town is done, post one summary: rows added per town, the towns where OSM was clearly
+thinner than reality, existing rows that need correcting, and any venue worth a `places` row
+with an events_url.
+```
