@@ -1,9 +1,28 @@
 {
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/place/:slug",
+      "destination": "/place.html?p=:slug"
+    },
+    {
+      "source": "/type/:slug",
+      "destination": "/type.html?t=:slug"
+    }
+  ],
   "headers": [
-    { "source": "/(.*)", "headers": [
-      { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
-      { "key": "X-Content-Type-Options", "value": "nosniff" }
-    ]}
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
   ]
 }

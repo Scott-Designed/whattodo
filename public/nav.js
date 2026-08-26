@@ -19,18 +19,21 @@
 
   var here = location.pathname.replace(/\/index\.html$/,'/');
   var qs   = new URLSearchParams(location.search);
+  /* The slug in the path, or the old query string for a link shared before the
+     paths existed. Compared as a slug either way, so both light the same row. */
+  var seg  = here.replace(/\.html$/,'').split('/').filter(Boolean)[1] || '';
 
   function esc(s){ return String(s).replace(/[&<>"]/g,
     function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c] }) }
 
   /* Which nav item is the page you are on. A suburb page lights Place, a type
      page lights Type — the dropdown is where you came through. */
-  /* The .html is optional because vercel.json sets cleanUrls — the deployed
-     paths are /place and /type, and only a local static server sees the
-     extension. Match both rather than caring which. */
+  /* The .html is optional because vercel.json sets cleanUrls, and the trailing
+     segment is optional because a subject page carries its slug in the path
+     (/place/aireys-inlet). Match all three shapes rather than caring which. */
   var CUR = /\/about(\.html)?$/.test(here) ? 'about'
-          : /\/place(\.html)?$/.test(here) ? 'place'
-          : /\/type(\.html)?$/.test(here)  ? 'type'
+          : /\/place(\.html)?(\/|$)/.test(here) ? 'place'
+          : /\/type(\.html)?(\/|$)/.test(here)  ? 'type'
           : 'board';
 
   /* ── the bar ── */
@@ -67,8 +70,8 @@
               '<div class="grp">Not one town</div>' +
               ['Surf Coast wide','Home','Car'].map(link).join('');
     function link(x){
-      var on = CUR==='place' && qs.get('p')===x;
-      return '<a href="/place?p='+encodeURIComponent(x)+'"'+
+      var on = CUR==='place' && slugify(seg || qs.get('p') || '')===slugify(x);
+      return '<a href="/place/'+slugify(x)+'"'+
              (on?' aria-current="page"':'')+'>'+esc(x)+'</a>' }
     box.innerHTML = out;
   }
@@ -80,8 +83,8 @@
     var groups = [['Places to go', PLACE_TYPES], ['What’s on', EVENT_TYPES]];
     box.innerHTML = groups.map(function(g){
       return '<div class="grp">'+g[0]+'</div>' + g[1].map(function(t){
-        var on = CUR==='type' && qs.get('t')===t;
-        return '<a href="/type?t='+encodeURIComponent(t)+'"'+
+        var on = CUR==='type' && slugify(seg || qs.get('t') || '')===slugify(t);
+        return '<a href="/type/'+slugify(t)+'"'+
                (on?' aria-current="page"':'')+'>'+esc(typeLabel(t))+'</a>' }).join('');
     }).join('');
   }

@@ -132,6 +132,23 @@ const GROUP_OF={
    three of its types live there. The first is what tints the row. */
 const groupsOf = i => [...new Set(typesOf(i).map(t=>GROUP_OF[t]).filter(Boolean))];
 
+/* ── slugs, for the URL ──
+   A suburb or a type as a URL segment, derived from the word itself rather
+   than stored next to it. A slug column would be a second copy of the
+   vocabulary and would go stale the first time a type was renamed — the
+   failure this file exists to prevent. Checked 26 Aug 2026: no two of the 50
+   places and no two of the 43 types slug the same.
+
+   unslug() is the way back, and it compares slugs rather than tidying the
+   segment, so "surf-coast-wide" finds "Surf Coast wide" and "mountain-biking"
+   finds "mountain biking" without either being written down twice.
+
+   The nine group names all slug to "the-…" and no type does, so a group page
+   could share this namespace later without colliding. */
+const slugify = s => String(s == null ? '' : s).toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const unslug = (seg, list) => list.find(x => slugify(x) === slugify(seg)) || null;
+
 /* ── when an event next happens ──
    Shared rather than copied because this function has already been wrong once,
    in a way only a test caught: parsing the stored date as local time and

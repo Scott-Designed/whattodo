@@ -41,8 +41,9 @@ try{var t=localStorage.getItem('notice.theme');
    ═══════════════════════════════════════════════════════════════════════ */
 const NP = NoticePage, esc = NP.esc;
 const ALL_TYPES = PLACE_TYPES.concat(EVENT_TYPES);
-const WANT = new URLSearchParams(location.search).get('t') || 'cafe';
-const KNOWN = ALL_TYPES.includes(WANT);
+const ASKED = NP.subject('type', 't', ALL_TYPES, 'cafe');
+const WANT = ASKED.value, KNOWN = WANT !== null;
+if(KNOWN) NP.canonical('type', WANT);
 const LABEL = KNOWN ? typeLabel(WANT) : 'Not a type we use';
 
 document.title = LABEL + ' — Notice';
@@ -64,15 +65,15 @@ const GLOSS = {
   shop:'Places you go to buy something, as opposed to a market, which is an event.'};
 
 document.getElementById('also').innerHTML = ALL_TYPES.map(t =>
-  `<a href="/type?t=${encodeURIComponent(t)}"${t===WANT?' aria-current="page"':''}>${esc(typeLabel(t))}</a>`).join('');
+  `<a href="/type/${slugify(t)}"${t===WANT?' aria-current="page"':''}>${esc(typeLabel(t))}</a>`).join('');
 
 const body = document.getElementById('body');
 const stand = document.getElementById('stand');
 
 (async () => {
   if(!KNOWN){
-    body.innerHTML = `<div class="note">The Notice Board has no type called <b>${esc(WANT)}</b>. `
-      + `The 26 it does use are below.</div>`;
+    body.innerHTML = `<div class="note">The Notice Board has no type called <b>${esc(ASKED.raw)}</b>. `
+      + `The ${ALL_TYPES.length} it does use are below.</div>`;
     return;
   }
   body.innerHTML = '<div class="note">Reading the board…</div>';
@@ -105,7 +106,7 @@ const stand = document.getElementById('stand');
     : `Nothing on the board is filed as ${esc(LABEL.toLowerCase())} yet.`;
 
   if(!mine.length){
-    body.innerHTML = `<div class="note">${esc(LABEL)} is one of the 26 types the database `
+    body.innerHTML = `<div class="note">${esc(LABEL)} is one of the ${ALL_TYPES.length} types the database `
       + `uses, but nothing carries it yet.</div>`;
     return;
   }

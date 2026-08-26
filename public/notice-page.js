@@ -105,6 +105,33 @@
 
   var n = function(c, one, many){ return c + ' ' + (c === 1 ? one : many) };
 
+  /* ── which subject this page is about, and its one true address ──
+     The path first — /place/aireys-inlet — and the query string second, so
+     ?p=Aireys%20Inlet still opens anything shared before 27 Aug 2026. Vercel
+     rewrites the path form to the file, and that rewrite is server-side, so
+     the browser still sees the path and this reads it straight.
+
+     Whichever way it arrived, the address bar is put back to the path form.
+     replaceState and not assign: no reload, and no second entry in the back
+     button for a URL the reader never chose. */
+  function subject(seg, param, list, fallback){
+    var parts = location.pathname.replace(/\.html$/,'').split('/').filter(Boolean);
+    var raw = (parts[0] === seg && parts[1]) ? decodeURIComponent(parts[1])
+            : (new URLSearchParams(location.search).get(param) || '');
+    if(!raw) return {value: fallback, raw: fallback};
+    return {value: unslug(raw, list), raw: raw};
+  }
+
+  /* Only ever called once the subject is known to be real. A made-up segment
+     keeps the URL the reader typed — rewriting it would hide the mistake the
+     page is about to explain. */
+  function canonical(seg, value){
+    var want = '/' + seg + '/' + slugify(value);
+    if(location.pathname !== want)
+      try{ history.replaceState(null, '', want + location.hash) }catch(e){}
+  }
+
   window.NoticePage = {esc:esc, rows:rows, row:row, whenLabel:whenLabel,
-                       byDate:byDate, byName:byName, n:n};
+                       byDate:byDate, byName:byName, n:n,
+                       subject:subject, canonical:canonical};
 })();

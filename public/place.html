@@ -42,12 +42,14 @@ try{var t=localStorage.getItem('notice.theme');
    means nothing at all. Splitting them is the reason this page exists.
    ═══════════════════════════════════════════════════════════════════════ */
 const NP = NoticePage, esc = NP.esc;
-const WANT = new URLSearchParams(location.search).get('p') || 'Torquay';
 
-/* Only a suburb the site actually knows. Anything else is a link somebody
-   made up, and a page that titles itself with whatever is in the query string
-   is a page that will happily say "Paris". */
-const KNOWN = PLACE_ORDER.includes(WANT);
+/* Only a suburb the site actually knows. Anything else is a link somebody made
+   up, and a page that titles itself with whatever is in the URL is a page that
+   will happily say "Paris". `raw` is what was asked for, so the refusal can
+   quote it back. */
+const ASKED = NP.subject('place', 'p', PLACE_ORDER, 'Torquay');
+const WANT = ASKED.value, KNOWN = WANT !== null;
+if(KNOWN) NP.canonical('place', WANT);
 
 document.title = (KNOWN ? WANT : 'Not a place we know') + ' — Notice';
 document.getElementById('title').textContent = KNOWN ? WANT : 'Not a place we know';
@@ -61,7 +63,7 @@ const NOT_A_TOWN = {
 
 const also = document.getElementById('also');
 also.innerHTML = PLACE_ORDER.map(x =>
-  `<a href="/place?p=${encodeURIComponent(x)}"${x===WANT?' aria-current="page"':''}>${esc(x)}</a>`).join('');
+  `<a href="/place/${slugify(x)}"${x===WANT?' aria-current="page"':''}>${esc(x)}</a>`).join('');
 
 const body = document.getElementById('body');
 const stand = document.getElementById('stand');
@@ -69,7 +71,7 @@ const stand = document.getElementById('stand');
 (async () => {
   if(!KNOWN){
     stand.textContent = '';
-    body.innerHTML = `<div class="note">The Notice Board has no town called <b>${esc(WANT)}</b>. `
+    body.innerHTML = `<div class="note">The Notice Board has no town called <b>${esc(ASKED.raw)}</b>. `
       + `Pick one from the list below, or go back to the <a href="/">Notice Board</a>.</div>`;
     return;
   }

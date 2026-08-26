@@ -468,13 +468,21 @@ on; do not skip it unchecked. Kennett River has a kiosk, Forrest has a brewery a
 Wye River has a general store — the small ones are exactly where the site is thinnest.
 
 Geelong is not one town. `nearby.py Geelong` at the default radius will miss most of it, so run
-it at `--radius 4000` and then run Geelong West, Newtown, Belmont, Grovedale, Waurn Ponds and
+it at `--radius=4000` and then run Geelong West, Newtown, Belmont, Grovedale, Waurn Ponds and
 South Geelong separately. They all file under Geelong on the board, but they are separate
 strips on the ground.
 
-This is a loop. For each town, in order:
+Before the loop, once: `python3 scripts/nearby.py --refresh`. That is a single Overpass query
+for the whole region, cached to scripts/osm_cache.json — after it, every town lookup is local and
+instant. The 58 town centres are already cached and will be reused. Do NOT skip this and do NOT
+run it again between towns: querying Overpass town by town is what got the previous run blocked,
+and a throttled town reads as an empty one, which hides the exact gaps this pass is looking for.
+If --refresh says every endpoint refused, stop and tell me — do not fall back to searching by
+town name, that is the method this pass exists to replace.
+
+Then the loop. For each town, in order:
   1. `python3 scripts/nearby.py "<town>"` — every food and drink place OSM knows there, split
-     into what we already list and what we do not. Try `--radius 3000` for the spread-out towns.
+     into what we already list and what we do not. Try `--radius=3000` for the spread-out towns.
   2. Take EVERY name under "NOT in the database" as a candidate. Do not pre-filter by whether
      the town already has listings — that is the mistake this pass exists to correct.
   3. For each candidate, find its own site or Instagram and confirm it is currently trading.
