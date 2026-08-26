@@ -64,17 +64,43 @@ ended up in both sheets with two different dates, one of them wrong.
 
 ## Conventions that are enforced, not just documented
 
-- **26 types**, foreign-keyed to the `types` table. An unknown type is rejected by
-  the database, not just by the form. `null` is allowed and means "not sorted yet".
-  Adding one means four places, not one: a row in `types` (with its `band`),
-  `THEME_OF` in the page or it shows under no theme filter, `TYPES_PLACE`/`TYPES_EVENT`
-  in `api/enrich.mjs`, and the seed insert in `supabase/schema.sql`. `shop` was added
-  23 Aug 2026 — a retail place you buy from, as distinct from `market`, which is an
-  event and also carries the What's on theme.
-- The **At home** theme is hidden from the unfiltered list. Those entries are all
+- **43 types, and a listing carries a list of them.** `activities.types` and
+  `events.types` are `text[]`, checked by `types_valid()` against the `types`
+  table — the `conditions` and `offers` pattern, used a third time. **The first
+  element is the primary**: the word the row prints, the icon it draws, the
+  colour it tints. An empty list means "not sorted yet" and shows as *unsorted*.
+  See `supabase/TYPES_MULTI.sql` for the migration and `scripts/retype.py` for
+  the 169 per-row decisions that followed it.
+
+  Adding a type means **five** places: a row in `types` (with its `band`),
+  `GROUP_OF` in `notice-vocab.js` or it belongs to no group, `TYPE_PLURAL` in
+  the same file or its page heading prints the raw column value,
+  `TYPES_PLACE`/`TYPES_EVENT` in `api/enrich.mjs`, and `PLACE_TYPES`/`EVENT_TYPES`
+  in `notice-vocab.js` for the Add form. `supabase/schema.sql` is a historical
+  seed and is **not** one of them any more — `TYPES_MULTI.sql` supersedes it.
+
+  `brewery` was added 26 Aug 2026, because filing Blackman's as a cafe or a bar
+  loses the reason anyone goes. `cidery` and `distillery` exist in `place_kinds`
+  and are still not types; Flying Brick and The Whiskery are `bar` + `produce`.
+- **Nine groups**, in `GROUPS`/`GROUP_OF` in `notice-vocab.js` — The ocean, The
+  landscape, The outdoors, The hospitality, The produce, The arts & culture, The
+  music, The community, The home. Every type is in exactly one, so a new type has
+  one obvious home. They are the first filter and they set the row's hover tint,
+  so the colour down the list and the word in the dropdown say the same thing.
+
+  **The group counts do not sum to the number of listings, and that is not a
+  fault.** 69 rows carry types from more than one group: Bells Beach Surf Film
+  Festival is `festival · surfing · cinema`, so it is in The music, The ocean and
+  The arts & culture at once. 494 across nine groups, 419 rows.
+- **The Type menu leaves out what it cannot offer** rather than greying it. It was
+  greyed while the menu was short — a grey row said "not with these filters"
+  without lying — but that does not survive 43 types, where picking The ocean left
+  38 dead entries to read past. Anything already ticked stays whatever its count,
+  or it could not be unticked.
+- The **At home** group is hidden from the unfiltered list. Those entries are all
   `km = 0`, so under the default Closest first sort six of them led the page ahead
-  of anywhere you would leave the house for. Picking the At home theme or typing a
-  search still finds them, and the tally says how many are held back. See
+  of anywhere you would leave the house for. Picking The home or typing a search
+  still finds them, and the tally says how many are held back. See
   `atHomeHidden()`.
 - **14 condition tags**, checked by `conditions_valid()`. Thirteen are gates;
   `good-in-rain` is a boost — it never hides anything, it promotes on a wet day.
@@ -691,13 +717,12 @@ Three files came out of the one-file page so more than one page could read them.
 This is a **lift, not a copy**, and that is the whole point — two live copies of
 one fact is how this project put the same festival on two different dates.
 
-- **`notice-vocab.js`** — `suburbOf` and the suburb list, `typesOf`,
-  `THEME_OF`, `PLACE_TYPES`/`EVENT_TYPES`, and `todayISO`/`daysAway`/`nextDate`.
-  A suburb page that decided for itself what counts as "Torquay" would disagree
-  with the board sooner or later. `nextDate` in particular has already been
-  wrong once in a way only a test caught (the UTC parsing bug) — one copy, one
-  fix. Adding a type is still the four places listed above; `PLACE_TYPES` just
-  moved house.
+- **`notice-vocab.js`** — `suburbOf` and the suburb list, `typesOf`, `GROUPS`,
+  `GROUP_OF`, `groupsOf`, `TYPE_PLURAL`, `PLACE_TYPES`/`EVENT_TYPES`, and
+  `todayISO`/`daysAway`/`nextDate`. A suburb page that decided for itself what
+  counts as "Torquay" would disagree with the board sooner or later. `nextDate`
+  in particular has already been wrong once in a way only a test caught (the UTC
+  parsing bug) — one copy, one fix.
 - **`notice-data.js`** — the connection and `fromRow`. **`scripts/configure.py`
   writes the keys here now, not into `index.html`.** `admin.html` still carries
   its own copy of the URL and anon key; that predates this and was left alone.
@@ -705,7 +730,7 @@ one fact is how this project put the same festival on two different dates.
   pages use it.
 
 Load order is `notice-vocab.js` → `notice-data.js` → the page's own script.
-`fromRow` reads `THEME_OF`; classic scripts, no modules, nothing on `window`
+`fromRow` reads `GROUP_OF`; classic scripts, no modules, nothing on `window`
 by hand.
 
 ### The bar
@@ -862,11 +887,22 @@ land.
 
 ## Type icons in the row gutter
 
-Scott's own artwork. Five are in so far: `skatepark` → skate, `bike track` →
-bike, `cafe` → coffee (from `../Notice.Place/Icons/SVG/`), plus `nature` →
-nature and `sport`/`sport-event` → run (from `../Notice.Place/Icons Test/SVG/`,
-which is a two-colour direction still being tried). That reaches 111 of 417
-rows.
+Scott's own artwork. Five are in so far: `skatepark` → skate, `mountain biking`
+→ bike, `cafe` → coffee (from `../Notice.Place/Icons/SVG/`), plus `nature` →
+nature and `running` → run (from `../Notice.Place/Icons Test/SVG/`, which is a
+two-colour direction still being tried).
+
+**The type split silently broke three of the five and they were repointed**
+(26 Aug 2026). `ICON_OF` is keyed on a row's *first* type, and `bike track`
+became `mountain biking` while `sport` and `sport-event` were deleted — so
+`skatepark`, `cafe` and `nature` were the only ones still drawing. The bike now
+also serves `cycling` and the runner serves `running`, which is where the old
+`sport-event` runs went. That reaches **72 of 419 rows**, up from 52.
+
+The lesson generalises: every map keyed on a type name — `ICON_OF`, `EXTRA_OF`,
+`GROUP_OF`, `TYPE_PLURAL`, `VERB_OF` before it was deleted — fails *silently*
+when a type is renamed, because a missing key is just no icon, no group, no
+label. There is no test for this. Grep the type name before renaming one.
 
 Each icon is a `<symbol>` in a hidden `<svg class="sprite">` at the top of the
 body, and a row draws it with `<use href="#i-…">`. **Do not inline the path per
@@ -936,7 +972,7 @@ adding one is two lines: the symbol, and the map entry.
 - **The bike does not survive 28px.** Its frame and spokes merge and it reads as
   a cog. Checked at 2×; it is the artwork meeting the size, not a bug. The other
   two are fine. Any icon with this much line detail will need a simplified
-  small-size version before the set reaches all 26 types. The two-colour pair
+  small-size version before the set reaches all 43 types. The two-colour pair
   hold up far better at this size than the bike does — solid masses survive the
   reduction where line work does not, which is the useful lesson for the rest of
   the set. The runner is unmistakable; `nature` reads as a starburst or a sun

@@ -838,13 +838,23 @@ function suits(i){if(!S.wx)return null;const k=(i.cond||[]).map(met).filter(v=>v
 
    First slot that has a value wins, so the cell is rarely empty. */
 const EXTRA_OF={
-  gig:['place','cost'], 'sport-event':['cost','place'], festival:['cost','place'],
-  market:['cost','place'], workshop:['cost','place'], community:['cost','place'],
-  cafe:['cost'], camping:['cost'], cultural:['cost'], water:['cost'], museum:['cost'],
-  nursery:['cost'], cinema:['cost'], shop:['cost'],
-  walk:['dur'], 'at-home':['dur'], 'bike track':['dur'], volunteering:['dur'], nature:['dur'],
-  skatepark:['who'], sport:['who'], park:['who'], playground:['who'],
-  beach:['cond'], night:['cond'], surf:['cond']};
+  /* what's on at a venue: where it is, then what it costs */
+  gig:['place','cost'], comedy:['place','cost'], party:['place','cost'],
+  reading:['place','cost'], festival:['cost','place'], market:['cost','place'],
+  workshop:['cost','place'], community:['cost','place'],
+  /* somewhere you pay to get into or eat at */
+  cafe:['cost'], bakery:['cost'], restaurant:['cost'], bar:['cost'], pub:['cost'],
+  winery:['cost'], brewery:['cost'], produce:['cost'], shop:['cost'],
+  'camping ground':['cost'], museum:['cost'], cinema:['cost'], theatre:['cost'],
+  'art gallery':['cost'], arts:['cost'], cultural:['cost'], nursery:['cost'],
+  water:['cost'], golf:['cost'], 'farm life':['cost'],
+  /* something you set aside time for */
+  walk:['dur'], 'at-home':['dur'], 'mountain biking':['dur'], cycling:['dur'],
+  running:['dur'], paddling:['dur'], volunteering:['dur'], nature:['dur'],
+  /* somewhere with an age range that matters */
+  skatepark:['who'], 'parks & playgrounds':['who'], 'rock climbing':['who'],
+  /* somewhere the weather decides */
+  beach:['cond'], night:['cond'], surfing:['cond'], swimming:['cond']};
 const EXTRA_LABEL={cost:'Cost',dur:'How long',who:'Suits',cond:'Best in',place:'Setting'};
 function extraOf(i){
   for(const slot of (EXTRA_OF[i.type]||['cost'])){
@@ -858,8 +868,8 @@ function extraOf(i){
 /* Which icon a type gets. Only the types listed here draw one — the rest keep an
    empty slot, so this can be filled in a type at a time. Values are symbol ids
    without the `i-` prefix. */
-const ICON_OF={skatepark:'skate','bike track':'bike',cafe:'coffee',
-  nature:'nature',sport:'run','sport-event':'run'};
+const ICON_OF={skatepark:'skate','mountain biking':'bike',cycling:'bike',
+  cafe:'coffee',nature:'nature',running:'run'};
 
 const ISLAND=document.getElementById('additions');
 let ADDED=[]; try{ADDED=JSON.parse(ISLAND.textContent||'[]')}catch(e){ADDED=[]}
