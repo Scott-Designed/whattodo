@@ -4,13 +4,13 @@
 
    Lifted out of index.html on 26 Aug 2026, when the suburb and type pages
    arrived and needed the same rows. `fromRow` in particular has to be shared:
-   it is where `types` becomes a list, where a row's themes are worked out and
+   it is where `types` becomes a list, where a row's groups are worked out and
    where the view's two old column names are still absorbed. A second copy of
    that would drift, and a page quietly disagreeing with the board about what a
    row says is the failure this project keeps paying for.
 
    A classic script — everything lands on `window`. Load it AFTER
-   notice-vocab.js (it reads THEME_OF) and BEFORE the page's own script.
+   notice-vocab.js (it reads GROUP_OF) and BEFORE the page's own script.
    scripts/configure.py writes the two keys below.
    ═══════════════════════════════════════════════════════════════════════ */
 
@@ -34,8 +34,7 @@ function fromRow(r){
   /* `types` while the view still called it `type`. A row that is a festival and a
      surf thing and a film thing says so; the first one is what the row prints. */
   const types = r.types?.length ? r.types : (r.type ? [r.type] : []);
-  const themes = types.flatMap(t=>THEME_OF[t]||[]).concat(r.is_event?['whatson']:[])
-                   .concat(cond.includes('good-in-rain')?['rainy']:[]);
+  const groups = [...new Set(types.map(t=>GROUP_OF[t]).filter(Boolean))];
   return {
     id:r.id, key:r.key, ev:r.is_event, name:r.name, types, type:types[0]??null, loc:r.location,
     /* `venue` while the view still called it that; the table is `places` now */
@@ -45,7 +44,7 @@ function fromRow(r){
     notes:r.notes, dur:r.duration, season:r.season||[], dbDaypart:r.daypart,
     date:r.starts_on, time:r.time_text, recur:r.recurrence, conf:r.date_confidence,
     lat:r.lat, lng:r.lng, verified:r.verified, by:r.added_by, created:r.created_at,
-    added: r.verified===false, themes:[...new Set(themes)],
+    added: r.verified===false, groups,
   };
 }
 async function loadRemote(){

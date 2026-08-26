@@ -57,19 +57,61 @@ function suburbOf(loc){
 const PLACE_ORDER=['Surf Coast wide','Home','Car',
   ...SUBURBS.filter(x=>!GEELONG.has(x)||x==='Geelong').sort()];
 
-const DRINK_KINDS=new Set(['pub','bar','brewery','winery','distillery','cidery']);
 /* A listing carries a list of types and `type` is the first of them — the one the
    row prints and draws an icon for. Two older shapes still reach here with a bare
    string: the built-in copy baked into this file, and anything a visitor adds. So
    read the list through this rather than touching `.types` directly. */
 const typesOf = i => i.types?.length ? i.types : (i.type ? [i.type] : []);
 
-const THEME_OF={beach:['beach'],surf:['beach'],water:['beach'],walk:['walks'],park:['walks'],
-  skatepark:['wheels'],'bike track':['wheels'],nature:['wildlife'],nursery:['wildlife'],
-  cafe:['eat'],shop:['eat'],market:['eat','whatson'],cultural:['culture'],museum:['culture'],cinema:['culture'],
-  night:['dark'],camping:['camp'],volunteering:['involved'],community:['involved','whatson'],
-  workshop:['involved','whatson'],'at-home':['home'],playground:['play'],sport:['play'],
-  gig:['whatson'],festival:['whatson'],'sport-event':['whatson']};
+/* ── the nine groups ──
+   Every one of the 43 types belongs to exactly one group, so a new type has one
+   obvious home. This replaced two things at once: the 13 themes, which were a
+   second vocabulary keyed on the same word and had gone stale the moment the
+   types were renamed, and the 15 verbs, which asked what you felt like doing
+   and could only answer from the type anyway.
+
+   The group counts still do not sum to the number of listings, and that is the
+   types being a list rather than a fault here: 69 rows carry types from two
+   groups. Bells Beach Surf Film Festival is festival, surfing and cinema, so it
+   is in The music, The ocean and The arts & culture — which is the whole reason
+   any of this was done. 494 across nine groups, 419 rows.
+
+   The line between `landscape` and `outdoors` is being in it versus doing
+   something in it. That is why a walk and a glow-worm hunt sit apart from a
+   mountain bike trail, and it is the one call here worth arguing with. */
+const GROUPS=[['ocean','The ocean'],['landscape','The landscape'],['outdoors','The outdoors'],
+  ['hospitality','The hospitality'],['produce','The produce'],['arts','The arts & culture'],
+  ['music','The music'],['community','The community'],['home','The home']];
+
+const GROUP_OF={
+  beach:'ocean', surfing:'ocean', swimming:'ocean', paddling:'ocean', water:'ocean',
+
+  walk:'landscape', nature:'landscape', night:'landscape',
+
+  running:'outdoors', cycling:'outdoors', 'mountain biking':'outdoors',
+  skatepark:'outdoors', 'rock climbing':'outdoors', golf:'outdoors',
+  'parks & playgrounds':'outdoors', 'camping ground':'outdoors',
+
+  cafe:'hospitality', bakery:'hospitality', restaurant:'hospitality',
+  bar:'hospitality', pub:'hospitality', winery:'hospitality', brewery:'hospitality',
+
+  market:'produce', produce:'produce', 'farm life':'produce', shop:'produce',
+  nursery:'produce',
+
+  arts:'arts', 'art gallery':'arts', theatre:'arts', museum:'arts',
+  cinema:'arts', cultural:'arts',
+
+  gig:'music', party:'music', comedy:'music', festival:'music',
+
+  community:'community', volunteering:'community', workshop:'community',
+  reading:'community',
+
+  'at-home':'home'};
+
+/* A row is in every group its types are in — usually one, sometimes two: a film
+   festival is music and arts, a glow-worm walk is landscape only because all
+   three of its types live there. The first is what tints the row. */
+const groupsOf = i => [...new Set(typesOf(i).map(t=>GROUP_OF[t]).filter(Boolean))];
 
 /* ── when an event next happens ──
    Shared rather than copied because this function has already been wrong once,
@@ -98,28 +140,42 @@ function nextDate(i){
            .toISOString().slice(0,10);
 }
 
-/* The 26 types, split the way the database's `types.band` splits them: a place
-   you go to, or a thing that is on. The Add form offers these two lists, and
-   the Type menu groups by the same two, so they live here rather than in either
-   page. Adding a type still means the four places CLAUDE.md lists — this is one
-   of them moving house, not a fifth. */
-const PLACE_TYPES=['beach','walk','surf','water','bike track','skatepark','sport','park','playground',
-  'nature','museum','cafe','cinema','camping','at-home','night','volunteering','nursery','cultural'];
-const EVENT_TYPES=['gig','festival','market','workshop','community','sport-event'];
+/* The 43 types, split by whether you are adding a place you go to or a thing
+   that is on. This is NOT the database's `types.band` — that groups by subject
+   now (the nine GROUPS above). It is only the Add form's two lists.
+
+   Nine types can honestly be either: an exhibition is on for a fortnight, a
+   gallery is open all year. They sit under events, because someone filling in
+   this form with a date in mind is the case that needs the shorter list. */
+const EVENT_TYPES=['gig','comedy','party','reading','festival','workshop',
+  'community','market','arts'];
+const PLACE_TYPES=['beach','surfing','swimming','paddling','water',
+  'walk','running','cycling','mountain biking','skatepark','rock climbing','golf','nature',
+  'parks & playgrounds','camping ground','night','at-home',
+  'cafe','bakery','restaurant','bar','pub','winery','brewery',
+  'shop','produce','farm life','nursery',
+  'art gallery','theatre','museum','cinema','cultural','volunteering'];
 
 /* A type is stored lower-case and hyphenated because the database checks it
    against a vocabulary. That is the right shape for a column and the wrong one
    for a heading, so a page that puts a type in an <h1> asks here instead of
-   title-casing the raw value and printing "Sport-event". Plural, because a type
+   title-casing the raw value and printing "At-home". Plural, because a type
    page is a list of things rather than one of them. */
 const TYPE_PLURAL={
-  beach:'Beaches', walk:'Walks', surf:'Surf spots', water:'On the water',
-  'bike track':'Bike tracks', skatepark:'Skateparks', sport:'Sport',
-  park:'Parks', playground:'Playgrounds', nature:'Nature', museum:'Museums',
-  cafe:'Caf\u00e9s', shop:'Shops', cinema:'Cinemas', camping:'Camping',
-  'at-home':'At home', night:'After dark', volunteering:'Volunteering',
-  nursery:'Nurseries', cultural:'Culture', gig:'Gigs', festival:'Festivals',
-  market:'Markets', workshop:'Workshops', community:'Community',
-  'sport-event':'Sport events'};
+  beach:'Beaches', surfing:'Surfing', swimming:'Swimming', paddling:'Paddling',
+  water:'On the water', walk:'Walks', running:'Running', cycling:'Cycling',
+  'mountain biking':'Mountain biking', skatepark:'Skateparks',
+  'rock climbing':'Rock climbing', golf:'Golf', nature:'Nature',
+  'parks & playgrounds':'Parks & playgrounds', 'camping ground':'Camping',
+  night:'After dark', 'at-home':'At home',
+  cafe:'Caf\u00e9s', bakery:'Bakeries', restaurant:'Restaurants', bar:'Bars',
+  pub:'Pubs', winery:'Wineries', brewery:'Breweries',
+  market:'Markets', shop:'Shops', produce:'Produce', 'farm life':'Farm life',
+  nursery:'Nurseries',
+  arts:'Arts', 'art gallery':'Galleries', theatre:'Theatres', museum:'Museums',
+  cinema:'Cinemas', cultural:'Wadawurrung Country',
+  gig:'Gigs', comedy:'Comedy', party:'Parties', reading:'Reading',
+  festival:'Festivals', workshop:'Workshops', community:'Community',
+  volunteering:'Volunteering'};
 const typeLabel = t => TYPE_PLURAL[t] || (t||'').replace(/-/g,' ')
   .replace(/^./,c=>c.toUpperCase());
