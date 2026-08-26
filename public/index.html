@@ -127,10 +127,11 @@ option{background:var(--ground);color:var(--ink)}
 }
 .ms-pop label .n{margin-left:auto;padding-left:14px;font-family:var(--util);font-size:11px;
   color:var(--ink3);font-variant-numeric:tabular-nums}
-.ms-pop label.off .n{opacity:.5}
 .ms-pop label:hover{background:var(--surface)}
-.ms-pop label.off{color:var(--ink3);cursor:default}
-.ms-pop label.off:hover{background:none}
+/* `.off` used to grey out an option that would return nothing. Those are left
+   out of the menu now, so there is nothing to grey. */
+.ms-none{margin:0;padding:9px 15px;font-family:var(--serif);font-size:14px;
+  font-style:italic;color:var(--ink3);white-space:normal;max-width:22em}
 .ms-pop input{accent-color:var(--ink);width:14px;height:14px;flex:none;margin:0}
 .ms-clear{
   display:block;width:100%;text-align:left;padding:7px 15px;margin-top:4px;
@@ -1431,14 +1432,24 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAllMulti(); }
 /* `avail` counts what the other filters leave, so an impossible option greys out.
    The number itself is not printed — the row of listings is the answer. */
 function paintMulti(m, options, avail){
+  /* The full list stays on `m` for paintChips, which has to label a choice that
+     is no longer in the menu. */
   m.options=options;
   const chosen=S[m.key];
-  m.pop.innerHTML=options.map(([v,l])=>{
-    const n=avail(v), on=chosen.includes(v);
-    return `<label class="${n||on?'':'off'}"><input type="checkbox" value="${esc(v)}"`
-      +`${on?' checked':''}${n||on?'':' disabled'}><span>${esc(l)}</span>`
-      +`<span class="n">${n}</span></label>`;
-  }).join('') + (chosen.length?`<button type="button" class="ms-clear">Clear</button>`:'');
+  /* An option that would return nothing is left out, not greyed out. Picking
+     The ocean should leave five types in the Type menu, not 43 with 38 of them
+     dead — a menu you have to read past is worse than a shorter one. Anything
+     already ticked stays, whatever its count, or you could not untick it. */
+  const live=options.filter(([v])=>avail(v)>0 || chosen.includes(v));
+  m.pop.innerHTML=(live.length
+    ? live.map(([v,l])=>{
+        const n=avail(v), on=chosen.includes(v);
+        return `<label><input type="checkbox" value="${esc(v)}"`
+          +`${on?' checked':''}><span>${esc(l)}</span>`
+          +`<span class="n">${n}</span></label>`;
+      }).join('')
+    : `<p class="ms-none">Nothing here with the other filters on.</p>`)
+    + (chosen.length?`<button type="button" class="ms-clear">Clear</button>`:'');
   m.pop.querySelectorAll('input').forEach(cb=>cb.addEventListener('change',()=>{
     S[m.key]=cb.checked ? [...S[m.key],cb.value] : S[m.key].filter(x=>x!==cb.value);
     afterFacetChange(m.key);
