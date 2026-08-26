@@ -696,9 +696,18 @@ notice.place/place/aireys-inlet
 notice.place/type/surfing
 ```
 
-Two rewrites in `vercel.json` point those at `place.html` and `type.html`. No
+Two rewrites in `vercel.json` point those at the `place` and `type` pages. No
 build step and no file per town — the rewrite is server-side, so the browser
 still sees the path and the page reads its subject straight off it.
+
+**The rewrite destination must be the clean path, not the file.** With
+`cleanUrls` on, Vercel 308s `/place.html` to `/place`, so a destination written
+as `/place.html?p=:slug` collides with that redirect and every subject URL
+404s. It is `/place?p=:slug`. This shipped broken once (27 Aug 2026) and passed
+every local test first, because the preview server stands in for cleanUrls by
+*serving* the file and never issues the redirect that causes the collision.
+**A rewrite is the one thing the local preview cannot prove** — check it on the
+deploy.
 
 **The slug is derived, never stored.** `slugify`/`unslug` in `notice-vocab.js`
 turn "Aireys Inlet" into `aireys-inlet` and back by comparing slugs against the
