@@ -380,7 +380,7 @@ function flagsFor(r, kind){
     if (!r.verified)                                 f.push('unverified');
     if (!r.starts_on)                                f.push('no date');
   } else {
-    const home = r.type === 'at-home';
+    const home = (r.types || []).includes('at-home');
     if (!home && (r.lat === null || r.lng === null))  f.push('no pin');
     if (coarse(r.lat) || coarse(r.lng))               f.push('coarse pin');
     // A Maps *search* link is a query, not a place — a standing item on the
@@ -408,7 +408,8 @@ function placeFlags(p){
    `list` is a text[] typed as commas; `multi` is a text[] with a vocabulary. */
 const FIELDS = {
   activities: [
-    {f:'name', kind:'text', wide:1}, {f:'type', kind:'select', vocab:'types'},
+    {f:'name', kind:'text', wide:1},
+    {f:'types', kind:'multi', vocab:'types', wide:1, hint:'first one ticked is the primary \u2014 the word the row prints'},
     {f:'location', kind:'text'}, {f:'km', kind:'num', step:'0.1', hint:'driving km from Jan Juc · 0 means here · empty means nowhere to measure'},
     {f:'cost', kind:'select', opts:['Free','Cheap','Moderate','Splurge']},
     {f:'duration', kind:'text'}, {f:'daypart', kind:'select', opts:['day','night','both']},
@@ -424,7 +425,8 @@ const FIELDS = {
     {f:'source_note', kind:'area', wide:1, hint:'what you actually checked — required to mark verified'},
   ],
   events: [
-    {f:'name', kind:'text', wide:1}, {f:'type', kind:'select', vocab:'types'},
+    {f:'name', kind:'text', wide:1},
+    {f:'types', kind:'multi', vocab:'types', wide:1, hint:'first one ticked is the primary \u2014 the word the row prints'},
     {f:'starts_on', kind:'date'}, {f:'ends_on', kind:'date'},
     {f:'time_text', kind:'text'},
     {f:'recurrence', kind:'select', opts:['none','weekly','fortnightly','monthly','annual']},
@@ -843,7 +845,7 @@ function drawFlags(el, list, filter, redraw){
   });
 }
 const hit = (r, q, extra = []) => !q ||
-  [r.name, r.location, r.description, r.type, ...extra]
+  [r.name, r.location, r.description, (r.types || []).join(' '), ...extra]
     .some(v => String(v ?? '').toLowerCase().includes(q));
 
 /* ── events: things that happen on a date and then are over ────────────────
@@ -859,7 +861,7 @@ function drawEvents(){
 
   const q = EFILTER.q.toLowerCase().trim();
   let out = list.filter(r => {
-    if (EFILTER.type && r.type !== EFILTER.type) return false;
+    if (EFILTER.type && !(r.types || []).includes(EFILTER.type)) return false;
     if (EFILTER.flag && !r.__flags.includes(EFILTER.flag)) return false;
     // "Happens once" is the real one-off: no recurrence, or explicitly none.
     const repeats = r.recurrence && r.recurrence !== 'none';
@@ -893,7 +895,7 @@ function drawEvents(){
       return `<tr class="clickable" data-id="${r.id}">
         <td><div class="rowname">${esc(r.name)}</div>
             ${r.__flags.length ? `<div class="rowflags">${r.__flags.map(f=>`<span>${esc(f)}</span>`).join('')}</div>` : ''}</td>
-        <td>${esc(r.type || '—')}</td>
+        <td>${esc((r.types || []).join(' · ') || '—')}</td>
         <td${past ? ' style="color:var(--ink3)"' : ''}>${esc(r.starts_on || '—')}
             ${r.time_text ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(r.time_text)}</span>` : ''}</td>
         <td>${repeats ? esc(r.recurrence) : '<span style="color:var(--ink3)">once</span>'}</td>
@@ -916,7 +918,7 @@ function drawActivities(){
 
   const q = AFILTER.q.toLowerCase().trim();
   let out = list.filter(r => {
-    if (AFILTER.type && r.type !== AFILTER.type) return false;
+    if (AFILTER.type && !(r.types || []).includes(AFILTER.type)) return false;
     if (AFILTER.flag && !r.__flags.includes(AFILTER.flag)) return false;
     return hit(r, q, [(r.tags || []).join(' ')]);
   });
@@ -938,7 +940,7 @@ function drawActivities(){
       <tr class="clickable" data-id="${r.id}">
         <td><div class="rowname">${esc(r.name)}</div>
             ${r.__flags.length ? `<div class="rowflags">${r.__flags.map(f=>`<span>${esc(f)}</span>`).join('')}</div>` : ''}</td>
-        <td>${esc(r.type || '—')}</td>
+        <td>${esc((r.types || []).join(' · ') || '—')}</td>
         <td>${esc(r.location || '—')}</td>
         <td>${r.km === null || r.km === undefined ? '<span style="color:var(--ink3)">—</span>' : esc(r.km)}</td>
         <td>${r.lat && r.lng ? '<span class="tag live">yes</span>' : '<span class="tag">no</span>'}</td>
@@ -1239,7 +1241,7 @@ async function load(){
 
   // Each tab only offers the types its own rows actually use — an event
   // dropdown listing 'skatepark' is 20 dead options to scroll past.
-  const typesIn = rows => [...new Set(rows.map(r => r.type).filter(Boolean))].sort();
+  const typesIn = rows => [...new Set(rows.flatMap(r => r.types || []))].sort();
   const opts = list => '<option value="">Any type</option>' +
     list.map(n => `<option>${esc(n)}</option>`).join('');
   $('#etype').innerHTML = opts(typesIn(DATA.events));

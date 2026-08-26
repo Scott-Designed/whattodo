@@ -5,10 +5,17 @@
 // Needs ANTHROPIC_API_KEY in the Vercel project's environment.
 // Optional: ENRICH_MODEL (default claude-sonnet-5).
 
-const TYPES_PLACE = ['beach','walk','surf','water','bike track','skatepark','sport','park',
-  'playground','nature','museum','cafe','shop','cinema','camping','at-home','night',
-  'volunteering','nursery','cultural'];
-const TYPES_EVENT = ['gig','festival','market','workshop','community','sport-event'];
+// The 43 types, split the way the Add form splits them. Kept in step with
+// public/notice-vocab.js by hand — this function cannot read that file, and a
+// type this list has not heard of is dropped below rather than written.
+const TYPES_PLACE = ['beach','surfing','swimming','paddling','water',
+  'walk','running','cycling','mountain biking','skatepark','rock climbing','golf','nature',
+  'parks & playgrounds','camping ground','night','at-home',
+  'cafe','bakery','restaurant','bar','pub','winery','brewery',
+  'shop','produce','farm life','nursery',
+  'art gallery','theatre','museum','cinema','cultural','volunteering'];
+const TYPES_EVENT = ['gig','comedy','party','reading','festival','workshop',
+  'community','market','arts'];
 const CONDITIONS = ['any-weather','low-tide','high-tide','new-moon','full-moon','clear-sky',
   'calm-sea','warm','low-wind','dry-trails','dry-ground','no-fire-ban','geomagnetic-storm',
   'good-in-rain'];
@@ -43,6 +50,13 @@ HARD RULES — these matter more than completeness:
 VOCABULARIES — use these exact strings, nothing else:
   place types: ${TYPES_PLACE.join(', ')}
   event types: ${TYPES_EVENT.join(', ')}
+
+A listing may be more than one type and should say so when it genuinely is: a surf
+film festival is festival, surfing and cinema. Put the one the row should be filed
+under first. Do not pad the list — most things are one type, and two of the types
+are narrower than they look. "cultural" means Wadawurrung Country specifically, not
+culture in general; use "arts" for that. "night" is for things that only work after
+dark — stargazing, a bonfire — not for anything that happens in the evening.
   conditions:  ${CONDITIONS.join(', ')}
 
 Conditions describe what the weather/tide/moon must be for this to be worth doing.
@@ -58,7 +72,8 @@ outer Melbourne. If the subject is out of scope, say so in reasoning.
 Reply with ONE JSON object and nothing else.`;
 
 function schemaFor(kind){
-  const common = `"name": string, "type": one of the ${kind} types, "location": string
+  const common = `"name": string, "types": array of 1-3 of the ${kind} types, most
+  important first, "location": string
   (suburb or venue), "km": number or null, "cost": "Free"|"Cheap"|"Moderate"|"Splurge",
   "description": string, "url": string or null, "conditions": array of condition strings,
   "reasoning": string (what you found and what you could not confirm),
@@ -152,8 +167,13 @@ ${schemaFor(kind)}`;
     catch { return res.status(502).json({error:'bad_json', detail:m[0].slice(0,300)}); }
 
     // Refuse anything outside the vocabularies rather than letting it reach the database.
-    const validTypes = kind === 'event' ? TYPES_EVENT : TYPES_PLACE;
-    if (proposal.type && !validTypes.includes(proposal.type)) proposal.type = null;
+    // A listing carries a list, so an unknown word is dropped from it rather than
+    // nulling the whole field — one bad guess should not lose two good ones.
+    const valid = new Set(kind === 'event' ? TYPES_EVENT : TYPES_PLACE);
+    proposal.types = (Array.isArray(proposal.types) ? proposal.types
+                     : proposal.type ? [proposal.type] : [])
+                     .filter(t => valid.has(t));
+    delete proposal.type;
     if (Array.isArray(proposal.conditions))
       proposal.conditions = proposal.conditions.filter(c => CONDITIONS.includes(c));
     // A URL that no source backs up is exactly the failure this project has had before.

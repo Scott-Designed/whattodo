@@ -50,7 +50,9 @@ GEO = {'the','a','of','and','at','main','beach','reserve','park','hall','club',
        'common','pier','carpark','car','st','street','rd','road','ave','avenue',
        'terrace','lane','ln','outlets','venue','venues','surf','life','saving'}
 # A one-word name is too bare to stand alone; the type says what kind of thing.
+# Keyed on the row's FIRST type, which is the one the page prints.
 TYPE_WORD = {'workshop':'Workshop','market':'Market','festival':'Festival',
+             'gig':'Gig','comedy':'Comedy Night','party':'Party','reading':'Reading',
              'class':'Class','course':'Course'}
 DASH = r'[-–—]'
 
@@ -182,7 +184,7 @@ def view_shows_the_venue():
         return False
 
 def proposals():
-    events = req('GET', '/rest/v1/events?select=id,name,type,venue,place_id,location,source_note&order=id')
+    events = req('GET', '/rest/v1/events?select=id,name,types,venue,place_id,location,source_note&order=id')
     places = {p['id']: p for p in req('GET', '/rest/v1/places?select=id,name,suburb')}
     out = []
     for e in events:
@@ -190,7 +192,7 @@ def proposals():
         new, why = tidy(e['name'], venue=v['name'] if v else None,
                         suburb=v['suburb'] if v else None,
                         location=e['location'], free_venue=e['venue'],
-                        type_=e['type'], linked=e['place_id'] is not None)
+                        type_=(e['types'] or [None])[0], linked=e['place_id'] is not None)
         if new != e['name']:
             out.append((e, new, why, v))
     return out

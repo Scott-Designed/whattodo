@@ -23,10 +23,10 @@ import crypto from 'node:crypto';
 // quietly empty. id/created_at/updated_at are deliberately absent: the first is
 // the address, the last two belong to the database's own trigger.
 const WRITABLE = {
-  activities: new Set(['name','type','tags','ages','cost','location','km','season',
+  activities: new Set(['name','types','tags','ages','cost','location','km','season',
     'duration','description','url','rating','notes','conditions','lat','lng',
     'daypart','added_by','verified','source_note','place_id']),
-  events: new Set(['name','type','starts_on','ends_on','time_text','recurrence',
+  events: new Set(['name','types','starts_on','ends_on','time_text','recurrence',
     'venue','location','km','cost','ages','artist','genre','description',
     'ticket_url','info_url','conditions','date_confidence','added_by','verified',
     'source_note','place_id']),
@@ -83,10 +83,17 @@ async function complaints(table, patch, current) {
 
   if (has('name') && !String(patch.name || '').trim()) bad.push('needs a name');
 
-  if (table !== 'places' && has('type') && patch.type !== null) {
-    const types = await names('types');
-    if (!types.has(patch.type))
-      bad.push(`type '${patch.type}' is not one of the ${types.size} allowed`);
+  // `types` is an array, checked the way `conditions` and `offers` already are.
+  // A bare string would reach Postgres as a per-character array, so refuse it
+  // here rather than storing {g,i,g}.
+  if (table !== 'places' && has('types') && patch.types !== null) {
+    if (!Array.isArray(patch.types)) {
+      bad.push('types must be a list, even for one type');
+    } else {
+      const types = await names('types');
+      for (const t of patch.types)
+        if (!types.has(t)) bad.push(`type '${t}' is not one of the ${types.size} allowed`);
+    }
   }
   if (table === 'places' && has('kind') && patch.kind !== null) {
     const kinds = await names('place_kinds');

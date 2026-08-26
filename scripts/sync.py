@@ -144,10 +144,10 @@ def reject(idn, assume_yes=False):
 # than left to the database, so a bad field in a batch of 200 names itself
 # instead of failing an opaque insert halfway through.
 
-ACTIVITY_COLS = {'name','type','tags','ages','cost','location','km','season','duration',
+ACTIVITY_COLS = {'name','types','tags','ages','cost','location','km','season','duration',
                  'description','url','rating','notes','conditions','lat','lng','daypart',
                  'added_by','verified','source_note'}
-EVENT_COLS    = {'name','type','starts_on','ends_on','time_text','recurrence','venue',
+EVENT_COLS    = {'name','types','starts_on','ends_on','time_text','recurrence','venue',
                  'location','km','cost','ages','artist','genre','description','ticket_url',
                  'info_url','conditions','date_confidence','added_by','verified','source_note'}
 EVENT_ONLY    = EVENT_COLS - ACTIVITY_COLS
@@ -170,8 +170,16 @@ def check(row, i, types, conds):
         bad.append(f"{where}: no such field {sorted(unknown)}{hint}")
     if not str(row.get('name') or '').strip():
         bad.append(f"{where}: needs a name")
-    if row.get('type') is not None and row['type'] not in types:
-        bad.append(f"{where}: type '{row['type']}' is not one of the {len(types)} allowed")
+    # `types` is a list. A bare string is the old shape and is almost always a
+    # hand-written row that predates the split, so name it rather than letting
+    # Postgres turn 'gig' into the three-character array {g,i,g}.
+    if 'types' in row:
+        if isinstance(row['types'], str):
+            bad.append(f"{where}: types must be a list — write [\"{row['types']}\"], not \"{row['types']}\"")
+        else:
+            for t in (row['types'] or []):
+                if t not in types:
+                    bad.append(f"{where}: type '{t}' is not one of the {len(types)} allowed")
     for c in (row.get('conditions') or []):
         if c not in conds: bad.append(f"{where}: condition '{c}' is not in the vocabulary")
     if not ev and row.get('cost') not in (None,'Free','Cheap','Moderate','Splurge'):

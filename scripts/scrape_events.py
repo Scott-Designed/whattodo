@@ -37,21 +37,36 @@ SEEN_NOTE = ('Series already offered by scrape_events.py. Delete a line to be '
 HORIZON  = 270          # days ahead to bother with
 UA       = 'whattodo-janjuc/1.0 (+https://whattodo-nu.vercel.app)'
 
-# ── the source's categories -> our 26 types, most specific first ────────────
+# ── the source's categories -> our types, most specific first ───────────────
 # Every listing carries one or two categories, and the vaguer one ('Community',
 # 'Major') is always paired with a sharper one, so first match wins is enough.
+#
+# A listing carries a LIST of types now, but this still proposes exactly one.
+# The source's categories are far coarser than the vocabulary — 'Sport' covers
+# surfing, running, swimming and cycling, and nothing in the feed says which —
+# so guessing a second type here would be inventing data. A person adds the
+# rest; `scripts/retype.py` is the record of what that looks like.
+#
+# Two of these changed meaning in the 26 -> 43 split. 'Sport' used to map to
+# `sport-event`, which no longer exists and covered six sports; there is no
+# honest single word for it now, so it lands unsorted and asks for a human.
+# 'Art & Culture' used to map to `cultural`, which now means Wadawurrung
+# Country specifically — a generic arts listing is `arts`.
 TYPE_PRIORITY = [
     ('Markets',                  'market'),
     ('Live Music',               'gig'),
-    ('Sport',                    'sport-event'),
     ('Workshops & Talks',        'workshop'),
     ('Festivals & Celebrations', 'festival'),
     ('Major',                    'festival'),
-    ('Art & Culture',            'cultural'),
+    ('Art & Culture',            'arts'),
     ('Health & Wellbeing',       'community'),
     ('Food & Wine',              'community'),
     ('Community',                'community'),
 ]
+# Categories with no honest single answer. The row is written with no type at
+# all, which is what `null` has always meant here — "not sorted yet" — and it
+# shows in the back-of-house flags rather than being quietly wrong.
+TYPE_UNSURE = {'Sport'}
 
 def log(*a): print(*a, file=sys.stderr)
 
@@ -102,11 +117,12 @@ def time_text(inst):
     same_day = a[:10] == b[:10]
     return f"{clock(a)}–{clock(b)}" if same_day else clock(a)
 
-def pick_type(inst):
+def pick_types(inst):
     have = {html.unescape(c.get('name', '')) for c in inst.get('categories') or []}
     for name, t in TYPE_PRIORITY:
-        if name in have: return t
-    return 'community'
+        if name in have: return [t]
+    if have & TYPE_UNSURE: return []      # a person picks the sport
+    return ['community']
 
 def recurrence_of(dates):
     """Name the pattern only if the instances actually keep to one."""
@@ -142,7 +158,7 @@ def build(slug, instances):
 
     row = {
         'name'           : html.unescape(first['title']).strip(),
-        'type'           : pick_type(first),
+        'types'          : pick_types(first),
         'starts_on'      : dates[0].isoformat(),
         'time_text'      : time_text(first),
         'venue'          : place,
@@ -241,7 +257,8 @@ def main(argv):
     print(f"\nNEW — {len(new)}")
     for _, r in new:
         rec = f"  [{r['recurrence']}]" if r.get('recurrence') else ''
-        print(f"  {r['starts_on']}  {r['type']:<12} {r['name'][:44]:46} {(r['location'] or '?')[:16]}{rec}")
+        kinds = ' · '.join(r['types']) or 'unsorted'
+        print(f"  {r['starts_on']}  {kinds:<12} {r['name'][:44]:46} {(r['location'] or '?')[:16]}{rec}")
 
     if drift:
         print(f"\nDATE MOVED since we imported it — {len(drift)}")
