@@ -121,6 +121,138 @@ ended up in both sheets with two different dates, one of them wrong.
   `verified = true` or `added_by = 'Research'` — a submission cannot dress itself up
   as researched data.
 
+## Seven kinds of listing — AGREED 27 Aug 2026, NOT YET BUILT
+
+Decided with Scott over a long session on 27 Aug 2026, after reading all 585
+rows. **Nothing below is in the database yet.** It is the target shape, written
+down so the next session does not re-derive it — and so that anything added in
+the meantime is added knowing where it is going.
+
+### Why the current split is wrong
+
+`activities` vs `events` is not *activity vs place*. It is **undated vs dated**,
+and the name came off the seed spreadsheet. So one table holds Bells Beach,
+Anglesea Bakery, a surf school and Backyard Cricket, which have nothing in
+common. The columns have been saying so for months:
+
+- `place` is filled on **97%** of events and **0%** of activities — the `places`
+  table only ever served events.
+- `km` is on **98%** of outdoor rows and **17%** of hospitality — nobody
+  measures the drive to a bakery.
+- The 62 at-home rows have a coordinate **2%** of the time. They were never
+  places, and `atHomeHidden()` is a patch over that.
+- **32 things exist in both `activities` and `places`** — Bells Beach, Torquay
+  Hotel, Aireys Pub. Three disagree about where they are: Blackman's Brewery by
+  999 m, Last One Inn by 391 m, Point Roadknight Beach by 357 m. Anglesea Main
+  Beach has a pin as a place and none as a listing.
+
+### The seven
+
+One table, one `kind`, and `types` stays a list on top of it.
+
+**Places** — an address, a pin, and can host a Happening.
+
+- **Spot** (~140) — no door, no hours, nobody owns it. *Bells Beach, Jan Juc
+  Skatepark, Erskine Falls Walk.*
+- **Venue** (~205) — a door, hours, a price. **Bakeries are Venues**, decided
+  explicitly: a bakery you can sit outside is a cafe that sells bread.
+  *Torquay Hotel, Surf World Museum, Anglesea Bakery.*
+- **Shop** (~2 today) — a door, hours, things to buy, and it is here so a type
+  page has somewhere to buy the gear. *A surf shop on `/surfing`.*
+
+**People** — a contact, and possibly no address at all.
+
+- **Group** (~29) — you join in. *Torquay Landcare, Anglesea Movie Club,
+  Go Ride A Wave.* Scott is building this out, which is why it is a kind and
+  not a flag.
+- **Maker** (1 today) — you buy from them. *A shaper in his garage, a jeweller
+  at a market.*
+
+**Happening** (147) — it has a date, and it points at a Place.
+
+**Idea** (62) — no anchor of any kind. *Backyard Cricket, Cloud Watching.*
+
+### What the reader sees
+
+Four filters on the Notice Board, which is the only new filter the site does
+not already have (types and groups are both already there):
+
+    Go somewhere   Spot + Venue
+    What's on      Happening
+    Join in        Group
+    At home        Idea
+
+**Shop and Maker are in none of them, and that is the mechanism.** An earlier
+draft had an `on_board` flag to hold shops back; splitting Shop out killed it.
+A row is off the board by *being* a Shop, so there is nothing to remember when
+adding one and no rule that can be broken.
+
+The awkward case resolves itself too: **Great Ocean Road Chocolaterie is a
+Venue**, not a Shop, because people drive there for its own sake. If you would
+go for the thing itself it is a Venue; if it exists so a type page has a
+stockist it is a Shop. The kind is the decision, made once, at creation.
+
+**The reader never sees the word "venue".** Kind is plumbing — it decides what
+fields a row needs and how it renders. The word on screen comes from `types`,
+so a surf shop's row says *shop* and a cafe's says *cafe*. This was Scott's
+point and it is the reason `kind` and `types` are both needed: nobody is ever
+told a surf shop is a venue, because nothing ever says it.
+
+### Rules that come with it
+
+- **Anything with a door defaults to Venue.** Moving a row out of Venue needs
+  research, never a word in its name. A first-pass classifier filed *Barwon Club
+  Hotel* and *Workers Club Geelong* as Groups because their names say "Club",
+  and reported it as a decision — the same failure mode this file records from
+  the hospitality pass.
+- **`types` stays a list, and that is what puts a surf shop on `/surfing`.**
+  Multi-type already works: *Wye River General Store* is `cafe · shop` today.
+- **A Maker gets a pin only if they publish a visitable address themselves.**
+  Not an ABN record, not an Instagram geotag, not a search result. A maker
+  working from home has a home address and it is findable, so a research pass
+  *will* find it and *will* report finding it as a success. This has to be
+  enforced in `check()` on both write paths, not left in prose.
+- **Makers appear at Happenings** rather than hosting them — the market stall.
+  No other kind has that relationship, and it is the most useful thing a maker
+  row can say: not "here is a jeweller" but "here is a jeweller, and she is at
+  the Aireys Inlet Market on the third Sunday."
+
+### Still open
+
+- How you reach a Maker: open studio, market stall, or online only. Three
+  different sets of fields.
+- Whether Shop and Maker appear on town pages. Probably yes, in their own
+  section — a surf shop is useful on `/torquay` even if it is not a Saturday
+  plan.
+- Whether the type page grows a third section (*Shops*) under What's on and
+  Places to go. The heading is a design decision: "Where to buy" breaks as soon
+  as a shop also hires or repairs.
+
+### The first Maker, researched but NOT WRITTEN
+
+**Shyama Buttonshaw Designs** — surfboard shaper, Bells Beach.
+https://www.shyamabuttonshaw.com · @shyamabuttonshawdesigns ·
+YouTube @shyama_buttonshaw_designs · shyama.buttonshaw@gmail.com · 0434 559 960
+
+Custom shapes — shortboards, fishes, mid-lengths, logs, and the gliders he is
+known for (mini gliders 6'10"–8'3", full gliders 9'0"–12'). Son of surfer-artist
+Simon Buttonshaw and shaped under Wayne Lynch's influence. Stocked by Wild
+Things Gallery (Byron), Pilgrim Surf Supply (Brooklyn), Ride Surf and Sports
+(Tokyo). Types would be `surfing`; kind Maker.
+
+**Its pin is the first test of the Maker address rule, and it fails the rule as
+written.** 100 Addiscott Rd, Bells Beach VIC 3228 is in his own site's footer,
+so recording it is fine — he published it. But the site never invites a visitor:
+no studio, no hours, no "by appointment". The "face-to-face consultation at his
+studio" line that turns up in search results is **NobodySurf's editorial, not
+his**. A pin on this site means *you can stand here*, and Addiscott Rd is a
+rural road at Bells Beach — almost certainly house and shed. So: address
+recorded, **coordinate left null**, pending Scott, who may know locally that it
+is a real workshop.
+
+Not written to the database because **the Maker kind does not exist yet** and
+adding it as an activity would put a shaper's home on the Notice Board.
+
 ## Venues
 
 `supabase/VENUES_RUN_THIS.sql` created the table (then `venues`, now `places`) and seeded 38 of them from
@@ -1505,22 +1637,29 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
    `ADMIN_PASSWORD` (anything you like). Vercel dashboard → whattodo →
    Settings → Environment Variables, Production.
    The reading half of the page works without any of them.
-1. Give `The Sound Doctor` (place 32) the right kind, or decide `hall` will do
+1. **Build the seven kinds** — see the section near the top. Agreed 27 Aug 2026,
+   nothing done. The migration is one `kind` column, the `places` rows merged
+   into Spot and Venue, and `listings` rebuilt; the type vocabulary, the groups,
+   the conditions and the geocoding all survive untouched. 50–80 rows will need
+   a person, concentrated where the boundary is interesting (is a winery a Venue
+   or a Group once it runs tours? is a caravan park a Spot or a Venue?). Do not
+   let a script answer those.
+2. Give `The Sound Doctor` (place 32) the right kind, or decide `hall` will do
    — see the Places section. The other 11 unclassified places need a word the
    vocabulary does not have yet (shops, organisations, two walks, a boat ramp).
-2. Build place rows for the four dated events whose free text already names a
+3. Build place rows for the four dated events whose free text already names a
    real place: `Baines Crescent outlets` (22), `Anglesea Community Hub` (30),
    `Anglesea Community Precinct` (53), `Torquay Common` (77). Each one then
    gets a pin and a tidier name. `name_rules.py` lists all 18 that have a date
    and a time but no venue.
-3. **Give the 16 place-less events a place.** Every event is verified now, so
+4. **Give the 16 place-less events a place.** Every event is verified now, so
    `sync.py pending` is empty and this is what is actually left. Four only need
    a place row built from the name they already carry (`The Mac`, `Anglesea
    Community Precinct`, `Torquay Common`, `Surf Coast Walk`); six name only a
    suburb and need a real start line; two are genuinely shire-wide; four are
    the `Quiet Club` nights, parked 25 Aug 2026 — their venue is missing from
    the source, not from us (see below).
-4. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
+5. Verify community additions — `python3 scripts/sync.py pending`, then `verify <id>`
    to approve or `reject <id>` to delete. `reject` refuses verified rows and asks
    before deleting; `--yes` skips the prompt.
    `add file.json` (or `-` for stdin) writes a researched entry, one object or a
@@ -1530,24 +1669,24 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
    only when it genuinely is a different thing. `--verified` requires a
    `source_note`; `--dry-run` checks without writing. An event's link is
    `info_url`/`ticket_url`, never `url`.
-5. Pin the 42 entries whose `url` is a Google Maps *search* rather than a
+6. Pin the 42 entries whose `url` is a Google Maps *search* rather than a
    coordinate — each one is a missing pin on the map
-6. Promote the Ideas Pipeline into the database
-7. A scheduled job that re-checks estimated event dates as real ones get announced
-8. **Type icons cover 72 of 419 rows.** Six symbols against 43 types. The set was
+7. Promote the Ideas Pipeline into the database
+8. A scheduled job that re-checks estimated event dates as real ones get announced
+9. **Type icons cover 72 of 419 rows.** Six symbols against 43 types. The set was
    drawn for the old 26 and the split widened the gap — `surfing`, `swimming`,
    `walk`, `night`, `gig` and `at-home` are all big now and all draw the empty
    slot. See the icon section for what the artwork has to solve first (the bike
    does not survive 28px, and only one of an icon's two edges can be true until
    they are all drawn to the same width).
-9. **`places.offers` has a value that means nothing.** `tickets` records that the
+10. **`places.offers` has a value that means nothing.** `tickets` records that the
    row has an `events_url` for the scraper to read — a fact about our plumbing,
    not about the place, and true of every venue that sells a ticket. It is on 2
    of the 7 rows that have one, so it does not even work on its own terms. Delete
    it. `live-music` is worth arguing about on the same grounds: it is true of 38
    places, but a venue with gigs is already proved by having gig rows attached, so
    storing it is a second copy that can go stale.
-10. **`Sport` listings from the events feed now arrive with no type.** The source
+11. **`Sport` listings from the events feed now arrive with no type.** The source
    says only "Sport" and the vocabulary has running, cycling, swimming, surfing
    and paddling — the feed never says which, so `scrape_events.py` writes nothing
    rather than guessing. Those rows show as *unsorted* and need a person. That is
