@@ -566,7 +566,10 @@ takes its port from `$PORT`, because 4173 is often held by another session.
 
 **It serves a copy, so re-copy after every edit:**
 
-    cp public/*.html public/*.css ~/.cache/notice-preview/
+    cp public/*.html public/*.css public/*.js ~/.cache/notice-preview/
+
+The `*.js` half is new: since 26 Aug 2026 the page is not one file, and a
+preview that copies only HTML and CSS runs the previous session's JavaScript.
 
 `/api/admin` does not exist under a static server either, so the lock cannot be
 tested locally. Test the function directly in node instead by importing the
@@ -1147,7 +1150,7 @@ caught it before it shipped; clicking around the page would not have.
   **This was solved properly 25 Aug 2026** — `launch.json` serves
   `~/.cache/notice-preview`, a stable path outside iCloud, with `-I`,
   `"autoPort": true` and the port from `$PORT`. Re-copy after every edit with
-  `cp public/*.html public/*.css ~/.cache/notice-preview/`. See "Serving it
+  `cp public/*.html public/*.css public/*.js ~/.cache/notice-preview/`. See "Serving it
   locally" under Back of house for the two distinct failures involved — the
   second one 404s instead of erroring, which is what makes it confusing.
   Verifying against the deployed site works too, once a push has built.
