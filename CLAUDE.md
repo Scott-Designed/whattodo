@@ -260,6 +260,34 @@ external request. It is a notebook, not an uploader.
 Autofill exists for the community members who cannot ask Claude directly — keep it
 working, but do not use it as the everyday route.
 
+### Researching a category somewhere else
+
+`tools/cowork-research-prompt.md` is the brief to paste into Cowork, a browser
+session, or a phone when the research is happening away from this repo. Replace
+`<<CATEGORY>>`, paste, and what comes back is JSON that `sync.py add` takes
+without editing.
+
+**It has to name the vocabulary before it researches, because the obvious
+categories are not listing types.** *Pubs* and *wineries* are `place_kinds` —
+venue words, for the `places` table — and there is no `pub` type among the 26.
+Ask for a list of pubs without saying that and you get twenty researched rows
+the importer rejects one by one. So the prompt resolves the category first and
+prints which of the three shapes it is writing: A (activities), B (places),
+C (events). A word in both lists (beach, park, cafe, museum, playground) stops
+and asks, because a café you go to and a café that hosts gigs are different rows
+in different tables.
+
+The rules in it are this file's research rules restated for someone who cannot
+read this file. Three are worth keeping if it is ever rewritten: **no
+coordinates at all** (geocoding is a separate Nominatim pass here, and an
+estimated pin is the failure this project paid for twice), **no `km`** (the
+standing decision — distance stays null until it is computed), and **never
+`verified`**. The three example rows were checked against `sync.py`'s own
+`check()` and all three pass; re-run that if the columns change.
+
+Shape B has no `sync.py` path — places are written through `/admin` or SQL.
+That is the gap to close if venue research becomes routine.
+
 ## The events feed runs itself
 
 `surfcoastevents.com.au` is WordPress with The Events Calendar, so it publishes
