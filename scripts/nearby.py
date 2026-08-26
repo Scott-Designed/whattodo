@@ -56,10 +56,29 @@ KINDS = {
 }
 
 
-def get(url, data=None):
-    req = urllib.request.Request(url, data=data, headers={'User-Agent': UA})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.load(r)
+def get(url, data=None, tries=5):
+    """Overpass is a free shared service and it rate-limits. Sweeping 47 towns
+    back to back earns a wall of 429s and 504s — measured 26 Aug 2026, when a
+    run over the whole Place menu completed 18 towns and lost 38 to throttling.
+    A failed town is worse than a slow one: it reads as "nothing here" and the
+    gap stays invisible, which is the whole failure this script exists to fix.
+    So back off and retry rather than letting one town drop out."""
+    delay = 5
+    for attempt in range(tries):
+        try:
+            req = urllib.request.Request(url, data=data, headers={'User-Agent': UA})
+            with urllib.request.urlopen(req, timeout=90) as r:
+                return json.load(r)
+        except Exception as e:
+            code = getattr(e, 'code', None)
+            transient = code in (429, 502, 503, 504) or isinstance(e, OSError)
+            if not transient or attempt == tries - 1:
+                raise
+            print(f'    (overpass busy — {code or e}; waiting {delay}s)',
+                  file=sys.stderr, flush=True)
+            time.sleep(delay)
+            delay *= 2
+    raise RuntimeError('unreachable')
 
 
 def town_centre(town):
