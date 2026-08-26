@@ -54,13 +54,6 @@ if(KNOWN) NP.canonical('place', WANT);
 document.title = (KNOWN ? WANT : 'Not a place we know') + ' — Notice';
 document.getElementById('title').textContent = KNOWN ? WANT : 'Not a place we know';
 
-/* The three that are not towns get a line saying so, because "Home" and
-   "Surf Coast wide" are honest answers to Where and are not towns you drive to. */
-const NOT_A_TOWN = {
-  'Home':'Things you can do without leaving the house.',
-  'Car':'Things to do on the way, from the passenger seat.',
-  'Surf Coast wide':'Things with no single address — they move, or they are the whole coast.'};
-
 const also = document.getElementById('also');
 also.innerHTML = PLACE_ORDER.map(x =>
   `<a href="/place/${slugify(x)}"${x===WANT?' aria-current="page"':''}>${esc(x)}</a>`).join('');

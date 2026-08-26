@@ -3,13 +3,18 @@
   "rewrites": [
     {
       "source": "/place/:slug",
-      "destination": "/place?p=:slug"
+      "destination": "/api/subject?kind=place&slug=:slug"
     },
     {
       "source": "/type/:slug",
-      "destination": "/type?t=:slug"
+      "destination": "/api/subject?kind=type&slug=:slug"
     }
   ],
+  "functions": {
+    "api/subject.mjs": {
+      "includeFiles": "public/**"
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",

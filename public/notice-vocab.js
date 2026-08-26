@@ -132,6 +132,16 @@ const GROUP_OF={
    three of its types live there. The first is what tints the row. */
 const groupsOf = i => [...new Set(typesOf(i).map(t=>GROUP_OF[t]).filter(Boolean))];
 
+/* The three entries in PLACE_ORDER that are not towns get a line saying so,
+   because "Home" and "Surf Coast wide" are honest answers to Where and are not
+   places you drive to. Here rather than in place.html because api/subject.mjs
+   puts the same sentence in the page's description — and two copies of a
+   sentence is how prose drifts. */
+const NOT_A_TOWN = {
+  'Home':'Things you can do without leaving the house.',
+  'Car':'Things to do on the way, from the passenger seat.',
+  'Surf Coast wide':'Things with no single address — they move, or they are the whole coast.'};
+
 /* ── slugs, for the URL ──
    A suburb or a type as a URL segment, derived from the word itself rather
    than stored next to it. A slug column would be a second copy of the
