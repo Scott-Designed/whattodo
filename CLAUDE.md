@@ -250,13 +250,18 @@ run by volunteers does not stop a thing being a place you go to. `nursery` is a
 them, by hand: `community` makes a group, which is right for a Landcare branch
 and wrong for a reading room.
 
-That leaves 14 groups, and **only one of them has a happening standing in for
-it** — Gather Athletics has its Saturday run. The working bees, the choir,
-EstuaryWatch, Surfrider, the Repair Cafe and Nippers all publish schedules
-somewhere and have no event row here, so taking Group off the board removed 13
-things and put nothing in their place. Those events are the next research job,
-and **their dates have to be read off a first-party page, never inferred from
-"third Saturday"** — that is the failure this file opens with.
+That leaves 14 groups, and **only one has a happening attached** — Gather
+Athletics has its Saturday run. **That is fine and is not a backlog**, decided
+by Scott 27 Aug 2026: a group earns its place as reference on the type page it
+belongs to, not by having a date. Somebody reading `/volunteering` wants to know
+Torquay Landcare and the Jan Juc Coast Action working bees exist and how to
+reach them; whether either has a published date this month is a different
+question. All three off-board kinds work the same way — Shop, Maker and Group
+are things you look up, not things the board suggests.
+
+So do NOT go and invent event rows for the 13. If a group's happening is ever
+added it must come off a first-party page with a real date, never inferred from
+"third Saturday" — that is the failure this file opens with.
 
 `Anglesea Resale Shed (Tip Shop)` is still filed as a group and probably should
 not be. Whether a tip shop is a Shop or a Venue is the Chocolaterie question and
