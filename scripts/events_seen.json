@@ -1,5 +1,5 @@
 {
- "note": "Series already offered by scrape_events.py. Delete a line to be offered it again \u2014 otherwise something you rejected comes back every week.",
+ "note": "Series already offered by scrape_events.py. Delete a line to be offered it again \u2014 otherwise something you rejected comes back on Thursday.",
  "offered": [
   "a-day-on-the-farm-school-holiday-program-4",
   "afterglow-night-trail-runs",
@@ -26,6 +26,7 @@
   "great-ocean-otway-classic-ride",
   "great-ocean-road-running-festival",
   "jim-wall-classic-iron-event",
+  "linda-judge-exhibition-at-hoop-gallery",
   "mantra-lorne-presents-creedence-clearwater-revival",
   "ocean-deep-exhibition",
   "piano-bar-featuring-andy-pobjoy-and-gliterally",
