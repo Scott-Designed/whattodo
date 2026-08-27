@@ -23,7 +23,7 @@ import crypto from 'node:crypto';
 // quietly empty. id/created_at/updated_at are deliberately absent: the first is
 // the address, the last two belong to the database's own trigger.
 const WRITABLE = {
-  activities: new Set(['name','types','tags','ages','cost','location','km','season',
+  activities: new Set(['name','kind','types','tags','ages','cost','location','km','season',
     'duration','description','url','rating','notes','conditions','lat','lng',
     'daypart','added_by','verified','source_note','place_id']),
   events: new Set(['name','types','starts_on','ends_on','time_text','recurrence',
@@ -95,9 +95,37 @@ async function complaints(table, patch, current) {
         if (!types.has(t)) bad.push(`type '${t}' is not one of the ${types.size} allowed`);
     }
   }
+  // `kind` means two different things depending on the table, so this has to
+  // dispatch on it: on `places` it is the place taxonomy (pub, hall, beach),
+  // on `activities` it is what sort of listing the row is (spot, venue, shop,
+  // group, maker, idea). Same word, two vocabularies, one of which would
+  // silently accept the other's values if this checked only one.
   if (table === 'places' && has('kind') && patch.kind !== null) {
     const kinds = await names('place_kinds');
     if (!kinds.has(patch.kind)) bad.push(`kind '${patch.kind}' is not a place kind`);
+  }
+  if (table === 'activities' && has('kind') && patch.kind !== null) {
+    const kinds = await names('kinds');
+    if (!kinds.has(patch.kind))
+      bad.push(`kind '${patch.kind}' is not a listing kind`);
+    if (patch.kind === 'happening')
+      bad.push(`'happening' is what an event is — a dated thing belongs in the events table`);
+  }
+
+  // A maker's address is the one this project can do real harm with: a shaper
+  // or a jeweller working from home has a findable home address, and a pin here
+  // means "you can stand here". Code cannot tell a self-published address from
+  // a dug-up one, so it insists the same edit says where it came from and
+  // leaves a person to read it. Only fires when the edit actually touches the
+  // kind or the coordinate — the editor sends only what changed, so renaming a
+  // maker that already has a pin is untouched by this.
+  if (table === 'activities' && (has('kind') || has('lat') || has('lng'))) {
+    const makerNow = patch.kind === 'maker';
+    const pinNow   = (has('lat') && patch.lat !== null) || (has('lng') && patch.lng !== null);
+    if (makerNow && pinNow && !String(patch.source_note || '').trim())
+      bad.push(`a maker with a coordinate needs a source_note in the same edit, saying `
+             + `where the address came from — it must be one the maker publishes `
+             + `themselves, not an ABN record, a geotag or a search result`);
   }
   if (table === 'places' && has('offers') && patch.offers) {
     const offers = await names('place_offers');

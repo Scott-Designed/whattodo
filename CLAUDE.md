@@ -286,6 +286,30 @@ geocoding and the ideas need their pin removed. The script lists them every run.
   row can say: not "here is a jeweller" but "here is a jeweller, and she is at
   the Aireys Inlet Market on the third Sunday."
 
+### `kind` is a loaded word — it means two things
+
+**On `activities` it is the listing kind** (spot, venue, shop, group, maker,
+idea). **On `places` it is the place taxonomy** (pub, hall, beach) and always
+was. Same word, two vocabularies, and either would silently accept the other's
+values. Both write paths now dispatch on the table before checking.
+
+**`sync.py`'s `kind` used to mean a third thing** — which table to write to,
+taking `'place'` or `'event'` — and it *popped the field before inserting*. So
+the moment the real column existed, `kind: 'maker'` was accepted, dropped, and
+written as an activity with no kind and no error. It is fixed: `kind` is the
+listing kind and gets written, both old values are refused **by name** with a
+message saying what to write instead, and which table a row goes to is derived
+from whether it carries a date rather than declared. `events` has no `kind`
+column — there is no such thing as an event without a date — so the router pops
+it there and only there.
+
+The Maker address rule is enforced on both paths now, as far as code can:
+**a maker with a coordinate must carry a `source_note` in the same write.**
+Code cannot tell a self-published address from one dug out of an ABN record, so
+it insists the author writes down which it is and leaves a person to read it.
+`/admin` only fires this when the edit actually touches the kind or the
+coordinate, because that editor sends only what changed.
+
 ### Still open
 
 - How you reach a Maker: open studio, market stall, or online only. Three
@@ -297,7 +321,7 @@ geocoding and the ideas need their pin removed. The script lists them every run.
   Places to go. The heading is a design decision: "Where to buy" breaks as soon
   as a shop also hires or repairs.
 
-### The first Maker, researched but NOT WRITTEN
+### The first Maker — WRITTEN 27 Aug 2026, activity 459
 
 **Shyama Buttonshaw Designs** — surfboard shaper, Bells Beach.
 https://www.shyamabuttonshaw.com · @shyamabuttonshawdesigns ·
@@ -309,18 +333,21 @@ Simon Buttonshaw and shaped under Wayne Lynch's influence. Stocked by Wild
 Things Gallery (Byron), Pilgrim Surf Supply (Brooklyn), Ride Surf and Sports
 (Tokyo). Types would be `surfing`; kind Maker.
 
-**Its pin is the first test of the Maker address rule, and it fails the rule as
-written.** 100 Addiscott Rd, Bells Beach VIC 3228 is in his own site's footer,
-so recording it is fine — he published it. But the site never invites a visitor:
-no studio, no hours, no "by appointment". The "face-to-face consultation at his
-studio" line that turns up in search results is **NobodySurf's editorial, not
-his**. A pin on this site means *you can stand here*, and Addiscott Rd is a
-rural road at Bells Beach — almost certainly house and shed. So: address
-recorded, **coordinate left null**, pending Scott, who may know locally that it
-is a real workshop.
+**Pinned at -38.358398, 144.255318 on Scott's instruction.** Nominatim,
+structured query, matched `type=house` at "100-100A, Addiscott Road, Bells
+Beach, Bellbrae" — a building, not a street and not a suburb centroid.
 
-Not written to the database because **the Maker kind does not exist yet** and
-adding it as an activity would put a shaper's home on the Notice Board.
+The reasoning is in the row's `source_note` and is worth keeping here too,
+because it is the precedent for every maker after this one. 100 Addiscott Rd is
+in his own site's footer, so recording it is his own publication, and Scott
+supplied the same address independently — two sources, neither of them dug up.
+What the site does *not* do is invite a visitor: no studio, no hours, no "by
+appointment". The "face-to-face consultation at his studio" line that turns up
+in search results is **NobodySurf's editorial, not his**. That is why the rule
+asks for a `source_note` rather than trying to decide in code — the note is
+where the difference gets written down.
+
+`km` is null, not guessed.
 
 ## Venues
 

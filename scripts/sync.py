@@ -8,6 +8,11 @@
     python3 scripts/sync.py reject 1043   # remove one that isn't real (asks first)
     python3 scripts/sync.py add x.json    # write a researched entry (or - for stdin)
 
+`add` takes `kind` — spot, venue, shop, group, maker, idea, or happening —
+and writes it. Leave it out and the row lands unclassified, which is honest but
+means somebody has to come back. Anything with a `starts_on` goes to the events
+table on its own; `kind` does not choose the table any more.
+
 The database is the source of truth. `export` writes a dated snapshot for
 safekeeping; nothing reads it back. Edit rows in the Supabase table editor,
 not in a spreadsheet.
@@ -143,10 +148,22 @@ def reject(idn, assume_yes=False):
 # why --verified insists on a source_note. Everything is checked here rather
 # than left to the database, so a bad field in a batch of 200 names itself
 # instead of failing an opaque insert halfway through.
+#
+# `kind` MEANS THE LISTING KIND — spot, venue, shop, group, maker, happening,
+# idea — checked against the `kinds` table. It used to mean "which table",
+# taking 'place' or 'event', and it was popped before the insert. So when the
+# real column arrived on 27 Aug 2026, `kind: 'maker'` was accepted, silently
+# dropped, and written as an activity with no kind and no error. Both old
+# values are now refused by name rather than ignored.
+#
+# Which table a row goes to is derived, not declared: an event is a row with
+# event-only fields, or one whose kind is `happening`. `events` has no kind
+# column — there is no such thing as an event without a date — so the router
+# pops it there and only there.
 
-ACTIVITY_COLS = {'name','types','tags','ages','cost','location','km','season','duration',
+ACTIVITY_COLS = {'name','kind','types','tags','ages','cost','location','km','season','duration',
                  'description','url','rating','notes','conditions','lat','lng','daypart',
-                 'added_by','verified','source_note'}
+                 'place_id','added_by','verified','source_note'}
 EVENT_COLS    = {'name','types','starts_on','ends_on','time_text','recurrence','venue',
                  'location','km','cost','ages','artist','genre','description','ticket_url',
                  'info_url','conditions','date_confidence','added_by','verified','source_note'}
@@ -156,13 +173,49 @@ URL_FIELDS    = ('url','ticket_url','info_url')
 def vocab(table):
     return {r['name'] for r in req('GET', f'/rest/v1/{table}?select=name')}
 
-def check(row, i, types, conds):
+def is_event(row):
+    """Which table a row belongs in. Derived from what it carries, never declared."""
+    return bool(EVENT_ONLY & set(row)) or row.get('kind') == 'happening'
+
+def check(row, i, types, conds, kinds):
     """Return a list of complaints about one row. Empty list means it is fine."""
     bad = []
     where = f"row {i}" + (f" ({row['name']})" if row.get('name') else '')
-    ev = bool(EVENT_ONLY & set(row)) or row.get('kind') == 'event'
+    ev = is_event(row)
     cols = EVENT_COLS if ev else ACTIVITY_COLS
 
+    # The old meaning, refused by name. Silently accepting these is what wrote
+    # a maker into the database with no kind on 27 Aug 2026.
+    k = row.get('kind')
+    if k == 'event':
+        bad.append(f"{where}: kind 'event' is the old meaning of this field. It is the "
+                   f"listing kind now — write kind 'happening', or just give the row a "
+                   f"starts_on and it goes to the events table by itself.")
+    elif k == 'place':
+        bad.append(f"{where}: kind 'place' is the old meaning of this field. It is the "
+                   f"listing kind now — pick one of: "
+                   f"{', '.join(sorted(kinds - {'happening'}))}.")
+    elif k is not None and k not in kinds:
+        bad.append(f"{where}: kind '{k}' is not one of {sorted(kinds)}")
+    elif k is not None and ev and k != 'happening':
+        bad.append(f"{where}: kind '{k}' on a row with a date. Anything dated is a "
+                   f"happening; a place that hosts events is a separate row.")
+
+    # A maker's address is the one this project can do real harm with: a shaper
+    # or a jeweller working from home has a findable home address, and a
+    # research pass WILL find it and report finding it as a success. Code
+    # cannot tell a self-published address from a dug-up one — so it insists on
+    # a source_note and leaves a person to read whether it says the maker
+    # published it themselves.
+    if k == 'maker' and (row.get('lat') is not None or row.get('lng') is not None) \
+       and not str(row.get('source_note') or '').strip():
+        bad.append(f"{where}: a maker with a coordinate needs a source_note saying where "
+                   f"the address came from. A pin here means 'you can stand here', and a "
+                   f"maker often works from home — it must be an address they publish "
+                   f"themselves, not an ABN record, a geotag or a search result.")
+
+    # `kind` is a real column on activities and a router on events, so it is
+    # never an unknown field — without this an event row gets told off twice.
     unknown = set(row) - cols - {'kind'}
     if unknown:
         # An event's link is info_url; writing `url` would be silently dropped.
@@ -231,12 +284,12 @@ def add(path, verified=False, dry=False, force=False):
     except json.JSONDecodeError as e: sys.exit(f"that is not valid JSON: {e}")
     rows = doc if isinstance(doc, list) else [doc]
 
-    types, conds = vocab('types'), vocab('conditions')
+    types, conds, kinds = vocab('types'), vocab('conditions'), vocab('kinds')
     for r in rows:
         r.setdefault('added_by','Research')
         if verified: r['verified'] = True
 
-    bad = [c for i,r in enumerate(rows,1) for c in check(r, i, types, conds)]
+    bad = [c for i,r in enumerate(rows,1) for c in check(r, i, types, conds, kinds)]
     if bad:
         print("nothing written — fix these first:"); [print("  •",b) for b in bad]; sys.exit(1)
 
@@ -254,9 +307,10 @@ def add(path, verified=False, dry=False, force=False):
         sys.exit("nothing written. --force if these really are different things.")
 
     for r in rows:
-        ev = bool(EVENT_ONLY & set(r)) or r.pop('kind', None) == 'event'
-        r.pop('kind', None)
+        ev = is_event(r)
         t = 'events' if ev else 'activities'
+        # events has no kind column; an activity keeps the one it was given
+        if ev: r.pop('kind', None)
         if dry:
             print(f"would add to {t}: {r['name']}"); continue
         got = req('POST', f'/rest/v1/{t}', r, {'Prefer':'return=representation'})
