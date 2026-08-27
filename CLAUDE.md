@@ -1076,6 +1076,38 @@ are the same file, so the attribute says `board` on both. A literal path needs
 no vocabulary, so reading it is safe there even though `notice-vocab.js` loads
 after the bar is drawn.
 
+## The Kind menu
+
+`Any kind` leads the filters on `/` — **Spots, Venues, Happenings, Ideas**, with
+counts. Added 27 Aug 2026. It is the first of the four reader-facing kind
+filters to exist, and it does the job of all four in one control rather than as
+four buttons.
+
+**It offers four of the seven.** Shop, maker and group are never in the list to
+be narrowed, so listing them would be four dead rows — the same rule the Type
+menu follows, which leaves out what it cannot give you rather than greying it.
+
+**`/noticeboard` does not get the control at all.** Everything there is a
+happening, so the menu would have one entry. `MULTI.kind` therefore does not
+exist on that path, which is why `refreshFacets` guards the paint.
+
+**This is the first place a reader is shown the word "venue".** This file
+recorded that the site deliberately never did that — kind was plumbing and the
+word on screen came from `types`. Scott asked for the kind filter, so the
+dropdown is where that changed. The labels are in `BOARD_KINDS` if they should
+read as something else.
+
+**Two counting bugs were fixed to make the numbers true**, and both are worth
+knowing because the same trap is waiting for the other three filters:
+
+- `pass()` — which builds every menu's counts — did not apply `OFF_BOARD` or
+  `EVENTS_ONLY`, so every menu was counting rows the list cannot show. It had
+  been harmless until a kind menu made it visible.
+- `atHomeHidden()` holds 43 rows back until you ask for something. Picking a
+  kind is asking, so `S.kind` now counts alongside `S.type`; and `pass()` lifts
+  the hold when it is computing the kind pool. Without the first change the menu
+  promised 57 Ideas and delivered 14; without the second it promised 16.
+
 ## The nav bar, and the pages behind it
 
 Built 26 Aug 2026. The site is four pages now, not one, and they share a bar

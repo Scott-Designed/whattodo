@@ -582,6 +582,7 @@ body.mapview .tbl{display:none}
   </header>
 
   <div class="controls">
+    <div class="ctrl ms" id="ms-kind"></div>
     <div class="ctrl ms" id="ms-group"></div>
     <div class="ctrl ms" id="ms-type"></div>
     <div class="ctrl ms" id="ms-suburb"></div>
@@ -748,7 +749,7 @@ async function fetchWeather(){
             rain:j.current.precipitation,rain48:past,cloud:j.current.cloud_cover};
   }catch(e){ clearTimeout(t); return null; }
 }
-const S={when:'any',group:[],type:[],suburb:[],km:999,cost:[],who:[],wx:'',sort:'when',q:'',saved:false};
+const S={when:'any',kind:[],group:[],type:[],suburb:[],km:999,cost:[],who:[],wx:'',sort:'when',q:'',saved:false};
 
 /* ══ what you kept ══════════════════════════════════════════
    A wishlist with no account behind it. The keys live in this browser and
@@ -1248,7 +1249,11 @@ function atHomeHidden(i){
   /* "At home" is a theme you choose, not the answer to "what's on near me". With no
      theme picked and nothing searched, keep these out of the default list — they
      outnumber the real places and they are all zero km, so they used to lead it. */
-  return !S.group.length && !S.type.length && !S.q && (i.groups||[]).includes('home');
+  /* Picking a kind is asking for it, the same as picking a type — and Ideas
+     is mostly these rows, so without S.kind here the menu would promise 57
+     and the list would show 14. */
+  return !S.kind.length && !S.group.length && !S.type.length && !S.q
+         && (i.groups||[]).includes('home');
 }
 /* Shop, Maker and Group are the three kinds that are not answers to "what
    shall we do on Saturday". A shop is where you buy the gear, a maker is who
@@ -1276,12 +1281,25 @@ const OFF_BOARD = new Set(['shop', 'maker', 'group']);
    over the list. A second file would be a second copy of a 400KB page and
    would drift from this one the first time either was touched. */
 const EVENTS_ONLY = location.pathname.replace(/\/+$/,'') === '/noticeboard';
+
+/* The four kinds that reach a board, in family order. Shop, maker and group
+   are not offered because none of them is ever in the list to be narrowed —
+   the same rule the Type menu follows, which leaves out what it cannot give
+   you rather than greying it.
+
+   These are the words the type pages use. Note this is the first place a
+   reader is shown the word "venue", which CLAUDE.md had recorded as something
+   the site deliberately never did — Scott asked for the kind filter, so the
+   dropdown is where that changes. */
+const BOARD_KINDS=[['spot','Spots'],['venue','Venues'],
+                   ['happening','Happenings'],['idea','Ideas']];
 const BOARD_TITLE = EVENTS_ONLY ? 'Notice Board' : 'Everything';
 
 function ok(i){
   if(S.saved && !isSaved(i)) return false;
   if(!S.saved && OFF_BOARD.has(i.kind)) return false;
   if(EVENTS_ONLY && !i.ev) return false;
+  if(S.kind.length && !S.kind.includes(i.kind)) return false;
   if(!whenOK(i)) return false;
   /* Something you saved is something you asked for, so the At home entries the
      default list holds back are not held back from your own list. */
@@ -1645,7 +1663,9 @@ function afterFacetChange(key){
   refreshFacets(); render();
 }
 
-makeMulti('ms-group','group','Anything','What kind of thing');
+if(EVENTS_ONLY) document.getElementById('ms-kind').hidden = true;
+else makeMulti('ms-kind','kind','Any kind','Kind of thing');
+makeMulti('ms-group','group','Anything','What it is about');
 makeMulti('ms-type','type','All types','Type of listing');
 makeMulti('ms-suburb','suburb','Anywhere','Suburb or town');
 makeMulti('ms-cost','cost','Any cost','Cost');
@@ -1661,6 +1681,12 @@ function refreshFacets(){
      picking one option would grey out its own siblings. */
   const pass=(i,skip)=>
        (!S.saved || isSaved(i)) && whenOK(i) && !(i.km!=null && i.km>S.km) && !(S.wx && suits(i)===false)
+    && (S.saved || !OFF_BOARD.has(i.kind)) && !(EVENTS_ONLY && !i.ev)
+    /* skip==='kind' lifts the at-home hold as well, because picking a kind is
+       what lifts it — so the number beside "Ideas" is what picking Ideas
+       actually gives you, rather than what the unfiltered list is showing. */
+    && (S.saved || skip==='kind' || !atHomeHidden(i))
+    && (skip==='kind' || !S.kind.length || S.kind.includes(i.kind))
     && (!S.q || [i.name,i.loc,i.place,typesOf(i).join(' '),i.desc,(i.tags||[]).join(' ')]
                   .join(' ').toLowerCase().includes(S.q))
     && (skip==='group' || !S.group.length || groupsOf(i).some(g=>S.group.includes(g)))
@@ -1670,8 +1696,12 @@ function refreshFacets(){
     && (skip==='who'  || !S.who.length  || (i.ages||[]).some(a=>S.who.includes(a)||a==='all-ages'));
 
   const pool=k=>ALL.filter(i=>pass(i,k));
-  const pv=pool('group'), pt=pool('type'), pc=pool('cost'), pw=pool('who'), ps=pool('suburb');
+  const pv=pool('group'), pt=pool('type'), pc=pool('cost'), pw=pool('who'), ps=pool('suburb'),
+        pk=pool('kind');
 
+  /* MULTI.kind only exists where the control was built — the Notice Board
+     skips it, because there everything is a happening. */
+  if(MULTI.kind) paintMulti(MULTI.kind, BOARD_KINDS, k=>pk.filter(i=>i.kind===k).length);
   paintMulti(MULTI.group, GROUPS, g=>pv.filter(i=>groupsOf(i).includes(g)).length);
   /* Every type any row carries, not just its first — or a type that is only ever
      a second one (cinema on a film festival) would be missing from the menu.
@@ -1724,8 +1754,9 @@ function paintChips(){
   const box=document.getElementById('chips');
   const out=[];
   const label=(k,v)=>({group:(GROUPS.find(o=>o[0]===v)||[v,v])[1],
+                       kind:(BOARD_KINDS.find(o=>o[0]===v)||[v,v])[1],
                        who:(WHO.find(o=>o[0]===v)||[v,v])[1]}[k] ?? v);
-  ['group','type','suburb','cost','who'].forEach(k=>
+  ['kind','group','type','suburb','cost','who'].forEach(k=>
     S[k].forEach(v=>out.push([k, v, label(k,v)])));
   if(S.km!==999)     out.push(['km', 999, 'Within '+S.km+' km']);
   if(S.wx)           out.push(['wx', '', {auto:'Weather now',fine:'Fine',grey:'Grey & cold',
@@ -1790,7 +1821,7 @@ function syncMoreDot(){
 document.getElementById('q').addEventListener('input',e=>{
   S.q=e.target.value.trim().toLowerCase(); refreshFacets(); render();});
 
-const DEFAULTS={when:'any',group:[],type:[],suburb:[],km:999,cost:[],who:[],wx:'',q:'',saved:false};   /* sort is a view, not a filter */
+const DEFAULTS={when:'any',kind:[],group:[],type:[],suburb:[],km:999,cost:[],who:[],wx:'',q:'',saved:false};   /* sort is a view, not a filter */
 function syncClear(){
   const on = Object.keys(DEFAULTS).some(k=>Array.isArray(DEFAULTS[k])
     ? S[k].length : S[k]!==DEFAULTS[k]);
