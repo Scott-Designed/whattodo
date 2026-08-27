@@ -323,6 +323,24 @@ coordinate, because that editor sends only what changed.
 
 ### The first Shop — WRITTEN 27 Aug 2026, activity 460
 
+**Place 99 is now a monitored source** (27 Aug 2026, Scott's request): its
+`website` and `events_url` are both the store page. It reads nothing today and
+the run says so — *"Patagonia Torquay — nothing machine-readable"* — because the
+site is a JS-rendered Shopify storefront and a plain fetch gets nav chrome, no
+JSON-LD and no dates. That is the point of registering it anyway: every run now
+checks it, and it appears on the back-of-house source list where a dead source
+is visible rather than forgotten.
+
+**`patagonia.com.au/pages/events` exists and was deliberately NOT used.** It is
+a national list, so attaching it to the Torquay row would file a Sydney event in
+Torquay — the same organiser-is-not-the-venue mistake this file records for
+Creative Geelong. A store's own page is the only URL that can honestly be
+attributed to that store.
+
+The link Scott sent carried a `?srsltid=` Google click-tracking parameter. It is
+stored clean; a tracking parameter changes between visits, so keeping one would
+mean every run compares against a slightly different address.
+
 **Patagonia Torquay**, 116 Surf Coast Highway — patagonia.com.au/pages/torquay-store
 Types `shop · surfing · mountain biking · rock climbing · running`, taken from
 the categories the store's own page lists. Worth a look if a type page starts
