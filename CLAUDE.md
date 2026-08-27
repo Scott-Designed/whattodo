@@ -263,6 +263,15 @@ clubs and you enrol a child in it, so it is a group. Left in `BY_ID` rather than
 reordering `PRECEDENCE`, because it is **the only row in 438 carrying both a
 group type and a spot type**; a rule change would be fitted to one row.
 
+**`--write` only fills rows that have no kind.** A row that already has one
+was either set by the first run or set by a person afterwards, and the script
+cannot tell those apart — so re-running it must never quietly undo a decision.
+This is not hypothetical: on the day it was added, a plain re-run would have
+turned `Shyama Buttonshaw Designs` from a maker and `Patagonia Torquay` from a
+shop into spots, because both carry activity types that outrank their kind on
+`PRECEDENCE`. Disagreements are printed every run either way, so nothing is
+hidden; `--reclassify` is how you apply them.
+
 **56 rows have a kind and a coordinate that disagree** — a spot with no pin, or
 an idea carrying one. That is a data job, not a kind job: the spots need
 geocoding and the ideas need their pin removed. The script lists them every run.
@@ -350,11 +359,11 @@ useful or noisy is a judgement nobody has made yet.
 **It carries no coordinate of its own.** `place_id = 99` — the `places` row for
 Patagonia already existed, already geocoded building-level, already used by an
 event. The `listings` view coalesces own-first, place-second, so the pin arrives
-without a second copy that could drift. **This is the first activity in the
+without a second copy that could drift. **This was the first activity in the
 database to use `place_id`; the other 438 all carry their own lat/lng**, which
 is how 32 things ended up existing in both tables with three of them
-disagreeing. Shops and venues that already have a place row should be linked,
-not duplicated.
+disagreeing. Anything that already has a place row should be linked, not
+duplicated — `Gather Athletics` (461) is the second, linked to place 84.
 
 ### The first Maker — WRITTEN 27 Aug 2026, activity 459
 
@@ -1625,11 +1634,15 @@ caught it before it shipped; clicking around the page would not have.
   separately from `lat`/`lng`. 128 of 272 activities are pinned; the rest are the
   At home entries and the roving ones, which have nowhere to be
 - 42 entries use Google Maps *search* URLs rather than pinned coordinates
-- `Gather` (activity 291, venue 84) and `Gather Athletics Shop Run` (event 89),
-  both Ocean Grove, added 24 Aug 2026 from photographs in the event inbox. Neither
-  has a `km`. The run's `recurrence = weekly` rests on Scott confirming it is still
-  current, **not** on the source: the Instagram post behind it is dated 20 March and
-  its caption reads as a one-off. Recheck if it goes quiet.
+- **The Gather trio is one thing in three kinds, and it is the clearest example
+  of why the kinds exist.** `Gather` (activity 291) is the cafe — a **venue**.
+  `Gather Athletics` (activity 461, added 27 Aug 2026) is the running group that
+  meets there — a **group**. `Gather Athletics Shop Run` (event 89) is the
+  Saturday run itself — a **happening**. All three share place 84's coordinate;
+  none of them duplicates it, because 461 links with `place_id`.
+  The run's `recurrence = weekly` no longer rests on Scott's word alone: the
+  @gatherathletics profile says "every saturday" first-party. Still no `km` on
+  any of them.
 - Four events sit on estimated dates: Bells Beach Surf Film Festival, Deans Marsh
   Festival, Geelong Pride Film Festival, One Planet Festival
 - Ideas Pipeline (177 rows, in the old spreadsheet) is not in the database

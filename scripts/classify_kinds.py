@@ -2,8 +2,17 @@
 """Propose a kind for every undated listing.
 
     python3 scripts/classify_kinds.py            # the proposal, writes nothing
-    python3 scripts/classify_kinds.py --write    # apply it
-    python3 scripts/classify_kinds.py --show venue   # list one kind in full
+    python3 scripts/classify_kinds.py --write    # fill in the rows with no kind
+    python3 scripts/classify_kinds.py --write --reclassify   # overwrite every row
+    python3 scripts/classify_kinds.py --show venue           # one kind in full
+
+**--write only fills nulls.** A row that already has a kind was either set by
+the first run or set by a person afterwards, and this script cannot tell those
+apart — so re-running it must not quietly undo somebody's decision. `Gather
+Athletics` is a group whose types are `running · community`, which the rules
+below would make a spot; it is right because a person said so, and one
+re-run without this guard would have thrown that away. Disagreements are still
+printed every time, so nothing is hidden — `--reclassify` applies them.
 
 Events are always `happening` and the view says so with a literal, so this
 only ever touches `activities`.
@@ -189,6 +198,7 @@ def decide(row, suburb):
 
 def main():
     write = '--write' in sys.argv
+    redo  = '--reclassify' in sys.argv
     show = sys.argv[sys.argv.index('--show') + 1] if '--show' in sys.argv else None
 
     # a type the map has never heard of is a bug, and it should stop the run
@@ -260,8 +270,21 @@ def main():
             print('   %-6s %-44s %s' % (r['id'], r['name'][:44], w))
         print()
 
-    changed = [(r, k) for r, k, w in out if r.get('kind') != k]
-    print('%d row(s) would change.' % len(changed))
+    differs = [(r, k) for r, k, w in out if r.get('kind') != k]
+    fresh   = [(r, k) for r, k in differs if not r.get('kind')]
+    settled = [(r, k) for r, k in differs if r.get('kind')]
+
+    if settled:
+        print('── already has a kind, and the rules disagree (%d)' % len(settled))
+        print('   These are left alone unless you pass --reclassify. A kind that is')
+        print('   already set may have been set by a person.')
+        for r, k in settled:
+            print('   %-6s %-40s %-8s -> %s' % (r['id'], r['name'][:40], r['kind'], k))
+        print()
+
+    changed = differs if redo else fresh
+    print('%d row(s) with no kind would be filled.' % len(fresh))
+    if redo: print('--reclassify: %d row(s) would be overwritten too.' % len(settled))
 
     if not write:
         print('\nDry run. Read the above, then re-run with --write.')
