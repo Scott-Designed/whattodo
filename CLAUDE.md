@@ -664,6 +664,67 @@ external request. It is a notebook, not an uploader.
 Autofill exists for the community members who cannot ask Claude directly — keep it
 working, but do not use it as the everyday route.
 
+### The inbox is not only an event inbox
+
+**Most of what arrives is a `share.google` link, and it is usually a business,
+not an event.** Those short links resolve to a Google **Knowledge Panel** search
+URL — `google.com/search?...&kgmid=/g/...&q=Bellbrae+Clay` — which is what the
+Google Maps share sheet produces. So the capture is Scott standing in front of a
+shop or a studio, not a poster with a date on it. Three of the five items in the
+27 Aug 2026 pull were exactly that. **Resolve the redirect first** (`curl -sL -o
+/dev/null -w '%{url_effective}'`), read the `q=` parameter for the name, then
+research it first-party from there — the Google URL itself is never the row's
+`url`, because it is a search result, which is the same defect as the 37 Google
+Maps *search* urls this file already records.
+
+**Pulling the inbox therefore means classifying before researching**: a business
+becomes an activity (venue / shop / maker), a dated thing becomes an event, and a
+page that turns out to be last year's becomes a line in the report and nothing
+else.
+
+**27 Aug 2026 — five items in, four rows out.**
+
+- **Bellbrae Clay** (activity 462, venue, `arts · workshop · shop`) — hand-building
+  pottery studio, 590 Great Ocean Road, Bellbrae, run by Lauren Barton. Walk-In
+  Fridays 2–6pm plus booked workshops. Pinned house-level.
+- **The Running Company Torquay** (activity 463, **shop**, `shop · running`) —
+  3/1 Haystacks Drive. The second shop in the database after Patagonia, and the
+  Chocolaterie rule decided it the same way: you go for the gear, so it is a
+  Shop, off the board, and it earns its place on `/running`.
+- **Mortadeli** (activity 464, venue, `cafe · restaurant · produce`) — Mediterranean
+  deli, sandwich shop and pasta bar, Shop 9/4-6 Gilbert Street, Torquay.
+- **Climate Connect – Snapshot: The Summer Ahead** (event 155, 10 Sep 2026,
+  5:30–7pm, free) — Geelong Sustainability, at the **National Hotel** (place 108,
+  created for it, `pub`, pinned to Nominatim's own `amenity=pub` node at 191
+  Moorabool St). `date_confidence = high`: the organiser's own page carries the
+  date, and its body names "Thursday September 10", which is a weekday checksum
+  that passes.
+
+**The fifth was a dead end, and it is the useful one.** The `/shd2025/` link is
+Geelong Sustainability's **Sustainable House Day 2025** page — October 2025, long
+past. SHD is annual and run nationally by Renew; the **2026 edition was 17 May
+2026**, also past. So there was nothing to file, and nothing to infer: a page for
+last year's edition is not evidence of this year's date, which is the Arts Trail
+failure wearing a different hat. Worth putting a reminder somewhere for **May 2027**.
+
+**Geelong Sustainability was deliberately NOT registered as a source.** Its
+`/events/` page is a real, readable calendar — but it is an **organiser**, and
+its events happen at other people's rooms (this one at the National Hotel). A
+place row for it would be the Creative Geelong mistake exactly. The open question
+is that there is nowhere in this schema for "an organiser worth watching that is
+not a room", which is the same gap `The Sound Doctor` sits in.
+
+**`bellbraeclay.com/booknow` is a live first-party workshop list and is not yet
+registered.** It carried seven dated sessions Sep–Oct 2026 when it was read
+(12, 13, 22, 24, 29 Sep and 1, 4 Oct), and **every printed weekday checks out
+against the calendar** — the same checksum `scrape_venues.py` applies. Note the
+URL needs the `www.`; bare `bellbraeclay.com/booknow` does not resolve. Its old
+TryBooking landing page (event 1182007) is **stale** — a closed March 2024
+booking — so do not register that one. Registering the booknow page means
+creating a `places` row for Bellbrae Clay and repointing activity 462 at it with
+`place_id`, rather than leaving it with its own coordinate; that is a decision
+for Scott, and doing it carelessly is how 32 things ended up in both tables.
+
 ## The events feed runs itself
 
 `surfcoastevents.com.au` is WordPress with The Events Calendar, so it publishes
