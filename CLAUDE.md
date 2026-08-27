@@ -208,6 +208,16 @@ not a description of the page. Four filters on the Notice Board:
     Join in        Group
     At home        Idea
 
+**Shop and Maker are held off the board TODAY, by `OFF_BOARD` in index.html**,
+because the rows exist and the filters do not. That was a real gap for about an
+hour: Patagonia and Shyama Buttonshaw were added, and both walked straight onto
+the Notice Board, because `ok()` filtered on types and had never heard of
+`kind`. Adding a kind whose whole point is being off the board, while the thing
+that would keep it off is unbuilt, is the shape of mistake to watch for here.
+
+When the four filters land, `OFF_BOARD` should become a case of the filter
+rather than a rule sitting beside it — and `atHomeHidden()` goes the same way.
+
 **Shop and Maker are in none of them, and that is the mechanism.** An earlier
 draft had an `on_board` flag to hold shops back; splitting Shop out killed it.
 A row is off the board by *being* a Shop, so there is nothing to remember when
@@ -323,9 +333,11 @@ coordinate, because that editor sends only what changed.
 
 - How you reach a Maker: open studio, market stall, or online only. Three
   different sets of fields.
-- Whether Shop and Maker appear on town pages. Probably yes, in their own
-  section — a surf shop is useful on `/torquay` even if it is not a Saturday
-  plan.
+- ~~Whether Shop and Maker appear on town pages.~~ **Decided 27 Aug 2026: yes,
+  in their own "Shops & makers" section.** Not under "Places to go" — a shop is
+  not somewhere to go on a Saturday and a maker is not a place at all, which is
+  the same reason they are off the board. Still worth knowing about in a town
+  you are already in.
 - Whether the type page grows a third section (*Shops*) under What's on and
   Places to go. The heading is a design decision: "Where to buy" breaks as soon
   as a shop also hires or repairs.
@@ -1175,8 +1187,10 @@ list rather than the label on a form.
 
 **A row linked to its own place row prints its own name back at itself.**
 `Patagonia Torquay` the shop points at `Patagonia Torquay` the place to inherit
-a coordinate, so `place` and `name` are the same string. Both `item()` and
-`row()` drop `place` when it matches the name.
+a coordinate, so `place` and `name` are the same string. `item()`, `row()` and
+index.html's own `whereParts()` all drop `place` when it matches the name —
+three copies of one rule, because the board's row template is not shared with
+the subject pages.
 
 **`fromRow` had to learn `kind`.** It was dropping the column entirely, so the
 first build put all 65 cafes under "no kind". Anything the page reads has to be
