@@ -1116,7 +1116,18 @@ async function save(){
     say('Saved.', 'good');
   } else if (out.complaints){
     say('Not saved:<ul>' + out.complaints.map(c => `<li>${esc(c)}</li>`).join('') + '</ul>', 'bad');
-  } else say(esc(out.message || out.error || ('error ' + code)), 'bad');
+  } else say(why(code, out), 'bad');
+}
+
+/* Why a write did not happen, in as much detail as the function gave us.
+   `error: 'failed'` is the catch-all — something threw server-side — and it
+   carries a `detail` that says what. That detail was being dropped on the
+   floor, so every server exception read as the single word "failed", which is
+   the least useful thing a page can say about a problem it has been told the
+   cause of. */
+function why(code, out){
+  const head = esc(out.message || out.error || ('error ' + code));
+  return out.detail ? head + '<br><small>' + esc(out.detail) + '</small>' : head;
 }
 
 async function remove(){
@@ -1131,7 +1142,7 @@ async function remove(){
   if (code === 200){
     DATA[OPEN.table] = DATA[OPEN.table].filter(x => x.id !== OPEN.row.id);
     closeEditor(); redrawAll();
-  } else say(esc(out.message || out.error || ('error ' + code)), 'bad');
+  } else say(why(code, out), 'bad');
 }
 
 /* ── the lock ──────────────────────────────────────────────────────────────
