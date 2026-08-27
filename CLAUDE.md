@@ -121,12 +121,24 @@ ended up in both sheets with two different dates, one of them wrong.
   `verified = true` or `added_by = 'Research'` — a submission cannot dress itself up
   as researched data.
 
-## Seven kinds of listing — AGREED 27 Aug 2026, NOT YET BUILT
+## Six kinds of listing — COLUMN BUILT AND EVERYTHING CLASSIFIED 27 Aug 2026
 
 Decided with Scott over a long session on 27 Aug 2026, after reading all 585
-rows. **Nothing below is in the database yet.** It is the target shape, written
-down so the next session does not re-derive it — and so that anything added in
-the meantime is added knowing where it is going.
+rows, then applied the same day.
+
+**What is done:** `supabase/KINDS.sql` (the `kinds` table, `activities.kind`,
+and `listings` carrying `kind` + `family`), and `scripts/classify_kinds.py`,
+which classified all 438 undated rows.
+
+**What is deliberately NOT done:** the reader-facing filters still say what they
+said yesterday — Scott asked for the recategorisation without the dropdown
+change. And `places` has not been merged into the listings tables, which is the
+destructive half and the one that fixes the 32 duplicates.
+
+    venue 215   spot 145   idea 57   group 21   happening 150   shop 0   maker 0
+
+Shop and maker being empty is correct, not a bug: they are what Scott is about
+to add, and the kinds exist so there is somewhere for them to go.
 
 ### Why the current split is wrong
 
@@ -146,36 +158,50 @@ common. The columns have been saying so for months:
   999 m, Last One Inn by 391 m, Point Roadknight Beach by 357 m. Anglesea Main
   Beach has a pin as a place and none as a listing.
 
-### The seven
+### The six
 
-One table, one `kind`, and `types` stays a list on top of it.
+`kind` is one value on the row, `family` comes off the `kinds` table, and
+`types` stays a list on top of both. **`family` is what a kind can DO** — a
+`place` can carry a coordinate and host a happening, `people` may have neither
+— so anything asking "can this hold a pin?" asks the family rather than
+keeping its own list of kind names in step.
 
-**Places** — an address, a pin, and can host a Happening.
+**Shop was briefly a boolean flag on venue and is now a kind.** Both were
+tried, in that order, on the same day. As a kind it costs nothing extra —
+shop and venue share every property because both are in the `place` family —
+and it means anything separating shops out reads one column instead of
+inspecting a list of types.
 
-- **Spot** (~140) — no door, no hours, nobody owns it. *Bells Beach, Jan Juc
+**`place`** — an address, a pin, and can host a Happening.
+
+- **spot** (145) — no door, no hours, nobody owns it. *Bells Beach, Jan Juc
   Skatepark, Erskine Falls Walk.*
-- **Venue** (~205) — a door, hours, a price. **Bakeries are Venues**, decided
+- **venue** (215) — a door, hours, a price. **Bakeries are venues**, decided
   explicitly: a bakery you can sit outside is a cafe that sells bread.
   *Torquay Hotel, Surf World Museum, Anglesea Bakery.*
-- **Shop** (~2 today) — a door, hours, things to buy, and it is here so a type
-  page has somewhere to buy the gear. *A surf shop on `/surfing`.*
+- **shop** (0) — a door, hours, and it is here so a type page has somewhere to
+  buy the gear. *A surf shop on `/surfing`.*
 
-**People** — a contact, and possibly no address at all.
+**`people`** — a contact, and possibly no address at all.
 
-- **Group** (~29) — you join in. *Torquay Landcare, Anglesea Movie Club,
-  Go Ride A Wave.* Scott is building this out, which is why it is a kind and
-  not a flag.
-- **Maker** (1 today) — you buy from them. *A shaper in his garage, a jeweller
+- **group** (21) — you join in. *Torquay Landcare, Anglesea Movie Club,
+  Nippers.* Scott is building this out, which is why it is a kind.
+- **maker** (0) — you buy from them. *A shaper in his garage, a jeweller
   at a market.*
 
-**Happening** (147) — it has a date, and it points at a Place.
+**`time` — happening** (150) — it has a date, and it points at a Place. Events
+are always this, so the view carries a literal rather than a column: there is
+no such thing as an event without a date, and a column would be a value free to
+drift away from a fact.
 
-**Idea** (62) — no anchor of any kind. *Backyard Cricket, Cloud Watching.*
+**`idea` — idea** (57) — no anchor of any kind. *Backyard Cricket, Cloud
+Watching.*
 
 ### What the reader sees
 
-Four filters on the Notice Board, which is the only new filter the site does
-not already have (types and groups are both already there):
+**NOT BUILT — the dropdowns still say what they said yesterday.** Scott asked
+for the recategorisation without the filter change, so this is the next step and
+not a description of the page. Four filters on the Notice Board:
 
     Go somewhere   Spot + Venue
     What's on      Happening
@@ -197,6 +223,49 @@ fields a row needs and how it renders. The word on screen comes from `types`,
 so a surf shop's row says *shop* and a cafe's says *cafe*. This was Scott's
 point and it is the reason `kind` and `types` are both needed: nobody is ever
 told a surf shop is a venue, because nothing ever says it.
+
+### How 438 rows were classified
+
+`scripts/classify_kinds.py` — dry run by default, `--write` to apply,
+`--show venue` to read one kind in full. Three things decide a kind, in order:
+
+1. **A hand decision in `BY_ID`.** There is exactly one.
+2. **`types`.** `KIND_OF` is exhaustive over all 43 types, and the script
+   **exits** if the database has a type the map has never heard of, rather than
+   defaulting it to venue. A row with several types is resolved by
+   `PRECEDENCE` — `idea < group < maker < shop < spot < venue`, weakest first —
+   so `cafe · shop` is a venue and `farm life · cafe · produce` is a venue.
+3. **Nothing else, and in particular never the name.** Scott's rule.
+
+Then **one correction, and it is the only thing that reads a column other than
+`types`: a spot with no anchor is an idea.** `night` and `nature` say what a row
+is *about*, not whether it is anywhere, so "Milky Way Stargazing" and "Jan Juc
+Skatepark" arrive identical — both spots, both unpinned. `location` separates
+them, and `suburbOf` is what reads it:
+
+    Jan Juc Skatepark      "Jan Juc"                   -> a town  -> spot
+    Milky Way Stargazing   "Several Surf Coast beaches" -> nowhere -> idea
+
+**`suburbOf` is evaluated through node out of `public/notice-vocab.js`, not
+reimplemented in Python.** Same trick as `.claude/launch.json`. A second copy
+would disagree with the site eventually, which is the failure this project has
+already paid for twice. It fired on 26 rows, every one of them right — Cloud
+Watching at "Anywhere outdoors", Sandcastle Competition at "Any beach".
+
+The correction only ever **demotes a spot**. A venue, shop, group or maker keeps
+its kind whatever `location` says, because a door and a contact do not stop
+existing when a location string fails to parse.
+
+**The one hand decision is `Nippers` (289).** It is `community · swimming ·
+beach`, so spot beats group on precedence and then the correction demotes it to
+an idea — both steps right in general, both wrong here. It is run by the surf
+clubs and you enrol a child in it, so it is a group. Left in `BY_ID` rather than
+reordering `PRECEDENCE`, because it is **the only row in 438 carrying both a
+group type and a spot type**; a rule change would be fitted to one row.
+
+**56 rows have a kind and a coordinate that disagree** — a spot with no pin, or
+an idea carrying one. That is a data job, not a kind job: the spots need
+geocoding and the ideas need their pin removed. The script lists them every run.
 
 ### Rules that come with it
 
@@ -1637,13 +1706,14 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
    `ADMIN_PASSWORD` (anything you like). Vercel dashboard → whattodo →
    Settings → Environment Variables, Production.
    The reading half of the page works without any of them.
-1. **Build the seven kinds** — see the section near the top. Agreed 27 Aug 2026,
-   nothing done. The migration is one `kind` column, the `places` rows merged
-   into Spot and Venue, and `listings` rebuilt; the type vocabulary, the groups,
-   the conditions and the geocoding all survive untouched. 50–80 rows will need
-   a person, concentrated where the boundary is interesting (is a winery a Venue
-   or a Group once it runs tours? is a caravan park a Spot or a Venue?). Do not
-   let a script answer those.
+1. **The kinds are in and everything is classified; two halves are left.**
+   (a) **The four filters** — Go somewhere / What's on / Join in / At home —
+   which is what makes `kind` visible to a reader. `ok()` in index.html filters
+   on `S.kind`, and `atHomeHidden()` can then go: holding the at-home rows back
+   was a patch over not having a kind, and `kind = 'idea'` says it properly.
+   (b) **Merging `places` into the listings tables**, which is the destructive
+   half and the one that fixes the 32 things existing in both, three of them
+   disagreeing about where they are by up to 999 m.
 2. Give `The Sound Doctor` (place 32) the right kind, or decide `hall` will do
    — see the Places section. The other 11 unclassified places need a word the
    vocabulary does not have yet (shops, organisations, two walks, a boat ramp).
