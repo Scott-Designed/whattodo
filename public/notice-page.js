@@ -64,7 +64,9 @@
       var place = (i.place || '').trim(), loc = (i.loc || '').trim();
       /* Two facts that are often the same one twice — "Torquay Hotel" in a row
          whose location reads "Torquay". Where one contains the other, the
-         longer is the one that tells you something. */
+         longer is the one that tells you something. And a row linked to its own
+         place row carries its own name in `place`, which tells you nothing. */
+      if(place && place.toLowerCase() === String(i.name || '').trim().toLowerCase()) place = '';
       if(place && loc){
         var a = place.toLowerCase(), b = loc.toLowerCase();
         if(a.indexOf(b) >= 0 || b.indexOf(a) >= 0) { place = a.length >= b.length ? place : loc; loc = '' }
@@ -122,6 +124,10 @@
     }
     if(!off('where')){
       var place = (i.place || '').trim(), loc = (i.loc || '').trim();
+      /* A row linked to its own place row — which is how a shop or a venue
+         inherits a coordinate — has the same string in both, so it would print
+         its own name back at itself. */
+      if(place && place.toLowerCase() === String(i.name || '').trim().toLowerCase()) place = '';
       if(place && loc){
         var a = place.toLowerCase(), b = loc.toLowerCase();
         if(a.indexOf(b) >= 0 || b.indexOf(a) >= 0){ place = a.length >= b.length ? place : loc; loc = '' }

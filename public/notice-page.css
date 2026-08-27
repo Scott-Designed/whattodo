@@ -100,15 +100,26 @@ body{margin:0;background:var(--ground);color:var(--ink);
    the masthead reads better narrow, but three columns of listings want the
    screen — so the type page alone widens, and only below the masthead. */
 body[data-nav="type"] .page{max-width:1400px}
-.kindsec{min-width:0;display:flex;flex-direction:column}
-.kindsec > h2{margin:0 0 2px;display:flex;align-items:baseline;gap:8px;
-  font-family:var(--util);font-size:11px;font-weight:600;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--ink3);
-  padding-bottom:8px;border-bottom:1px solid var(--rule2)}
-.kindsec > h2 .n{margin-left:auto;font-variant-numeric:tabular-nums}
-.kindsec > h2 .fam{font-weight:500;letter-spacing:.08em;color:var(--ink3);opacity:.6;
-  text-transform:none;font-size:10.5px}
-.kindsec.empty > h2{opacity:.45}
+/* An outline, because seven scroll areas with nothing between them read as one
+   long list that keeps restarting. The border is what says "this is a box with
+   an end to it", which is the whole premise of a fixed height.
+   Right padding is small: the scrollbar has its own 9px and wants to sit near
+   the edge rather than floating in a gutter. */
+.kindsec{min-width:0;display:flex;flex-direction:column;
+  border:1px solid var(--rule2);padding:13px 6px 10px 16px}
+/* The kind is the heading, so it is set like one — the site's serif, at a size
+   you can read across the page, in Title Case. It was a small-caps utility
+   label and read as a field name rather than the name of a list. */
+.kindsec > h2{margin:0 6px 8px 0;display:flex;align-items:baseline;gap:9px;
+  font-family:var(--serif);font-size:19px;font-weight:400;letter-spacing:-.01em;
+  text-transform:capitalize;color:var(--ink);
+  padding-bottom:9px;border-bottom:1px solid var(--rule)}
+.kindsec > h2 .n{margin-left:auto;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.08em;color:var(--ink3);font-variant-numeric:tabular-nums}
+.kindsec > h2 .fam{font-family:var(--util);font-weight:500;font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);opacity:.65}
+.kindsec.empty{border-color:var(--rule)}
+.kindsec.empty > h2{color:var(--ink3)}
 
 /* overscroll-behavior:contain so reaching the end of one bucket does not then
    start scrolling the page underneath it — with seven scroll areas on a screen
@@ -118,9 +129,9 @@ body[data-nav="type"] .page{max-width:1400px}
 .kindsec .items::-webkit-scrollbar{width:9px}
 .kindsec .items::-webkit-scrollbar-track{background:transparent}
 .kindsec .items::-webkit-scrollbar-thumb{background:var(--rule2);border-radius:9px;
-  border:3px solid var(--ground)}
+  border:3px solid transparent;background-clip:padding-box}
 .kindsec .items::-webkit-scrollbar-thumb:hover{background:var(--ink3)}
-.kindsec .none{padding:11px 0;font-family:var(--util);font-size:12px;color:var(--ink3);
+.kindsec .none{padding:11px 0;border:0;font-family:var(--util);font-size:12px;color:var(--ink3);
   opacity:.6;border-bottom:1px solid var(--rule)}
 
 /* ── one listing, closed until you ask ──

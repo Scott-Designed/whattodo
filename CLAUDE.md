@@ -321,6 +321,23 @@ coordinate, because that editor sends only what changed.
   Places to go. The heading is a design decision: "Where to buy" breaks as soon
   as a shop also hires or repairs.
 
+### The first Shop — WRITTEN 27 Aug 2026, activity 460
+
+**Patagonia Torquay**, 116 Surf Coast Highway — patagonia.com.au/pages/torquay-store
+Types `shop · surfing · mountain biking · rock climbing · running`, taken from
+the categories the store's own page lists. Worth a look if a type page starts
+feeling padded: five types puts one shop on five pages, and whether that is
+useful or noisy is a judgement nobody has made yet.
+
+**It carries no coordinate of its own.** `place_id = 99` — the `places` row for
+Patagonia already existed, already geocoded building-level, already used by an
+event. The `listings` view coalesces own-first, place-second, so the pin arrives
+without a second copy that could drift. **This is the first activity in the
+database to use `place_id`; the other 438 all carry their own lat/lng**, which
+is how 32 things ended up existing in both tables with three of them
+disagreeing. Shops and venues that already have a place row should be linked,
+not duplicated.
+
 ### The first Maker — WRITTEN 27 Aug 2026, activity 459
 
 **Shyama Buttonshaw Designs** — surfboard shaper, Bells Beach.
@@ -1104,6 +1121,18 @@ scan for is the name and how it is filed.
 rather than all of them. On `/cafe` a row that is `bakery · cafe` must still say
 bakery — that is the only thing separating it from the other 64, and dropping
 the whole list to avoid repeating "cafe" throws it away too.
+
+**Each bucket is outlined, and the kind is set as a heading.** Seven scroll
+areas with nothing between them read as one long list that keeps restarting —
+the border is what says "this is a box with an end to it", which is the premise
+of a fixed height. The kind was a small-caps utility label and read as a field
+name; it is the site's serif at 19px in Title Case now, which is the name of a
+list rather than the label on a form.
+
+**A row linked to its own place row prints its own name back at itself.**
+`Patagonia Torquay` the shop points at `Patagonia Torquay` the place to inherit
+a coordinate, so `place` and `name` are the same string. Both `item()` and
+`row()` drop `place` when it matches the name.
 
 **`fromRow` had to learn `kind`.** It was dropping the column entirely, so the
 first build put all 65 cafes under "no kind". Anything the page reads has to be
