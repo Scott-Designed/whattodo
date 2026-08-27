@@ -912,6 +912,45 @@ honours robots.txt. Humanitix permits that crawler but disallows `ClaudeBot`, so
 **an assistant must not run the Humanitix path on your behalf** — pass
 `--skip humanitix` when Claude is driving. Your GitHub Action is fine.
 
+## Coast & Bay — registered, not yet automated
+
+`coastandbay.com.au/this-weekend/` — a local publication's what's-on page,
+added to the aggregator list 27 Aug 2026 at Scott's request. It shows on the
+Automations tab as **not automated**, which is the honest state: nothing reads
+it and two things stand in the way.
+
+**1. A Claude session cannot check it.** Its robots.txt names `ClaudeBot` and
+disallows the entire site — the Humanitix rule again, and this time for the
+whole domain rather than one path. `whattodo-janjuc` falls under `User-agent: *`
+which says `Allow: /`, so **the scheduled Action and Scott's own terminal are
+fine**; an assistant is not. Nine crawlers are blocked, which is a stock
+Cloudflare AI-bot list, not a judgement about this project.
+
+Its Content Signals say `search=yes, ai-train=no, use=reference`. Nothing here
+trains anything, and referencing is permitted.
+
+**The decisive fact is one request nobody has made yet.** The site is WordPress,
+so it may publish the same Events Calendar JSON API surfcoastevents does — which
+would make it the second real feed this project has ever had. One line settles
+it, run by a person or the Action:
+
+    curl -s "https://coastandbay.com.au/wp-json/tribe/events/v1/events?per_page=3"
+
+**2. `scrape_events.py` is hardwired to one source, and that is deeper than a
+constant.** `SOURCE`/`API` are module-level, but so is the rest: the
+`source_note` is written as `surfcoastevents.com.au/<slug>`, `added_by` is the
+literal `'surfcoastevents'`, the drift check matches rows with a regex on that
+domain, and the header line prints it. **The seen ledger is keyed on `slug`
+alone**, so two sites could both publish `spring-market` and the second would be
+silently treated as already offered. A second feed means keying provenance and
+the ledger by source, not adding a URL.
+
+**Do not register an aggregator in `places`.** `scrape_venues.py` sets
+`place_id` to the row it read from, so every event from a Coast & Bay row would
+be filed with "Coast & Bay" as its venue — the organiser-is-not-the-venue trap
+at its worst. That is exactly why surfcoastevents lives in `scrape_events.py`
+instead, and why that scraper deliberately sets no `place_id`.
+
 ## Back of house — /admin
 
 `public/admin.html`, live at **https://notice.place/admin**. One page,
