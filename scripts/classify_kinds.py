@@ -78,12 +78,17 @@ KIND_OF = {
   'bar':'venue', 'brewery':'venue', 'winery':'venue', 'produce':'venue',
   'museum':'venue', 'cinema':'venue', 'theatre':'venue',
   'art gallery':'venue', 'golf':'venue', 'market':'venue', 'arts':'venue',
+  # a plant nursery has a door, hours and a till — you visit it and buy plants.
+  # It was `group` in the first pass, which put seven of them in with Landcare
+  # and the working bees. Being run by volunteers does not stop a thing being a
+  # place you go to.
+  'nursery':'venue',
 
   # here so a type page has somewhere to buy the gear
   'shop':'shop',
 
   # people who run something you join
-  'volunteering':'group', 'nursery':'group', 'community':'group',
+  'volunteering':'group', 'community':'group',
 
   # no anchor of any kind
   'at-home':'idea',
@@ -115,6 +120,19 @@ BY_ID = {
   # the ONLY row in 438 carrying both a group type and a spot type — a rule
   # change here would be fitted to one row.
   289: ('group', 'Nippers is run by the surf clubs and you enrol in it'),
+
+  # The three rows added by hand on 27 Aug 2026, all of which the rules would
+  # make spots — a maker, a shop and a group whose types are all activity types
+  # that outrank their kind on PRECEDENCE. `types` says what a row is ABOUT and
+  # cannot say what it IS when the two disagree, which is the whole reason
+  # `kind` is a column rather than something derived.
+  459: ('maker', 'a surfboard shaper — types say surfing, which is the subject'),
+  460: ('shop',  'a shop that stocks gear for five activities, not five spots'),
+  461: ('group', 'a running group — running·community, and you join it'),
+
+  # `community` makes a group, which is right for a Landcare branch and wrong
+  # for a building. A library is somewhere you walk into.
+  288: ('venue', 'the Dome is a reading room, not a group you join'),
 }
 
 # ── plumbing ──

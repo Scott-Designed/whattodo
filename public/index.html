@@ -1248,10 +1248,14 @@ function atHomeHidden(i){
      outnumber the real places and they are all zero km, so they used to lead it. */
   return !S.group.length && !S.type.length && !S.q && (i.groups||[]).includes('home');
 }
-/* Shop and Maker exist so a type page has somewhere to buy the gear and
-   somebody to buy it from. They are not answers to "what shall we do on
-   Saturday", and being off this list is the whole reason they are their own
-   kinds rather than a flag somebody has to remember to set.
+/* Shop, Maker and Group are the three kinds that are not answers to "what
+   shall we do on Saturday". A shop is where you buy the gear, a maker is who
+   makes it, and a group is people you join — what belongs on this list is the
+   group's HAPPENING, not the group itself. Torquay Landcare is not a plan; its
+   working bee is.
+
+   Being off this list is the whole reason these are their own kinds rather
+   than a flag somebody has to remember to set.
 
    The four kind filters — Go somewhere / What's on / Join in / At home —
    are not built yet, so this holds those two back on its own. When the filters
@@ -1261,7 +1265,7 @@ function atHomeHidden(i){
 
    Saving something is asking for it, so a saved shop still shows in the saved
    view — the same exemption at-home rows get. */
-const OFF_BOARD = new Set(['shop', 'maker']);
+const OFF_BOARD = new Set(['shop', 'maker', 'group']);
 
 function ok(i){
   if(S.saved && !isSaved(i)) return false;

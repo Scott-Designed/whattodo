@@ -80,11 +80,12 @@ const stand = document.getElementById('stand');
 
   const mine = all.filter(i => suburbOf(i.loc) === WANT);
   const on   = mine.filter(i => i.ev).sort(NP.byDate);
-  /* A shop is not somewhere to go on a Saturday and a maker is not a place at
-     all, so neither belongs under "Places to go" — the same reason they are
-     off the Notice Board. They are still worth knowing about in a town you are
-     already in, so they get their own section rather than being dropped. */
-  const OWN  = new Set(['shop', 'maker']);
+  /* A shop is not somewhere to go on a Saturday, a maker is not a place at all,
+     and a group is people rather than a plan — so none of them belongs under
+     "Places to go", which is the same reason they are off the Notice Board.
+     They are still worth knowing about in a town you are already in, so they
+     get their own section rather than being dropped. */
+  const OWN  = new Set(['shop', 'maker', 'group']);
   const also = mine.filter(i => !i.ev && OWN.has(i.kind)).sort(NP.byName);
   const go   = mine.filter(i => !i.ev && !OWN.has(i.kind)).sort(NP.byName);
 
@@ -92,7 +93,7 @@ const stand = document.getElementById('stand');
     ? `<b>${NP.n(mine.length,'thing','things')}</b> pinned in ${esc(WANT)}`
       + ` — ${NP.n(go.length,'place to go','places to go')}`
       + ` and ${NP.n(on.length,'thing on','things on')}`
-      + (also.length ? `, plus ${NP.n(also.length,'shop or maker','shops and makers')}` : '')
+      + (also.length ? `, plus ${NP.n(also.length,'shop, maker or group','shops, makers and groups')}` : '')
       + '.'
       + (NOT_A_TOWN[WANT] ? ' ' + NOT_A_TOWN[WANT] : '')
     : `Nothing is pinned in ${esc(WANT)} yet.`;
@@ -114,7 +115,7 @@ const stand = document.getElementById('stand');
 
   body.innerHTML = sec("What&rsquo;s on", on, 'suburb')
                  + sec('Places to go', go, 'suburb')
-                 + sec('Shops &amp; makers', also, 'suburb');
+                 + sec('Shops, makers &amp; groups', also, 'suburb');
 })();
 </script>
 </body>

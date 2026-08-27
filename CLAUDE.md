@@ -205,10 +205,15 @@ not a description of the page. Four filters on the Notice Board:
 
     Go somewhere   Spot + Venue
     What's on      Happening
-    Join in        Group
     At home        Idea
 
-**Shop and Maker are held off the board TODAY, by `OFF_BOARD` in index.html**,
+**Group came off the board 27 Aug 2026**, with Shop and Maker. What belongs on
+a list answering "what shall we do on Saturday" is the group's HAPPENING, not
+the group: Torquay Landcare is not a plan, its working bee is. So there is no
+"Join in" filter — three kinds are on the board and three are not.
+
+**Shop, Maker and Group are held off the board TODAY, by `OFF_BOARD` in
+index.html**,
 because the rows exist and the filters do not. That was a real gap for about an
 hour: Patagonia and Shyama Buttonshaw were added, and both walked straight onto
 the Notice Board, because `ok()` filtered on types and had never heard of
@@ -233,6 +238,29 @@ fields a row needs and how it renders. The word on screen comes from `types`,
 so a surf shop's row says *shop* and a cafe's says *cafe*. This was Scott's
 point and it is the reason `kind` and `types` are both needed: nobody is ever
 told a surf shop is a venue, because nothing ever says it.
+
+### The nurseries, and what `community` cannot decide
+
+Taking Group off the board immediately exposed that seven of the 22 groups were
+not groups: **every plant nursery**. `nursery` mapped to `group` in the first
+pass, which put Nick's Natives and the Otways Indigenous Nursery in with
+Landcare and the working bees. A nursery has a door, hours and a till — being
+run by volunteers does not stop a thing being a place you go to. `nursery` is a
+**venue** now, and `Geelong Library & Heritage Centre – The Dome` moved with
+them, by hand: `community` makes a group, which is right for a Landcare branch
+and wrong for a reading room.
+
+That leaves 14 groups, and **only one of them has a happening standing in for
+it** — Gather Athletics has its Saturday run. The working bees, the choir,
+EstuaryWatch, Surfrider, the Repair Cafe and Nippers all publish schedules
+somewhere and have no event row here, so taking Group off the board removed 13
+things and put nothing in their place. Those events are the next research job,
+and **their dates have to be read off a first-party page, never inferred from
+"third Saturday"** — that is the failure this file opens with.
+
+`Anglesea Resale Shed (Tip Shop)` is still filed as a group and probably should
+not be. Whether a tip shop is a Shop or a Venue is the Chocolaterie question and
+nobody has answered it.
 
 ### How 438 rows were classified
 
