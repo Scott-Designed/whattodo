@@ -677,6 +677,17 @@ community addition. `scripts/events_seen.json` records every series ever offered
 so something you rejected does not come back on Thursday — delete a line to be
 offered it again.
 
+**The schedule fires at :17, not on the hour, and that is deliberate.** The
+first scheduled slot this workflow ever had — Wed 26 Aug 2026, 21:00 UTC —
+produced no run at all. Checked 90 minutes later: nothing queued, nothing
+delayed, simply absent, while the workflow was `active`, the cron was on the
+default branch, and `workflow_dispatch` had worked the same day. GitHub's
+scheduled events are best-effort, the top of the hour is when every cron on the
+platform fires at once, and under load runs there are dropped rather than caught
+up. Moved to `17 21 * * 0,3` on 27 Aug 2026. **That is a mitigation, not a
+proven fix** — the next slot is Mon 31 Aug 07:17 AEST, and if that one is
+missing too the cause is something else.
+
 **Why twice a week.** The shortest notice anything on that site has ever been
 published with is **9 days** (measured across every listing; only two were under a
 fortnight). Twice a week means the worst case is hearing about an event five days
@@ -1907,16 +1918,10 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
 
 ## Next things worth doing
 
-0. **`/admin` cannot save until three variables exist in the Vercel project**
-   (a fourth, `GITHUB_TOKEN`, is optional and only powers the Run-now button).
-   Checked against the live deploy 25 Aug 2026: the function answers 501
-   `not_configured`, because the Vercel project only ever held
-   `ANTHROPIC_API_KEY` — the scrapers read Supabase from **GitHub** secrets, so
-   the keys have never been needed on Vercel before. Add, then redeploy:
-   `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` (both are in `.env`) and
-   `ADMIN_PASSWORD` (anything you like). Vercel dashboard → whattodo →
-   Settings → Environment Variables, Production.
-   The reading half of the page works without any of them.
+0. ~~Set the Vercel environment variables~~ **DONE 27 Aug 2026.** `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` and `ADMIN_PASSWORD` are in the Vercel
+   project and `/admin` saves — the endpoint answers `wrong_password` to a bad
+   one rather than `no_password`, which is the difference between configured
+   and not. `GITHUB_TOKEN` is separate and only powers the Run-now button.
 1. **The kinds are in and everything is classified; two halves are left.**
    (a) **The four filters** — Go somewhere / What's on / Join in / At home —
    which is what makes `kind` visible to a reader. `ok()` in index.html filters

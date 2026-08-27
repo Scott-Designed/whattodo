@@ -16,7 +16,22 @@ name: Surf Coast events
 
 on:
   schedule:
-    - cron: '0 21 * * 0,3'    # Sun/Wed 21:00 UTC = Mon/Thu 07:00 AEST
+    # Sun/Wed 21:17 UTC = Mon/Thu 07:17 AEST.
+    #
+    # The odd minute is the point. This was '0 21' and the first scheduled slot
+    # it ever had — Wed 26 Aug 21:00 UTC — produced no run at all: an hour and a
+    # half later GitHub had nothing, not delayed, simply absent. The workflow was
+    # active, the cron was on the default branch, and workflow_dispatch worked
+    # the same day, so the configuration was never the problem.
+    #
+    # GitHub's scheduled events are best-effort and the top of the hour is when
+    # every cron on the platform fires at once; runs there are commonly delayed
+    # and, under load, dropped rather than caught up. Their own guidance is to
+    # avoid it. :17 is nobody's round number.
+    #
+    # This is a mitigation, not a proven fix — the next slot is Mon 07:17, and
+    # if that one is missing too the cause is something else.
+    - cron: '17 21 * * 0,3'
   workflow_dispatch:           # and whenever you press the button
 
 permissions:
