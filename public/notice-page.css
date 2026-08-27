@@ -93,8 +93,12 @@ body{margin:0;background:var(--ground);color:var(--ink);
    65 cafes would break anyway and unpredictably. A grid keeps every section
    whole and just runs ragged at the bottom, which for a monitoring view is
    the better trade. */
-.kinds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:14px 44px;align-items:start;margin-top:40px}
+.kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px 40px;align-items:start;margin-top:40px}
+/* The grid gets more room than the prose does. `.stand` is capped at 54ch and
+   the masthead reads better narrow, but three columns of listings want the
+   screen — so the type page alone widens, and only below the masthead. */
+body[data-nav="type"] .page{max-width:1400px}
 .kindsec{min-width:0;margin-bottom:20px}
 /* A long section takes the whole width and splits its OWN items into two
    columns, instead of running 65 rows down one side with the other empty —
@@ -102,7 +106,7 @@ body{margin:0;background:var(--ground);color:var(--ink);
    still appears once, above the whole thing: a section broken across columns
    by the browser would repeat nothing and read as two lists. */
 .kindsec.wide{grid-column:1/-1}
-.kindsec.wide .items{columns:2;column-gap:44px}
+.kindsec.wide .items{columns:3;column-gap:40px}
 .kindsec.wide .items .item{break-inside:avoid}
 /* An open row must not be cut in half by a column break. */
 .kindsec.wide .items .item.open{break-inside:auto}
@@ -181,8 +185,12 @@ body{margin:0;background:var(--ground);color:var(--ink);
 .doc a:hover{text-decoration-color:var(--ink)}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-@media (max-width:940px){
-  /* one column: at half of a narrow window the name wraps every other word */
+@media (max-width:1180px){
+  .kinds{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kindsec.wide .items{columns:2}
+}
+@media (max-width:820px){
+  /* one column: any narrower and the name wraps every other word */
   .kinds{grid-template-columns:minmax(0,1fr);gap:0}
   .kindsec.wide .items{columns:1}
 }

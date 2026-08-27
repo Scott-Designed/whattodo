@@ -1066,13 +1066,18 @@ things are filed, an unfiled row is the most important thing on it.
 itself the fact worth seeing, and a section that vanishes when empty makes the
 page a different shape every time, which cannot be scanned the same way twice.
 
-**Two columns as a grid, not CSS multi-column.** Multi-column balances the
-height for you and splits a long section across the fold — and
-`break-inside: avoid` cannot rescue a section taller than the column, so 65
-cafes break anyway and unpredictably. Instead: **a section past 14 rows takes
-the full width and splits its own items into two columns.** Short sections pair
-up, long ones use the whole page, and a heading never repeats mid-list. Without
-that, `/cafe` ran 65 venues down one side with the other side empty.
+**Three columns as a grid, not CSS multi-column** — two below 1180px, one
+below 820px. Multi-column balances the height for you and splits a long section
+across the fold, and `break-inside: avoid` cannot rescue a section taller than
+the column, so 65 cafes break anyway and unpredictably. Instead: **a section
+past 14 rows takes the full width and splits its own items across the same
+number of columns.** Short sections sit side by side, long ones use the whole
+page, and a heading never repeats mid-list. Without that, `/cafe` ran 65 venues
+down one side with the other side empty.
+
+**The type page alone widens to 1400px** — `body[data-nav="type"] .page`. Three
+columns of listings want the screen, while the masthead reads better narrow, so
+`.stand` keeps its own 54ch cap and only the grid below it spreads.
 
 **The row is `.item`, not the board's `.rowline`.** Same gesture — the head is
 the button, one class toggles, the body carries what the head could not show —
