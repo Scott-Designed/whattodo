@@ -159,7 +159,9 @@ option{background:var(--ground);color:var(--ink)}
    floating loose at the end of a row of controls */
 .board{margin:0 auto 0 0;font-family:var(--serif);font-weight:400;font-size:17px;
   line-height:1.3;letter-spacing:-.005em;color:var(--ink);white-space:nowrap}
-.board span{color:var(--ink3);font-variant-numeric:tabular-nums}
+/* the count is grey, the name of the board is not — scoped to #tally
+   because the name is a span too since it started changing per page */
+.board #tally{color:var(--ink3);font-variant-numeric:tabular-nums}
 .toolbar input[type=search]{min-width:0;width:150px;transition:width .16s}
 .toolbar input[type=search]:focus{width:212px}
 
@@ -666,7 +668,7 @@ body.mapview .tbl{display:none}
   <div class="chips" id="chips"></div>
 
   <div class="toolbar">
-    <h2 class="board">Notice Board <span id="tally"></span></h2>
+    <h2 class="board"><span id="boardname">Notice Board</span> <span id="tally"></span></h2>
     <div class="ctrl">
       <input id="q" type="search" aria-label="Search" placeholder="Search"></div>
     <div class="ctrl">
@@ -1267,9 +1269,19 @@ function atHomeHidden(i){
    view — the same exemption at-home rows get. */
 const OFF_BOARD = new Set(['shop', 'maker', 'group']);
 
+/* ── two boards, one page ──
+   `/` is Everything: every kind that belongs on a board — somewhere to go,
+   something on, something to do at home. `/noticeboard` is just what's on.
+   Same page, same filters, same rows; one extra condition and a different word
+   over the list. A second file would be a second copy of a 400KB page and
+   would drift from this one the first time either was touched. */
+const EVENTS_ONLY = location.pathname.replace(/\/+$/,'') === '/noticeboard';
+const BOARD_TITLE = EVENTS_ONLY ? 'Notice Board' : 'Everything';
+
 function ok(i){
   if(S.saved && !isSaved(i)) return false;
   if(!S.saved && OFF_BOARD.has(i.kind)) return false;
+  if(EVENTS_ONLY && !i.ev) return false;
   if(!whenOK(i)) return false;
   /* Something you saved is something you asked for, so the At home entries the
      default list holds back are not held back from your own list. */
@@ -1353,6 +1365,7 @@ function render(){
   const list=ALL.filter(ok).sort(sortFn);
   VISIBLE=list;
   const hidden = !S.group.length && !S.type.length && !S.q ? ALL.filter(i=>whenOK(i)&&(i.groups||[]).includes('home')).length : 0;
+  document.getElementById('boardname').textContent = BOARD_TITLE;
   document.getElementById('tally').textContent =
     list.length===1 ? '1 thing pinned' : list.length+' things pinned';
   paintChips();

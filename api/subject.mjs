@@ -63,7 +63,8 @@ const esc = s => String(s == null ? '' : s)
    requests should never arrive here — this is the second lock, for the day
    somebody adds a suburb called Admin. */
 const RESERVED = new Set(['about','admin','api','index','place','type','favicon',
-  'robots','sitemap','nav','notice-data','notice-nav','notice-page','notice-vocab','sunset']);
+  'robots','sitemap','nav','notice-data','notice-nav','notice-page','notice-vocab',
+  'sunset','noticeboard']);
 
 /* Which page a slug belongs to, and what it says. Places are tested before
    types. No slug is currently both — checked across all 50 and all 43 on

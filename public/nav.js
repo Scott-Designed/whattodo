@@ -26,6 +26,12 @@
      this file, since the bar is drawn before the first paint. A page knowing
      its own name needs nothing and cannot be wrong. */
   var CUR = document.body.dataset.nav || 'board';
+  /* Everything and the Notice Board are the same file — index.html serving two
+     paths — so the <body> attribute cannot tell them apart and the path has to.
+     A literal path needs no vocabulary, so this is safe here even though the
+     vocabulary loads after this file. */
+  if(CUR === 'board' && location.pathname.replace(/\/+$/,'') === '/noticeboard')
+    CUR = 'whatson';
 
   /* Which subject, for lighting one row inside a menu. Read late, inside the
      fill functions, so slugify() exists by then. Three shapes still arrive:
@@ -47,7 +53,9 @@
     '<a class="navlink" data-nav="about" href="/about"' +
       (CUR==='about'?' aria-current="page"':'') + '>About</a>' +
     '<a class="navlink" data-nav="board" href="/"' +
-      (CUR==='board'?' aria-current="page"':'') + '>Noticeboard</a>' +
+      (CUR==='board'?' aria-current="page"':'') + '>Everything</a>' +
+    '<a class="navlink" data-nav="whatson" href="/noticeboard"' +
+      (CUR==='whatson'?' aria-current="page"':'') + '>Notice Board</a>' +
     menu('place','Place') +
     menu('type','Type');
 

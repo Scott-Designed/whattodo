@@ -14,6 +14,10 @@
   ],
   "rewrites": [
     {
+      "source": "/noticeboard",
+      "destination": "/index"
+    },
+    {
       "source": "/:slug",
       "destination": "/api/subject?slug=:slug"
     }

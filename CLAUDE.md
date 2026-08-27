@@ -13,7 +13,9 @@ hook. So `whattodo` is the project and `Notice` is the product.
 ## Shape of it
 
 ```
-public/index.html     the Notice Board — one file, no build step, no framework
+public/index.html     the board — one file, no build step, no framework.
+                      Serves TWO paths: / is Everything, /noticeboard is
+                      what's on. Same rows, one extra condition in ok().
 public/about.html     what this is, and what it will not do
 public/place.html     a town: what's on there, and what's there anyway
 public/type.html      one kind of thing, everywhere it is, grouped by town
@@ -1050,6 +1052,29 @@ so any stricter filter than `jsonld_events` will silently drop them. robots.txt
 allows `/o/` and `/e/` for our UA and names no AI crawler. So reading the pages
 needs no token, while the API needs one stored in two places. **Scott has not
 decided** — offered 25 Aug 2026 and left open, so `API_INSTEAD` stands.
+
+## Two boards, one file
+
+`/` is **Everything** — every kind that belongs on a board: somewhere to go,
+something on, something to do at home. `/noticeboard` is **the Notice Board**,
+and it is just what's on. Split 27 Aug 2026 on Scott's call.
+
+They are the same page. `index.html` reads its own path, sets `EVENTS_ONLY`,
+and `ok()` gains one condition; the word over the list comes from
+`BOARD_TITLE`. A second file would be a second copy of a 400KB page carrying
+the baked-in data, and it would drift from this one the first time either was
+touched.
+
+**The rewrite has to come before the catch-all.** Vercel matches rewrites in
+order, so `/:slug` would otherwise swallow `/noticeboard` and hand it to
+`api/subject`, which would answer 404 for a slug that is neither a town nor a
+type. `noticeboard` is in that function's `RESERVED` set as well, as a second
+lock, and `.claude/launch.json` has the same rule so the preview agrees.
+
+**`nav.js` reads the path for this one, not `body.dataset.nav`.** Both paths
+are the same file, so the attribute says `board` on both. A literal path needs
+no vocabulary, so reading it is safe there even though `notice-vocab.js` loads
+after the bar is drawn.
 
 ## The nav bar, and the pages behind it
 
