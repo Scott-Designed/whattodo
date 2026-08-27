@@ -656,7 +656,7 @@ async function runNow(){
    something discoverable at runtime, so it is written down here and kept in
    step with CLAUDE.md. The counts and the live status are computed. */
 const AGGREGATORS = [
-  {name:'Surf Coast Events', host:null, what:'The shire’s whole calendar',
+  {name:'Surf Coast Events', host:null, src:'surfcoastevents.com.au', what:'The shire’s whole calendar',
    how:'WordPress + The Events Calendar, so it publishes a real JSON API. The only genuine feed anywhere in this project — nothing here parses its HTML.',
    auto:'full',
    note:'A curated calendar, not the organiser’s own page, so everything it gives lands date_confidence = medium.'},
@@ -674,6 +674,11 @@ const AGGREGATORS = [
    how:'Detected, but deliberately not scraped — it has a free API and that is the right way in.',
    auto:'none',
    note:'Standing job: wire up the API rather than parsing pages.'},
+  {name:'Coast & Bay', host:null, src:'coastandbay.com.au',
+   what:'Local publication — its “what’s on this weekend” page',
+   how:'WordPress, so it may publish the same Events Calendar JSON API surfcoastevents does — which would make it the second real feed this project has. Unconfirmed: nobody has checked whether the plugin is installed.',
+   auto:'none',
+   note:'Two things stand in the way. The check needs one request that CANNOT come from a Claude session — coastandbay.com.au names ClaudeBot and disallows the whole site, exactly like Humanitix, so a person or the Action has to run it: curl -s "https://coastandbay.com.au/wp-json/tribe/events/v1/events?per_page=3". And scrape_events.py is hardwired to one source — the URL, the provenance note, the added_by, the drift regex and the slug-keyed seen ledger all say surfcoastevents — so a second site is a refactor, not a config line. Slugs would collide across sites; the ledger needs keying by source too.'},
   {name:'Moshtix', host:'moshtix', what:'Ticketing platform',
    how:'Recognised if one turns up; none on file yet.', auto:'none', note:null},
 ];
@@ -692,7 +697,7 @@ function drawAggregators(){
     // What the last run actually did with it.
     const mine = a.host
       ? seen.filter(s => s.via?.some(v => v.toLowerCase() === a.name.toLowerCase()))
-      : seen.filter(s => s.name === 'surfcoastevents.com.au');
+      : seen.filter(s => s.name === a.src);
 
     // Which places reach us through this platform. Stored URLs alone undercount,
     // because the scraper also *discovers* a platform link by trying a venue's

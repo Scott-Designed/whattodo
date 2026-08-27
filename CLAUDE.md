@@ -69,7 +69,7 @@ ended up in both sheets with two different dates, one of them wrong.
 
 ## Conventions that are enforced, not just documented
 
-- **43 types, and a listing carries a list of them.** `activities.types` and
+- **42 types, and a listing carries a list of them.** `activities.types` and
   `events.types` are `text[]`, checked by `types_valid()` against the `types`
   table — the `conditions` and `offers` pattern, used a third time. **The first
   element is the primary**: the word the row prints, the icon it draws, the
@@ -83,6 +83,11 @@ ended up in both sheets with two different dates, one of them wrong.
   `TYPES_PLACE`/`TYPES_EVENT` in `api/enrich.mjs`, and `PLACE_TYPES`/`EVENT_TYPES`
   in `notice-vocab.js` for the Add form. `supabase/schema.sql` is a historical
   seed and is **not** one of them any more — `TYPES_MULTI.sql` supersedes it.
+
+  **Removing one is the same five in reverse, rows first.** `types_valid()` is
+  a live check, so a vocabulary row cannot be deleted while any listing still
+  carries it — strip every row, confirm none is left with an empty list, then
+  delete. `shop` came out that way on 27 Aug 2026; see below.
 
   `brewery` was added 26 Aug 2026, because filing Blackman's as a cafe or a bar
   loses the reason anyone goes. `cidery` and `distillery` exist in `place_kinds`
@@ -99,7 +104,7 @@ ended up in both sheets with two different dates, one of them wrong.
   The arts & culture at once. 494 across nine groups, 419 rows.
 - **The Type menu leaves out what it cannot offer** rather than greying it. It was
   greyed while the menu was short — a grey row said "not with these filters"
-  without lying — but that does not survive 43 types, where picking The ocean left
+  without lying — but that does not survive 42 types, where picking The ocean left
   38 dead entries to read past. Anything already ticked stays whatever its count,
   or it could not be unticked.
 - **With a group picked, the Type menu is that group's own types and nothing
@@ -271,17 +276,65 @@ the fact that people enjoy browsing it does not make it an outing. It gained
 `shop` as a type at the same time, or being `community` alone would have put it
 on `/community` and nowhere a person hunting for second-hand goods would look.
 
+**That second half no longer holds — `shop` was retired as a type later the
+same day** (see below), so this row is `community` alone and is found by its
+kind rather than by a type page. The worry it records is still the real one:
+the Tip Shed is the row with the weakest type, and if anything ever hides it,
+it will be this one.
+
+### `shop` is a kind and NOT a type — retired 27 Aug 2026
+
+Scott's call, the day after the kind landed, on noticing a new row filed as
+`shop · running`. **It was a second copy of a fact the row already carried.**
+
+The ten rows holding it split cleanly, and the split is the whole argument:
+
+- **Three were `kind = shop` AND `types = {shop, …}`** — Patagonia, The Running
+  Company, the Tip Shed. One fact, two columns. On The Running Company `shop`
+  was also the **primary**, so the row printed *shop* — the least informative
+  word available — where `running` is the thing separating it from Patagonia.
+- **Seven were `kind = venue` with `shop` in their types** — the four general
+  stores, the Chocolaterie, Bellarine Wholefoods, Bellbrae Clay. There it meant
+  *this venue also sells goods*, which the kind genuinely does not say.
+
+That second group is what the retirement costs, and it is worth being honest
+about: **there is now nowhere to record that a venue sells things.** If it is
+wanted back it belongs in `places.offers` as a `retail` value — the column for
+what a place DOES, not what it IS — and not in `types`, where it was competing
+with `cafe` and `produce` for the one slot that prints.
+
+Nothing was lost from the rows themselves. Each kept its other types and prints
+a better word than before: the general stores say *cafe*, the Chocolaterie and
+Bellarine Wholefoods say *produce*, the Tip Shed says *community*.
+`supabase/SHOP_TYPE_RETIRED.sql` is the record, with the ten before-and-afters.
+
+**The sharp edge: a shop can no longer be INFERRED, and that is permanent.**
+`KIND_OF` in `classify_kinds.py` now has nothing mapping to the shop kind, and
+`PRECEDENCE`'s `shop` entry is unreachable. All three shops carry activity types
+— surfing, running, community — which are things you go and DO, so the rules
+make them **spots**. They survive only because they are hand decisions in
+`BY_ID`, and `--reclassify` would flatten any shop that is not listed there.
+
+So **adding a shop means adding a line to `BY_ID`**, with the reason. There is
+no rule that will work it out, by design: the type used to say it, and saying it
+twice is exactly what got the type retired. 463 was added to `BY_ID` in the same
+commit, which is how this was caught — the classifier's dry run reported it as a
+disagreement the moment the type went.
+
+`/shop` now 404s, which is correct: it was a page listing things the Kind menu
+already gathers.
+
 ### How 438 rows were classified
 
 `scripts/classify_kinds.py` — dry run by default, `--write` to apply,
 `--show venue` to read one kind in full. Three things decide a kind, in order:
 
 1. **A hand decision in `BY_ID`.** There is exactly one.
-2. **`types`.** `KIND_OF` is exhaustive over all 43 types, and the script
+2. **`types`.** `KIND_OF` is exhaustive over all 42 types, and the script
    **exits** if the database has a type the map has never heard of, rather than
    defaulting it to venue. A row with several types is resolved by
    `PRECEDENCE` — `idea < group < maker < shop < spot < venue`, weakest first —
-   so `cafe · shop` is a venue and `farm life · cafe · produce` is a venue.
+   so `bakery · cafe` is a venue and `farm life · cafe · produce` is a venue.
 3. **Nothing else, and in particular never the name.** Scott's rule.
 
 Then **one correction, and it is the only thing that reads a column other than
@@ -331,7 +384,9 @@ geocoding and the ideas need their pin removed. The script lists them every run.
   and reported it as a decision — the same failure mode this file records from
   the hospitality pass.
 - **`types` stays a list, and that is what puts a surf shop on `/surfing`.**
-  Multi-type already works: *Wye River General Store* is `cafe · shop` today.
+  Multi-type already works: *Bells Beach Surf Film Festival* is
+  `festival · surfing · cinema` today. (*Wye River General Store* was the
+  example here until `shop` was retired as a type — it is `cafe` now.)
 - **A Maker gets a pin only if they publish a visitable address themselves.**
   Not an ABN record, not an Instagram geotag, not a search result. A maker
   working from home has a home address and it is findable, so a research pass
@@ -417,7 +472,7 @@ stored clean; a tracking parameter changes between visits, so keeping one would
 mean every run compares against a slightly different address.
 
 **Patagonia Torquay**, 116 Surf Coast Highway — patagonia.com.au/pages/torquay-store
-Types `shop · surfing · mountain biking · rock climbing · running`, taken from
+Types `surfing · mountain biking · rock climbing · running`, taken from
 the categories the store's own page lists. Worth a look if a type page starts
 feeling padded: five types puts one shop on five pages, and whether that is
 useful or noisy is a judgement nobody has made yet.
@@ -684,10 +739,10 @@ else.
 
 **27 Aug 2026 — five items in, four rows out.**
 
-- **Bellbrae Clay** (activity 462, venue, `arts · workshop · shop`) — hand-building
+- **Bellbrae Clay** (activity 462, venue, `arts · workshop`) — hand-building
   pottery studio, 590 Great Ocean Road, Bellbrae, run by Lauren Barton. Walk-In
   Fridays 2–6pm plus booked workshops. Pinned house-level.
-- **The Running Company Torquay** (activity 463, **shop**, `shop · running`) —
+- **The Running Company Torquay** (activity 463, **shop**, `running`) —
   3/1 Haystacks Drive. The second shop in the database after Patagonia, and the
   Chocolaterie rule decided it the same way: you go for the gear, so it is a
   Shop, off the board, and it earns its place on `/running`.
@@ -1724,7 +1779,7 @@ adding one is two lines: the symbol, and the map entry.
 - **The bike does not survive 28px.** Its frame and spokes merge and it reads as
   a cog. Checked at 2×; it is the artwork meeting the size, not a bug. The other
   two are fine. Any icon with this much line detail will need a simplified
-  small-size version before the set reaches all 43 types. The two-colour pair
+  small-size version before the set reaches all 42 types. The two-colour pair
   hold up far better at this size than the bike does — solid masses survive the
   reduction where line work does not, which is the useful lesson for the rest of
   the set. The runner is unmistakable; `nature` reads as a starburst or a sun
@@ -2113,7 +2168,7 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
    coordinate — each one is a missing pin on the map
 7. Promote the Ideas Pipeline into the database
 8. A scheduled job that re-checks estimated event dates as real ones get announced
-9. **Type icons cover 72 of 419 rows.** Six symbols against 43 types. The set was
+9. **Type icons cover 72 of 419 rows.** Six symbols against 42 types. The set was
    drawn for the old 26 and the split widened the gap — `surfing`, `swimming`,
    `walk`, `night`, `gig` and `at-home` are all big now and all draw the empty
    slot. See the icon section for what the artwork has to solve first (the bike

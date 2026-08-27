@@ -12,7 +12,7 @@ const TYPES_PLACE = ['beach','surfing','swimming','paddling','water',
   'walk','running','cycling','mountain biking','skatepark','rock climbing','golf','nature',
   'parks & playgrounds','camping ground','night','at-home',
   'cafe','bakery','restaurant','bar','pub','winery','brewery',
-  'shop','produce','farm life','nursery',
+  'produce','farm life','nursery',
   'art gallery','theatre','museum','cinema','cultural','volunteering'];
 const TYPES_EVENT = ['gig','comedy','party','reading','festival','workshop',
   'community','market','arts'];

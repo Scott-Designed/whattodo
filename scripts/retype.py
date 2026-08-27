@@ -108,7 +108,7 @@ RETYPE = {
 'a257': ['bar', 'produce'],              # The Whiskery – Bellarine Distillery
 'a258': ['produce'],                     # Bellarine Taste Trail
 'a260': ['produce'],                     # Lard Ass Butter
-'a36':  ['produce', 'shop'],             # Great Ocean Road Chocolaterie
+'a36':  ['produce'],                     # Great Ocean Road Chocolaterie
 'a35':  ['produce', 'farm life'],        # Surf Coast Strawberry Fields
 'a259': ['farm life', 'produce'],        # Common Ground Project – Freshwater Creek
 
@@ -148,7 +148,7 @@ RETYPE = {
 'e62': ['community'],                       # Coastal End of Year Social — not a festival
 
 # ── shop ────────────────────────────────────────────────────────────────
-'a290': ['shop', 'produce'],             # Bellarine Wholefoods
+'a290': ['produce'],                     # Bellarine Wholefoods
 'a171': ['produce', 'farm life'],        # Bird Rock Farm
 
 # ── night: keeps night, gains what it is a night thing ABOUT ─────────────

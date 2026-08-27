@@ -134,7 +134,7 @@ const GROUP_OF={
   cafe:'hospitality', bakery:'hospitality', restaurant:'hospitality',
   bar:'hospitality', pub:'hospitality', winery:'hospitality', brewery:'hospitality',
 
-  market:'produce', produce:'produce', 'farm life':'produce', shop:'produce',
+  market:'produce', produce:'produce', 'farm life':'produce',
   nursery:'produce',
 
   arts:'arts', 'art gallery':'arts', theatre:'arts', museum:'arts',
@@ -219,7 +219,7 @@ const PLACE_TYPES=['beach','surfing','swimming','paddling','water',
   'walk','running','cycling','mountain biking','skatepark','rock climbing','golf','nature',
   'parks & playgrounds','camping ground','night','at-home',
   'cafe','bakery','restaurant','bar','pub','winery','brewery',
-  'shop','produce','farm life','nursery',
+  'produce','farm life','nursery',
   'art gallery','theatre','museum','cinema','cultural','volunteering'];
 
 /* A type is stored lower-case and hyphenated because the database checks it
@@ -236,7 +236,7 @@ const TYPE_PLURAL={
   night:'After dark', 'at-home':'At home',
   cafe:'Caf\u00e9s', bakery:'Bakeries', restaurant:'Restaurants', bar:'Bars',
   pub:'Pubs', winery:'Wineries', brewery:'Breweries',
-  market:'Markets', shop:'Shops', produce:'Produce', 'farm life':'Farm life',
+  market:'Markets', produce:'Produce', 'farm life':'Farm life',
   nursery:'Nurseries',
   arts:'Arts', 'art gallery':'Galleries', theatre:'Theatres', museum:'Museums',
   cinema:'Cinemas', cultural:'Wadawurrung Country',

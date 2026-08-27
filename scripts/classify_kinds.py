@@ -84,8 +84,6 @@ KIND_OF = {
   # place you go to.
   'nursery':'venue',
 
-  # here so a type page has somewhere to buy the gear
-  'shop':'shop',
 
   # people who run something you join
   'volunteering':'group', 'community':'group',
@@ -134,7 +132,21 @@ BY_ID = {
   # for a building. A library is somewhere you walk into.
   288: ('venue', 'the Dome is a reading room, not a group you join'),
   110: ('shop',  'the tip shop sells things — Scott, 27 Aug 2026'),
+  463: ('shop',  'a running shop — `running` is the gear it sells, not a place to run'),
 }
+
+# ── A shop can no longer be inferred, and that is now permanent ──
+#
+# `shop` was retired as a TYPE on 27 Aug 2026, so KIND_OF has nothing that maps
+# to the shop kind any more and PRECEDENCE's 'shop' entry is unreachable. Every
+# shop is therefore a hand decision in BY_ID, and **`--reclassify` would turn
+# all three of them into spots** if they were not listed above — their types
+# (surfing, running, community) are all things you go and DO, which is what a
+# shop stocks the gear for rather than what it is.
+#
+# So: adding a shop means adding a line to BY_ID. There is no rule that will
+# work it out, by design — the type used to say it and saying it twice is what
+# got the type retired.
 
 # ── plumbing ──
 def env():
