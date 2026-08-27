@@ -133,6 +133,7 @@ BY_ID = {
   # `community` makes a group, which is right for a Landcare branch and wrong
   # for a building. A library is somewhere you walk into.
   288: ('venue', 'the Dome is a reading room, not a group you join'),
+  110: ('shop',  'the tip shop sells things — Scott, 27 Aug 2026'),
 }
 
 # ── plumbing ──

@@ -263,9 +263,11 @@ So do NOT go and invent event rows for the 13. If a group's happening is ever
 added it must come off a first-party page with a real date, never inferred from
 "third Saturday" — that is the failure this file opens with.
 
-`Anglesea Resale Shed (Tip Shop)` is still filed as a group and probably should
-not be. Whether a tip shop is a Shop or a Venue is the Chocolaterie question and
-nobody has answered it.
+`Anglesea Resale Shed (Tip Shop)` is a **shop** — Scott, 27 Aug 2026, settling
+the Chocolaterie question for this row: it sells things, so it is a shop, and
+the fact that people enjoy browsing it does not make it an outing. It gained
+`shop` as a type at the same time, or being `community` alone would have put it
+on `/community` and nowhere a person hunting for second-hand goods would look.
 
 ### How 438 rows were classified
 
