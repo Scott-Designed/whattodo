@@ -87,29 +87,20 @@ body{margin:0;background:var(--ground);color:var(--ink);
    "shop 0" on /surfing is a fact worth seeing, and a section that vanishes
    when empty makes the page a different shape every time.
 
-   Two columns as a grid rather than CSS multi-column. Multi-column balances
-   the height for you, but it also splits a long section across the fold —
-   and `break-inside: avoid` cannot save a section taller than the column, so
-   65 cafes would break anyway and unpredictably. A grid keeps every section
-   whole and just runs ragged at the bottom, which for a monitoring view is
-   the better trade. */
+   EVERY BUCKET IS THE SAME HEIGHT AND SCROLLS INSIDE ITSELF. That is what
+   turns this from a page you read downwards into a panel you scan across: the
+   seven headings line up in a grid, so the counts can be compared without
+   scrolling, and no single kind can push the others off the screen. It also
+   retired the old "a long section takes the full width" rule — that existed
+   only to stop 65 cafes running down one column, and a fixed height solves the
+   same problem without giving one kind more of the page than the rest. */
 .kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:14px 40px;align-items:start;margin-top:40px}
+  gap:26px 40px;align-items:start;margin-top:40px;--bucket:430px}
 /* The grid gets more room than the prose does. `.stand` is capped at 54ch and
    the masthead reads better narrow, but three columns of listings want the
    screen — so the type page alone widens, and only below the masthead. */
 body[data-nav="type"] .page{max-width:1400px}
-.kindsec{min-width:0;margin-bottom:20px}
-/* A long section takes the whole width and splits its OWN items into two
-   columns, instead of running 65 rows down one side with the other empty —
-   which is what /cafe did, being 65 venues and six empty kinds. The heading
-   still appears once, above the whole thing: a section broken across columns
-   by the browser would repeat nothing and read as two lists. */
-.kindsec.wide{grid-column:1/-1}
-.kindsec.wide .items{columns:3;column-gap:40px}
-.kindsec.wide .items .item{break-inside:avoid}
-/* An open row must not be cut in half by a column break. */
-.kindsec.wide .items .item.open{break-inside:auto}
+.kindsec{min-width:0;display:flex;flex-direction:column}
 .kindsec > h2{margin:0 0 2px;display:flex;align-items:baseline;gap:8px;
   font-family:var(--util);font-size:11px;font-weight:600;letter-spacing:.14em;
   text-transform:uppercase;color:var(--ink3);
@@ -118,6 +109,17 @@ body[data-nav="type"] .page{max-width:1400px}
 .kindsec > h2 .fam{font-weight:500;letter-spacing:.08em;color:var(--ink3);opacity:.6;
   text-transform:none;font-size:10.5px}
 .kindsec.empty > h2{opacity:.45}
+
+/* overscroll-behavior:contain so reaching the end of one bucket does not then
+   start scrolling the page underneath it — with seven scroll areas on a screen
+   that happens constantly otherwise. */
+.kindsec .items{height:var(--bucket);overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:thin;scrollbar-color:var(--rule2) transparent}
+.kindsec .items::-webkit-scrollbar{width:9px}
+.kindsec .items::-webkit-scrollbar-track{background:transparent}
+.kindsec .items::-webkit-scrollbar-thumb{background:var(--rule2);border-radius:9px;
+  border:3px solid var(--ground)}
+.kindsec .items::-webkit-scrollbar-thumb:hover{background:var(--ink3)}
 .kindsec .none{padding:11px 0;font-family:var(--util);font-size:12px;color:var(--ink3);
   opacity:.6;border-bottom:1px solid var(--rule)}
 
@@ -187,12 +189,13 @@ body[data-nav="type"] .page{max-width:1400px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:1180px){
   .kinds{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .kindsec.wide .items{columns:2}
 }
 @media (max-width:820px){
-  /* one column: any narrower and the name wraps every other word */
-  .kinds{grid-template-columns:minmax(0,1fr);gap:0}
-  .kindsec.wide .items{columns:1}
+  /* One column, and the buckets grow instead of scrolling. Seven nested
+     scroll areas on a phone is a trap: a drag that means "scroll the page"
+     lands inside a bucket and goes nowhere. */
+  .kinds{grid-template-columns:minmax(0,1fr);gap:14px 0}
+  .kindsec .items{height:auto;max-height:none;overflow:visible}
 }
 @media (max-width:700px){
   :root{--pad:20px}

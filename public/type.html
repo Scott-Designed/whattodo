@@ -124,18 +124,16 @@ NP.wireItems(kinds);
      gets its own section rather than being quietly dropped. */
   const unfiled = mine.filter(i => !i.kind);
 
-  /* Past this many rows a section stops sharing the width and takes all of it,
-     splitting its own items in two. Chosen by eye against /cafe (65 venues,
-     six empty kinds) — below it a section is short enough that pairing two
-     side by side reads better than one wide one. */
-  const WIDE = 14;
-  const sec = (k, fam, rows, dated) => `<section class="kindsec${
-      rows.length ? '' : ' empty'}${rows.length > WIDE ? ' wide' : ''}">
+  /* Every bucket is the same fixed height and scrolls inside itself, so the
+     seven headings line up and the counts can be compared without scrolling.
+     The empty state goes INSIDE the scroll box, not beside it, or an empty
+     kind would be a different height from a full one and the grid would go
+     ragged again. */
+  const sec = (k, fam, rows, dated) => `<section class="kindsec${rows.length ? '' : ' empty'}">
       <h2>${esc(k)}<span class="fam">${esc(fam)}</span><span class="n">${rows.length}</span></h2>
-      ${rows.length
-        ? '<div class="items">' + rows.sort(dated ? NP.byDate : NP.byName)
-            .map(i => NP.item(i, '', WANT)).join('') + '</div>'
-        : '<div class="none">none</div>'}
+      <div class="items">${rows.length
+        ? rows.sort(dated ? NP.byDate : NP.byName).map(i => NP.item(i, '', WANT)).join('')
+        : '<div class="none">none</div>'}</div>
     </section>`;
 
   kinds.innerHTML =

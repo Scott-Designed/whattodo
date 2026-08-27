@@ -1066,14 +1066,28 @@ things are filed, an unfiled row is the most important thing on it.
 itself the fact worth seeing, and a section that vanishes when empty makes the
 page a different shape every time, which cannot be scanned the same way twice.
 
-**Three columns as a grid, not CSS multi-column** — two below 1180px, one
-below 820px. Multi-column balances the height for you and splits a long section
-across the fold, and `break-inside: avoid` cannot rescue a section taller than
-the column, so 65 cafes break anyway and unpredictably. Instead: **a section
-past 14 rows takes the full width and splits its own items across the same
-number of columns.** Short sections sit side by side, long ones use the whole
-page, and a heading never repeats mid-list. Without that, `/cafe` ran 65 venues
-down one side with the other side empty.
+**Every bucket is the same fixed height (`--bucket`, 430px) and scrolls inside
+itself.** That is what turns this from a page you read downwards into a panel
+you scan across: the seven headings line up in a grid, so the counts can be
+compared without scrolling, and no one kind can push the others off the screen.
+
+It also retired an earlier rule — "a section past 14 rows takes the full width
+and splits its own items into columns" — which existed only to stop `/cafe`
+running 65 venues down one column with the other side empty. A fixed height
+solves that without handing one kind more of the page than the rest. If a
+CSS-multi-column version is ever tried again: it splits a long section across
+the fold, and `break-inside: avoid` cannot rescue a section taller than its
+column, so the break happens anyway and unpredictably.
+
+Three columns above 1180px, two below it. **Below 820px the buckets grow
+instead of scrolling** — seven nested scroll areas on a phone is a trap, where
+a drag meaning "scroll the page" lands inside a bucket and goes nowhere. The
+scroll areas also set `overscroll-behavior:contain`, or reaching the end of one
+bucket starts scrolling the page underneath it.
+
+The empty state lives INSIDE the scroll box rather than beside it, or an empty
+kind would be a different height from a full one and the grid would go ragged
+again.
 
 **The type page alone widens to 1400px** — `body[data-nav="type"] .page`. Three
 columns of listings want the screen, while the masthead reads better narrow, so
