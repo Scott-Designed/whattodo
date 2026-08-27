@@ -166,18 +166,30 @@ ACTIVITY_COLS = {'name','kind','types','tags','ages','cost','location','km','sea
                  'place_id','added_by','verified','source_note'}
 EVENT_COLS    = {'name','types','starts_on','ends_on','time_text','recurrence','venue',
                  'location','km','cost','ages','artist','genre','description','ticket_url',
-                 'info_url','conditions','date_confidence','added_by','verified','source_note'}
+                 'info_url','conditions','date_confidence','added_by','verified','source_note',
+                 # Without this, every event written by hand started unlinked — no
+                 # pin, no curated suburb — and had to be patched in a second step
+                 # that is easy to forget. That is a quiet contributor to the
+                 # place-less events already on the outstanding list.
+                 'place_id'}
 EVENT_ONLY    = EVENT_COLS - ACTIVITY_COLS
 URL_FIELDS    = ('url','ticket_url','info_url')
 
 def vocab(table):
     return {r['name'] for r in req('GET', f'/rest/v1/{table}?select=name')}
 
+def place_ids():
+    """Every id in `places`, so a place_id can be checked before it is written.
+
+    A foreign key would refuse a bad one anyway, but as an opaque Postgres error
+    in the middle of a batch. Checking here names the row and the number."""
+    return {r['id'] for r in req('GET', '/rest/v1/places?select=id')}
+
 def is_event(row):
     """Which table a row belongs in. Derived from what it carries, never declared."""
     return bool(EVENT_ONLY & set(row)) or row.get('kind') == 'happening'
 
-def check(row, i, types, conds, kinds):
+def check(row, i, types, conds, kinds, places=None):
     """Return a list of complaints about one row. Empty list means it is fine."""
     bad = []
     where = f"row {i}" + (f" ({row['name']})" if row.get('name') else '')
@@ -223,6 +235,16 @@ def check(row, i, types, conds, kinds):
         bad.append(f"{where}: no such field {sorted(unknown)}{hint}")
     if not str(row.get('name') or '').strip():
         bad.append(f"{where}: needs a name")
+    # A place_id is what gives a row the curated pin and suburb instead of a
+    # second copy that can drift — 32 things once existed in both tables, three
+    # of them disagreeing about where they are by up to 999m.
+    pid = row.get('place_id')
+    if pid is not None:
+        if isinstance(pid, bool) or not isinstance(pid, int):
+            bad.append(f"{where}: place_id must be a whole number, not {pid!r}")
+        elif places is not None and pid not in places:
+            bad.append(f"{where}: there is no place {pid} — "
+                       f"check `python3 scripts/have.py places`")
     # `types` is a list. A bare string is the old shape and is almost always a
     # hand-written row that predates the split, so name it rather than letting
     # Postgres turn 'gig' into the three-character array {g,i,g}.
@@ -285,11 +307,13 @@ def add(path, verified=False, dry=False, force=False):
     rows = doc if isinstance(doc, list) else [doc]
 
     types, conds, kinds = vocab('types'), vocab('conditions'), vocab('kinds')
+    # One extra request, and only when it is needed.
+    places = place_ids() if any('place_id' in r for r in rows) else None
     for r in rows:
         r.setdefault('added_by','Research')
         if verified: r['verified'] = True
 
-    bad = [c for i,r in enumerate(rows,1) for c in check(r, i, types, conds, kinds)]
+    bad = [c for i,r in enumerate(rows,1) for c in check(r, i, types, conds, kinds, places)]
     if bad:
         print("nothing written — fix these first:"); [print("  •",b) for b in bad]; sys.exit(1)
 

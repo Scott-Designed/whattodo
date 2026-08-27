@@ -1645,12 +1645,15 @@ caught it before it shipped; clicking around the page would not have.
 
 ## Known outstanding
 
-- **`sync.py add` cannot set `place_id`**, so every event written by hand starts
-  unlinked — no pin, no curated suburb — and has to be patched afterwards. That
-  is a quiet contributor to the place-less events problem this file lists as
-  outstanding work. Event 154 was added this way and linked in a second step.
-  Add `place_id` to `EVENT_COLS`/`ACTIVITY_COLS`, validated against `places`
-  the way `/api/admin` already does it.
+- **`sync.py add` takes `place_id` now** (27 Aug 2026). It was on activities but
+  not events, so every event written by hand started unlinked — no pin, no
+  curated suburb — and needed a second patch that is easy to forget; that is a
+  quiet contributor to the place-less events on this list. Event 154 was the
+  last one added the old way. A bad id is refused by number rather than as an
+  opaque foreign-key error, and the ids are only fetched when a row actually
+  carries one. Adding it to `EVENT_COLS` does not disturb `EVENT_ONLY`, since
+  `place_id` is in both column sets — checked: an event with a `place_id` still
+  routes to `events`.
 - An activity's single `url` is whatever it is — a map pin for some, the venue's own
   site for others. The row labels it by inspection (`isMapLink`), so don't assume the
   slot means "map". 87 of 203 activities carry a website there. `Directions` is built

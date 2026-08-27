@@ -1248,8 +1248,24 @@ function atHomeHidden(i){
      outnumber the real places and they are all zero km, so they used to lead it. */
   return !S.group.length && !S.type.length && !S.q && (i.groups||[]).includes('home');
 }
+/* Shop and Maker exist so a type page has somewhere to buy the gear and
+   somebody to buy it from. They are not answers to "what shall we do on
+   Saturday", and being off this list is the whole reason they are their own
+   kinds rather than a flag somebody has to remember to set.
+
+   The four kind filters — Go somewhere / What's on / Join in / At home —
+   are not built yet, so this holds those two back on its own. When the filters
+   land, this becomes a case of the filter rather than a rule beside it, and
+   atHomeHidden() goes the same way: `kind = 'idea'` says properly what that
+   function has been approximating.
+
+   Saving something is asking for it, so a saved shop still shows in the saved
+   view — the same exemption at-home rows get. */
+const OFF_BOARD = new Set(['shop', 'maker']);
+
 function ok(i){
   if(S.saved && !isSaved(i)) return false;
+  if(!S.saved && OFF_BOARD.has(i.kind)) return false;
   if(!whenOK(i)) return false;
   /* Something you saved is something you asked for, so the At home entries the
      default list holds back are not held back from your own list. */
@@ -1274,7 +1290,11 @@ function ok(i){
    Activities mostly have no place of their own and are unchanged — the column
    is null for them, so this falls through to the suburb they always printed. */
 function whereParts(i){
-  const place=(i.place||'').trim(), suburb=(i.loc||'').trim();
+  let place=(i.place||'').trim(); const suburb=(i.loc||'').trim();
+  /* A row linked to its own place row — how a shop or a venue inherits a
+     coordinate without a second copy of it — carries its own name here, so it
+     would print "Patagonia Torquay" against "Patagonia Torquay". */
+  if(place && place.toLowerCase()===String(i.name||'').trim().toLowerCase()) place='';
   if(!place || !suburb) return [place||suburb, ''];
   const a=place.toLowerCase(), b=suburb.toLowerCase();
   if(a.includes(b) || b.includes(a)) return [a.length>=b.length?place:suburb, ''];
