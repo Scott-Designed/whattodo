@@ -39,6 +39,10 @@ function fromRow(r){
     id:r.id, key:r.key, ev:r.is_event, name:r.name, types, type:types[0]??null, loc:r.location,
     /* `venue` while the view still called it that; the table is `places` now */
     place:r.place ?? r.venue, placeKind:r.place_kind,
+    /* what sort of thing this is — spot, venue, shop, group, maker,
+       happening, idea — and the family it belongs to. Null on a row
+       nobody has classified, which is a question, not a default. */
+    kind:r.kind ?? null, family:r.family ?? null,
     km:r.km===null?null:Number(r.km), cost:r.cost, ages:r.ages||[], desc:r.description,
     url:r.url, info:r.info_url, ticket:r.ticket_url, cond, rating:r.rating,
     notes:r.notes, dur:r.duration, season:r.season||[], dbDaypart:r.daypart,

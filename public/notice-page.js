@@ -97,6 +97,86 @@
       '</div>';
   }
 
+  /* ── one listing, closed until you ask ──
+     The same gesture as the board's row at a size that fits half a column:
+     the head is the button, the body carries what the head could not show.
+     `skip` works exactly as it does in row() — the facts the page has already
+     made its subject are left out.
+
+     The head deliberately shows no description. On a monitoring view the
+     thing you are scanning for is the name and how it is filed, and 65 cafes
+     each with a paragraph is a page nobody reads to the bottom of. */
+  function item(i, skip, dropType){
+    var drop = ',' + (skip || '') + ',';
+    var off  = function(k){ return drop.indexOf(',' + k + ',') >= 0 };
+
+    var meta = [];
+    if(!off('type')){
+      /* `dropType` removes ONE type — the page's own — and keeps the rest.
+         On /cafe a row that is `bakery · cafe` should still say bakery: that
+         is the only thing distinguishing it from the other 64, and dropping
+         the whole list to avoid repeating "cafe" throws it away too. */
+      var ts = typesOf(i).filter(function(t){ return t !== dropType });
+      if(ts.length) ts.forEach(function(t){ meta.push(esc(t)) });
+      else if(!typesOf(i).length) meta.push('<span class="unsorted">unsorted</span>');
+    }
+    if(!off('where')){
+      var place = (i.place || '').trim(), loc = (i.loc || '').trim();
+      if(place && loc){
+        var a = place.toLowerCase(), b = loc.toLowerCase();
+        if(a.indexOf(b) >= 0 || b.indexOf(a) >= 0){ place = a.length >= b.length ? place : loc; loc = '' }
+      }
+      if(off('suburb')) loc = '';
+      if(place) meta.push(esc(place));
+      if(loc) meta.push(esc(loc));
+    }
+    if(i.km != null && i.km > 0) meta.push(i.km + ' km');
+    if(i.ev) meta.push('<span class="item-when">' + esc(whenLabel(i)) + '</span>');
+
+    var links = [];
+    if(i.ticket) links.push(['Tickets', i.ticket]);
+    if(i.info)   links.push(['Details', i.info]);
+    if(i.url && i.url !== i.info) links.push([/google\.[a-z.]+\/maps/.test(i.url) ? 'Map' : 'Website', i.url]);
+    if(i.lat != null && i.lng != null)
+      links.push(['Directions', 'https://www.google.com/maps/dir/?api=1&destination=' + i.lat + ',' + i.lng]);
+
+    var fact = function(label, v){
+      return v ? '<p class="dl"><b>' + label + '</b><span>' + esc(v) + '</span></p>' : '' };
+
+    return '<div class="item">' +
+      '<button class="item-head" type="button" aria-expanded="false">' +
+        '<span class="item-name">' + esc(i.name) + '</span>' +
+        (meta.length ? '<span class="item-meta">' + meta.map(function(m){
+          return '<i>' + m + '</i>' }).join('') + '</span>' : '') +
+      '</button>' +
+      '<div class="item-body">' +
+        '<p>' + (i.desc ? esc(i.desc)
+                        : '<em style="color:var(--ink3)">No description yet.</em>') + '</p>' +
+        fact('Good to know', i.notes) +
+        fact('Best conditions', (i.cond || []).join(', ')) +
+        fact('Suits', (i.ages || []).join(', ')) +
+        fact('Cost', i.cost) +
+        fact('Time', i.time) +
+        (i.ev ? fact('How often', i.recur) : fact('How long', i.dur)) +
+        (i.ev ? '' : fact('Season', (i.season || []).join(', '))) +
+        (i.rating ? fact('Rating', i.rating + ' / 5') : '') +
+        (links.length ? '<div class="lnks">' + links.map(function(l){
+          return '<a href="' + esc(l[1]) + '" rel="noopener" target="_blank">' + l[0] + '</a>'
+        }).join('') + '</div>' : '') +
+      '</div></div>';
+  }
+
+  /* One listener on the container rather than one per row — a type page can
+     hold 400 of these, and they are re-rendered whenever the page redraws. */
+  function wireItems(root){
+    root.addEventListener('click', function(e){
+      var head = e.target.closest('.item-head');
+      if(!head || !root.contains(head)) return;
+      var open = head.parentNode.classList.toggle('open');
+      head.setAttribute('aria-expanded', String(open));
+    });
+  }
+
   var byDate = function(a,b){
     var k = function(i){ return i.date ? (daysAway(nextDate(i)) == null ? 9e5 : daysAway(nextDate(i))) : 9e5 };
     return k(a) - k(b) || a.name.localeCompare(b.name);
@@ -141,5 +221,6 @@
 
   window.NoticePage = {esc:esc, rows:rows, row:row, whenLabel:whenLabel,
                        byDate:byDate, byName:byName, n:n,
-                       subject:subject, canonical:canonical};
+                       subject:subject, canonical:canonical,
+                       item:item, wireItems:wireItems};
 })();

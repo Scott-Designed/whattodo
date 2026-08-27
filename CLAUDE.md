@@ -1040,8 +1040,9 @@ that the board cannot:
 
 - **A town splits.** What's on (dated, soonest first) above Places to go
   (evergreen, alphabetical). The board can only interleave them.
-- **A type groups by town.** "21 cafés across 11 towns" is the fact you want
-  from a type, and it only exists once the list is grouped.
+- **A type breaks out by kind.** Seven lists side by side, so a row filed
+  wrong is obvious. See below — it used to group by town, and that changed on
+  27 Aug 2026.
 
 So each page arranges its own listings, and `row()` takes the facts the page has
 **already established at the top** and leaves them out — a Torquay page does not
@@ -1052,6 +1053,42 @@ page groups by town and has therefore said two things (`'type,suburb'`).
 the venue with the suburb, which left every gig on the Torquay page with nowhere
 to be. The town is the page's subject; the Torquay Hotel is still the thing you
 need to read.
+
+### A type page is a monitoring view
+
+Rebuilt 27 Aug 2026, the day `kind` landed. It used to group by town, which is
+the better arrangement for a reader and the wrong one for checking a
+classification. Now it draws **seven lists, one per kind**, plus an eighth for
+anything with no kind at all — because on a page whose job is showing how
+things are filed, an unfiled row is the most important thing on it.
+
+**Every kind is drawn even when it holds nothing.** "shop 0" on `/surfing` is
+itself the fact worth seeing, and a section that vanishes when empty makes the
+page a different shape every time, which cannot be scanned the same way twice.
+
+**Two columns as a grid, not CSS multi-column.** Multi-column balances the
+height for you and splits a long section across the fold — and
+`break-inside: avoid` cannot rescue a section taller than the column, so 65
+cafes break anyway and unpredictably. Instead: **a section past 14 rows takes
+the full width and splits its own items into two columns.** Short sections pair
+up, long ones use the whole page, and a heading never repeats mid-list. Without
+that, `/cafe` ran 65 venues down one side with the other side empty.
+
+**The row is `.item`, not the board's `.rowline`.** Same gesture — the head is
+the button, one class toggles, the body carries what the head could not show —
+at a size that fits half a column. Deliberately not a copy: the board's row
+also carries an icon gutter, a colour tint and the save pin, and none of those
+earn their width here. **No description in the head**, because the thing you
+scan for is the name and how it is filed.
+
+**`item()` takes a third argument, and it matters**: the ONE type to leave out,
+rather than all of them. On `/cafe` a row that is `bakery · cafe` must still say
+bakery — that is the only thing separating it from the other 64, and dropping
+the whole list to avoid repeating "cafe" throws it away too.
+
+**`fromRow` had to learn `kind`.** It was dropping the column entirely, so the
+first build put all 65 cafes under "no kind". Anything the page reads has to be
+in that mapping — the view carrying a column is not enough.
 
 ### What was lifted out of index.html, and why it had to be
 

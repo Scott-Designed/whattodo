@@ -22,6 +22,7 @@ try{var t=localStorage.getItem('notice.theme');
     <p class="stand" id="stand"></p>
   </div>
   <div id="body"></div>
+  <div class="kinds" id="kinds"></div>
   <div class="also">
     <h2>Other types</h2>
     <div class="set" id="also"></div>
@@ -32,11 +33,14 @@ try{var t=localStorage.getItem('notice.theme');
 <script src="/notice-data.js"></script>
 <script src="/notice-page.js"></script>
 <script>
-/* ══ a type ════════════════════════════════════════════════════════════
-   One kind of thing, everywhere it is, grouped by town — which is the one
-   arrangement the board cannot produce. Filtering the board to cafés gives a
-   flat list sorted by distance; what you actually want to know is which towns
-   have them, and that only appears when the list is grouped.
+/* ══ a type ═════════════════════════════════════════════════════════════
+   One kind of thing, everywhere it is — broken out by KIND, so the seven
+   lists can be read side by side and a row filed wrong is obvious. That is
+   the job this page does now: it is a monitoring view for the classification
+   first, and a reading view second.
+
+   It used to group by town, which is the better arrangement for a reader and
+   the wrong one for checking a classification. The town is still on every row.
    ═══════════════════════════════════════════════════════════════════════ */
 const NP = NoticePage, esc = NP.esc;
 const ALL_TYPES = PLACE_TYPES.concat(EVENT_TYPES);
@@ -48,6 +52,16 @@ const LABEL = KNOWN ? typeLabel(WANT) : 'Not a type we use';
 document.title = LABEL + ' — Notice';
 document.getElementById('title').textContent = LABEL;
 
+/* Fixed order, and every kind drawn whether or not it holds anything. A page
+   that changes shape depending on what is in it cannot be scanned the same way
+   twice, and "shop 0" on /surfing is itself the fact worth seeing. Grouped by
+   family, because that is the real structure: places, then people, then the
+   two that are neither. */
+const KINDS = [
+  ['spot','place'], ['venue','place'], ['shop','place'],
+  ['group','people'], ['maker','people'],
+  ['happening','time'], ['idea','idea']];
+
 /* One line about what the word means here, where the word alone is ambiguous.
    Only the types that genuinely need it — a caption on "Beaches" would be
    filler, and this list is a place a wrong claim could hide. */
@@ -58,16 +72,17 @@ const GLOSS = {
   community:'Things a group runs and anyone can turn up to.',
   volunteering:'Days out where the point is the work.',
   water:'On the water rather than beside it — paddling, boating, swimming holes.',
-  surf:'Breaks, not surf shops.',
+  surfing:'Breaks, not surf shops.',
   nursery:'Plant nurseries and growers open to visitors.',
-  'sport-event':'Runs, rides, swims and surf comps with a date on them.',
   shop:'Places you go to buy something, as opposed to a market, which is an event.'};
 
 document.getElementById('also').innerHTML = ALL_TYPES.map(t =>
   `<a href="/${slugify(t)}"${t===WANT?' aria-current="page"':''}>${esc(typeLabel(t))}</a>`).join('');
 
 const body = document.getElementById('body');
+const kinds = document.getElementById('kinds');
 const stand = document.getElementById('stand');
+NP.wireItems(kinds);
 
 (async () => {
   if(!KNOWN){
@@ -89,32 +104,43 @@ const stand = document.getElementById('stand');
      a type that is only ever a row's second one would otherwise have an empty
      page. */
   const mine = all.filter(i => typesOf(i).includes(WANT));
-
-  /* Group by town, in the site's own order — the three that are not towns last,
-     since "Surf Coast wide" is where a thing goes when it has no town. */
-  const groups = PLACE_ORDER
-    .map(x => [x, mine.filter(i => suburbOf(i.loc) === x)])
-    .filter(g => g[1].length);
-  const homeless = mine.filter(i => suburbOf(i.loc) === null);
-  if(homeless.length) groups.push(['Not said', homeless]);
+  const towns = new Set(mine.map(i => suburbOf(i.loc)).filter(Boolean));
 
   stand.innerHTML = mine.length
     ? `<b>${NP.n(mine.length,'thing','things')}</b> on the board`
-      + `${groups.length > 1 ? `, across ${NP.n(groups.length,'town','towns')}` : ''}.`
+      + `${towns.size > 1 ? `, across ${NP.n(towns.size,'town','towns')}` : ''}.`
       + (GLOSS[WANT] ? ' ' + GLOSS[WANT] : '')
     : `Nothing on the board is filed as ${esc(LABEL.toLowerCase())} yet.`;
 
+  body.innerHTML = '';
   if(!mine.length){
-    body.innerHTML = `<div class="note">${esc(LABEL)} is one of the ${ALL_TYPES.length} types the database `
-      + `uses, but nothing carries it yet.</div>`;
+    body.innerHTML = `<div class="note">${esc(LABEL)} is one of the ${ALL_TYPES.length} types `
+      + `the database uses, but nothing carries it yet.</div>`;
     return;
   }
 
-  const dated = EVENT_TYPES.includes(WANT);
-  body.innerHTML = '<section class="sec">' + groups.map(g =>
-    `<h3 class="sub-h">${esc(g[0])}<span class="n">${g[1].length}</span></h3>`
-    + g[1].sort(dated ? NP.byDate : NP.byName).map(i => NP.row(i, 'type,suburb')).join('')
-  ).join('') + '</section>';
+  /* A row with no kind is not filed anywhere yet, and on a page whose job is
+     to show how things are filed that is the most important row on it — so it
+     gets its own section rather than being quietly dropped. */
+  const unfiled = mine.filter(i => !i.kind);
+
+  /* Past this many rows a section stops sharing the width and takes all of it,
+     splitting its own items in two. Chosen by eye against /cafe (65 venues,
+     six empty kinds) — below it a section is short enough that pairing two
+     side by side reads better than one wide one. */
+  const WIDE = 14;
+  const sec = (k, fam, rows, dated) => `<section class="kindsec${
+      rows.length ? '' : ' empty'}${rows.length > WIDE ? ' wide' : ''}">
+      <h2>${esc(k)}<span class="fam">${esc(fam)}</span><span class="n">${rows.length}</span></h2>
+      ${rows.length
+        ? '<div class="items">' + rows.sort(dated ? NP.byDate : NP.byName)
+            .map(i => NP.item(i, '', WANT)).join('') + '</div>'
+        : '<div class="none">none</div>'}
+    </section>`;
+
+  kinds.innerHTML =
+    KINDS.map(([k, fam]) => sec(k, fam, mine.filter(i => i.kind === k), k === 'happening')).join('')
+    + (unfiled.length ? sec('no kind', 'needs a person', unfiled, false) : '');
 })();
 </script>
 </body>

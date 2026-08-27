@@ -80,6 +80,79 @@ body{margin:0;background:var(--ground);color:var(--ink);
   text-decoration:none;border-bottom:1px solid var(--rule2);padding-bottom:2px}
 .row .lnks a:hover{color:var(--ink);border-bottom-color:var(--ink)}
 
+/* ── a type page, broken out by kind ──
+   Seven lists on one page, so the classification can be read at a glance and
+   a row filed wrong is obvious. This is a monitoring view first and a reading
+   view second, which is why every kind is drawn even when it holds nothing:
+   "shop 0" on /surfing is a fact worth seeing, and a section that vanishes
+   when empty makes the page a different shape every time.
+
+   Two columns as a grid rather than CSS multi-column. Multi-column balances
+   the height for you, but it also splits a long section across the fold —
+   and `break-inside: avoid` cannot save a section taller than the column, so
+   65 cafes would break anyway and unpredictably. A grid keeps every section
+   whole and just runs ragged at the bottom, which for a monitoring view is
+   the better trade. */
+.kinds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px 44px;align-items:start;margin-top:40px}
+.kindsec{min-width:0;margin-bottom:20px}
+/* A long section takes the whole width and splits its OWN items into two
+   columns, instead of running 65 rows down one side with the other empty —
+   which is what /cafe did, being 65 venues and six empty kinds. The heading
+   still appears once, above the whole thing: a section broken across columns
+   by the browser would repeat nothing and read as two lists. */
+.kindsec.wide{grid-column:1/-1}
+.kindsec.wide .items{columns:2;column-gap:44px}
+.kindsec.wide .items .item{break-inside:avoid}
+/* An open row must not be cut in half by a column break. */
+.kindsec.wide .items .item.open{break-inside:auto}
+.kindsec > h2{margin:0 0 2px;display:flex;align-items:baseline;gap:8px;
+  font-family:var(--util);font-size:11px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink3);
+  padding-bottom:8px;border-bottom:1px solid var(--rule2)}
+.kindsec > h2 .n{margin-left:auto;font-variant-numeric:tabular-nums}
+.kindsec > h2 .fam{font-weight:500;letter-spacing:.08em;color:var(--ink3);opacity:.6;
+  text-transform:none;font-size:10.5px}
+.kindsec.empty > h2{opacity:.45}
+.kindsec .none{padding:11px 0;font-family:var(--util);font-size:12px;color:var(--ink3);
+  opacity:.6;border-bottom:1px solid var(--rule)}
+
+/* ── one listing, closed until you ask ──
+   The board's row is a five-column grid tuned to the full width of the page.
+   Half a column cannot hold it, so this is the same GESTURE at a smaller size:
+   the whole head is the button, it toggles one class, and the body underneath
+   carries what the row could not show. Deliberately not a copy of `.rowline` —
+   the board's version also carries an icon gutter, a colour tint and the save
+   pin, and none of those earn their width here. */
+.item{border-bottom:1px solid var(--rule)}
+.item-head{width:100%;background:none;border:0;color:inherit;font:inherit;
+  text-align:left;cursor:pointer;display:block;padding:11px 22px 11px 0;position:relative}
+.item-head:hover{background:var(--surface)}
+.item-head:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.item-name{display:block;font-size:17px;letter-spacing:-.01em;line-height:1.25;color:var(--ink)}
+.item-meta{display:block;margin-top:3px;font-family:var(--util);font-size:11.5px;
+  color:var(--ink3);letter-spacing:.02em;line-height:1.35}
+.item-meta i{font-style:normal}
+.item-meta i + i::before{content:" · ";opacity:.6}
+.item-when{color:var(--ink2)}
+/* the caret is the only thing telling you a row opens, so it does not hide */
+.item-head::after{content:"";position:absolute;right:4px;top:17px;
+  border-left:4px solid transparent;border-right:4px solid transparent;
+  border-top:5px solid currentColor;opacity:.45;transition:transform .14s}
+.item.open .item-head::after{transform:rotate(180deg)}
+.item-body{display:none;padding:0 0 16px}
+.item.open .item-body{display:block}
+.item-body p{margin:0 0 12px;font-size:15.5px;line-height:1.6;color:var(--ink2)}
+.item-body .dl{display:flex;gap:8px;margin:0 0 5px;font-size:13px}
+.item-body .dl b{flex:none;font-weight:400;color:var(--ink3);font-family:var(--util);
+  font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;padding-top:3px;min-width:92px}
+.item-body .lnks{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px}
+.item-body .lnks a{font-family:var(--util);font-size:12px;font-weight:500;color:var(--ink3);
+  text-decoration:none;border-bottom:1px solid var(--rule2);padding-bottom:2px}
+.item-body .lnks a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.item-body .unsorted{font-family:var(--util);font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink3)}
+
 /* ── the strip of sibling pages at the foot ──
    A page about Torquay should offer the next town rather than sending you back
    to a filter to find it. */
@@ -108,6 +181,11 @@ body{margin:0;background:var(--ground);color:var(--ink);
 .doc a:hover{text-decoration-color:var(--ink)}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:940px){
+  /* one column: at half of a narrow window the name wraps every other word */
+  .kinds{grid-template-columns:minmax(0,1fr);gap:0}
+  .kindsec.wide .items{columns:1}
+}
 @media (max-width:700px){
   :root{--pad:20px}
   .mast{padding:34px 0 22px}
