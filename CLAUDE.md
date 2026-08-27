@@ -340,6 +340,23 @@ JSON-LD and no dates. That is the point of registering it anyway: every run now
 checks it, and it appears on the back-of-house source list where a dead source
 is visible rather than forgotten.
 
+**The store page's own "Local Events" section is empty**, and that is why
+registering the source found nothing — checked in a real browser 27 Aug 2026,
+the heading is there and its container is 34px tall with nothing in it. So the
+store page is worth watching but has never yet listed anything.
+
+**Patagonia's Torquay events are published somewhere else entirely.** The first
+one, `Roaring Journals Happy Hour` (event 154, 17 Sep 2026), lives at
+`torquayhappyhour.splashthat.com` — a Splash page linked from nowhere the
+scraper can reach. **That domain must never go in `events_url`**: splashthat.com
+sits behind DataDome and serves a captcha page instead of a robots.txt, so
+`eventlib.robots_ok` returns False and a scheduled run would be bot-blocked. It
+was read once in a browser, by hand, because Scott sent the link.
+
+The lesson for this shop: its events will keep arriving as one-off links from a
+person, not from a feed. Registering the store page is still right — it costs
+nothing and catches the day they start publishing — but do not expect it to work.
+
 **`patagonia.com.au/pages/events` exists and was deliberately NOT used.** It is
 a national list, so attaching it to the Torquay row would file a Sydney event in
 Torquay — the same organiser-is-not-the-venue mistake this file records for
@@ -1628,6 +1645,12 @@ caught it before it shipped; clicking around the page would not have.
 
 ## Known outstanding
 
+- **`sync.py add` cannot set `place_id`**, so every event written by hand starts
+  unlinked — no pin, no curated suburb — and has to be patched afterwards. That
+  is a quiet contributor to the place-less events problem this file lists as
+  outstanding work. Event 154 was added this way and linked in a second step.
+  Add `place_id` to `EVENT_COLS`/`ACTIVITY_COLS`, validated against `places`
+  the way `/api/admin` already does it.
 - An activity's single `url` is whatever it is — a map pin for some, the venue's own
   site for others. The row labels it by inspection (`isMapLink`), so don't assume the
   slot means "map". 87 of 203 activities carry a website there. `Directions` is built
