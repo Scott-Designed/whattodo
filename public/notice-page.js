@@ -61,7 +61,7 @@
        plural and belongs in a heading — "Gigs" against one gig reads wrong. */
     if(!off('type')) typesOf(i).forEach(function(t){ meta.push(t) });
     if(!off('where')){
-      var place = (i.place || '').trim(), loc = (i.loc || '').trim();
+      var place = (i.place || '').trim(), loc = townOf(i.loc);
       /* Two facts that are often the same one twice — "Torquay Hotel" in a row
          whose location reads "Torquay". Where one contains the other, the
          longer is the one that tells you something. And a row linked to its own
@@ -123,7 +123,7 @@
       else if(!typesOf(i).length) meta.push('<span class="unsorted">unsorted</span>');
     }
     if(!off('where')){
-      var place = (i.place || '').trim(), loc = (i.loc || '').trim();
+      var place = (i.place || '').trim(), loc = townOf(i.loc);
       /* A row linked to its own place row — which is how a shop or a venue
          inherits a coordinate — has the same string in both, so it would print
          its own name back at itself. */

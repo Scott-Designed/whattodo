@@ -72,6 +72,26 @@ function suburbOf(loc){
   if(NO_FIXED.test(l)) return 'Surf Coast wide';
   return null;
 }
+/* The town to PRINT for a location. suburbOf answers "which town is this in",
+   which the filters want; this answers "what should the Where column say".
+
+   A researched venue writes `location` as a full street address ending in the
+   suburb — the documented convention — so printing it raw put "1A Harding
+   Street, Portarlington" into a column two words wide. Only a location with a
+   comma is collapsed, and only to a town suburbOf actually recognises, so a
+   description keeps its own words: "Anywhere outdoors" is a better answer than
+   'Surf Coast wide'.
+
+   It lives here rather than in a page because three pages print a Where column
+   and this project has already paid for the same rule existing in more than one
+   copy. Keep it DOM-free — api/subject.mjs evaluates this file in a sandbox. */
+function townOf(loc){
+  var raw = String(loc == null ? '' : loc).trim();
+  if(raw.indexOf(',') < 0) return raw;
+  var t = suburbOf(raw);
+  return (t && ['Home','Car','Surf Coast wide'].indexOf(t) < 0) ? t : raw;
+}
+
 /* the three that are not towns lead the list; the towns follow, alphabetically */
 const PLACE_ORDER=['Surf Coast wide','Home','Car',
   ...SUBURBS.filter(x=>!GEELONG.has(x)||x==='Geelong').sort()];

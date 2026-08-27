@@ -539,6 +539,35 @@ Those need venue rows of their own before the map can show everything. The sprea
 and per-venue Facebook/Instagram/Oztix feed URLs, which is the raw material for
 an automated what's-on check later.
 
+## The Where column prints the town, not the street
+
+`suburbOf` answers "which town is this in", which is what the filters and the
+town pages want. **`townOf` answers "what should the Where column say"**, and
+that is a different question — added 27 Aug 2026.
+
+The research passes write `location` as a full street address ending in the
+suburb. That is the documented convention and it is correct: `suburbOf` reads
+the last comma-separated chunk, so every filter has always been right. What was
+wrong was printing it raw — "1A Harding Street, Portarlington" in a column two
+words wide, truncated to "…Portarling…", which is the one part of the string
+nobody needed. **176 of 441 activities are written that way.**
+
+The rule is narrow on purpose: only a location containing a comma is collapsed,
+and only to a town `suburbOf` actually recognises. A location that is a
+description keeps its own words — *"Several Surf Coast beaches"* says more than
+`Surf Coast wide` would.
+
+**Nothing was deleted.** The full string moves into the open row as an
+**Address** line, via `addressOf`, which prints it only when it says more than
+the town already does.
+
+**`townOf` lives in `notice-vocab.js`, beside `suburbOf`, and that matters.**
+Three pages print a Where column — the board's `whereParts`, and `row()` and
+`item()` in `notice-page.js` — and all three had their own copy of
+`(i.loc || '').trim()`. One rule, one home; this project has already paid twice
+for the same fact living in two places. Keep the function DOM-free, because
+`api/subject.mjs` evaluates that file in a `node:vm` sandbox.
+
 ## The name says what, the Where column says where
 
 An event called "Open Mic Night – Torquay Hotel" in a row whose next column

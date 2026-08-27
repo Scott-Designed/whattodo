@@ -1293,8 +1293,30 @@ function ok(i){
    "Bells Beach" under "Bells Beach / Torquay" is the same fact twice, not two.
    Activities mostly have no place of their own and are unchanged — the column
    is null for them, so this falls through to the suburb they always printed. */
+/* The Where column wants the town, not the street.
+
+   A researched venue writes `location` as a full address ending in the suburb —
+   that is the documented convention and it is what suburbOf() reads, so the
+   filters and the town pages have always been right. Printing it raw is what
+   was wrong: "1A Harding Street, Portarlington" in a column two words wide,
+   truncated to "1A Harding Street, Portarling…", which is the one part of the
+   string nobody needed. 132 of 441 activities are written this way.
+
+   Only a location with a comma is collapsed, and only to a town suburbOf
+   actually recognises. A row whose location is a description rather than an
+   address — "Anywhere outdoors", "Several Surf Coast beaches" — keeps its own
+   words, because 'Surf Coast wide' is a category and the sentence is better.
+   The address is not lost; `addressOf` puts it in the open row. */
+/* townOf lives in notice-vocab.js, beside suburbOf — three pages print a Where
+   column and the rule may only exist once.
+   The full string, but only when it says more than the town already does. */
+const addressOf = i => {
+  const raw=String(i.loc||'').trim();
+  return raw && raw!==townOf(raw) ? raw : '';
+};
+
 function whereParts(i){
-  let place=(i.place||'').trim(); const suburb=(i.loc||'').trim();
+  let place=(i.place||'').trim(); const suburb=townOf(i.loc);
   /* A row linked to its own place row — how a shop or a venue inherits a
      coordinate without a second copy of it — carries its own name here, so it
      would print "Patagonia Torquay" against "Patagonia Torquay". */
@@ -1366,6 +1388,7 @@ function render(){
           </div>
         </div>
         <div>
+          ${addressOf(i)?`<p class="dl"><b>Address</b><span>${esc(addressOf(i))}</span></p>`:''}
           ${i.notes?`<p class="dl"><b>Good to know</b><span>${esc(i.notes)}</span></p>`:''}
           ${(i.cond||[]).length?`<p class="dl"><b>Best conditions</b><span>${esc(i.cond.join(', '))}</span></p>`:''}
           ${(i.ages||[]).length?`<p class="dl"><b>Suits</b><span>${esc(i.ages.join(', '))}</span></p>`:''}
