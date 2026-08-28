@@ -1041,7 +1041,9 @@ platform, the platform holds the working data and the website is a poster.
 ### Automating it — the honest state
 
 It is the most automatable source found since surfcoastevents, and **it fits
-neither existing scraper without a change**:
+neither existing scraper without a change**. The eight fixtures below were
+therefore written by hand; automating it would have been the larger job and is
+still open:
 
 - **`scrape_venues.py` is wrong for it.** Its registry is `places.events_url`
   and it sets `place_id` to the row it read from. GMBC is an **organiser**, so
@@ -1057,18 +1059,49 @@ neither existing scraper without a change**:
   ledger by source, not adding a URL. That work is shared between the two, so
   whichever lands first pays for both.
 
-**The courses are the blocker for writing the events, not the parsing.** GMBC
-races at You Yangs carparks and Duckponds School. `You Yangs MTB Park –
-Kurrajong` (40) and `– Stockyards` (41) exist as **activities**, not places, so
-an event cannot link to them — this is the 32-things-in-both-tables problem
-arriving from the other direction. The Drysdale Rd carpark coordinate on the
-race page (-37.9257642, 144.4425827) is ~2 km from activity 41's pin, so they
-are not the same point and one of them wants checking before either is copied.
+### The eight fixtures are in — events 172-179, 28 Aug 2026
 
-**The nine upcoming fixtures were extracted and deliberately NOT written**
-(28 Aug 2026) — they need those place rows built first, and building them
-carelessly is how the duplicates happened. `GMBC Merch 2026 (Winter)` is in the
-list and is a merchandise order, not a happening; a scraper needs to drop those.
+Written by hand, with three `places` rows built for the courses first. Seven of
+the eight are on the map. `GMBC Merch 2026 (Winter)` was in the calendar and was
+dropped — it is a merchandise order, not a happening, and a scraper needs to
+drop those too.
+
+    117  Drysdale Road Carpark (You Yangs Stockyards)  -37.9257642, 144.4425827
+    118  Kurrajong Carpark (You Yangs)                 -37.953832,  144.402298
+    119  Duckponds (You Yangs)                         -37.963063,  144.409938
+
+**Every course coordinate is the club's own published location.** Two of the
+three are **plus codes** off the race pages' map embeds, decoded rather than
+looked up — `3CFV+M2` and `2CP5+QX Little River`. That is deterministic maths,
+not a geocode, and it was validated before being trusted: race 31305 also links
+a Google Maps *place* naming "Drysdale Road Carpark - You Yangs MTB
+(Stockyards)", and the decoded plus code lands **6 m** from it. A plus code cell
+is 14 m, so two independently published values agree exactly. All three
+reverse-geocode to named roads — Stockyards Management Track, Kurrajong Avenue,
+Turntable Drive — none to a bare "Victoria, Australia", which is the open-water
+signature.
+
+**Duckponds is 200 m from a building Nominatim calls "Former Duck Ponds
+Parsonage and School"**, which is what confirms it: the club's own schema.org
+markup names the venue "Duckponds School". The published plus code was kept
+rather than the heritage building, because the club is publishing where to turn
+up, not which building it is. Note the EntryBoss **course label for those races
+reads "GMBC - Park Office"**, which matches neither the race titles nor the
+location the same page publishes — the location field was trusted over the
+label, and a scraper reading `.fixture-course` as the venue would get this wrong.
+
+**The Dirt Girls ride (177) has no `place_id` on purpose.** It meets at Hurst
+Rd, Anglesea, and Nominatim returns three separate Hurst Road segments up to
+3 km apart — the multi-segment coin toss. The meeting point is free text in
+`venue`, the same call as the Apollo Bay Foreshore and Mirambeena Park markets.
+
+**Two existing pins look like placeholders and were left alone.** `You Yangs
+MTB Park – Kurrajong` (40) sits 5.5 km from the club's Kurrajong carpark and
+carries a coordinate **identical to activity 155's**, the whole regional park;
+`– Stockyards` (41) is ~2 km from the Drysdale Rd carpark. Same coordinate on
+two rows reads as a park centroid copied twice rather than as a second opinion.
+Not touched — moving somebody else's pin on suspicion is how the disagreements
+in this database got made. Worth a check.
 
 **Only GMBC is on EntryBoss** — checked against the platform's own club list,
 which carries Geelong BMX, Geelong Cycling, Geelong & Surfcoast Cycling and
