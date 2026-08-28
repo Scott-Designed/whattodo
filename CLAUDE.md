@@ -951,6 +951,129 @@ be filed with "Coast & Bay" as its venue — the organiser-is-not-the-venue trap
 at its worst. That is exactly why surfcoastevents lives in `scrape_events.py`
 instead, and why that scraper deliberately sets no `place_id`.
 
+## The mountain bike clubs, and EntryBoss — 28 Aug 2026
+
+Three clubs added as **groups** (activities 516, 517, 518) at Scott's request.
+None carries a coordinate: not one of the three publishes premises or a postal
+address, and all three are filed at the park they work in rather than at rooms
+they do not have — the `Surf Coast Mountain Bike Club` precedent from 27 Aug.
+
+    516  Geelong Mountain Bike Club     You Yangs   mountain biking
+    517  Surf Coast Mountain Bike Club  Anglesea    mountain biking · volunteering
+    518  You Yangs Mountain Bike Club   You Yangs   mountain biking · volunteering
+
+**GMBC and You Yangs MTB Inc are two different clubs sharing one park**, which
+is the kind of thing worth writing down before somebody merges them. GMBC races
+in the You Yangs; You Yangs MTB Inc builds and maintains the downhill and XC
+trails there and says its ride days "are purely fundraisers".
+
+### A `places` row is not a listing — the fault this exposed
+
+Scott noticed the Surf Coast club was missing from `/mountain-biking`. It had
+been in the database since 27 Aug as **place 105**, and that was the whole
+problem: **type pages and the board read `listings`, which unions `activities`
+and `events`. A `places` row appears on neither.** So a thing can be fully
+researched, correctly typed in prose, and completely invisible.
+
+Row 517 links `place_id = 105` rather than repeating the club, so there is still
+one copy of the fact. The generalisable check: **after adding a place, ask
+whether a reader is ever meant to find it.** If yes, it also needs a listing.
+
+**Event 150 `Trail Working Bee` was the second half of the same complaint** and
+a different fault — it was typed `volunteering` alone, so a working bee on a
+mountain bike trail network was absent from `/mountain-biking`. It is
+`volunteering · mountain biking` now, volunteering still primary because that is
+what the row is. `mountain biking` went 12 → 16.
+
+### EntryBoss is readable, and it is the best HTML source this project has found
+
+`entryboss.cc/calendar/gmbc` — the club's fixture calendar. **robots.txt is
+entirely commented out**: nothing disallowed, no AI-crawler clause, so a Claude
+session and the Action are both fine. Not Humanitix, not Coast & Bay.
+
+The markup is regular and needs no per-venue special case:
+
+    .fixture-row  >  .fixture-date    "Sat, 29 Aug 2026"
+                     .fixture-name    <a href="/races/31305">
+                     .fixture-course  "GMBC - Drysdale Rd Carpark"
+
+An `<h4>Upcoming</h4>` section is followed by `<h4>Previously</h4>`, so future
+events are separable without comparing dates. **Every date prints its weekday**,
+which is exactly the checksum `scrape_venues.py` already applies. All nine
+upcoming rows passed it. Each `/races/<id>` page then carries the real schedule
+(registration 8:30am, race 9:30am), the fee table, and a Google Maps place link
+with a building-level coordinate in it.
+
+### The club's own site is WRONG, and the ticketing platform is right
+
+This inverts the rule this file has repeated everywhere else, so it is worth the
+detail. `gmbc.com.au` is WordPress running Modern Events Calendar, robots-clean,
+with a public `wp-json/wp/v2/mec-events` API and **schema.org JSON-LD `Event`
+markup on every event page** — the shape `eventlib.jsonld_events` already parses.
+Everything about it says "use this instead of scraping HTML".
+
+**Do not.** Two faults, both silent:
+
+- **`wp/v2/mec-events` gives the POST date, not the event date.** MEC keeps the
+  event date in postmeta, which `wp/v2` does not expose, and `mec/v1/events`
+  returns `[]`. A scraper reading `date` would file every race on the day its
+  page was published. `date_gmt` is the same trap wearing a suffix.
+- **The JSON-LD dates are a day late on the Friday races.** Checked across eight
+  events 28 Aug 2026. Every Friday night race — the "under lights" ones, which
+  carry a nonsense `05:00:00+10:00` start — reads one day after the date in its
+  own title, while the weekend events are correct:
+
+        Round 6 at Duckponds   title "Fri 11th September"   JSON-LD 2026-09-12 (Sat)
+        Round 5 at Duckponds   title "Fri 4th September"    JSON-LD 2026-09-05 (Sat)
+        Round 3 at Duckponds   title "Fri 21st August"      JSON-LD 2026-08-22 (Sat)
+
+  EntryBoss has all three right. **The times are unreliable across the board** —
+  the 3 Hour Endurance race shows 18:30 in JSON-LD and registers at 8:30am on
+  its own race page.
+
+The weekday checksum is what catches this, and it catches it in the document
+that contains both facts: a page whose title says Friday and whose `startDate`
+is a Saturday is refuting itself. **A first-party page is authoritative about
+intent, not about correctness.** Where a club actually operates from a ticketing
+platform, the platform holds the working data and the website is a poster.
+
+### Automating it — the honest state
+
+It is the most automatable source found since surfcoastevents, and **it fits
+neither existing scraper without a change**:
+
+- **`scrape_venues.py` is wrong for it.** Its registry is `places.events_url`
+  and it sets `place_id` to the row it read from. GMBC is an **organiser**, so
+  registering it would file every race at "Geelong Mountain Bike Club" — the
+  Creative Geelong trap, which this file already warns about for aggregators.
+  **Do not put the EntryBoss URL in a GMBC `places` row.** The venue is in the
+  data instead: `.fixture-course` per row, and a coordinate on the race page —
+  the same shape as reading Eventbrite's `location.name` off the events.
+- **`scrape_events.py` is hardwired to one source.** `SOURCE`/`API`, the
+  `source_note` string, the literal `added_by = 'surfcoastevents'`, the drift
+  regex, and **a seen ledger keyed on `slug` alone**. The Coast & Bay note
+  already says what this costs: a second feed means keying provenance and the
+  ledger by source, not adding a URL. That work is shared between the two, so
+  whichever lands first pays for both.
+
+**The courses are the blocker for writing the events, not the parsing.** GMBC
+races at You Yangs carparks and Duckponds School. `You Yangs MTB Park –
+Kurrajong` (40) and `– Stockyards` (41) exist as **activities**, not places, so
+an event cannot link to them — this is the 32-things-in-both-tables problem
+arriving from the other direction. The Drysdale Rd carpark coordinate on the
+race page (-37.9257642, 144.4425827) is ~2 km from activity 41's pin, so they
+are not the same point and one of them wants checking before either is copied.
+
+**The nine upcoming fixtures were extracted and deliberately NOT written**
+(28 Aug 2026) — they need those place rows built first, and building them
+carelessly is how the duplicates happened. `GMBC Merch 2026 (Winter)` is in the
+list and is a merchandise order, not a happening; a scraper needs to drop those.
+
+**Only GMBC is on EntryBoss.** Surf Coast MTB pushes everything to Facebook, and
+You Yangs MTB Inc's WordPress has no events post type and no calendar at all —
+both checked 28 Aug 2026. So two of the three clubs stay manual, and neither is
+worth registering as a source.
+
 ## Back of house — /admin
 
 `public/admin.html`, live at **https://notice.place/admin**. One page,
