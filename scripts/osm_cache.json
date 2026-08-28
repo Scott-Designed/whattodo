@@ -1,5 +1,5 @@
 {
- "fetched": "2026-08-28 15:24",
+ "fetched": "2026-08-28 16:39",
  "kinds": [
   "arts",
   "food",
@@ -10,7 +10,7 @@
    "name": "Point Cook Homestead",
    "lat": -37.9261016,
    "lon": 144.7929218,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Jimmy'Z",
@@ -46,25 +46,25 @@
    "name": "The Fat Ladies",
    "lat": -38.5370011,
    "lon": 143.9739919,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Marine and Freshwater Discovery Centre",
    "lat": -38.2703064,
    "lon": 144.6377934,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Memorial Arch",
    "lat": -38.4720398,
    "lon": 144.0445751,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Norris Barracks",
    "lat": -38.3130465,
    "lon": 144.6943756,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Portarlington Pub",
@@ -106,7 +106,7 @@
    "name": "Barwon Park",
    "lat": -38.2247771,
    "lon": 143.9953455,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Bubba Pizza",
@@ -148,7 +148,7 @@
    "name": "Little River Hotel",
    "lat": -37.9653736,
    "lon": 144.4974068,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Blue Yabby Cafe",
@@ -232,7 +232,7 @@
    "name": "Chinaman's Hat",
    "lat": -38.2876231,
    "lon": 144.726929,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Augustus Gelatery",
@@ -262,7 +262,7 @@
    "name": "Heaton's Monument",
    "lat": -38.311773,
    "lon": 144.6942496,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Highton Bakery",
@@ -346,7 +346,7 @@
    "name": "Sorrento Hotel",
    "lat": -38.3368383,
    "lon": 144.7431692,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Jashin Courtyard",
@@ -358,7 +358,7 @@
    "name": "Beauchamp Falls",
    "lat": -38.6493568,
    "lon": 143.6117705,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Bannockburn Bakehouse",
@@ -370,7 +370,7 @@
    "name": "Clearwen Retreat",
    "lat": -38.729819,
    "lon": 143.6561212,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Ocean Grove Bowls Club",
@@ -406,13 +406,13 @@
    "name": "Split Point Lighthouse",
    "lat": -38.4680026,
    "lon": 144.104468,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Sunnymead Hotel",
    "lat": -38.4616281,
    "lon": 144.1060125,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Aireys Inlet General Store",
@@ -430,7 +430,7 @@
    "name": "Bark Hut",
    "lat": -38.4659354,
    "lon": 144.1022045,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Movida Lorne",
@@ -442,19 +442,19 @@
    "name": "Eagles Nest Fine ArtGallery",
    "lat": -38.4595386,
    "lon": 144.1069639,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Cumberland Lorne Resort",
    "lat": -38.5424669,
    "lon": 143.9748474,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Grand Pacific Hotel",
    "lat": -38.5477412,
    "lon": 143.9852906,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Torquay Hotel",
@@ -556,7 +556,7 @@
    "name": "Elliminook B&B",
    "lat": -38.3340084,
    "lon": 143.779256,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "The Birregurra General Store",
@@ -598,13 +598,13 @@
    "name": "Wye Beach Hotel",
    "lat": -38.6359763,
    "lon": 143.8907378,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Captain Godfrey Grave",
    "lat": -38.607822,
    "lon": 143.918252,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Kafe Koala",
@@ -616,13 +616,13 @@
    "name": "Scully Mill Farm",
    "lat": -38.6298494,
    "lon": 143.8959169,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "The Deck House",
    "lat": -38.6409195,
    "lon": 143.8922307,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Salt Brewing Co.",
@@ -634,7 +634,7 @@
    "name": "Mansion Hotel & Spa at Werribee Park",
    "lat": -37.930745,
    "lon": 144.6695539,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Coast Side Cafe",
@@ -700,19 +700,19 @@
    "name": "ANZAC Memorial Park",
    "lat": -38.5381647,
    "lon": 143.9754263,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Comfort Inn Lorne",
    "lat": -38.5429079,
    "lon": 143.9754008,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Otway Fly Treetop Adventures",
    "lat": -38.6515965,
    "lon": 143.5058178,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "YatZies Shop & Cafe",
@@ -724,7 +724,7 @@
    "name": "Benambra Bed & Breakfast",
    "lat": -38.2655524,
    "lon": 144.662487,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Frost Gelato",
@@ -736,19 +736,19 @@
    "name": "Ellura Retreat",
    "lat": -38.7759104,
    "lon": 143.6414309,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Sea Valley Cottages",
    "lat": -38.7727343,
    "lon": 143.6475048,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Paradise Gardens Cottages",
    "lat": -38.7416555,
    "lon": 143.6246494,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Subway",
@@ -778,7 +778,7 @@
    "name": "APCO",
    "lat": -38.1584604,
    "lon": 144.3560569,
-   "label": "fuel"
+   "label": "convenience"
   },
   {
    "name": "Glyn Street Fish & Chip Shop",
@@ -838,7 +838,7 @@
    "name": "Erskine Falls",
    "lat": -38.5067063,
    "lon": 143.9132314,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Mamre Hotel",
@@ -850,7 +850,7 @@
    "name": "Harold Holt Memorial",
    "lat": -38.3105603,
    "lon": 144.6645127,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Hot House Pizza",
@@ -868,7 +868,7 @@
    "name": "Nireeda",
    "lat": -38.1460265,
    "lon": 144.3600577,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Lara Indian Restaurant",
@@ -994,25 +994,25 @@
    "name": "Caltex Woolworths",
    "lat": -38.1366515,
    "lon": 144.3368485,
-   "label": "fuel"
+   "label": "convenience"
   },
   {
    "name": "Ferris Wheel",
    "lat": -38.1459799,
    "lon": 144.3676872,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Lawson's Tree",
    "lat": -38.0990603,
    "lon": 144.0598044,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Old Cable Station Museum",
    "lat": -38.7368408,
    "lon": 143.6806097,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "The Mex",
@@ -1120,7 +1120,7 @@
    "name": "Racecourse Hotel",
    "lat": -37.9017347,
    "lon": 144.6531657,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Hungry Jack's",
@@ -1204,13 +1204,13 @@
    "name": "Time Beacon sculpture",
    "lat": -37.883767,
    "lon": 144.7974537,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Phantom Falls",
    "lat": -38.5422178,
    "lon": 143.9476257,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Otway Estate",
@@ -1252,7 +1252,7 @@
    "name": "Reunion",
    "lat": -37.8635593,
    "lon": 144.7715761,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Buddy's Pizza",
@@ -1342,7 +1342,7 @@
    "name": "Angela's Guest House",
    "lat": -38.743818,
    "lon": 143.67127,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Grandma Shields Bakery",
@@ -1372,25 +1372,25 @@
    "name": "Korean War Memorial",
    "lat": -38.1264152,
    "lon": 144.352506,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "War Memorial",
    "lat": -38.1197613,
    "lon": 144.3573711,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Vietnam Memorial",
    "lat": -38.1194215,
    "lon": 144.3539063,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Malaya Borneo Veterans Memorial",
    "lat": -38.1226648,
    "lon": 144.3575756,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Railway Hotel",
@@ -1528,7 +1528,7 @@
    "name": "Memorial Arch - Eastern View",
    "lat": -38.4719983,
    "lon": 144.0446881,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Laverton Spices",
@@ -1570,13 +1570,13 @@
    "name": "Roseneath Villa",
    "lat": -38.2769243,
    "lon": 144.6102376,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "War Memorial",
    "lat": -38.637351,
    "lon": 143.5698689,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Paul Benjamin Photography",
@@ -1588,7 +1588,7 @@
    "name": "Straw Falls",
    "lat": -38.5068568,
    "lon": 143.9168895,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Subway",
@@ -1666,19 +1666,19 @@
    "name": "Old Headquarters Building",
    "lat": -38.3981801,
    "lon": 144.2141004,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Boss Hurst House",
    "lat": -38.3986651,
    "lon": 144.2137161,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Lodge",
    "lat": -38.3989662,
    "lon": 144.2142763,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Forrest Brewery Company",
@@ -1732,7 +1732,7 @@
    "name": "The May House",
    "lat": -38.7338702,
    "lon": 143.6096707,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Brewhouse",
@@ -1762,19 +1762,19 @@
    "name": "War Memorial",
    "lat": -37.9536886,
    "lon": 143.3434517,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Seacroft",
    "lat": -38.6948942,
    "lon": 143.8037619,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Captains at the bay",
    "lat": -38.7566265,
    "lon": 143.666706,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Julia Gillard Library",
@@ -1810,19 +1810,19 @@
    "name": "Pennyroyal Falls",
    "lat": -38.4640502,
    "lon": 143.8951793,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Terrace Falls",
    "lat": -38.4635564,
    "lon": 143.8941445,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Wymbooliel Falls",
    "lat": -38.4757425,
    "lon": 143.9026697,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Rye Pizza Restaurant",
@@ -1888,7 +1888,7 @@
    "name": "Historical Museum",
    "lat": -38.2675949,
    "lon": 144.6613957,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "Scully's fish & chippery",
@@ -1954,7 +1954,7 @@
    "name": "Big Rock",
    "lat": -37.9552905,
    "lon": 144.4126477,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Subway",
@@ -2002,25 +2002,25 @@
    "name": "Anzac War Memorial",
    "lat": -38.3398805,
    "lon": 144.3273947,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Lorne Pier",
    "lat": -38.5479468,
    "lon": 143.9866053,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Apollo Bay Aviation",
    "lat": -38.7751251,
    "lon": 143.6612937,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Knott's No.1 Mill",
    "lat": -38.6691724,
    "lon": 143.4946525,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Ocean Grove Pizza and Pasta",
@@ -2086,7 +2086,7 @@
    "name": "Allenvale Cottage",
    "lat": -38.5490895,
    "lon": 143.9568134,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Reddy Express",
@@ -2140,7 +2140,7 @@
    "name": "Deakin University Cube",
    "lat": -38.1977665,
    "lon": 144.2977912,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Dooley's Premium Ice Cream",
@@ -2182,7 +2182,7 @@
    "name": "Cape Otway Conservation Ecology Centre",
    "lat": -38.8238329,
    "lon": 143.5251605,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Cherry's Cafe",
@@ -2200,7 +2200,7 @@
    "name": "The Diggers",
    "lat": -38.4720098,
    "lon": 144.0446312,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Nando's",
@@ -2212,7 +2212,7 @@
    "name": "Drysdale War Memorial",
    "lat": -38.1734528,
    "lon": 144.5706244,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Routleys",
@@ -2254,25 +2254,25 @@
    "name": "Reflection Seat",
    "lat": -38.1444653,
    "lon": 144.3807206,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Dragon's head rock",
    "lat": -38.3932211,
    "lon": 144.7891498,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "GROW Art Project Flower",
    "lat": -37.8713762,
    "lon": 144.7778899,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Historic Tree Log Tram Carriage",
    "lat": -38.5494618,
    "lon": 143.9855326,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Hecho En Mexico",
@@ -2296,7 +2296,7 @@
    "name": "Geelong Powerhouse",
    "lat": -38.1167198,
    "lon": 144.3580202,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Bubba Pizza Tarneit",
@@ -2332,19 +2332,19 @@
    "name": "Queen Victoria",
    "lat": -38.1510011,
    "lon": 144.3740885,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Boag Rocks",
    "lat": -38.4394723,
    "lon": 144.8457024,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Horse and Cart",
    "lat": -38.4052924,
    "lon": 144.1898476,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Brooklyn Community Centre",
@@ -2422,7 +2422,7 @@
    "name": "Koalas",
    "lat": -38.8293674,
    "lon": 143.5237975,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Cafe 162",
@@ -2518,7 +2518,7 @@
    "name": "South Base Stone",
    "lat": -37.8851468,
    "lon": 144.6975471,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Lorne Surf Life Saving Club",
@@ -2560,13 +2560,13 @@
    "name": "Qdos",
    "lat": -38.5445458,
    "lon": 143.9649067,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "The Canyon",
    "lat": -38.5459741,
    "lon": 143.943289,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Sailors' rest",
@@ -2608,7 +2608,7 @@
    "name": "Ampol Foodary Laverton North",
    "lat": -37.8194569,
    "lon": 144.8191087,
-   "label": "fuel"
+   "label": "convenience"
   },
   {
    "name": "3030 Waterfront",
@@ -2626,13 +2626,13 @@
    "name": "Little Art Big Art",
    "lat": -37.844372,
    "lon": 144.8415932,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "Lizard head",
    "lat": -38.3942358,
    "lon": 144.7917221,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Bannockburn Station Caf\u00e9",
@@ -2662,7 +2662,7 @@
    "name": "Giant Turtle",
    "lat": -38.0274361,
    "lon": 144.0502911,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Woodfire Pizza",
@@ -2716,7 +2716,7 @@
    "name": "Mary Mother of God",
    "lat": -37.8318126,
    "lon": 144.8422246,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Chocolateria",
@@ -2734,7 +2734,7 @@
    "name": "Stay Inn",
    "lat": -38.7608323,
    "lon": 143.6698517,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Nando's",
@@ -2758,7 +2758,7 @@
    "name": "Red Rock Volcano Complex",
    "lat": -38.2500111,
    "lon": 143.5052321,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Hungry Jack's",
@@ -2776,7 +2776,7 @@
    "name": "Surf Coast Strawberry Fields",
    "lat": -38.2633065,
    "lon": 144.3298065,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Lorne Bowls Club",
@@ -2818,7 +2818,7 @@
    "name": "Forrest Airbnb",
    "lat": -38.5174436,
    "lon": 143.7259495,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "South Corner Cafe",
@@ -2836,7 +2836,7 @@
    "name": "WhistlingKites Homestay",
    "lat": -38.6866644,
    "lon": 143.7741883,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Spice Junction",
@@ -2854,13 +2854,13 @@
    "name": "Water Inlet Valve (display)",
    "lat": -38.5308687,
    "lon": 143.7206219,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "The Wall",
    "lat": -38.1170082,
    "lon": 144.3582465,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Meredith Supernatural Amphitheatre",
@@ -2986,7 +2986,7 @@
    "name": "Canyon and Phantom Falls Hiking Trail",
    "lat": -38.552543,
    "lon": 143.9457701,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "The Jolly Miller Cafe",
@@ -3058,7 +3058,7 @@
    "name": "Grand Hotel",
    "lat": -38.1152326,
    "lon": 144.6530188,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Portarlington Pizza & Pasta",
@@ -3100,7 +3100,7 @@
    "name": "Portarlington Mill",
    "lat": -38.1136757,
    "lon": 144.6476778,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Bennetts on Bellarine",
@@ -3118,7 +3118,7 @@
    "name": "Bootmakers Cottage",
    "lat": -38.3367409,
    "lon": 143.784115,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "The Zither House",
@@ -3274,25 +3274,25 @@
    "name": "TETAZ",
    "lat": -38.2073458,
    "lon": 144.2734916,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "BAUM",
    "lat": -38.2073638,
    "lon": 144.2735244,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "BAUM",
    "lat": -38.2073469,
    "lon": 144.27356,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "VIENET",
    "lat": -38.2073348,
    "lon": 144.2735888,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Grove Pavilion",
@@ -3304,79 +3304,79 @@
    "name": "HAM",
    "lat": -38.2073458,
    "lon": 144.2733555,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "LEMIN",
    "lat": -38.2073463,
    "lon": 144.2733031,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "McCANN",
    "lat": -38.2073458,
    "lon": 144.2732401,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "McKIM",
    "lat": -38.2073437,
    "lon": 144.2731771,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "LUGG",
    "lat": -38.2073664,
    "lon": 144.2732757,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "McKIM",
    "lat": -38.2073664,
    "lon": 144.273212,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "McKIM",
    "lat": -38.2073669,
    "lon": 144.2731476,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "COLE",
    "lat": -38.2073659,
    "lon": 144.2733306,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "DONOHUE",
    "lat": -38.2073659,
    "lon": 144.273391,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "FOX",
    "lat": -38.2073638,
    "lon": 144.2734621,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "CAMERON",
    "lat": -38.2073453,
    "lon": 144.2734192,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "AUSPLOUGH 97",
    "lat": -38.1984859,
    "lon": 144.2926553,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Laurene (Laurie) Jamieson",
    "lat": -38.1987789,
    "lon": 144.296928,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Subway",
@@ -3424,13 +3424,13 @@
    "name": "Solace",
    "lat": -38.1447311,
    "lon": 144.3800363,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Tranquility",
    "lat": -38.1517657,
    "lon": 144.3677934,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "frenchy's",
@@ -3592,7 +3592,7 @@
    "name": "North",
    "lat": -38.1439042,
    "lon": 144.3623015,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Kiosk",
@@ -3616,7 +3616,7 @@
    "name": "Grassy Knol",
    "lat": -38.145649,
    "lon": 144.3645886,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Farmers Arms Hotel",
@@ -3640,7 +3640,7 @@
    "name": "2006 Commonwealth Games Fish",
    "lat": -38.7595099,
    "lon": 143.6752126,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Hello Coffee",
@@ -3772,7 +3772,7 @@
    "name": "Flux",
    "lat": -38.1409899,
    "lon": 144.3478438,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "The Little Deli & Panini Bar",
@@ -3802,13 +3802,13 @@
    "name": "Apex",
    "lat": -38.146492,
    "lon": 144.3579215,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "King George V",
    "lat": -38.1466991,
    "lon": 144.3571439,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Darling West Cafe",
@@ -4006,13 +4006,13 @@
    "name": "Infinity II",
    "lat": -38.1515295,
    "lon": 144.3586645,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Limeburner's Kiln",
    "lat": -38.3678365,
    "lon": 144.8112879,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Real Thai Cafe",
@@ -4078,7 +4078,7 @@
    "name": "Nura Gallery",
    "lat": -38.339537,
    "lon": 144.7376686,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "BWS",
@@ -4204,7 +4204,7 @@
    "name": "Picture Frame",
    "lat": -37.9296785,
    "lon": 144.667663,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Tom's Marketplace",
@@ -4294,7 +4294,7 @@
    "name": "Skydive Great Ocean Road",
    "lat": -38.2592429,
    "lon": 144.4289177,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Torquay Larder",
@@ -4366,7 +4366,7 @@
    "name": "Butlers Guesthouse",
    "lat": -38.3340066,
    "lon": 143.7880687,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Bakers Delight",
@@ -4384,19 +4384,19 @@
    "name": "James Harrison",
    "lat": -38.1976606,
    "lon": 144.2953125,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Geelong Grammar School War Memorial",
    "lat": -38.0698643,
    "lon": 144.3990843,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Wingeel (Barunah Plains South) Soldiers Settlement Memorial",
    "lat": -38.079169,
    "lon": 143.8153563,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Red Rooster",
@@ -4414,7 +4414,7 @@
    "name": "King Edward VII",
    "lat": -38.1451197,
    "lon": 144.3619038,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "The Salty Dog Cafe",
@@ -4522,7 +4522,7 @@
    "name": "Cressy Avenue of Honour Monument",
    "lat": -38.0338615,
    "lon": 143.630887,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Oh Happy Day",
@@ -4540,31 +4540,31 @@
    "name": "Wyndham Art Gallery",
    "lat": -37.9037257,
    "lon": 144.6578395,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "Shelford War Memorial",
    "lat": -38.0139371,
    "lon": 143.9776242,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Teesdale War Memorial",
    "lat": -38.0279522,
    "lon": 144.0480584,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Inverleigh War Memorial",
    "lat": -38.1020186,
    "lon": 144.0504909,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Sergeant Major Albert Houghton Monument",
    "lat": -38.1020039,
    "lon": 144.0504045,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "KFC",
@@ -4618,7 +4618,7 @@
    "name": "APCO Grovedale",
    "lat": -38.194054,
    "lon": 144.3422735,
-   "label": "fuel"
+   "label": "convenience"
   },
   {
    "name": "Kaisercraft",
@@ -4696,7 +4696,7 @@
    "name": "Illabarook & Rokewood Junction War Memorial",
    "lat": -37.8320027,
    "lon": 143.6596213,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "United",
@@ -4714,31 +4714,31 @@
    "name": "Robert Sergi",
    "lat": -38.0571374,
    "lon": 144.3891912,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Werneth 1914-1918 Avenue of Honour",
    "lat": -37.9583789,
    "lon": 143.6232888,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Leslie Manor Soldier Settlement Memorial",
    "lat": -38.1258452,
    "lon": 143.3691859,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Barunah Plains North Soldiers Settlement Memorial",
    "lat": -38.0207357,
    "lon": 143.7959917,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Arthur Streeton Memorial",
    "lat": -38.2130665,
    "lon": 144.1897895,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Wyndham Library Service - Manor Lakes Branch",
@@ -4810,7 +4810,7 @@
    "name": "Great Ocean Road Tandem Paragliding Southside Launch",
    "lat": -38.3721926,
    "lon": 144.2782835,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Pie Face",
@@ -4846,7 +4846,7 @@
    "name": "A Tribute to C. J. La Trobe",
    "lat": -38.1505369,
    "lon": 144.3789777,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Chilly Billy PTY Ltd",
@@ -4864,7 +4864,7 @@
    "name": "Millennium of Christianity in Ukraine Monument",
    "lat": -38.0806438,
    "lon": 144.3309232,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Tuckers",
@@ -4888,13 +4888,13 @@
    "name": "Pioneers of Lara",
    "lat": -38.0227368,
    "lon": 144.3965788,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Hume and Hovell",
    "lat": -38.0381519,
    "lon": 144.4145939,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Onda Food House",
@@ -4924,7 +4924,7 @@
    "name": "Geelong Camera Obscura",
    "lat": -38.1622556,
    "lon": 144.3155904,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Routleys Bakery",
@@ -4966,7 +4966,7 @@
    "name": "Centenary of Reticulated Water Supply Monument",
    "lat": -38.157051,
    "lon": 144.3114346,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Mr. Matteo",
@@ -4984,7 +4984,7 @@
    "name": "Bimbi Park Horse Trail Rides",
    "lat": -38.8342678,
    "lon": 143.512884,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Freckleberry Chocolate Factory",
@@ -5026,7 +5026,7 @@
    "name": "Moranghurk Soldiers Settlement Memorial",
    "lat": -37.9246068,
    "lon": 144.1134365,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Skinny Dippers Cafe",
@@ -5056,7 +5056,7 @@
    "name": "Rokewood War Memorial",
    "lat": -37.9008632,
    "lon": 143.7207241,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "The Coffee Club",
@@ -5074,13 +5074,13 @@
    "name": "Warrion War Memorial",
    "lat": -38.2243226,
    "lon": 143.569116,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Rokewood Soldier Settlement Memorial",
    "lat": -37.9100163,
    "lon": 143.757799,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Lets-a-Loaf",
@@ -5098,7 +5098,7 @@
    "name": "7-Eleven Charlemont",
    "lat": -38.1962695,
    "lon": 144.3621165,
-   "label": "fuel"
+   "label": "convenience"
   },
   {
    "name": "Degani",
@@ -5110,19 +5110,19 @@
    "name": "Gala Estate Soldier Settlement Monument",
    "lat": -37.8755601,
    "lon": 143.316412,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "William Thomas Rowe Monument",
    "lat": -37.8565113,
    "lon": 143.5151881,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "B-25 Mitchell Bomber Crash",
    "lat": -38.395239,
    "lon": 144.2529917,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Minerva & the Bean",
@@ -5254,7 +5254,7 @@
    "name": "Glow Worms",
    "lat": -38.6981816,
    "lon": 143.3702329,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Manoushi Lebanese Nak",
@@ -5332,13 +5332,13 @@
    "name": "Highton WW2 Memorial Gates",
    "lat": -38.1712922,
    "lon": 144.3203874,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Arthur Long",
    "lat": -38.3340619,
    "lon": 144.3252978,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Bean Cravin Coffee Van",
@@ -5386,13 +5386,13 @@
    "name": "Geelong Sports Museum",
    "lat": -38.1571588,
    "lon": 144.3554109,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "Spitfire, A58-492 (Replica)",
    "lat": -37.9288936,
    "lon": 144.7487013,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Little Sparrow",
@@ -5452,7 +5452,7 @@
    "name": "Coles Express Moolap",
    "lat": -38.1644479,
    "lon": 144.4133098,
-   "label": "fuel"
+   "label": "convenience"
   },
   {
    "name": "Lokal Cafe 3030",
@@ -5518,7 +5518,7 @@
    "name": "Beeac War Memorial",
    "lat": -38.1939576,
    "lon": 143.6402132,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Western Halal Meats",
@@ -5572,7 +5572,7 @@
    "name": "Quiddity Place",
    "lat": -38.1946765,
    "lon": 144.612594,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "The Bar",
@@ -5608,25 +5608,25 @@
    "name": "Great Ocean Road official start",
    "lat": -38.3373311,
    "lon": 144.3174714,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Wooden Wonderland",
    "lat": -38.494158,
    "lon": 143.567533,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Settlers Arms Inn Historic Site",
    "lat": -38.0134725,
    "lon": 143.978309,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Shelford Iron Bridge Opening Commemorative Plaque",
    "lat": -38.0134572,
    "lon": 143.9781352,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "9 Grams",
@@ -5638,7 +5638,7 @@
    "name": "The Potters Garden B&B",
    "lat": -38.3989668,
    "lon": 144.8150268,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Altona City Theatre",
@@ -5686,7 +5686,7 @@
    "name": "Replica of train",
    "lat": -37.8672484,
    "lon": 144.8304286,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "BWS",
@@ -5728,19 +5728,19 @@
    "name": "Altona Skipper Butterfly sculpture",
    "lat": -37.8558145,
    "lon": 144.8362699,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Yogi Bear",
    "lat": -38.5251845,
    "lon": 143.5405667,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Yellow ball",
    "lat": -38.5252041,
    "lon": 143.540681,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Art Reach Studio",
@@ -5764,7 +5764,7 @@
    "name": "Gum Boot",
    "lat": -38.6366613,
    "lon": 143.5694397,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Domino's",
@@ -5878,7 +5878,7 @@
    "name": "Saint Ignatius of Loyola Statue",
    "lat": -38.1891037,
    "lon": 144.5570626,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Nautica Bar & Restaurant",
@@ -5890,13 +5890,13 @@
    "name": "100 Years of ANZAC",
    "lat": -38.3718529,
    "lon": 144.8215508,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Silver Cloud",
    "lat": -38.1992542,
    "lon": 144.2923033,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Domino's",
@@ -5920,13 +5920,13 @@
    "name": "Artillery Rocks",
    "lat": -38.6016527,
    "lon": 143.9213366,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Anglesea Museum",
    "lat": -38.4096869,
    "lon": 144.1837826,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "100% Natural SoapNuts Australia",
@@ -5992,7 +5992,7 @@
    "name": "Maits Rest",
    "lat": -38.7555992,
    "lon": 143.5552496,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Black Seed Cafe",
@@ -6022,37 +6022,37 @@
    "name": "Leopold War Memorial",
    "lat": -38.1830128,
    "lon": 144.4565995,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "100 Years of ANZAC",
    "lat": -38.1827852,
    "lon": 144.4565645,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Alvie War Memorial",
    "lat": -38.2483794,
    "lon": 143.510408,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "100 Years of ANZAC",
    "lat": -38.2483603,
    "lon": 143.5104981,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Wild Banquet",
    "lat": -38.1990094,
    "lon": 144.2967601,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "They Were On A Wild Ride To A Safe Place",
    "lat": -38.20033,
    "lon": 144.294326,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Quicksilver Bar 61",
@@ -6142,7 +6142,7 @@
    "name": "Collins Settlement site memorial",
    "lat": -38.3497361,
    "lon": 144.7618513,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Coco Cafe & Restaurant",
@@ -6160,13 +6160,13 @@
    "name": "Coal Mining Monument",
    "lat": -37.8638609,
    "lon": 144.8135315,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "The White House in Geelong",
    "lat": -38.155548,
    "lon": 144.3687342,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "KFC",
@@ -6178,13 +6178,13 @@
    "name": "World War I War Memorial",
    "lat": -38.1795464,
    "lon": 144.3821905,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "hop for hope",
    "lat": -38.3761182,
    "lon": 144.2144463,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Burgies",
@@ -6292,7 +6292,7 @@
    "name": "Cliff Young",
    "lat": -38.6366522,
    "lon": 143.5694468,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Shish Kebabs",
@@ -6358,19 +6358,19 @@
    "name": "Seafarers Getaway",
    "lat": -38.7280344,
    "lon": 143.6977632,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Pope's Eye",
    "lat": -38.2766629,
    "lon": 144.6986446,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Rifle Range",
    "lat": -38.3125729,
    "lon": 144.6759509,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Reading Cinemas",
@@ -6382,13 +6382,13 @@
    "name": "Old Geelong Gaol",
    "lat": -38.1538565,
    "lon": 144.3654504,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Ocean Grove Park",
    "lat": -38.2652529,
    "lon": 144.5236378,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Thai Chef",
@@ -6418,13 +6418,13 @@
    "name": "Holiday Inn",
    "lat": -37.9018655,
    "lon": 144.662213,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Australian National Surfing Museum",
    "lat": -38.3266116,
    "lon": 144.3159766,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "McDonald's",
@@ -6592,7 +6592,7 @@
    "name": "Werribee Park Mansion",
    "lat": -37.9308601,
    "lon": 144.6704363,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Shadowfax Vineyard",
@@ -6664,7 +6664,7 @@
    "name": "Portarlington Bayside Miniature Railway",
    "lat": -38.10915,
    "lon": 144.6319475,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Batesford Hotel",
@@ -6838,7 +6838,7 @@
    "name": "Rydges",
    "lat": -38.1513181,
    "lon": 144.3566157,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "The Fort",
@@ -6874,7 +6874,7 @@
    "name": "Pirra Homestead",
    "lat": -38.0087612,
    "lon": 144.4100851,
-   "label": null
+   "label": "heritage"
   },
   {
    "name": "Mt Duneed Estate",
@@ -6922,7 +6922,7 @@
    "name": "The Terminus Hotel",
    "lat": -38.5157615,
    "lon": 143.7162209,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Forrest Brewery",
@@ -6988,7 +6988,7 @@
    "name": "Gate House on Ryrie",
    "lat": -38.1503302,
    "lon": 144.3624892,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "Westside Pizza Boys",
@@ -7030,13 +7030,13 @@
    "name": "Barwon Heads Resort",
    "lat": -38.2781816,
    "lon": 144.4541162,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Suma Park",
    "lat": -38.2549109,
    "lon": 144.6010543,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "The Paddock Cafe",
@@ -7114,7 +7114,7 @@
    "name": "Tuckerberry Hill Blueberry Farm",
    "lat": -38.176467,
    "lon": 144.6215466,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Merne at Lighthouse",
@@ -7126,7 +7126,7 @@
    "name": "Little Tin Local Gallery",
    "lat": -38.1959986,
    "lon": 144.6159767,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "Jack Rabbit Winery",
@@ -7144,7 +7144,7 @@
    "name": "Old Court House Museum",
    "lat": -38.1737744,
    "lon": 144.5704449,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "Caf\u00e9 Zoo",
@@ -7744,7 +7744,7 @@
    "name": "The Carousel",
    "lat": -38.1437122,
    "lon": 144.362968,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Wharf Shed",
@@ -7918,13 +7918,13 @@
    "name": "Johnstone Park Peace Memorial",
    "lat": -38.1466592,
    "lon": 144.3567642,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "National Wool Museum",
    "lat": -38.1454159,
    "lon": 144.3611734,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "Pizzeria Adamo",
@@ -7990,7 +7990,7 @@
    "name": "James Street Gallery",
    "lat": -38.1481582,
    "lon": 144.3586054,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "ALMA",
@@ -8236,7 +8236,7 @@
    "name": "Oxide Arts",
    "lat": -38.1476393,
    "lon": 144.3595835,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "Charcha",
@@ -8278,7 +8278,7 @@
    "name": "Museum of Play and Art",
    "lat": -38.1528335,
    "lon": 144.357123,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "Pho Downtown",
@@ -8416,7 +8416,7 @@
    "name": "Shearers Arms Gallery",
    "lat": -38.1452409,
    "lon": 144.3362619,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "All Saints Parish and Community Hall",
@@ -8518,7 +8518,7 @@
    "name": "Quest Geelong Serviced Apartments",
    "lat": -38.1375534,
    "lon": 144.3541359,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Original Wood Oven Pizza",
@@ -8872,7 +8872,7 @@
    "name": "Lara Heritage and History Museum",
    "lat": -38.0337494,
    "lon": 144.394043,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "Lara Community Centre",
@@ -9226,13 +9226,13 @@
    "name": "The Pole House",
    "lat": -38.4677971,
    "lon": 144.0794148,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Apollo Bay Waterfront Motor Inn",
    "lat": -38.753279,
    "lon": 143.6686479,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Hoppers Club",
@@ -9250,13 +9250,13 @@
    "name": "RACV Torquay Resort",
    "lat": -38.3406758,
    "lon": 144.3112569,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Forrest Guesthouse",
    "lat": -38.5173344,
    "lon": 143.7143231,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "A La Grecque",
@@ -9394,7 +9394,7 @@
    "name": "Historic Tramway Track",
    "lat": -38.5518443,
    "lon": 143.9812599,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Tarneit Community Learning Centre",
@@ -9448,7 +9448,7 @@
    "name": "Bunjil",
    "lat": -37.9521138,
    "lon": 144.4340085,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Go Naked Coffee",
@@ -9478,7 +9478,7 @@
    "name": "Queenscliffe Maritime Museum",
    "lat": -38.2648195,
    "lon": 144.6671881,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "Chopstix Noodle Bar",
@@ -9490,31 +9490,31 @@
    "name": "Lorne Coachman Hotel",
    "lat": -38.5341416,
    "lon": 143.9750394,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Odyssey Apollo Bay",
    "lat": -38.7531124,
    "lon": 143.6686807,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Apollo Bay Hotel",
    "lat": -38.7567575,
    "lon": 143.6690597,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Best Western Apollo Bay",
    "lat": -38.7569495,
    "lon": 143.6684973,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Brewhouse",
    "lat": -38.7587168,
    "lon": 143.6702103,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Apollo Bay Distillery",
@@ -9556,7 +9556,7 @@
    "name": "7-Eleven",
    "lat": -38.1792222,
    "lon": 144.3517213,
-   "label": "fuel"
+   "label": "convenience"
   },
   {
    "name": "Saltwater Coast Lifestyle Centre",
@@ -9592,7 +9592,7 @@
    "name": "Quality Suites D'Olive",
    "lat": -37.9176539,
    "lon": 144.7487737,
-   "label": "commercial"
+   "label": "hotel"
   },
   {
    "name": "Jamieson Way Community Centre",
@@ -9610,7 +9610,7 @@
    "name": "Wyndham Resort Torquay",
    "lat": -38.322839,
    "lon": 144.3304074,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Bakers Delight",
@@ -9640,13 +9640,13 @@
    "name": "^",
    "lat": -38.1452508,
    "lon": 144.3826748,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Old Tramway Track",
    "lat": -38.5481937,
    "lon": 143.9864318,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Bunnings Garden",
@@ -9658,13 +9658,13 @@
    "name": "Torquay Sundial",
    "lat": -38.3233057,
    "lon": 144.3316542,
-   "label": "clock"
+   "label": "artwork"
   },
   {
    "name": "Altona Homestead",
    "lat": -37.8694435,
    "lon": 144.8292737,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Altona Senior Citizens Centre",
@@ -9712,13 +9712,13 @@
    "name": "Old Tramway Track",
    "lat": -38.5484195,
    "lon": 143.9862477,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Fire Within Two",
    "lat": -37.8434173,
    "lon": 144.7887554,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Ellen's Cafe",
@@ -9766,7 +9766,7 @@
    "name": "B-24 Liberator Museum",
    "lat": -37.9080873,
    "lon": 144.6458239,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "Hobsons Bay Greek Community Hall",
@@ -9778,7 +9778,7 @@
    "name": "Rye Hotel",
    "lat": -38.3709675,
    "lon": 144.8211017,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "The Portsea Camp",
@@ -9790,13 +9790,13 @@
    "name": "The Old Paper Mills, Fyansford",
    "lat": -38.1492684,
    "lon": 144.3079658,
-   "label": null
+   "label": "heritage"
   },
   {
    "name": "Mannerim Soldiers Memorial",
    "lat": -38.2189096,
    "lon": 144.5812888,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Avanti",
@@ -9808,7 +9808,7 @@
    "name": "25 Metre Range",
    "lat": -38.3130649,
    "lon": 144.6847279,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Laverton Community Hub",
@@ -9964,7 +9964,7 @@
    "name": "Gun Emplacement 6",
    "lat": -38.3023918,
    "lon": 144.6522523,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Colac Otway Performing Arts & Cultural Centre",
@@ -9976,7 +9976,7 @@
    "name": "Quality Hotel Bayside Geelong",
    "lat": -38.135126,
    "lon": 144.3543552,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "El Roja",
@@ -10006,7 +10006,7 @@
    "name": "Best Western Geelong Motor Inn",
    "lat": -38.1361151,
    "lon": 144.3526876,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Arani Thai",
@@ -10654,7 +10654,7 @@
    "name": "Werribee Cemetery Mausoleum",
    "lat": -37.8924522,
    "lon": 144.6762969,
-   "label": null
+   "label": "monument"
   },
   {
    "name": "Hungry Jacks",
@@ -10726,7 +10726,7 @@
    "name": "Seeds of Change",
    "lat": -37.8795548,
    "lon": 144.7151085,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Little Green Corner",
@@ -10780,7 +10780,7 @@
    "name": "Nepean Historical Society",
    "lat": -38.3410862,
    "lon": 144.7365086,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "The Baths",
@@ -10852,7 +10852,7 @@
    "name": "Werribee Manor",
    "lat": -37.8942332,
    "lon": 144.6502329,
-   "label": null
+   "label": "heritage"
   },
   {
    "name": "Newfolk",
@@ -11116,7 +11116,7 @@
    "name": "Verandah",
    "lat": -38.1729247,
    "lon": 144.3446852,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "Piglet Bar",
@@ -11320,13 +11320,13 @@
    "name": "Rokewood Lagoon",
    "lat": -37.9010202,
    "lon": 143.7255689,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Shelford Soldiers Settlement Memorial",
    "lat": -38.0118793,
    "lon": 143.9640915,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Reddy Express",
@@ -11350,19 +11350,19 @@
    "name": "Barwon Park Mansion",
    "lat": -38.2256594,
    "lon": 143.9996436,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Geelong Boer War Memorial",
    "lat": -38.1541821,
    "lon": 144.3518295,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "The Heights Homestead",
    "lat": -38.1488521,
    "lon": 144.3303153,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Tonton",
@@ -11392,7 +11392,7 @@
    "name": "Holiday Inn",
    "lat": -38.1482694,
    "lon": 144.355141,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Subway",
@@ -11446,7 +11446,7 @@
    "name": "Point Lonsdale Lighthouse",
    "lat": -38.2919999,
    "lon": 144.6139189,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Lentil's Indian Cuisine",
@@ -11578,7 +11578,7 @@
    "name": "Point Lonsdale Guesthouse",
    "lat": -38.2883935,
    "lon": 144.6136639,
-   "label": null
+   "label": "guest_house"
   },
   {
    "name": "EG Australia",
@@ -11602,7 +11602,7 @@
    "name": "Geelong Gallery",
    "lat": -38.146957,
    "lon": 144.3569187,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "McDonald's",
@@ -11662,7 +11662,7 @@
    "name": "Salt and Pepper Gallery",
    "lat": -38.3450005,
    "lon": 144.2619783,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "Bellbrae Art & Garden",
@@ -11704,7 +11704,7 @@
    "name": "RAAF Museum",
    "lat": -37.9303002,
    "lon": 144.7491514,
-   "label": null
+   "label": "museum"
   },
   {
    "name": "Taco Bell",
@@ -11914,7 +11914,7 @@
    "name": "Altona War Memorial",
    "lat": -37.8642692,
    "lon": 144.8309008,
-   "label": null
+   "label": "memorial"
   },
   {
    "name": "Finnish Society of Melbourne Inc",
@@ -11980,7 +11980,7 @@
    "name": "Art Reach Studio",
    "lat": -38.6360784,
    "lon": 143.5697163,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "Shalimar Nursery",
@@ -12028,7 +12028,7 @@
    "name": "7-Eleven",
    "lat": -37.9092231,
    "lon": 144.6770169,
-   "label": "fuel"
+   "label": "convenience"
   },
   {
    "name": "Philippines Community Centre",
@@ -12142,7 +12142,7 @@
    "name": "Tin Liz Gallery",
    "lat": -38.1957654,
    "lon": 144.6159718,
-   "label": null
+   "label": "gallery"
   },
   {
    "name": "Hidden Frog",
@@ -12154,7 +12154,7 @@
    "name": "Redwoods of the Otway Ranges",
    "lat": -38.6677121,
    "lon": 143.5792051,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Guzman y Gomez",
@@ -12178,7 +12178,7 @@
    "name": "Crowne Plaza Geelong",
    "lat": -38.1430484,
    "lon": 144.3592364,
-   "label": null
+   "label": "hotel"
   },
   {
    "name": "Colac Neighbourhood House",
@@ -12280,7 +12280,7 @@
    "name": "Great Ocean Road",
    "lat": -38.5607579,
    "lon": 143.4679704,
-   "label": null
+   "label": "attraction"
   },
   {
    "name": "Wathaurong Aboriginal Co-operative",
@@ -12292,13 +12292,13 @@
    "name": "Rhythms of Life, Australia",
    "lat": -38.1449694,
    "lon": 144.3825903,
-   "label": null
+   "label": "artwork"
   },
   {
    "name": "Eden Oak",
    "lat": -38.1515268,
    "lon": 144.3838794,
-   "label": null
+   "label": "hotel"
   }
  ],
  "towns": {

@@ -1711,6 +1711,72 @@ ends, wrong name, Maps-search url), 14 (delete), 21 (delete), 40 (Drysdale — t
 is "Sunday morning"), 88 (Winchelsea — venue moved to the Leisure Time Centre),
 22 (Baines Crescent — a permanent outlet precinct, not an event).
 
+### The arts pass — 29 rows, 28 Aug 2026
+
+theatre 1→7, art gallery 6→14, museum 10→18, cinema 13→19, arts 16→20. Group
+55→87. Every mechanical rule held again, and every one of the four events
+carries a `place_id` — the first pass where the place-less-event trap was
+avoided rather than discovered.
+
+**It found the worst bug `nearby.py` has had, and it was mine.** `label` was
+read as `amenity or shop or craft or landuse` — a second list that had to be
+kept in step with `KIND_TAGS` and was not. Adding the arts category asked
+Overpass for `tourism` and `historic`, got the data back, and cached all **272**
+of them with `label: None`, so the filter dropped every one. Every museum,
+gallery, public artwork and memorial in the region reported as not existing.
+The label is derived from `ALL_TAGS` now, so a new tag key cannot go missing.
+
+**That is the third time a filter in that script has silently discarded rows**
+(the `--kinds` space form, the stale-cache category, this). The generalisable
+sentence, which the produce pass wrote first: *a search tool that returns
+nothing looks identical to a region that contains nothing.*
+
+**`cultural` gained zero rows and that is the correct answer, not a gap.**
+Worked strictly to the brief — Wadawurrung Traditional Owners Aboriginal
+Corporation, Parks Victoria, or a council page written with Traditional Owners,
+and only where the source says the place is open to visitors. wadawurrung.org.au
+names no visitor-facing site; the shire's Aboriginal heritage page names none
+either; the Wadawurrung Cultural Education Sessions sell through Humanitix,
+which a Claude session must not fetch (the Action can). **Bunjil Geoglyph was
+deliberately filed `arts`, not `cultural`**: Parks Victoria's own page calls it
+a 2006 work by artist Andrew Rogers for the Commonwealth Games and makes no
+Wadawurrung claim about the geoglyph, so filing it as a cultural site would be
+writing significance the source does not.
+
+**Surf Coast Shire's Community Arts Facilities page is the source that did the
+work** — nine rooms with addresses, and nothing on the map would have found
+Yellow Gums or the Deans Marsh kiln. Winchelsea returned 0 from the sweep while
+having a working heritage theatre with a monthly film club in it.
+
+Corrections needing /admin, in order of seriousness:
+
+1. **Event 7, Surf Coast Arts Trail, is corrupt.** `starts_on 2027-08-07`,
+   `ends_on 2026-10-12` — the end is ten months before the start. The real 2026
+   Trail ran 1–2 August 2026 and is over; no 2027 dates are published. Its
+   `info_url` points at surfcoastarts.com rather than surfcoastartstrail.com.au.
+   **This is the event this project's whole date rule is named after.**
+2. **Events 30 and 51 are one festival** — ANGAIR Wildflower & Art Weekend and
+   Angair Wildflower & Arts Show, both 2026-09-19. Merge onto 30, keeping 30's
+   first-party url, 51's `place_id` and 51's `ends_on`.
+3. **Places 98 and 102 are a duplicate** — both the HOOP Gallery. Needs the
+   three-step alias merge; the new gallery listing links 98.
+4. `Geelong Arts Centre` carries `art gallery` and not `theatre`; `Lorne
+   Theatre` carries `cinema` only though its own masthead says music/theatre/
+   film; `Geelong Gallery` is typed `museum` and is the region's public gallery.
+
+**The clearest vocabulary gap the project has found: a monument or landmark.**
+The Great Ocean Road Memorial Arch is a genuine stop and there is no honest type
+for it — not `arts` (a commemorative structure is not an artwork), not
+`cultural` (that means Wadawurrung Country), not `museum`, not `walk`. The same
+gap swallows the Cliff Young statue, both lighthouses as objects, and ~40 war
+memorials. Not forced into a type.
+
+Still open: Costa Hall (real venue, no first-party address — GPAC's `/visit/
+venues/` 404s); Tin Liz Gallery (OSM puts it at Mannerim, quiddityplace.com.au
+puts it on Grubb Road, Wallington — two sources, two towns); Apollo Bay cinema
+(robots.txt blocks five attempts, needs a browser); eleven Surf Coast galleries
+with no reachable first-party page.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

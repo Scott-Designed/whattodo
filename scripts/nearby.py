@@ -166,7 +166,16 @@ def refresh():
         lon = e.get('lon') or (e.get('center') or {}).get('lon')
         if not name or lat is None:
             continue
-        label = t.get('amenity') or t.get('shop') or t.get('craft') or t.get('landuse')
+        # Read the label off the SAME keys the query asked for. It used to be a
+        # hardcoded `amenity or shop or craft or landuse`, which is a second list
+        # that has to be kept in step with KIND_TAGS and duly was not: adding the
+        # arts category asked Overpass for `tourism` and `historic`, got the data
+        # back, and then cached all 272 of them with label None so the filter
+        # dropped every one. Every museum, gallery, public artwork and memorial in
+        # the region reported as not existing. Found by the arts pass, 28 Aug 2026
+        # — the third time a filter here has discarded rows without saying so.
+        # Deriving it means a new tag key cannot go missing from this line.
+        label = next((t[k] for k in ALL_TAGS if t.get(k) in ALL_TAGS[k]), None)
         pois.append({'name': name, 'lat': lat, 'lon': lon, 'label': label})
     print(f'  {len(pois)} named places in the region')
 
