@@ -174,6 +174,10 @@ EVENT_COLS    = {'name','types','starts_on','ends_on','time_text','recurrence','
                  'place_id'}
 EVENT_ONLY    = EVENT_COLS - ACTIVITY_COLS
 URL_FIELDS    = ('url','ticket_url','info_url')
+# `season` is a text[] and these are the only values in use. There is no `seasons`
+# table to check against, so the list lives here — five words, and the sentence
+# about when a season actually runs goes in `notes` where it can be read.
+SEASONS       = {'any','spring','summer','autumn','winter'}
 
 def vocab(table):
     return {r['name'] for r in req('GET', f'/rest/v1/{table}?select=name')}
@@ -257,6 +261,20 @@ def check(row, i, types, conds, kinds, places=None):
                     bad.append(f"{where}: type '{t}' is not one of the {len(types)} allowed")
     for c in (row.get('conditions') or []):
         if c not in conds: bad.append(f"{where}: condition '{c}' is not in the vocabulary")
+    # `season` is a text[] like `types` and `conditions`, and nothing said so.
+    # The produce pass wrote "Strawberry picking November to May" into it and got
+    # a raw Postgres 22P02 malformed-array-literal — AFTER three rows of the batch
+    # had already been written. A validation error costs nothing; a write error
+    # halfway through a batch leaves the database in a state nobody chose.
+    if 'season' in row:
+        if isinstance(row['season'], str):
+            bad.append(f"{where}: season must be a list of {sorted(SEASONS)} — "
+                       f"write [\"summer\"], not \"{row['season']}\". Anything about "
+                       f"when a season actually runs belongs in notes.")
+        else:
+            for sv in (row['season'] or []):
+                if sv not in SEASONS:
+                    bad.append(f"{where}: season '{sv}' is not one of {sorted(SEASONS)}")
     if not ev and row.get('cost') not in (None,'Free','Cheap','Moderate','Splurge'):
         bad.append(f"{where}: cost '{row['cost']}' must be Free/Cheap/Moderate/Splurge")
     if not ev and row.get('daypart') not in (None,'day','night','both'):

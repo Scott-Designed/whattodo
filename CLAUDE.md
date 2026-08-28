@@ -1615,6 +1615,63 @@ because it only looked at the citizen-science rows. Several share a coordinate
 exactly, which reads as copy-paste rather than geocoding. Not touched — nulling
 19 pins takes them off the map, and that is Scott's call.
 
+### The produce pass — 38 rows, 28 Aug 2026
+
+12 market events (156–167) and 26 activities (465–490). market 13→25, produce
+17→42, nursery 7→10, farm life 6→9. **Every mechanical rule held**: no `km`, no
+coordinate under four places, no Google Maps search url, every row sourced, all
+38 landing in the town their address names, and all 26 activities carrying an
+explicit `kind: "venue"` — which matters, because `KIND_OF` maps `farm life` to
+*spot* and Lomas Orchards would otherwise have been classified as one.
+
+Three tooling faults it found, all now fixed:
+
+- **`nearby.py --kinds produce` silently did the wrong thing.** The parser read
+  only `--kinds=produce` while the docstring showed the space form, so a sweep
+  run exactly as documented fell back to `food` AND swallowed `produce` as part
+  of the town name. No error. Both forms work now. *Silently wrong is the worst
+  failure a search tool can have.*
+- **`season` is a `text[]` and nothing said so.** A free-text season failed with
+  a raw Postgres `22P02` **after three rows of the batch were already written**.
+  `check()` validates it now — `any/spring/summer/autumn/winter` — so it fails
+  before anything is written.
+- **`shop=florist` was in the produce sweep** and contributed nine Geelong flower
+  shops, a quarter of that town's misses. Removed.
+
+**The by-hand town check beat the map, and not narrowly.** Grubb Road, Wallington
+is an unmapped farm-gate strip — Lomas Orchards, Van Loon's Nursery, Wattle Grove
+Honey, Wallington's Local Pantry — and `nearby.py` returned *zero* for Wallington.
+Drysdale's four OSM names were all servos and bottle shops while the real town
+holds Tuckerberry Hill, Bellarine Smokehouse and the Bellarine Farm Gate market.
+**OSM maps shopfronts, not farm gates.** The `otwayharvesttrail.org.au` guide and
+`bellarinefarmgate.com.au` between them found most of what the map missed and are
+worth treating as an annual import.
+
+Findings worth not re-researching:
+
+- **Event 14, Night Markets (Geelong After Dark), is dead.** The festival ran
+  2014–2019 and did not return; `geelongafterdark.com.au` has been taken over by
+  an auto-generated news portal, so **do not cite that domain**. The Johnstone
+  Park night market was the Nightjar Festival, whose operator has moved to
+  Torquay. Nobody publishes anything at Johnstone Park on 2026-11-07.
+- **Event 21, Community Market at the Anglesea SLSC, does not exist.** Neither
+  the club's site nor Anglesea Community House — the row's own `info_url` —
+  mentions a market there.
+- **There is no visitable olive grove on the Bellarine**, no cherry farm and no
+  apple u-pick. The only u-pick is strawberries at Lomas and berries at
+  Tuckerberry Hill.
+- **No recurrence word fits "first and third Friday"** (Anglesea Twilight Market)
+  or "every two months". They are null, which reads as *unknown* when it means
+  *no word for this*.
+- `SUBURBS` strands a whole u-pick cluster at **Gellibrand** — Otway Blueberries,
+  The Little Organic Paddock, Glen Loch Apple Farm, Country Dahlias — plus
+  Murroon and Bannockburn, where two dated first-party Golden Plains markets sit.
+
+Six market rows need /admin: id 6 (Belmont Market — hours out by an hour at both
+ends, wrong name, Maps-search url), 14 (delete), 21 (delete), 40 (Drysdale — time
+is "Sunday morning"), 88 (Winchelsea — venue moved to the Leisure Time Centre),
+22 (Baines Crescent — a permanent outlet precinct, not an event).
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

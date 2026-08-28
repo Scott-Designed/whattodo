@@ -78,7 +78,10 @@ KIND_TAGS = {
     'produce': {'shop': {'greengrocer', 'farm', 'garden_centre', 'butcher', 'seafood',
                          'cheese', 'wine', 'health_food', 'alcohol', 'deli',
                          'chocolate', 'honey', 'dairy', 'convenience', 'confectionery',
-                         'nursery', 'florist'},
+                         'nursery'},
+                # `florist` was here and came out 28 Aug 2026: it put nine Geelong
+                # flower shops into the produce sweep, a quarter of that town's
+                # misses, and a florist is neither produce nor a nursery.
                 'amenity': {'marketplace'},
                 'craft': {'winery', 'distillery'},
                 'landuse': {'orchard', 'vineyard'}},
@@ -260,9 +263,28 @@ def main():
     if '--refresh' in flags:
         return refresh()
 
-    kind = next((f.split('=', 1)[1] for f in flags if f.startswith('--kinds=')), 'food')
-    radius = float(next((f.split('=', 1)[1] for f in flags
-                         if f.startswith('--radius=')), 2000)) / 1000
+    # Both `--kinds produce` and `--kinds=produce`. The first version read only
+    # the equals form while the docstring above showed the space form, so a sweep
+    # run exactly as documented silently fell back to `food` AND swallowed the
+    # word `produce` as part of the town name. Silently wrong is the worst
+    # failure a search tool can have — found by the produce pass, 28 Aug 2026.
+    def opt(name, default):
+        for i, f in enumerate(sys.argv[1:]):
+            if f == '--' + name:                       # --kinds produce
+                rest = sys.argv[i + 2:]
+                if rest and not rest[0].startswith('--'):
+                    return rest[0]
+            if f.startswith('--' + name + '='):        # --kinds=produce
+                return f.split('=', 1)[1]
+        return default
+
+    kind = opt('kinds', 'food')
+    radius = float(opt('radius', 2000)) / 1000
+    # A bare value consumed by a flag is not part of the town name.
+    for name in ('kinds', 'radius'):
+        v = opt(name, None)
+        if v in args:
+            args.remove(v)
     if kind not in KIND_TAGS:
         sys.exit(f'--kinds must be one of {sorted(KIND_TAGS)}')
 

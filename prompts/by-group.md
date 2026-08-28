@@ -210,7 +210,7 @@ existing name you had to think about.
 
 ## 5 · The produce
 
-> market 13 · produce 16 · nursery 7 · shop 6 · farm life 6
+> market 25 · produce 42 · nursery 10 · farm life 9   — **four** types; `shop` is a kind now
 
 Rewritten 27 Aug 2026 after the two hospitality passes. Three things they taught
 that change this one:
@@ -218,8 +218,18 @@ that change this one:
 - **OSM is the wrong net for markets.** A monthly market in a shire carpark is
   not a mapped point of interest. `nearby.py --kinds=produce` will find shops and
   farm gates and almost no markets, so markets are source-driven, not map-driven.
-- **All 13 markets we hold are events, and ten are `monthly` or `annual`** — the
-  two recurrences that deliberately never roll forward. They are all current
+- **`shop` was retired as a type on 27 Aug 2026** — 43 down to 42 — and is a
+  **kind**. This group is four types. A shop is `kind: "shop"` plus a hand line
+  in `BY_ID` in classify_kinds.py, because a shop can no longer be inferred from
+  its types. If you would go to it for its own sake it is a **venue** — the
+  Chocolaterie rule. The produce pass of 28 Aug found no row that needed the
+  shop kind at all.
+- **`season` is a list**: `any / spring / summer / autumn / winter`, nothing
+  else. "Strawberry picking November to May" is a `notes` line. sync.py refuses
+  anything else now — it used to fail mid-batch with a raw Postgres error after
+  three rows were already written.
+- **All 13 markets we hold are events, and eleven never roll forward** — eight
+  `monthly`/`annual`, three with no recurrence at all; only two are weekly. They are all current
   today; they go stale one at a time, silently, and only a person can move them.
 - **A url is null or it is the venue's own.** `sync.py` now refuses a Google
   Maps search link outright, because two passes wrote them and one called it
@@ -239,7 +249,8 @@ This group splits in two and the halves work differently. Do BOTH, in this order
 
 Markets are events, not places, and OSM does not map them. Do not use nearby.py for this half.
 
-  1. Read the 13 we already hold: `python3 scripts/have.py market`. Ten are monthly or annual.
+  1. Read the markets we already hold: `python3 scripts/have.py market`. Most never roll
+     forward — monthly, annual, or no recurrence at all.
   2. For EACH of those, open the organiser's own page and check the next date we hold is still
      what they publish. Monthly and annual never roll forward, so a date that has passed is a
      dead listing and a date that moved is a wrong one. Report every disagreement with the id —
@@ -260,7 +271,7 @@ Three of our markets are called just "Community Market". That is what is left af
 stripped out of the name, and on a Markets page they are indistinguishable. Say in the log what
 each one is actually called by its organiser — a rename is a /admin job, not yours.
 
-── HALF TWO: shop (6), farm life (6), nursery (7), produce (16) — town-driven ──
+── HALF TWO: farm life, nursery, produce — town-driven ──
 
 Once: `python3 scripts/nearby.py --refresh`. One Overpass query for the whole region, cached.
 Do NOT run it again between towns — querying per town is what got the last run throttled, and a
@@ -283,8 +294,9 @@ at `--radius=4000` plus Geelong West, Newtown, Belmont, Grovedale, Waurn Ponds a
 separately. Batch, `sync.py add --dry-run`, fix, write. Log per town. Do not ask between towns.
 
 What this group specifically needs you to judge:
-  - `shop` is the vague one and that is why it has six. Use it for shops that are a REASON TO GO
-    somewhere — a farm store, a bookshop, a surf shop with a museum in it. Not retail in general.
+  - A retail place that is a REASON TO GO — a farm store, a bookshop, a surf shop with a
+    museum in it — is a `venue` carrying `produce`, not a `shop`. `shop` is the kind for a
+    row that exists only so a type page has a stockist, and it takes a hand line in `BY_ID`.
     The hospitality pass's own test is the right one: is this a reason to go, or somewhere you
     happen to end up. If it is just a shop, leave it out and log the decision.
   - `farm life` is a farm you can VISIT — animals, u-pick, open gate. A farm that only sells at a
