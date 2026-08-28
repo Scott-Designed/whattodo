@@ -1681,6 +1681,26 @@ built and geocoded**, which cannot be done from `sync.py`:
     158 Apollo Bay Foreshore           166 Little Malop Street Central
                                        167 Point Lonsdale Primary School
 
+**Six more were built and linked 28 Aug 2026** — places 109–114: Apollo Bay
+Youth Club, Wallington Primary School, Portarlington Senior Citizens Hall, South
+Geelong Primary School, Little Malop Street Mall, Point Lonsdale Primary School.
+9 of the 12 markets are on the map now.
+
+**The three left are left on purpose, and the reason is the rule.** Every one of
+those six pins is a *named OSM feature* — a house number, a school polygon, a
+pedestrian mall. The street queries were rejected: "65 Wallington Road" returned
+two segments **4.5 km apart**, Little Malop Street three up to **1.2 km** apart,
+Ewing Blyth Drive two **600 m** apart. Apollo Bay Foreshore, Mirambeena Park and
+the Barwon Heads riverbank have no named feature at all, and the reserves
+Nominatim offers instead are a different reserve from the one each market names
+— Barwon Heads Community Park is 1.5 km from Ewing Blyth Drive. Each of the
+three carries the reason in its own `source_note`.
+
+The generalisable bit, which cost an hour to learn: **ask for the feature by
+name before you ask for its street.** A school, a park and a mall are named
+things in OSM and resolve to the grounds; the same place asked for as an address
+resolves to a road centreline that is a coin toss between segments.
+
 `RESEARCH_RULES.md` now tells a pass to check `have.py places` for every event
 and to log the address when there is no row. That is the rule; it is still prose,
 so expect it to be broken until `check()` can warn on a dated row with neither a
