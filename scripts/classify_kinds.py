@@ -133,6 +133,24 @@ BY_ID = {
   288: ('venue', 'the Dome is a reading room, not a group you join'),
   110: ('shop',  'the tip shop sells things — Scott, 27 Aug 2026'),
   463: ('shop',  'a running shop — `running` is the gear it sells, not a place to run'),
+
+  # The mountain bike pass, 28 Aug 2026. Four clubs and eight shops, and EVERY
+  # one of them would come out a spot without these lines: `mountain biking`,
+  # `cycling` and `volunteering` are all things you go and DO, and PRECEDENCE
+  # ranks a spot above both group and shop. Same shape as 459-461 above — types
+  # say what a row is ABOUT, not what it IS.
+  516: ('group', 'a bike club — you join it; mountain biking is what it does'),
+  517: ('group', 'a bike club that also builds trail — you join it'),
+  518: ('group', 'a bike club — builds the You Yangs downhill and XC trails'),
+  519: ('group', 'a bike club — you join it; the trails are the subject'),
+  520: ('shop',  'Anglesea bike shop — sells and services the gear, not a trail'),
+  521: ('shop',  'Forrest bike hire and repairs — you go for the bike'),
+  522: ('shop',  'Torquay suspension workshop — a service you buy'),
+  523: ('shop',  'Geelong bike shop'),
+  524: ('shop',  'Grovedale bike shop'),
+  525: ('shop',  'Ocean Grove bike shop'),
+  526: ('shop',  'Geelong West bike shop'),
+  527: ('shop',  'Belmont bike shop'),
 }
 
 # ── A shop can no longer be inferred, and that is now permanent ──

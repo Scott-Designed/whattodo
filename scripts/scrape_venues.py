@@ -53,6 +53,16 @@ TICKETERS = [
     ('trybooking', 'TryBooking', r'https://(?:[a-z0-9-]+\.)?trybooking\.com/[A-Za-z0-9\-/]+'),
     ('eventbrite', 'Eventbrite', r'https://(?:[a-z0-9-]+\.)?eventbrite\.com(?:\.au)?/e/[A-Za-z0-9\-]+'),
 ]
+# Moshtix is deliberately NOT here. Its event pages do carry clean JSON-LD, so
+# adding the pattern is a one-liner and it was tried on 27 Aug 2026 — but a
+# Moshtix VENUE page links to other venues' shows, so following those links
+# off Queenscliff Town Hall proposed twelve gigs at The Night Cat, Brunswick
+# Ballroom, Howler and The Toff in Town, and offered to create those rooms.
+# That is this file's own rule broken: a listing must never claim a ticket
+# link it cannot prove is its own. A safe reader would take the venue page's
+# OWN JSON-LD, which already lists only that venue's events, rather than
+# crawling outward. Until that exists, Moshtix rows read nothing.
+#
 # Eventbrite publishes a free API; scraping it is the worse road, so we only
 # note that a venue uses it and leave the row for a human.
 API_INSTEAD = {'Eventbrite'}

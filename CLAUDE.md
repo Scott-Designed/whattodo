@@ -1192,6 +1192,26 @@ the feed's 'Sport' category — a person sorts them, nothing is invented.
 It is **not on the schedule yet**. `.github/workflows/events.yml` runs the other
 two scrapers; adding this one is a step nobody has taken.
 
+## Moshtix, and why the venue page is read but its links are not
+
+`Queenscliff Town Hall` (place 138, 50 Learmonth St, pinned house-level) was
+added 27 Aug 2026 with its Moshtix venue page as `events_url`. It reads: the run
+says *"schema.org on the page (2)"* and it imported both gigs at `high`.
+
+**Moshtix is deliberately NOT in `TICKETERS`.** Its event pages do carry clean
+JSON-LD, so adding the pattern is a one-liner — and that was tried, and the dry
+run caught what it did. A Moshtix **venue** page links to *other venues'* shows,
+so following those links off Queenscliff Town Hall proposed twelve gigs at The
+Night Cat, Brunswick Ballroom, Howler and The Toff in Town, and offered to
+create those rooms. That is this project's own rule broken: a listing must never
+claim a ticket link it cannot prove is its own.
+
+Removing the pattern did not disable Moshtix — **it fixed it.** With no ticketer
+match the scraper falls back to the venue page's own JSON-LD, which lists only
+that venue's events, and gets exactly the right two. The lesson generalises: for
+a platform whose venue page is already a correct listing, the own-listing path
+is the safe reader and link-following is the unsafe one.
+
 ## Back of house — /admin
 
 `public/admin.html`, live at **https://notice.place/admin**. One page,
