@@ -2038,6 +2038,99 @@ puts it on Grubb Road, Wallington — two sources, two towns); Apollo Bay cinema
 (robots.txt blocks five attempts, needs a browser); eleven Surf Coast galleries
 with no reachable first-party page.
 
+## The bike shop pass — 8 shops, 28 Aug 2026
+
+Activities 520-527, all `kind = shop`. `mountain biking` went 17 → 33 across
+the day's work.
+
+    520  Trailhead Bike Co.          67 Great Ocean Road, Anglesea
+    521  Forrest Bike Hire           16 Grant Street, Forrest
+    522  Bike Matters                Torquay — no address published
+    523  De Grandi Cycle Works       36 Mercer Street, Geelong
+    524  Hendry's Geelong            Shop 3/170 Torquay Road, Grovedale
+    525  Hendry's Ocean Grove        1/83 The Parade, Ocean Grove
+    526  Bicycle Superstore Geelong  33-35 Pakington Street, Geelong West
+    527  Bicycle Centre Belmont      119 High Street, Belmont
+
+**`nearby.py` gained a `bike` category** — `shop=bicycle|sports|outdoor` plus
+`craft=bicycle`. The wide net is deliberate, the same argument as
+`tourism=hotel` in the food net: a shop selling bikes beside surfboards gets
+tagged `sports`, and a one-man repair place is often `craft=bicycle` with no
+shop tag. `amenity=bicycle_repair_station` is deliberately excluded — that is a
+tool stand bolted to a post, and it would put fake retailers on a type page.
+
+**The cache guard earned its keep on the first run**: asking for `bike` against
+a cache fetched for `arts, food, produce` exited with what to run instead,
+rather than reporting the region as empty. That is the arts-pass bug, fixed and
+now proven.
+
+### Six of seven addresses agree with OSM to within 21 m
+
+Each shop was geocoded from the address on its **own site**, then cross-checked
+against the independent OSM node: 0 m, 1 m, 5 m, 11 m, 12 m, 21 m. Two matched
+`type=bicycle` — the shop itself as a mapped feature, which is the best case
+this project has had. Worth keeping as a technique: **first-party address plus
+an independent map node is a stronger pin than either alone**, and it costs one
+extra lookup.
+
+Two matches needed reading rather than accepting, which is the standing rule:
+
+- **Forrest Bike Hire matched `type=hotel`.** It is still right — the match
+  carries `house_number 16, Grant Street` and the Forrest Guesthouse shares the
+  address. The house number is what was checked, not the tag.
+- **Hendry's Grovedale matched `type=clothes`**, a contributor's opinion about
+  the tenancy. Same treatment.
+
+### What the map could not do, and what it got wrong
+
+**The 2 km sweep radius hides the Geelong suburbs.** `town_list()` folds
+Belmont, Grovedale, Highton, Waurn Ponds and the rest into "Geelong", and a 2 km
+circle on the city centre reaches none of them — `Bicycle Centre Belmont` is
+3.0 km out and `Hendry's` 4.9 km. Both would have been missed. **Read the cache
+region-wide and assign each POI to its nearest town** rather than trusting
+`--all`; that is what found them. This is a real limitation of `--all`, not a
+one-off.
+
+**Two OSM rows were wrong in opposite directions, and both needed a person:**
+
+- **`Good Cycles` in Geelong does not exist.** Its own site lists one location,
+  Melbourne CBD. OSM is stale — the same lesson as MoVida Lorne and The Ridge.
+- **`Bike Guru` in Colac closed in 2021**, after 11 years, announced by the
+  business itself. Directories still carry it, and they **disagree about its
+  address** (247 vs 39A Murray Street), which is its own warning.
+
+**Torquay's own bike shop is in neither OSM nor any directory.** Bike Matters
+was found by search alone. It takes bookings rather than walk-ins and publishes
+no street address, so it carries **no coordinate** — and its site advertises a
+Geelong studio as *coming soon*, which is deliberately not listed: a page
+announcing a future opening is not evidence of one, the Sustainable House Day
+call again.
+
+**Colac is unresolved.** Three names turn up — Bike Guru (closed), "The Bike
+Shop", and Colac Bicycles & Repairs — and not one has a reachable first-party
+page. Nothing was written rather than citing a directory.
+
+**Watch for Torquay, UK.** Several searches for "bike shop Torquay" return
+Devon, and "bike shop Victoria" returns Victoria, BC. Both were in the first
+page of results here.
+
+### These twelve rows are hand decisions, and the classifier would undo them
+
+All twelve of the day's rows — four clubs and eight shops — were added to
+`BY_ID` in `classify_kinds.py` in the same commit. **Every one would otherwise
+come out a `spot`**: `mountain biking`, `cycling` and `volunteering` are all
+things you go and DO, and `PRECEDENCE` ranks spot above both group and shop. It
+is the 459-461 case again, twelve times over, and it is why that file says
+adding a shop means adding a line.
+
+**`classify_kinds.py` cannot currently run to confirm it.** Its exhaustiveness
+guard exits with *"KIND_OF is missing 1 type(s): kids"* — a `kids` type and
+several hundred library events landed after that script was written, and nothing
+has taught it the word. The guard is behaving correctly; the script is blocked.
+`BY_ID` was verified by parsing the file instead. **Nobody has seen that
+script's disagreement report since `kids` landed**, which is the part worth
+fixing — it is the standing list of kind/coordinate mismatches.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
