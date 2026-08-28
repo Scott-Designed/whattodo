@@ -85,6 +85,19 @@ KIND_TAGS = {
                 'amenity': {'marketplace'},
                 'craft': {'winery', 'distillery'},
                 'landuse': {'orchard', 'vineyard'}},
+    # what an arts & culture pass is looking for. OSM is comparatively GOOD here
+    # — a museum or a cinema is a landmark and somebody maps it — but it is blind
+    # to the thing this group is actually short of: artist-run spaces, open
+    # studios and a gallery inside a cafe. `craft` catches some makers' studios.
+    # `artwork` is public sculpture and murals, which is a real answer to "what
+    # is there to see" and is mapped nowhere else.
+    'arts': {'tourism': {'museum', 'gallery', 'artwork', 'attraction'},
+             'amenity': {'theatre', 'cinema', 'arts_centre', 'library',
+                         'community_centre'},
+             'shop': {'art', 'craft', 'musical_instrument', 'books'},
+             'craft': {'pottery', 'artist', 'jeweller', 'photographer',
+                       'sculptor', 'glassblower', 'painter'},
+             'historic': {'memorial', 'monument', 'heritage', 'museum'}},
 }
 ALL_TAGS = {}
 for kd in KIND_TAGS.values():
@@ -175,6 +188,7 @@ def refresh():
             print(f'  {t}: {e}', file=sys.stderr)
         time.sleep(1.1)
     CACHE.write_text(json.dumps({'fetched': time.strftime('%Y-%m-%d %H:%M'),
+                                 'kinds': sorted(KIND_TAGS),
                                  'pois': pois, 'towns': centres}, indent=1))
     print(f'cached {len(pois)} places and {len(centres)} town centres → {CACHE.name}')
 
@@ -188,6 +202,19 @@ def load():
     # Overpass was blocking, 26 Aug 2026. Empty places would otherwise report
     # every town as having nothing, which is the failure this script exists to
     # prevent, so say so instead.
+    # A cache built before a category existed answers 0 for it, which reads as
+    # "nothing there" — the silently-wrong failure this script keeps finding in
+    # itself. So the cache records which kinds it was fetched for.
+    asked = next((a.split('=', 1)[1] for a in sys.argv[1:] if a.startswith('--kinds=')),
+                 None)
+    if asked is None:
+        for i, a in enumerate(sys.argv[1:]):
+            if a == '--kinds':
+                rest = sys.argv[i + 2:]
+                asked = rest[0] if rest and not rest[0].startswith('--') else None
+    if asked and asked not in (c.get('kinds') or ['food', 'produce']):
+        sys.exit(f"the cache was fetched for {c.get('kinds') or ['food', 'produce']} and "
+                 f"does not contain '{asked}'.\nRun:  python3 scripts/nearby.py --refresh")
     if not c.get('pois'):
         sys.exit('the cache has town centres but no places yet.\n'
                  'Run:  python3 scripts/nearby.py --refresh\n'

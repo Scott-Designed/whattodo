@@ -326,45 +326,94 @@ anything the 43-type vocabulary had no word for.
 
 ## 6 · The arts & culture
 
-> arts 15 · cinema 13 · museum 10 · cultural 9 · art gallery 6 · theatre 1
+> arts 16 · cinema 13 · museum 10 · cultural 9 · art gallery 6 · theatre 1
+
+Rewritten 28 Aug 2026, after hospitality (twice) and produce. **55 listings, the
+second-thinnest group**, and `theatre 1` on a coast with the Lorne Theatre, the
+Globe at Winchelsea and GPAC is the clearest single gap on the site.
+
+Four things the earlier passes taught that change this one:
+
+- **OSM is comparatively GOOD here** — a museum or a cinema is a landmark and
+  somebody maps it — but blind to exactly what this group is short of:
+  artist-run spaces, open studios, a gallery inside a cafe. The produce lesson
+  in a new coat: *the map has shopfronts, not the thing you were looking for.*
+- **An event needs a `place_id` or it cannot be on the map.** Twelve markets were
+  written without one and none could be plotted. An exhibition with a run of
+  dates is an event and hits this the same way.
+- **Set `kind` explicitly.** `cultural` maps to **spot**, and a spot whose
+  `location` will not parse is demoted to an **idea** — so a Wadawurrung site
+  described as "along the Surf Coast Walk" silently becomes an at-home idea.
+  Every other arts type maps to venue.
+- **`shop` is a kind, not a type** (retired 27 Aug 2026). A gallery that sells
+  is a `venue` carrying `art gallery`.
 
 ```text
-Read prompts/RESEARCH_RULES.md and CLAUDE.md, then research listings for The arts & culture group.
+First run `git pull`, then `python3 scripts/nearby.py --refresh` once — a single
+Overpass query for the whole region, cached. Never run --refresh again mid-pass.
 
-Work its six types thinnest first: theatre (1), art gallery (6), cultural (9), museum (10),
-cinema (13), arts (15). Target 12 rows per type, or every honest candidate if fewer.
+Read prompts/RESEARCH_RULES.md and CLAUDE.md, then research The arts & culture group.
+Also read prompts/log/hospitality.md and prompts/log/produce.md — earlier passes logged
+arts candidates they left behind (the HOOP Gallery, Bellbrae Clay, Salt & Pepper Gallery at
+557 Great Ocean Rd, Art Reach Studio). Start from that list.
+
+Work the six types thinnest first: theatre (1), art gallery (6), cultural (9), museum (10),
+cinema (13), arts (16). Run `python3 scripts/have.py arts` for today's real counts.
 
 This is a loop. For each type, in order:
-  1. `python3 scripts/have.py <type>`, and `python3 scripts/have.py places` for the venues.
-  2. Search. Good sources: Geelong Arts Centre, Geelong Gallery, the National Wool Museum,
-     Torquay Multi-Arts Centre and the HOOP Gallery, the Australian National Surfing Museum,
-     Lorne Theatre, Winchelsea's Globe Theatre, Geelong Regional Libraries, council arts and
-     public art pages, the Surf Coast Arts Trail, artist-run and cellar-door galleries.
-  3. First-party source, geocode, build the row. km stays null.
-  4. Batch to scratch, `--dry-run`, fix, write.
-  5. Append to prompts/log/arts.md.
-  6. Next type, without asking.
+  1. `python3 scripts/have.py <type>` — read what is already there.
+  2. Sweep the map: `python3 scripts/nearby.py "<town>" --kinds arts` across the towns that
+     plausibly hold this type. It catches museums, galleries, cinemas, theatres, arts
+     centres, public artwork and makers' studios.
+  3. THEN check the town by hand. On produce, nearby.py returned ZERO for Wallington while
+     Grubb Road held four real producers. Expect the same here for artist-run spaces and
+     open studios — they are not landmarks and nobody maps them. The council arts pages,
+     the Surf Coast Arts Trail and Geelong Arts Centre's programme are better sources than
+     the map for those.
+  4. Before writing any candidate, search the existing names for its distinctive word.
+     nearby.py under-reports what is already listed on purpose.
+  5. Build the row: first-party source, geocode, `location` ending in the suburb,
+     km stays null, `kind` set explicitly.
+  6. `python3 scripts/sync.py add <file> --dry-run`, fix what it says, then write for real.
+  7. Append to prompts/log/arts.md — added, rejected and why, still open.
+  8. Straight on to the next type. Do not ask me between types.
 
 Specific to this group:
-  - `cultural` means Wadawurrung Country, and it is the one type to be careful with. Take it
-    **only** from the Wadawurrung Traditional Owners Aboriginal Corporation, Parks Victoria, or
+
+  - `cultural` means Wadawurrung Country and is the one type to be careful with. Take it
+    ONLY from the Wadawurrung Traditional Owners Aboriginal Corporation, Parks Victoria, or
     a council page written with Traditional Owners. Do not describe a site's significance in
     your own words, do not source it from a tourism blog, and do not list a place unless the
-    source says it is open to visitors. If you are unsure, leave it out and log it for Scott.
-  - `art gallery` is a room you can walk into; `arts` is the thing that is on — an exhibition, a
-    trail, a workshop with a date. A gallery gets an activity row; its current show, if it has a
-    real published run, gets an event row with `starts_on` and `ends_on`.
-  - `theatre` has one listing. Include the venues that programme theatre even when they are also
-    something else — a hall with a season, a cinema that stages live shows.
-  - A cinema's `url` is the cinema's own site, not a booking aggregator.
-  - The Surf Coast Arts Trail is the reason this project has a rule about dates. If you touch a
-    dated arts listing, the date comes off the organiser's own page or it does not go in.
+    source says it is open to visitors. Unsure means leave it out and log it for Scott.
+  - Set `kind` on every row. `cultural` classifies as a SPOT, and a spot whose location does
+    not name a town gets demoted to an IDEA — which would file a Wadawurrung site under
+    "things to do at home". A place with a door and hours is `kind: "venue"`.
+  - `art gallery` is a room you walk into. `arts` is the thing that is ON — an exhibition, a
+    trail, a workshop with a date. The gallery gets an activity row; its current show gets an
+    EVENT row with starts_on, ends_on and a place_id pointing at the gallery.
+  - **Every event needs a place_id.** Run `python3 scripts/have.py places` and link it. If
+    there is no place row, log the venue's full address so one can be built — you cannot
+    write `places` from a script. An event without a place_id is invisible on the map and
+    nothing warns you.
+  - `theatre` has ONE listing. Include venues that programme theatre even when they are also
+    something else — a hall with a season, a cinema that stages live shows, a surf club that
+    hosts a play. Lorne, Winchelsea, Geelong and Queenscliff all have rooms that qualify.
+  - A cinema's url is the cinema's own site, never a booking aggregator. A Google Maps search
+    link is refused by sync.py now; null is the honest value when there is no site.
+  - The Surf Coast Arts Trail is why this project has a rule about dates. Any dated arts
+    listing takes its date from the organiser's own page or it does not go in. `annual` and
+    `monthly` never roll forward, so an annual festival needs a real published next date.
+  - Public artwork from the OSM sweep (`tourism=artwork`) is a genuine answer to "what is
+    there to see" and is mapped nowhere else — but only list one that is a destination, not
+    every mural. Judge by whether someone would walk to it.
 
-Do not stop until all six types have been through the loop. Post one summary: rows added per
-type, anything under `cultural` you left out and why, and any venue worth a `places` row.
+Do not stop until all six types have been through the loop. An empty search is a finding to
+log, not a reason to stop.
+
+When every type is done, post one summary: rows added per type, anything under `cultural` you
+left out and why, events still needing a places row (with addresses), existing rows that need
+correcting, and anything the 42-type vocabulary had no word for.
 ```
-
----
 
 ## 7 · The music
 
