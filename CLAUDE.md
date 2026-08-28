@@ -953,14 +953,15 @@ instead, and why that scraper deliberately sets no `place_id`.
 
 ## The mountain bike clubs, and EntryBoss — 28 Aug 2026
 
-Three clubs added as **groups** (activities 516, 517, 518) at Scott's request.
-None carries a coordinate: not one of the three publishes premises or a postal
-address, and all three are filed at the park they work in rather than at rooms
-they do not have — the `Surf Coast Mountain Bike Club` precedent from 27 Aug.
+Four clubs added as **groups** at Scott's request. None carries a coordinate:
+not one of the four publishes premises or a postal address, and all four are
+filed at the park or network they work in rather than at rooms they do not
+have — the `Surf Coast Mountain Bike Club` precedent from 27 Aug.
 
-    516  Geelong Mountain Bike Club     You Yangs   mountain biking
-    517  Surf Coast Mountain Bike Club  Anglesea    mountain biking · volunteering
-    518  You Yangs Mountain Bike Club   You Yangs   mountain biking · volunteering
+    516  Geelong Mountain Bike Club              You Yangs  mountain biking
+    517  Surf Coast Mountain Bike Club           Anglesea   mountain biking · volunteering
+    518  You Yangs Mountain Bike Club            You Yangs  mountain biking · volunteering
+    519  Forrest Mountain Bike and Cycling Club  Forrest    mountain biking · cycling · volunteering
 
 **GMBC and You Yangs MTB Inc are two different clubs sharing one park**, which
 is the kind of thing worth writing down before somebody merges them. GMBC races
@@ -1069,10 +1070,48 @@ are not the same point and one of them wants checking before either is copied.
 carelessly is how the duplicates happened. `GMBC Merch 2026 (Winter)` is in the
 list and is a merchandise order, not a happening; a scraper needs to drop those.
 
-**Only GMBC is on EntryBoss.** Surf Coast MTB pushes everything to Facebook, and
-You Yangs MTB Inc's WordPress has no events post type and no calendar at all —
-both checked 28 Aug 2026. So two of the three clubs stay manual, and neither is
-worth registering as a source.
+**Only GMBC is on EntryBoss** — checked against the platform's own club list,
+which carries Geelong BMX, Geelong Cycling, Geelong & Surfcoast Cycling and
+Colac Cycling but neither of the other MTB clubs. The other three publish to
+Facebook and nowhere machine-readable.
+
+### Facebook-only sources say so on the Automations tab
+
+Scott's call, 28 Aug 2026. Three of the four clubs announce rides and working
+bees on Facebook alone, and Forrest says it outright — **"follow the club
+facebook page for events"**, its own wording. That is a standing weekly job for
+a person, and it now reads that way instead of sitting in `untried` looking
+like an automation that might yet run.
+
+`SRC_STATE` gains **`fbweekly` — "Facebook — check weekly"**, orange like
+`manual` but naming the cadence, because the whole reason for flagging it is
+that nobody remembers to look. `sourceRows()` derives it: a place with a
+`facebook`, no `events_url` and no `ticketing_url`, whose state is otherwise
+`nothing`/`untried`/`nourl`/`dead`. **The guard is the important half** — it is
+only ever applied where there is nothing machine-readable to lose, so a venue
+that also has a ticketing feed keeps the status that actually matters. The row
+links to the Facebook page rather than the website, since that is the page a
+person has to open.
+
+Two places rows were created to put the clubs on that list at all — **115 You
+Yangs MTB Club, 116 Forrest MTB and Cycling Club**, both `kind = bike-club`,
+both with `events_url` deliberately null, matching 105. **Do not put a Facebook
+URL in `events_url`.** Nothing can read one: it wants a token and client-side
+JS, and Forrest's site is the proof — it embeds a `custom-facebook-feed` plugin
+whose container renders empty to a plain fetch. Setting it would also hand
+`scrape_venues.py` a club to file events against as though it were the venue.
+
+**A guessed social URL got written and had to be corrected within the minute.**
+Place 115's Facebook was first written as `/youyangsmtb`, inferred from the
+domain; the club's own site links `facebook.com/YYMBI`. Nothing about the rule
+is new — *never invent a URL* is the line this file opens with — but it is worth
+recording that it broke on a field that felt too minor to check, which is
+exactly where it will break again. The correction is in that row's
+`source_note`. Forrest's two were read out of its raw HTML.
+
+**Racing at Forrest is run with GMBC**, so some Forrest events will arrive
+through the EntryBoss calendar rather than off Facebook. Worth knowing before
+the same race is filed twice from two sources.
 
 ## Back of house — /admin
 

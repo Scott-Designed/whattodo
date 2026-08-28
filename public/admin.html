@@ -761,6 +761,10 @@ const SRC_STATE = {
   // Orange here read as "broken", which is the opposite of true.
   skipped: {label:'reading · not this run', tag:'live'},
   manual:  {label:'needs a person',      tag:'warn'},
+  // A source whose only event channel is a Facebook page. Orange like `manual`,
+  // because that is what it is — a standing job for a person — but it says how
+  // often, since the whole point of flagging it is that nobody remembers to look.
+  fbweekly:{label:'Facebook — check weekly', tag:'warn'},
   untried: {label:'not tried yet',       tag:''},
   nourl:   {label:'no website on file',  tag:''},
 };
@@ -782,16 +786,34 @@ function sourceRows(){
     if (src) state = src.state;
     else if (!p.website && !p.events_url && !p.ticketing_url) state = 'nourl';
     else state = 'untried';
+
+    // Some sources publish only to Facebook — the three mountain bike clubs are
+    // the clear case, and one of them says so in its own words ("follow the club
+    // facebook page for events"). Nothing can read a Facebook page: it wants a
+    // token and client-side JS, and Forrest's site proves it — the embedded feed
+    // plugin renders an empty container to a plain fetch. So this is not a
+    // failed automation, it is a weekly job for a person, and it should say so
+    // rather than sitting in `untried` looking like something that might yet run.
+    //
+    // Only applied where there is nothing machine-readable to lose, so a venue
+    // that also has a ticketing feed keeps the status that matters.
+    if (p.facebook && !p.events_url && !p.ticketing_url
+        && ['nothing','untried','nourl','dead'].includes(state)) state = 'fbweekly';
+
     rows.push({
       name: p.name, id: p.id,
       what: [p.kind, p.suburb].filter(Boolean).join(' · ') || 'venue',
-      how: src ? src.how
+      how: state === 'fbweekly'
+           ? 'events go to Facebook only — open the page once a week and file what is new'
+         : src ? src.how
          : p.events_url ? 'has an events_url — read on the next run'
          : p.website    ? 'website on file, gig paths get tried'
          : 'nothing on file to look at',
       via: src?.via?.length ? src.via : [],
       own: src?.own, state, hint: src?.hint,
-      url: p.events_url || p.ticketing_url || p.website,
+      // A Facebook-only row links to the page a person actually has to open.
+      url: state === 'fbweekly' ? p.facebook
+           : p.events_url || p.ticketing_url || p.website,
     });
   }
   return rows;
@@ -811,7 +833,7 @@ function drawSources(){
   });
 
   // Working sources first — the point of the list is what is and is not running.
-  const order = ['read','skipped','manual','dead','refused','untried','nothing','nourl'];
+  const order = ['read','skipped','manual','fbweekly','dead','refused','untried','nothing','nourl'];
   const list = all.filter(r => !SRCFILTER.state || r.state === SRCFILTER.state)
     .sort((a,b) => order.indexOf(a.state) - order.indexOf(b.state) ||
                    a.name.localeCompare(b.name));
