@@ -1667,6 +1667,25 @@ Findings worth not re-researching:
   The Little Organic Paddock, Glen Loch Apple Farm, Country Dahlias — plus
   Murroon and Bannockburn, where two dated first-party Golden Plains markets sit.
 
+**The twelve new markets were written with no `place_id`, so none could be
+plotted.** An event has no coordinate of its own — it inherits one from its
+place — and nothing in the tooling says so out loud, which is why this was the
+third pass in a row to hit the same class of fault. Three were linked to
+existing pinned rows on 28 Aug 2026 (156→70 Princess Park, 160→77 WG Little
+Reserve, 162→21 Little Creatures Brewery); **the other nine need `places` rows
+built and geocoded**, which cannot be done from `sync.py`:
+
+    159 Wallington Primary School      163 Barwon Heads Riverbank, Ewing Blyth Dr
+    161 Mirambeena Park, Armstrong Ck  164 Portarlington Senior Citizens Hall
+    157 Apollo Bay Youth Club          165 South Geelong Primary School
+    158 Apollo Bay Foreshore           166 Little Malop Street Central
+                                       167 Point Lonsdale Primary School
+
+`RESEARCH_RULES.md` now tells a pass to check `have.py places` for every event
+and to log the address when there is no row. That is the rule; it is still prose,
+so expect it to be broken until `check()` can warn on a dated row with neither a
+`place_id` nor a venue string that names no single place.
+
 Six market rows need /admin: id 6 (Belmont Market — hours out by an hour at both
 ends, wrong name, Maps-search url), 14 (delete), 21 (delete), 40 (Drysdale — time
 is "Sunday morning"), 88 (Winchelsea — venue moved to the Leisure Time Centre),

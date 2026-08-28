@@ -20,6 +20,23 @@ An event's link is `info_url` or `ticket_url` — **never `url`**, which is
 silently dropped. `sync.py` picks the table by which fields are present, so a
 row with `starts_on` goes to `events`.
 
+**An event has no `lat`/`lng` of its own. Its pin comes from `place_id`.**
+Write an event without one and it is on the list and invisible on the map, with
+nothing to tell you — the produce pass wrote twelve markets that way, 28 Aug
+2026, and none of them could be plotted. So for every event:
+
+1. `python3 scripts/have.py places` and look for the venue. If it is there, put
+   its id in `place_id` and you are done — the `listings` view coalesces the
+   coordinate through.
+2. If it is not there, say so in the log with the venue's full address, so a
+   places row can be built. **You cannot write `places` from a script.**
+3. `venue` is free text for the ones that genuinely name no single place —
+   "Various venues", "Rotates — check website". Those stay unpinned on purpose.
+
+An **activity** is the other way round: it carries its own `lat`/`lng`, and
+`place_id` is only for the case where a `places` row for it already exists
+(Patagonia, Gather Athletics). Linking beats a second copy that can drift.
+
 Write a batch as a JSON list to the scratch directory, then:
 
 ```bash
