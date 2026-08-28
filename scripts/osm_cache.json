@@ -1,7 +1,8 @@
 {
- "fetched": "2026-08-28 16:39",
+ "fetched": "2026-08-28 17:36",
  "kinds": [
   "arts",
+  "bike",
   "food",
   "produce"
  ],
@@ -625,6 +626,12 @@
    "label": "guest_house"
   },
   {
+   "name": "Flick Surfboards Factory Outlet",
+   "lat": -38.3262547,
+   "lon": 144.3183378,
+   "label": "sports"
+  },
+  {
    "name": "Salt Brewing Co.",
    "lat": -38.3975762,
    "lon": 143.8857083,
@@ -877,6 +884,12 @@
    "label": "fast_food"
   },
   {
+   "name": "BCF",
+   "lat": -37.8428689,
+   "lon": 144.7815923,
+   "label": "outdoor"
+  },
+  {
    "name": "Norlane Hotel",
    "lat": -38.0985674,
    "lon": 144.355616,
@@ -1007,6 +1020,30 @@
    "lat": -38.0990603,
    "lon": 144.0598044,
    "label": "memorial"
+  },
+  {
+   "name": "Goldcross Cycles",
+   "lat": -37.8695668,
+   "lon": 144.7327541,
+   "label": "bicycle"
+  },
+  {
+   "name": "Hendry Cycles",
+   "lat": -38.2668451,
+   "lon": 144.523931,
+   "label": "bicycle"
+  },
+  {
+   "name": "Sprockt",
+   "lat": -38.2695521,
+   "lon": 144.6546096,
+   "label": "bicycle"
+  },
+  {
+   "name": "Trailhead Bike Co.",
+   "lat": -38.4047576,
+   "lon": 144.191098,
+   "label": "bicycle"
   },
   {
    "name": "Old Cable Station Museum",
@@ -1609,6 +1646,12 @@
    "label": "cinema"
   },
   {
+   "name": "Rebel",
+   "lat": -37.8757693,
+   "lon": 144.6790745,
+   "label": "sports"
+  },
+  {
    "name": "Reddy Express",
    "lat": -37.8930937,
    "lon": 144.6807997,
@@ -1777,6 +1820,12 @@
    "label": "hotel"
   },
   {
+   "name": "Bikes Direct",
+   "lat": -37.8693748,
+   "lon": 144.7338885,
+   "label": "bicycle"
+  },
+  {
    "name": "Julia Gillard Library",
    "lat": -37.8356476,
    "lon": 144.6962131,
@@ -1865,6 +1914,12 @@
    "lat": -37.8824943,
    "lon": 144.7338667,
    "label": "alcohol"
+  },
+  {
+   "name": "Rebel",
+   "lat": -37.8838091,
+   "lon": 144.7343924,
+   "label": "sports"
   },
   {
    "name": "Teahouse @ gbg",
@@ -2149,6 +2204,12 @@
    "label": "fast_food"
   },
   {
+   "name": "Barbeques Galore",
+   "lat": -37.8731885,
+   "lon": 144.7203398,
+   "label": "outdoor"
+  },
+  {
    "name": "Mad Mex",
    "lat": -38.1991569,
    "lon": 144.3180856,
@@ -2233,6 +2294,12 @@
    "label": "cafe"
   },
   {
+   "name": "Anaconda",
+   "lat": -37.8733514,
+   "lon": 144.7209111,
+   "label": "outdoor"
+  },
+  {
    "name": "Drive Thru Coffee",
    "lat": -37.8767474,
    "lon": 144.7124085,
@@ -2249,6 +2316,12 @@
    "lat": -37.8734011,
    "lon": 144.7870382,
    "label": "restaurant"
+  },
+  {
+   "name": "Salter Cycles",
+   "lat": -37.8734103,
+   "lon": 144.787148,
+   "label": "bicycle"
   },
   {
    "name": "Reflection Seat",
@@ -2809,6 +2882,12 @@
    "label": "cafe"
   },
   {
+   "name": "Gypsy & Co",
+   "lat": -38.3380268,
+   "lon": 144.3218564,
+   "label": "sports"
+  },
+  {
    "name": "Bomboras",
    "lat": -38.3326621,
    "lon": 144.3259553,
@@ -3143,6 +3222,12 @@
    "lat": -38.5378198,
    "lon": 143.9749354,
    "label": "bakery"
+  },
+  {
+   "name": "Macpac",
+   "lat": -38.2029977,
+   "lon": 144.308323,
+   "label": "outdoor"
   },
   {
    "name": "Joey's Place",
@@ -3517,6 +3602,12 @@
    "label": "cafe"
   },
   {
+   "name": "Good Cycles",
+   "lat": -38.1476205,
+   "lon": 144.3582849,
+   "label": "bicycle"
+  },
+  {
    "name": "Welcome Back Cafe",
    "lat": -38.1476446,
    "lon": 144.3583667,
@@ -3643,6 +3734,12 @@
    "label": "artwork"
   },
   {
+   "name": "Surf-N-Fish",
+   "lat": -38.7545674,
+   "lon": 143.6688307,
+   "label": "sports"
+  },
+  {
    "name": "Hello Coffee",
    "lat": -38.7591746,
    "lon": 143.6706012,
@@ -3745,6 +3842,24 @@
    "label": "fast_food"
   },
   {
+   "name": "BCF",
+   "lat": -37.8745283,
+   "lon": 144.7174537,
+   "label": "outdoor"
+  },
+  {
+   "name": "Kathmandu",
+   "lat": -37.8759748,
+   "lon": 144.6811293,
+   "label": "outdoor"
+  },
+  {
+   "name": "Macpac",
+   "lat": -37.875397,
+   "lon": 144.6805628,
+   "label": "outdoor"
+  },
+  {
    "name": "Liquorland",
    "lat": -37.8951674,
    "lon": 144.753165,
@@ -3815,6 +3930,12 @@
    "lat": -38.1439631,
    "lon": 144.3478745,
    "label": "cafe"
+  },
+  {
+   "name": "Geelong 4WD & Camping",
+   "lat": -38.1090719,
+   "lon": 144.3525544,
+   "label": "outdoor"
   },
   {
    "name": "Little Growling Cafe",
@@ -4481,6 +4602,12 @@
    "lat": -38.1636891,
    "lon": 144.3494222,
    "label": "cafe"
+  },
+  {
+   "name": "Rebel",
+   "lat": -38.197573,
+   "lon": 144.3183217,
+   "label": "sports"
   },
   {
    "name": "First Choice Liquor",
@@ -5449,6 +5576,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Torquay Surf Academy",
+   "lat": -38.3374343,
+   "lon": 144.3201142,
+   "label": "sports"
+  },
+  {
    "name": "Coles Express Moolap",
    "lat": -38.1644479,
    "lon": 144.4133098,
@@ -5845,6 +5978,12 @@
    "label": "fast_food"
   },
   {
+   "name": "Barbeques Galore",
+   "lat": -37.8766148,
+   "lon": 144.7116862,
+   "label": "outdoor"
+  },
+  {
    "name": "Betty Blue Coffee Van",
    "lat": -38.2621155,
    "lon": 144.5296603,
@@ -6017,6 +6156,18 @@
    "lat": -38.338004,
    "lon": 144.3219748,
    "label": "restaurant"
+  },
+  {
+   "name": "The Happy Runner",
+   "lat": -38.3380197,
+   "lon": 144.322108,
+   "label": "sports"
+  },
+  {
+   "name": "Go Ride A Wave",
+   "lat": -38.3380403,
+   "lon": 144.3222823,
+   "label": "sports"
   },
   {
    "name": "Leopold War Memorial",
@@ -7183,6 +7334,12 @@
    "label": "library"
   },
   {
+   "name": "Clifton Springs Golf Club Pro Shop",
+   "lat": -38.1541088,
+   "lon": 144.5648401,
+   "label": "sports"
+  },
+  {
    "name": "Bellarine Arts Centre",
    "lat": -38.1899004,
    "lon": 144.5569092,
@@ -7387,6 +7544,12 @@
    "label": "cafe"
   },
   {
+   "name": "Barbeques Galore",
+   "lat": -38.1949771,
+   "lon": 144.3429284,
+   "label": "outdoor"
+  },
+  {
    "name": "Riccardi Market Fresh",
    "lat": -38.1942644,
    "lon": 144.3432272,
@@ -7505,6 +7668,12 @@
    "lat": -38.1720006,
    "lon": 144.3456586,
    "label": "restaurant"
+  },
+  {
+   "name": "Bicycle Centre Belmont",
+   "lat": -38.1727056,
+   "lon": 144.3456607,
+   "label": "bicycle"
   },
   {
    "name": "The Elephant Tusk",
@@ -8263,6 +8432,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Kathmandu",
+   "lat": -38.1469612,
+   "lon": 144.3606207,
+   "label": "outdoor"
+  },
+  {
    "name": "The Sporting Globe",
    "lat": -38.1493937,
    "lon": 144.361097,
@@ -8303,6 +8478,12 @@
    "lat": -38.1480891,
    "lon": 144.3590459,
    "label": "restaurant"
+  },
+  {
+   "name": "Rebel",
+   "lat": -38.1521686,
+   "lon": 144.3547707,
+   "label": "sports"
   },
   {
    "name": "Geelong Library & Heritage Centre",
@@ -8399,6 +8580,12 @@
    "lat": -38.1529169,
    "lon": 144.3513819,
    "label": "alcohol"
+  },
+  {
+   "name": "Icon Sports",
+   "lat": -38.1556221,
+   "lon": 144.3507421,
+   "label": "sports"
   },
   {
    "name": "Sawyers Arms Tavern",
@@ -9169,6 +9356,12 @@
    "label": "fast_food"
   },
   {
+   "name": "4WD Supacentre Geelong",
+   "lat": -38.1015568,
+   "lon": 144.3554911,
+   "label": "outdoor"
+  },
+  {
    "name": "Bean Squeeze",
    "lat": -38.1007411,
    "lon": 144.354285,
@@ -9455,6 +9648,12 @@
    "lat": -38.2036613,
    "lon": 144.307945,
    "label": "cafe"
+  },
+  {
+   "name": "BCF",
+   "lat": -38.20277,
+   "lon": 144.3115199,
+   "label": "outdoor"
   },
   {
    "name": "Third Wave Kiosk",
@@ -9961,6 +10160,12 @@
    "label": "community_centre"
   },
   {
+   "name": "De Grandi Cycle Works",
+   "lat": -38.1409731,
+   "lon": 144.3550502,
+   "label": "bicycle"
+  },
+  {
    "name": "Gun Emplacement 6",
    "lat": -38.3023918,
    "lon": 144.6522523,
@@ -10423,6 +10628,12 @@
    "label": "cafe"
   },
   {
+   "name": "Hendry Cycle",
+   "lat": -38.196292,
+   "lon": 144.3427636,
+   "label": "bicycle"
+  },
+  {
    "name": "Poco",
    "lat": -38.1385114,
    "lon": 144.3485973,
@@ -10477,6 +10688,12 @@
    "label": "pastry"
   },
   {
+   "name": "Lyal Eales Stores",
+   "lat": -38.3392442,
+   "lon": 143.5832929,
+   "label": "outdoor"
+  },
+  {
    "name": "KFC",
    "lat": -38.3397409,
    "lon": 143.5824642,
@@ -10529,6 +10746,12 @@
    "lat": -38.1480413,
    "lon": 144.3579267,
    "label": "restaurant"
+  },
+  {
+   "name": "Bicycle Superstore",
+   "lat": -38.1340067,
+   "lon": 144.3493297,
+   "label": "bicycle"
   },
   {
    "name": "Hommuli",
@@ -10715,6 +10938,12 @@
    "lat": -37.854158,
    "lon": 144.7555586,
    "label": "arts_centre"
+  },
+  {
+   "name": "Anaconda",
+   "lat": -38.1798784,
+   "lon": 144.3518982,
+   "label": "outdoor"
   },
   {
    "name": "The Pivotonian Cinema",
@@ -11057,6 +11286,12 @@
    "lat": -38.1713752,
    "lon": 144.3469129,
    "label": "pub"
+  },
+  {
+   "name": "BCF",
+   "lat": -38.0655406,
+   "lon": 144.3830295,
+   "label": "outdoor"
   },
   {
    "name": "The Interiors Assembly",
@@ -11485,6 +11720,12 @@
    "label": "bakery"
   },
   {
+   "name": "SportsPower",
+   "lat": -38.3400901,
+   "lon": 143.5852444,
+   "label": "sports"
+  },
+  {
    "name": "On the Lane Cafe",
    "lat": -38.3402007,
    "lon": 143.5860328,
@@ -11639,6 +11880,12 @@
    "lat": -38.1874962,
    "lon": 144.4560581,
    "label": "alcohol"
+  },
+  {
+   "name": "BCF",
+   "lat": -37.8437159,
+   "lon": 144.8439377,
+   "label": "outdoor"
   },
   {
    "name": "Lismore Driver Reviver",
@@ -12115,6 +12362,12 @@
    "label": "restaurant"
   },
   {
+   "name": "BCF",
+   "lat": -38.3391037,
+   "lon": 143.5828872,
+   "label": "outdoor"
+  },
+  {
    "name": "Subway",
    "lat": -38.3390186,
    "lon": 143.5792488,
@@ -12191,6 +12444,12 @@
    "lat": -38.3400541,
    "lon": 143.586772,
    "label": "bakery"
+  },
+  {
+   "name": "BCF",
+   "lat": -38.2479003,
+   "lon": 144.5394247,
+   "label": "outdoor"
   },
   {
    "name": "McDonald's",
@@ -12271,6 +12530,12 @@
    "label": "cafe"
   },
   {
+   "name": "Get Lost Outdoors & Toys",
+   "lat": -38.3399724,
+   "lon": 143.5884856,
+   "label": "outdoor"
+  },
+  {
    "name": "Lorne and District Men's Shed",
    "lat": -38.5409261,
    "lon": 143.9714963,
@@ -12318,6 +12583,10 @@
    -38.2341184,
    144.3709512
   ],
+  "Bannockburn": [
+   -38.0443362,
+   144.1738367
+  ],
   "Barwon Heads": [
    -38.2747705,
    144.4881352
@@ -12349,6 +12618,10 @@
   "Cape Otway": [
    -38.8571627,
    143.5114448
+  ],
+  "Colac": [
+   -38.3399766,
+   143.5858537
   ],
   "Connewarre": [
    -38.2621825,

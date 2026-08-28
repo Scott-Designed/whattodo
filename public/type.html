@@ -15,6 +15,7 @@ try{var t=localStorage.getItem('notice.theme');
 </head>
 <body data-nav="type">
 <script src="/nav.js"></script>
+<script src="/notice-icons.js"></script>
 
 <div class="page">
   <div class="mast">
@@ -50,7 +51,12 @@ if(KNOWN) NP.canonical(WANT);
 const LABEL = KNOWN ? typeLabel(WANT) : 'Not a type we use';
 
 document.title = LABEL + ' — Notice';
-document.getElementById('title').textContent = LABEL;
+/* The subject's own icon leads the title. Only when the type has one and is
+   real — "Not a type we use" has nothing to illustrate, and a stray mark on an
+   error page would read as though the page had worked. */
+const TITLE_IC = KNOWN && typeof iconFor==='function' ? iconFor(WANT) : '';
+document.getElementById('title').innerHTML =
+  (TITLE_IC ? '<span class="mastic">'+TITLE_IC+'</span>' : '') + esc(LABEL);
 
 /* Fixed order, and every kind drawn whether or not it holds anything. A page
    that changes shape depending on what is in it cannot be scanned the same way

@@ -45,7 +45,16 @@ body{margin:0;background:var(--ground);color:var(--ink);
 .eyebrow{margin:0 0 14px;font-family:var(--util);font-size:11px;font-weight:600;
   letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
 .mast h1{margin:0;font-family:var(--serif);font-weight:400;
-  font-size:clamp(44px,6vw,76px);letter-spacing:-.025em;line-height:.95}
+  font-size:clamp(44px,6vw,76px);letter-spacing:-.025em;line-height:.95;
+  display:flex;align-items:center;gap:.32em}
+/* ── the subject's mark, before its name ──
+   Sized in em so it tracks the title through its clamp instead of needing a
+   second set of breakpoints. The stroke is scaled back up: Lucide draws 2px on
+   a 24 grid, which at this size reads as a hairline beside a 76px serif.
+   `flex:none` or a long title squeezes it. */
+.mast .mastic{flex:none;display:grid;place-items:center;
+  width:.78em;height:.78em;color:var(--ink3)}
+.mast .mastic .tic{width:100%;height:100%;stroke-width:1.6}
 .stand{max-width:54ch;margin:18px 0 0;color:var(--ink2);font-size:19px}
 .stand b{font-weight:400;color:var(--ink)}
 

@@ -1146,6 +1146,52 @@ exactly where it will break again. The correction is in that row's
 through the EntryBoss calendar rather than off Facebook. Worth knowing before
 the same race is filed twice from two sources.
 
+## The library calendar — 500 events, 19 branches, imported 27 Aug 2026
+
+`scripts/scrape_library.py` reads Geelong Regional Libraries' **iCal** feed.
+Both RSS and iCal come off the same endpoint and differ only by `feedType` in a
+base64 payload, and they are not equivalent — read the iCal:
+
+- **iCal has LOCATION and GEO.** The RSS has neither, so the branch is only in
+  prose and 481 of 500 items never name one. Every event would be unplaceable.
+  GEO also means the pins are the library's own published coordinates, not
+  something geocoded here, and every branch publishes one consistent point.
+- **iCal's DTSTART is honest UTC.** The RSS `pubDate` says `+0000` while
+  carrying local wall time — read as UTC that shifts every event ten hours. The
+  `nextDate` bug in a new hat, and nothing would have caught it.
+- **UID == the RSS guid**, so the ledger keys the same either way.
+
+**The `days` filter does nothing.** 1, 20 and 90 return the identical 500 items
+covering about 20 days; the server caps at 500. So the URL is a rolling window
+to poll, not a range to request — and because `days` is *relative* there is no
+date in it to expire. A Date-range tab in their UI does not reach the feed at
+all: setting one produces a byte-identical URL.
+
+**`kids` was added to the vocabulary first, deliberately.** 215 of the 500 are
+story times, and retyping them afterwards is more work than typing them right on
+the way in. All five places done — the `types` row (band `whatson`), `GROUP_OF`
+(→ community), `TYPE_PLURAL` (*For kids*), `api/enrich.mjs`, `EVENT_TYPES`. The
+`/kids` slug was checked against every town slug and every file first.
+
+**Four suburbs were missing and are now in.** Highton and Newcomb joined the
+`GEELONG` fold; **Bannockburn** and **Colac** became towns in `SUBURBS` — the
+produce pass had already recorded Bannockburn as stranded. Without this a branch
+row's suburb resolves to null and its events reach no filter and no town page.
+
+**The importer is idempotent against the DATABASE, not the ledger**, and that is
+not a nicety. The first run died on a socket timeout after 307 of 500 one-at-a-
+time inserts, and `Seen.save()` only runs at the end — so the ledger was never
+written and a naive re-run would have duplicated all 307. It now reads back the
+UIDs already in `events` (they are in each `source_note`), writes in batches of
+50, and checkpoints the ledger after every batch.
+
+**161 of the 500 landed unsorted**, on purpose: types are proposed only from
+what a title actually says. That is the same choice `scrape_events.py` makes for
+the feed's 'Sport' category — a person sorts them, nothing is invented.
+
+It is **not on the schedule yet**. `.github/workflows/events.yml` runs the other
+two scrapers; adding this one is a step nobody has taken.
+
 ## Back of house — /admin
 
 `public/admin.html`, live at **https://notice.place/admin**. One page,

@@ -94,8 +94,13 @@
     box.innerHTML = groups.map(function(g){
       return '<div class="grp">'+g[0]+'</div>' + g[1].map(function(t){
         var on = CUR==='type' && currentSlug('t')===slugify(t);
+        /* iconFor comes from notice-icons.js, which every page loads. A type
+           with no icon returns '' and the row simply has none — the label
+           still lines up, because the slot is drawn either way. */
+        var ic = (typeof iconFor==='function') ? iconFor(t) : '';
         return '<a href="/'+slugify(t)+'"'+
-               (on?' aria-current="page"':'')+'>'+esc(typeLabel(t))+'</a>' }).join('');
+               (on?' aria-current="page"':'')+'><i class="tslot" aria-hidden="true">'+
+               ic+'</i>'+esc(typeLabel(t))+'</a>' }).join('');
     }).join('');
   }
 

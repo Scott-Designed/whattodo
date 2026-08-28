@@ -42,8 +42,18 @@
   box-shadow:0 6px 26px rgba(0,0,0,.22)}
 .navpop[hidden]{display:none}
 .navpop.right{left:auto;right:0}
-.navpop a{display:block;padding:7px 15px;white-space:nowrap;
+.navpop a{display:flex;align-items:center;gap:11px;padding:7px 15px;white-space:nowrap;
   font-family:var(--serif);font-size:16px;color:var(--ink);text-decoration:none}
+/* ── the icon in a menu row ──
+   The sprite is written into every page by notice-icons.js, so the bar can
+   point at it like the board's rows do. The slot is always drawn, even for a
+   type with no icon, or the labels either side of it would step left and
+   right the way the board's names would. */
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+.navpop .tslot{width:17px;height:17px;flex:none;display:grid;place-items:center}
+.navpop .tic{width:17px;height:17px;color:var(--ink3)}
+.navpop a:hover .tic{color:var(--ink)}
+.navpop a[aria-current="page"] .tic{color:var(--ink)}
 .navpop a:hover{background:var(--surface)}
 .navpop a[aria-current="page"]{font-style:italic}
 .navpop .grp{padding:12px 15px 4px;font-family:var(--util);font-size:9.5px;font-weight:600;

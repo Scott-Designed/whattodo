@@ -25,14 +25,18 @@
    distinguishes Grovedale from Waurn Ponds, and eleven suburbs holding one
    listing each is a longer menu that finds less. */
 const GEELONG=new Set(['Geelong','Geelong West','South Geelong','Belmont','Grovedale',
-  'Waurn Ponds','Norlane','Corio','Fyansford','Ceres']);
+  'Waurn Ponds','Norlane','Corio','Fyansford','Ceres','Highton','Newcomb']);
 const SUBURBS=['Aireys Inlet','Anglesea','Apollo Bay','Armstrong Creek','Barwon Heads',
- 'Beech Forest','Bellarine','Bellbrae','Bells Beach','Belmont','Birregurra','Breamlea',
- 'Cape Otway','Ceres','Connewarre','Corio','Cumberland River','Curlewis','Deans Marsh',
+ 'Bannockburn','Beech Forest','Bellarine','Bellbrae','Bells Beach','Belmont',
+ 'Birregurra','Breamlea',
+ 'Cape Otway','Ceres','Colac','Connewarre','Corio','Cumberland River','Curlewis',
+ 'Deans Marsh',
  'Drysdale','Eastern View','Fairhaven','Forrest','Freshwater Creek','Fyansford','Geelong',
- 'Geelong West','Grovedale','Indented Head','Inverleigh','Jan Juc','Kennett River','Lara',
+ 'Geelong West','Grovedale','Highton','Indented Head','Inverleigh','Jan Juc',
+ 'Kennett River','Lara',
  'Lavers Hill','Leopold','Little River','Lorne','Moggs Creek','Moriac','Mt Duneed','Norlane',
- 'Ocean Grove','Point Addis','Point Lonsdale','Portarlington','Queenscliff','Skenes Creek',
+ 'Newcomb','Ocean Grove','Point Addis','Point Lonsdale','Portarlington','Queenscliff',
+ 'Skenes Creek',
  'South Geelong','St Leonards','Torquay','Wallington','Waurn Ponds','Werribee',
  'Winchelsea','Wye River','You Yangs'];
 const SUB_BY_LEN=[...SUBURBS].sort((a,b)=>b.length-a.length);
@@ -143,13 +147,63 @@ const GROUP_OF={
   gig:'music', party:'music', comedy:'music', festival:'music',
 
   community:'community', volunteering:'community', workshop:'community',
-  reading:'community',
+  reading:'community', kids:'community',
 
   'at-home':'home'};
 
 /* A row is in every group its types are in — usually one, sometimes two: a film
    festival is music and arts, a glow-worm walk is landscape only because all
    three of its types live there. The first is what tints the row. */
+/* Which icon a type gets. Only the types listed here draw one — the rest keep an
+   empty slot, so this can be filled in a type at a time. Values are symbol ids
+   without the `i-` prefix. */
+const ICON_OF={
+  'art gallery':'frame',
+  arts:'palette',
+  'at-home':'house',
+  bakery:'croissant',
+  bar:'martini',
+  beach:'umbrella',
+  brewery:'hop',
+  cafe:'coffee',
+  'camping ground':'tent',
+  cinema:'film',
+  comedy:'laugh',
+  community:'users',
+  cultural:'sparkles',
+  cycling:'bike',
+  'farm life':'tractor',
+  festival:'ferris-wheel',
+  gig:'guitar',
+  golf:'flag-triangle-right',
+  market:'store',
+  'mountain biking':'bike',
+  museum:'landmark',
+  nature:'leaf',
+  night:'moon-star',
+  nursery:'sprout',
+  paddling:'sailboat',
+  'parks & playgrounds':'trees',
+  party:'party-popper',
+  produce:'apple',
+  pub:'beer',
+  reading:'book-open',
+  restaurant:'utensils',
+  'rock climbing':'mountain',
+  running:'medal',
+  shop:'shopping-bag',
+  surfing:'waves',
+  swimming:'waves-ladder',
+  theatre:'drama',
+  volunteering:'heart-handshake',
+  walk:'footprints',
+  water:'droplet',
+  winery:'wine',
+  workshop:'hammer'};
+
+/* skatepark has no entry: Lucide has no skateboard, and an unrelated glyph
+   would be worse than the empty slot. */
+
 const groupsOf = i => [...new Set(typesOf(i).map(t=>GROUP_OF[t]).filter(Boolean))];
 
 /* The three entries in PLACE_ORDER that are not towns get a line saying so,
@@ -214,7 +268,7 @@ function nextDate(i){
    gallery is open all year. They sit under events, because someone filling in
    this form with a date in mind is the case that needs the shorter list. */
 const EVENT_TYPES=['gig','comedy','party','reading','festival','workshop',
-  'community','market','arts'];
+  'community','market','arts','kids'];
 const PLACE_TYPES=['beach','surfing','swimming','paddling','water',
   'walk','running','cycling','mountain biking','skatepark','rock climbing','golf','nature',
   'parks & playgrounds','camping ground','night','at-home',
@@ -233,7 +287,7 @@ const TYPE_PLURAL={
   'mountain biking':'Mountain biking', skatepark:'Skateparks',
   'rock climbing':'Rock climbing', golf:'Golf', nature:'Nature',
   'parks & playgrounds':'Parks & playgrounds', 'camping ground':'Camping',
-  night:'After dark', 'at-home':'At home',
+  night:'After dark', 'at-home':'At home', kids:'For kids',
   cafe:'Caf\u00e9s', bakery:'Bakeries', restaurant:'Restaurants', bar:'Bars',
   pub:'Pubs', winery:'Wineries', brewery:'Breweries',
   market:'Markets', produce:'Produce', 'farm life':'Farm life',

@@ -4,6 +4,7 @@
     python3 scripts/nearby.py --refresh          # fetch the region ONCE (do this first)
     python3 scripts/nearby.py Anglesea           # food and drink there, vs what we list
     python3 scripts/nearby.py Torquay --kinds produce
+    python3 scripts/nearby.py --all --kinds bike   # every town, bike shops
     python3 scripts/nearby.py Lorne --missing    # only the ones we lack
     python3 scripts/nearby.py --all              # every town in the Place menu, as a table
 
@@ -98,6 +99,19 @@ KIND_TAGS = {
              'craft': {'pottery', 'artist', 'jeweller', 'photographer',
                        'sculptor', 'glassblower', 'painter'},
              'historic': {'memorial', 'monument', 'heritage', 'museum'}},
+    # what a bike-shop pass is looking for. `shop=bicycle` is the honest tag and
+    # most of the answer, but it is not all of it: a shop that sells bikes
+    # alongside surfboards or camping gear gets tagged `sports` or `outdoor` by
+    # whoever mapped it, and a one-man repair place is often `craft=bicycle` with
+    # no shop tag at all. Same rule as `tourism=hotel` in the food net — widen it
+    # and judge afterwards, because the cost of a wrong extra name is one look and
+    # the cost of a missing one is a gap nobody knows is there.
+    #
+    # `amenity=bicycle_repair_station` is deliberately NOT here: that is a public
+    # tool stand bolted to a post, not a shop, and it would put fake retailers on
+    # a type page.
+    'bike': {'shop': {'bicycle', 'sports', 'outdoor'},
+             'craft': {'bicycle'}},
 }
 ALL_TAGS = {}
 for kd in KIND_TAGS.values():

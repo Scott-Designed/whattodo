@@ -70,13 +70,16 @@ def branch_of(location):
 # shows as *unsorted*, which asks for a person instead of inventing data — the
 # same choice scrape_events.py makes for the feed's 'Sport' category.
 #
-# NOTE: the children's sessions are the biggest group in this feed by far and
-# there is no `kids` type in the vocabulary yet. They land as `reading`, which
-# is true but says nothing about who they are for. `ages` carries that instead.
+# The children's sessions are the biggest group in this feed by far, which is
+# why `kids` was added to the vocabulary (27 Aug 2026) before the first import —
+# retyping 183 rows afterwards is more work than typing them right on the way in.
 TYPE_RULES = [
-    (r'story ?time|baby time|toddler time|rhyme|little kids|preschool', ['reading']),
+    # kids leads, because the first type is the word the row prints. These are
+    # story times: `reading` is true but says nothing about who they are for.
+    (r'story ?time|baby time|toddler time|rhyme|little kids|preschool', ['kids', 'reading']),
+    (r'\bkids\b|children|lego|code club|junior|school holiday',        ['kids']),
     (r'book club|author|book chat|writers?|poetry|library lovers',      ['reading']),
-    (r'lego|code club|makers?|3d print|craft|sewing|knit|workshop',     ['workshop']),
+    (r'makers?|3d print|craft|sewing|knit|workshop|induction',          ['workshop']),
     (r'exhibition|gallery|art[s]? ',                                    ['arts']),
     (r'history|heritage|genealog|local history',                        ['cultural']),
     (r'tech|computer|digital|device|online',                            ['workshop']),
@@ -188,9 +191,19 @@ def main(argv):
     if a.branches:
         return
 
+    # Two guards, and the database one is the load-bearing half. The ledger is a
+    # local file that is only written at the end of a run, so a run that dies
+    # partway leaves rows imported and unrecorded — which happened on the first
+    # real import (307 of 500 in, ledger unwritten). Asking the database which
+    # UIDs it already holds makes a re-run idempotent whatever the ledger says.
     seen = E.Seen(SEEN)
-    fresh = [e for e in evs if e['uid'] not in seen]
-    print(f"\n{len(fresh)} not offered before, {len(evs)-len(fresh)} already seen")
+    have = set()
+    for r in E.db('GET', '/rest/v1/events?select=source_note&added_by=eq.grlc&limit=5000'):
+        m = re.search(r'UID (\d+)', r.get('source_note') or '')
+        if m: have.add(m.group(1))
+    fresh = [e for e in evs if e['uid'] not in seen and e['uid'] not in have]
+    print(f"\n{len(fresh)} to import — {len(have)} already in the database, "
+          f"{sum(1 for e in evs if e['uid'] in seen)} in the seen ledger")
     kinds = collections.Counter()
     for e in fresh:
         ts = types_for(e['title'])
@@ -217,7 +230,20 @@ def main(argv):
                  f"({', '.join(sorted(missing))}). Their events would be unplaceable. "
                  f"Create the places first — the GEO above is the coordinate.")
 
-    added = 0
+    added, batch = 0, []
+    def flush():
+        """Insert in batches and checkpoint the ledger after each one. 500
+        single POSTs is slow enough to hit a socket timeout, and any row written
+        after the last checkpoint would otherwise be invisible to the next run."""
+        nonlocal added, batch
+        if not batch: return
+        E.db('POST', '/rest/v1/events', [r for r, _ in batch], {'Prefer': 'return=minimal'})
+        for r, uid in batch: seen.add(uid)
+        seen.save(SEEN_NOTE)
+        added += len(batch)
+        print(f"  wrote {added}/{len(fresh)}")
+        batch = []
+
     for e in fresh:
         p, _ = linked[e['branch']]
         row = {
@@ -233,10 +259,9 @@ def main(argv):
                             f'{datetime.date.today().isoformat()} from the iCal feed. '
                             f'Room as published: {e["room"]}'),
         }
-        got = E.db('POST', '/rest/v1/events', row, {'Prefer': 'return=representation'})
-        print(f"added event {got[0]['id'] if got else '?'}: {row['name']} ({e['branch']})")
-        seen.add(e['uid']); added += 1
-    seen.save(SEEN_NOTE)
+        batch.append((row, e['uid']))
+        if len(batch) >= 50: flush()
+    flush()
     print(f"\n{added} added unverified. Review: python3 scripts/sync.py pending")
 
 if __name__ == '__main__':
