@@ -121,6 +121,20 @@ def clock(hhmm):
     return f"{hh}:{m:02d}{ap}" if m else f"{hh}{ap}"
 
 # ── schema.org Event, wherever it appears ───────────────────────────────────
+# schema.org names most Event subtypes with "Event" in them — MusicEvent,
+# EducationEvent, SportsEvent — so a substring test catches nearly everything.
+# Three do not, and Festival is the one that matters here: `'Event' in 'Festival'`
+# is False, so every festival on every source was being dropped in silence.
+# Moshtix types Spilt Milk and the Queenscliff Music Festival exactly that way.
+EVENT_SUBTYPES = {'Festival', 'Hackathon', 'CourseInstance'}
+
+def is_event_type(t):
+    """Is this @type a schema.org Event? `t` may be several types, space-joined."""
+    toks = set(str(t or '').split())
+    if not toks: return False
+    return (any('Event' in x and x != 'EventVenue' for x in toks)
+            or bool(toks & EVENT_SUBTYPES))
+
 def jsonld_events(page):
     """Every schema.org Event in a page's JSON-LD blocks, flattened."""
     if not page or 'application/ld+json' not in page: return []
@@ -136,7 +150,7 @@ def jsonld_events(page):
             stack.extend(v for v in o.values() if isinstance(v, (dict, list)))
             t = o.get('@type')
             t = ' '.join(t) if isinstance(t, list) else str(t or '')
-            if 'Event' in t and t != 'EventVenue' and o.get('startDate'):
+            if o.get('startDate') and is_event_type(t):
                 out.append(o)
     return out
 

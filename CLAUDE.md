@@ -1192,7 +1192,31 @@ the feed's 'Sport' category — a person sorts them, nothing is invented.
 It is **not on the schedule yet**. `.github/workflows/events.yml` runs the other
 two scrapers; adding this one is a step nobody has taken.
 
-## Moshtix, and why the venue page is read but its links are not
+## Moshtix, and the Festival blind spot it exposed
+
+**`eventlib.jsonld_events` was dropping every festival, silently.** The test was
+`'Event' in @type`, which catches MusicEvent, EducationEvent and SportsEvent —
+and `'Event' in 'Festival'` is False. schema.org names three Event subtypes
+without the word in them: **Festival**, `Hackathon`, `CourseInstance`. Moshtix
+types Spilt Milk and the Queenscliff Music Festival exactly that way, so both
+read as zero events on a page that plainly had them. `is_event_type()` handles
+the three by name now. This is the same family as the Eventbrite `EducationEvent`
+note — a substring test standing in for a type hierarchy.
+
+Two Moshtix venues are registered:
+
+- `Queenscliff Town Hall` (place 138) — 2 gigs, both `high`.
+- `Kardinia Park Precinct` (place 139) — Spilt Milk, 19 Dec 2026. Pinned to the
+  **named feature**: Moshtix gives 354 Moorabool St, Nominatim has no house
+  number there and offers two street segments, but "GMHBA Stadium" resolves as
+  `type=stadium`. Ask for the feature by name before its street.
+
+`Queenscliff Music Festival` was already event 33 — verified, dated off qmf.net.au.
+Moshtix added only the missing `ticket_url`, with its `_gl=` analytics parameters
+stripped. Worth checking before creating anything from a link: this one would
+have been a duplicate.
+
+## Why the venue page is read but its links are not
 
 `Queenscliff Town Hall` (place 138, 50 Learmonth St, pinned house-level) was
 added 27 Aug 2026 with its Moshtix venue page as `events_url`. It reads: the run
