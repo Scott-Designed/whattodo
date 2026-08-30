@@ -1,5 +1,821 @@
 [
  {
+  "recorded_at": "2026-08-30T23:51:33Z",
+  "run_id": "33341999937",
+  "run_number": "7",
+  "trigger": "schedule",
+  "url": "https://github.com/Scott-Designed/whattodo/actions/runs/33341999937",
+  "steps": [
+   {
+    "name": "Surf Coast events calendar",
+    "script": "scrape_events.py",
+    "exit": 0,
+    "text": "reading https://www.surfcoastevents.com.au/wp-json/tribe/events/v1/events \u2026\n  106 listings -> 48 series in the next 270 days\n\nsurfcoastevents.com.au \u2014 2026-08-30\n  106 listings, 48 distinct series, 694 events already in the database\n\nNEW \u2014 0\n\nDATE MOVED since we imported it \u2014 2\n      84  Parkrun \u2013 every Saturday                   2026-08-29 -> 2026-09-05  (VERIFIED, left alone)\n      86  Trebeck Reserve Parkrun \u2013 every Saturday   2026-08-29 -> 2026-09-05  (VERIFIED, left alone)\n\nSAME NAME already in the database \u2014 3, skipped\n      34  Cadel Evans Great Ocean Road Race\n      25  Great Ocean Road Running Festival\n      36  Surf Coast Century\n\n0 added unverified. Review: python3 scripts/sync.py pending",
+    "ok": true,
+    "ran": true,
+    "listings": 106,
+    "series": 48,
+    "new": 0,
+    "clashes": 3,
+    "added": 0,
+    "moved": 0,
+    "drift": [
+     {
+      "id": 84,
+      "name": "Parkrun \u2013 every Saturday",
+      "from": "2026-08-29",
+      "to": "2026-09-05",
+      "locked": true
+     },
+     {
+      "id": 86,
+      "name": "Trebeck Reserve Parkrun \u2013 every Saturday",
+      "from": "2026-08-29",
+      "to": "2026-09-05",
+      "locked": true
+     }
+    ],
+    "sources": [
+     {
+      "name": "surfcoastevents.com.au",
+      "how": "WordPress JSON API (106 listings \u2192 48 series)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "The Events Calendar"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 3
+     }
+    ]
+   },
+   {
+    "name": "Venue ticketing pages",
+    "script": "scrape_venues.py",
+    "exit": 0,
+    "text": "venue feeds \u2014 2026-08-30\n  140 venues, 68 with somewhere to look\n\n  70D The Terrace \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Aireys Pub \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Apollo Bay Hotel \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Apollo Bay Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Bannockburn Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Barwon Club Hotel \u2014 Oztix (10 gigs from 10 of 10 links) [found at / \u2014 set events_url to lock it in]\n\n  Barwon Heads Hotel \u2014 own listing (13 gigs); Oztix (12 gigs from 12 of 12 links)\n     2027-02-18  Osees                                          already there as 149\n\n  Barwon Heads Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Bellarine Catchment Network \u2014 schema.org on the page (8); Humanitix (20 gigs from 80 of 95 links)\n\n  Bellarine Estate Winery \u2014 Eventbrite (1) \u2014 needs an organiser page, or a person [found at / \u2014 set events_url to lock it in]\n\n  Bellbrae Estate \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Bells Beach Brewing \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Belmont Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Bird Rock \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  Biyal-a Armstrong Creek Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Blackmans Brewery \u2014 schema.org on the page (2); Humanitix (14 gigs from 75 of 75 links)\n\n  Bomboras \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Boronggook Drysdale Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Church Geelong \u2014 nothing machine-readable\n\n  Colac Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Corio Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Creative Geelong Makers Hub \u2014 Eventbrite API (12)\n     2026-09-03  Still life drawing session                     NEW  [high  verified]\n     2026-09-12  Soul Connections - A Soul-led Art Workshop     NEW  [high  verified]\n     2026-09-17  LIFE DRAWING - September                       NEW  [high  verified]\n     2026-09-19  Saturday Markets at Creative Geelong           NEW  [high  verified]\n     2026-09-26  LIFE DRAWING - September - Saturday session    NEW  [high  verified]\n     2026-10-15  LIFE DRAWING - October                         NEW  [high  verified]\n     2026-10-17  Saturday Markets at Creative Geelong           already there as another venue in this run\n     2026-10-24  Eco-resin (non toxic) workshop with Alvie, F   NEW  [high  verified]\n     2026-10-24  Jewellery  Workshop                            already there as another venue in this run\n     2026-10-31  LIFE DRAWING - October- Saturday session       NEW  [high  verified]\n     2026-11-21  Saturday Markets at Creative Geelong           already there as another venue in this run\n     2026-12-19  Saturday Markets at Creative Geelong           already there as another venue in this run\n\n  Cuda Bar \u2014 site did not respond\n\n  Elephant & Castle Hotel \u2014 TryBooking (1 gigs from 1 of 1 links) [found at /events \u2014 set events_url to lock it in]\n\n  Flying Brick Cider Co \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Forrest Mountain Bike and Cycling Club \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Gather \u2014 robots.txt asks us not to read it\n\n  Geelong Library and Heritage Centre (The Dome) \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Geelong West Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Grand Hotel Portarlington \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Great Ocean Road Brewhouse \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Highton Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Jan Juc Surf Life Saving Club \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Kardinia Park Precinct \u2014 robots.txt asks us not to read it\n\n  Lambys Tavern \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Lara Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Last One Inn \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Leopold Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Little Creatures Brewery \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Lorne Hotel \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Mt Rothwell Safe Haven \u2014 Eventbrite API (6)\n     2026-09-12  Into the Woodlands X Creatures of the Night    NEW  [high  verified]\n     2026-09-26  Creatures of the Night Spotlight Tour          NEW  [high  verified]\n     2026-09-27  Into the Woodlands Birdwatching Tour           NEW  [high  verified]\n     2026-10-10  Into the Woodlands X Creatures of the Night    already there as another venue in this run\n     2026-10-18  Into the Woodlands Birdwatching Tour           already there as another venue in this run\n     2026-10-31  Spooky Creatures of the Night Spotlight Tour   NEW  [high  verified]\n\n  National Hotel \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Newcomb Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Ocean Grove Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Oneday Estate \u2014 Humanitix (3 gigs from 3 of 3 links) [found at /events \u2014 set events_url to lock it in]\n\n  Patagonia Torquay \u2014 nothing machine-readable\n\n  Piano Bar Geelong \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Provenance Wines \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Queenscliff Brewhouse \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Queenscliff Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Queenscliff Railway Station \u2014 site did not respond\n\n  Queenscliff Town Hall \u2014 robots.txt asks us not to read it\n\n  Saints and Sailors \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Surf Coast Environment Group \u2014 schema.org on the page (3); Humanitix (11 gigs from 65 of 65 links)\n\n  Surf Coast Mountain Bike Club \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Surf Coast Shire Offices \u2014 nothing machine-readable [homepage; no gig page found]\n\n  The 18th Amendment Bar \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  The Book Club Social \u2014 schema.org on the page (2); Humanitix (15 gigs from 71 of 71 links)\n       venue: \"Hosted on Humanitix\" is not a place\n       venue: \"Hosted on Humanitix\" is not a place\n       venue: \"Hosted on Humanitix\" is not a place\n\n  The Sewing Collective \u2014 nothing machine-readable [homepage; no gig page found]\n\n  The Sound Doctor \u2014 schema.org on the page (4); Humanitix (16 gigs from 78 of 78 links)\n     2026-09-25  The Lazy Eyes                                  already there as 81\n     2026-10-30  Queenie                                        already there as 71\n     2026-10-31  Telenova                                       already there as 78\n     2026-11-01  Budjerah - The Gentleman Tour                  already there as 58\n\n  The Whiskery \u2014 site did not respond\n\n  The Wool Exchange Entertainment Complex \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  Torquay Bowls Club \u2014 Eventbrite API (1)\n     2026-09-12  SARGENT BAKER w/ THE SPIT, LIZARD LOUNGE + S   NEW  [high  verified]\n\n  Torquay Hotel \u2014 own listing (14 gigs over 2 pages); Oztix (13 gigs from 13 of 13 links)\n     2026-09-12  Nektar Records feat. franck (UK)               already there as 32\n\n  Waurn Ponds Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Western Heights College Library \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Workers Club Geelong \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  You Yangs Mountain Bike Club \u2014 site did not respond\n\n13 new, 12 already in the database, 37 venue(s) with nothing readable\nadded event 715: Still life drawing session\nadded event 716: Soul Connections - A Soul-led Art Workshop\nadded event 717: LIFE DRAWING - September\nadded event 718: Saturday Markets at Creative Geelong\nadded event 719: LIFE DRAWING - September - Saturday session\nadded event 720: LIFE DRAWING - October\nadded event 721: Eco-resin (non toxic) workshop with Alvie, From Star &Stone Studio.\nadded event 722: LIFE DRAWING - October- Saturday session\nadded event 723: Into the Woodlands X Creatures of the Night\nadded event 724: Creatures of the Night Spotlight Tour\nadded event 725: Into the Woodlands Birdwatching Tour\nadded event 726: Spooky Creatures of the Night Spotlight Tour\nadded event 727: SARGENT BAKER w/ THE SPIT, LIZARD LOUNGE + SAM SHALLUE\n\n13 added \u2014 13 auto-verified, 0 waiting for you at /admin",
+    "ok": true,
+    "ran": true,
+    "venues": 140,
+    "readable": 68,
+    "new": 13,
+    "dupes": 12,
+    "rooms": null,
+    "added": 13,
+    "sources": [
+     {
+      "name": "70D The Terrace",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Aireys Pub",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Apollo Bay Hotel",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Apollo Bay Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bannockburn Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Barwon Club Hotel",
+      "how": "Oztix (10 gigs from 10 of 10 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "Oztix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Barwon Heads Hotel",
+      "how": "own listing (13 gigs); Oztix (12 gigs from 12 of 12 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Oztix"
+      ],
+      "own": true,
+      "new": 0,
+      "dupe": 1
+     },
+     {
+      "name": "Barwon Heads Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bellarine Catchment Network",
+      "how": "schema.org on the page (8); Humanitix (20 gigs from 80 of 95 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bellarine Estate Winery",
+      "how": "Eventbrite (1) \u2014 needs an organiser page, or a person",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bellbrae Estate",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bells Beach Brewing",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Belmont Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bird Rock",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Biyal-a Armstrong Creek Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Blackmans Brewery",
+      "how": "schema.org on the page (2); Humanitix (14 gigs from 75 of 75 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bomboras",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Boronggook Drysdale Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Church Geelong",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Colac Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Corio Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Creative Geelong Makers Hub",
+      "how": "Eventbrite API (12)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 8,
+      "dupe": 4
+     },
+     {
+      "name": "Cuda Bar",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Elephant & Castle Hotel",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at /events \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Flying Brick Cider Co",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Forrest Mountain Bike and Cycling Club",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Gather",
+      "how": "robots.txt asks us not to read it",
+      "hint": null,
+      "state": "refused",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Geelong Library and Heritage Centre (The Dome)",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Geelong West Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Grand Hotel Portarlington",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Great Ocean Road Brewhouse",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Highton Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Jan Juc Surf Life Saving Club",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Kardinia Park Precinct",
+      "how": "robots.txt asks us not to read it",
+      "hint": null,
+      "state": "refused",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Lambys Tavern",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Lara Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Last One Inn",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Leopold Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Little Creatures Brewery",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Lorne Hotel",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Mt Rothwell Safe Haven",
+      "how": "Eventbrite API (6)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 4,
+      "dupe": 2
+     },
+     {
+      "name": "National Hotel",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Newcomb Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Ocean Grove Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Oneday Estate",
+      "how": "Humanitix (3 gigs from 3 of 3 links)",
+      "hint": "found at /events \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Patagonia Torquay",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Piano Bar Geelong",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Provenance Wines",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Queenscliff Brewhouse",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Queenscliff Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Queenscliff Railway Station",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Queenscliff Town Hall",
+      "how": "robots.txt asks us not to read it",
+      "hint": null,
+      "state": "refused",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Saints and Sailors",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Surf Coast Environment Group",
+      "how": "schema.org on the page (3); Humanitix (11 gigs from 65 of 65 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Surf Coast Mountain Bike Club",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Surf Coast Shire Offices",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The 18th Amendment Bar",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Book Club Social",
+      "how": "schema.org on the page (2); Humanitix (15 gigs from 71 of 71 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Sewing Collective",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Sound Doctor",
+      "how": "schema.org on the page (4); Humanitix (16 gigs from 78 of 78 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 4
+     },
+     {
+      "name": "The Whiskery",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Wool Exchange Entertainment Complex",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Torquay Bowls Club",
+      "how": "Eventbrite API (1)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 1,
+      "dupe": 0
+     },
+     {
+      "name": "Torquay Hotel",
+      "how": "own listing (14 gigs over 2 pages); Oztix (13 gigs from 13 of 13 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Oztix"
+      ],
+      "own": true,
+      "new": 0,
+      "dupe": 1
+     },
+     {
+      "name": "Waurn Ponds Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Western Heights College Library",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Workers Club Geelong",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "You Yangs Mountain Bike Club",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     }
+    ],
+    "drift": []
+   }
+  ],
+  "ok": true,
+  "needs_you": 2
+ },
+ {
   "recorded_at": "2026-08-30T12:49:35Z",
   "run_id": "33311603974",
   "run_number": "6",
