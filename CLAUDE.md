@@ -2069,7 +2069,7 @@ the day's work.
 
     520  Trailhead Bike Co.          67 Great Ocean Road, Anglesea
     521  Forrest Bike Hire           16 Grant Street, Forrest
-    522  Bike Matters                Torquay — no address published
+    522  Bike Matters                11/12, 31 Baines Crescent, Torquay
     523  De Grandi Cycle Works       36 Mercer Street, Geelong
     524  Hendry's Geelong            Shop 3/170 Torquay Road, Grovedale
     525  Hendry's Ocean Grove        1/83 The Parade, Ocean Grove
@@ -2124,11 +2124,26 @@ one-off.
   address** (247 vs 39A Murray Street), which is its own warning.
 
 **Torquay's own bike shop is in neither OSM nor any directory.** Bike Matters
-was found by search alone. It takes bookings rather than walk-ins and publishes
-no street address, so it carries **no coordinate** — and its site advertises a
-Geelong studio as *coming soon*, which is deliberately not listed: a page
-announcing a future opening is not evidence of one, the Sustainable House Day
-call again.
+was found by search alone. Its site advertises a Geelong studio as *coming
+soon*, which is deliberately not listed: a page announcing a future opening is
+not evidence of one, the Sustainable House Day call again.
+
+**Its address came from Scott, because the business does not publish one.**
+Checked properly before asking: the home page, the Torquay booking page and the
+raw HTML of both carry no street address, no map link and no phone. Bookings go
+through an embedded **Hubtiger** widget (`bookings.hubtiger.com`), which is why
+there is a booking page and no shopfront details — worth knowing, because a shop
+on that platform will look address-less to any scraper. Scott supplied
+**11/12, 31 Baines Crescent, Torquay** on 28 Aug 2026, and that geocodes to a
+Nominatim `type=house` match on number 31 which reverse-geocodes back to the
+same address, so the pin is building level. A person handing over a fact is a
+source, the same way a link a person pastes is not an invented URL — but the
+row's `source_note` says it was Scott and not the site, because those are
+different strengths of evidence.
+
+Note Baines Crescent is the same street as event 22, the *Baines Crescent
+outlets* — a light-industrial estate that is a permanent retail precinct rather
+than an event, and still on the /admin list to be dealt with.
 
 **Colac is unresolved.** Three names turn up — Bike Guru (closed), "The Bike
 Shop", and Colac Bicycles & Repairs — and not one has a reachable first-party
