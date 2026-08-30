@@ -2,6 +2,7 @@
  "note": "Series already offered by scrape_events.py. Delete a line to be offered it again \u2014 otherwise something you rejected comes back on Thursday.",
  "offered": [
   "a-day-on-the-farm-school-holiday-program-4",
+  "adult-art-class-gel-plate-printing",
   "afterglow-night-trail-runs",
   "aireys-inlet-fair",
   "aireys-inlet-market-4",
@@ -42,6 +43,7 @@
   "the-great-ocean-road-womens-surf-festival",
   "the-impossible-ocean-paddle",
   "the-lazy-eyes-at-the-sound-doctor",
+  "the-tomorrow-experience-entrepreneurship-edition",
   "tim-gates-classic",
   "torquay-cowrie-market",
   "torquay-farmers-market-every-saturday",
@@ -49,6 +51,7 @@
   "torquay-triathlon-super-sprint",
   "trebeck-reserve-parkrun",
   "waterloo-the-abba-tribute-dinner-show",
-  "winchelsea-community-market-first-sunday-of-month"
+  "winchelsea-community-market-first-sunday-of-month",
+  "winchelsea-re-loved-market-3"
  ]
 }
