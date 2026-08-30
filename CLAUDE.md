@@ -3287,6 +3287,48 @@ mechanical substitution a regeneration would perform, and without it the
 offline copy would carry a type the vocabulary no longer knows. The blob is
 still stale by about 800 rows; that is a separate job.
 
+### Findings that need a person do not happen — 31 Aug 2026
+
+The arts pass left four corrections needing `/admin`. Three days later **all
+four were still exactly as found**, while every rule moved into `sync.py`'s
+`check()` had held across four passes without a single breach. That asymmetry is
+the prose-versus-code lesson one level up: **a mechanical rule gets kept and a
+noted correction gets forgotten**, so anything that can be enforced should be,
+and anything that cannot needs somewhere it will actually be seen.
+
+Three were applied 31 Aug 2026:
+
+- **Events 30 and 51 were one ANGAIR festival**, merged onto 30 the way the
+  Torquay Farmers Market pair was. 30 keeps its first-party angair.org.au url
+  and `high` confidence; `ends_on 2026-09-20` came across from 51.
+
+  **51's `place_id` was deliberately NOT taken, against the pass's own
+  recommendation.** Reading both rows in full showed the venues disagree: 30's
+  first-party page says *Anglesea Community Hub*, 51 says *Anglesea Memorial
+  Hall*, and place 80 is the Hall. Copying the id would have asserted the two
+  buildings are one. 30 stays unpinned until a Community Hub place row exists —
+  which this file already lists as a job.
+- **`Geelong Arts Centre`** was `art gallery` alone while `theatre` had one
+  listing site-wide; now `theatre · art gallery`.
+- **`Lorne Theatre`** was `cinema` alone though its own masthead reads
+  "MUSIC | THEATRE | FILM"; now `cinema · theatre`.
+- **`Geelong Gallery`** was typed `museum` and is the region's public art
+  gallery; now `art gallery · museum`.
+
+`theatre` went 1 → 10 across the arts pass and this correction.
+
+**Two are still open and are both Scott's call**, which is why they were left:
+
+- **Event 7, the Surf Coast Arts Trail, is still corrupt** — `starts_on
+  2027-08-07`, `ends_on 2026-10-12`, an end ten months before the start, and
+  neither date was ever published. The 2026 Trail ran 1–2 August and is over.
+  The honest options are to delete the row or to blank both dates and leave it
+  annual with no next date. Quietly picking one would be the same species of
+  decision that put the wrong date there in the first place.
+- **Places 98 and 102 are both the HOOP Gallery.** Merging places is the
+  three-step alias treatment — repoint what references the loser, add its name
+  to the winner's `aliases`, then delete — and needs checking what points at 102.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
