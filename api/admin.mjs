@@ -264,6 +264,130 @@ export default async function handler(req, res) {
         : detail.slice(0, 300)});
   }
 
+  // ── test a source, server-side ───────────────────────────────────────────
+  // The point of doing it here rather than in the page: this function is not a
+  // browser (so CORS cannot block it) and it is not ClaudeBot (so sites that
+  // disallow that crawler, like Coast & Bay and Humanitix, are readable). It
+  // identifies as whattodo-janjuc, the same as the scrapers, and honours
+  // robots.txt before fetching anything.
+  if (action === 'probe') {
+    const raw = String(req.body?.url || '').trim();
+    let u;
+    try { u = new URL(raw); } catch { return res.status(400).json({error:'bad_url'}); }
+    if (!['http:', 'https:'].includes(u.protocol))
+      return res.status(400).json({error:'bad_scheme'});
+    // Not a hop into the private network. This endpoint takes a URL from a
+    // browser, so it must not become a way to read things only the server can.
+    if (/^(localhost$|127\.|10\.|192\.168\.|169\.254\.|0\.|\[?::1)/i.test(u.hostname)
+        || /^172\.(1[6-9]|2\d|3[01])\./.test(u.hostname))
+      return res.status(400).json({error:'private_address'});
+
+    const UA = 'whattodo-janjuc/1.0 (+https://www.notice.place; community events listing)';
+    const get = async (url, ms = 12000) => {
+      const stop = AbortSignal.timeout(ms);
+      const r = await fetch(url, {headers: {'User-Agent': UA}, signal: stop, redirect: 'follow'});
+      return {status: r.status, type: r.headers.get('content-type') || '',
+              body: (await r.text()).slice(0, 400_000)};
+    };
+
+    const out = {url: u.toString(), checked: []};
+    try {
+      // robots first, and read it the way eventlib does — only a 401/403 on
+      // robots.txt itself counts as a refusal.
+      let allowed = true, why = 'robots.txt allows it';
+      try {
+        const rb = await get(u.origin + '/robots.txt', 8000);
+        if ([401, 403].includes(rb.status)) { allowed = false; why = 'robots.txt refused'; }
+        else if (rb.status === 200) {
+          // the group that applies to us, plus any that names us
+          const lines = rb.body.split(/\r?\n/).map(l => l.trim());
+          let active = false, dis = [];
+          for (const l of lines) {
+            const m = /^user-agent:\s*(.+)$/i.exec(l);
+            if (m) { active = ['*', 'whattodo-janjuc'].includes(m[1].trim().toLowerCase()); continue; }
+            const d = /^disallow:\s*(.*)$/i.exec(l);
+            if (d && active && d[1].trim()) dis.push(d[1].trim());
+          }
+          // A robots pattern is not a prefix. Truncating at the first `*` turns
+          // `/*?add-to-cart=` into `/`, which matches every path on the site —
+          // that read Coast & Bay and Patagonia as refusing us outright when
+          // both plainly allow the pages we wanted. `*` is any run of
+          // characters and a trailing `$` anchors the end; everything else is
+          // literal.
+          const rx = p => new RegExp('^' +
+            p.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+             .replace(/\*/g, '.*')
+             .replace(/\\\$$/, '$'));
+          const path = u.pathname + u.search;
+          const hit = dis.find(p => { try { return rx(p).test(path); } catch { return false; } });
+          if (hit) { allowed = false; why = `robots.txt disallows ${hit}`; }
+        }
+      } catch { why = 'robots.txt could not be read — proceeding'; }
+      out.robots = why;
+      if (!allowed) return res.status(200).json({...out, ok: false, verdict: 'robots.txt says no'});
+
+      const page = await get(u.toString());
+      out.status = page.status;
+      out.checked.push(`fetched (${page.status}, ${(page.body.length/1024).toFixed(0)}KB)`);
+      if (page.status >= 400)
+        return res.status(200).json({...out, ok:false, verdict:`the site answered ${page.status}`});
+
+      // 1. a real JSON feed?
+      if (/json/i.test(page.type)) {
+        try {
+          const j = JSON.parse(page.body);
+          const arr = Array.isArray(j) ? j : (j.events || j.items || j.data);
+          if (Array.isArray(arr) && arr.length) {
+            const k = Object.keys(arr[0] || {});
+            return res.status(200).json({...out, ok: true,
+              verdict: `a JSON feed with ${arr.length} item(s)`,
+              detail: `fields on the first one: ${k.slice(0, 10).join(', ')}`});
+          }
+          return res.status(200).json({...out, ok:false,
+            verdict:'valid JSON, but no list of events in it',
+            detail: JSON.stringify(j).slice(0, 200)});
+        } catch { /* fall through */ }
+      }
+
+      // 2. schema.org events in the HTML?
+      const blocks = [...page.body.matchAll(
+        /<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)];
+      let events = 0;
+      for (const b of blocks) {
+        try {
+          const doc = JSON.parse(b[1]);
+          const stack = [doc];
+          while (stack.length) {
+            const o = stack.pop();
+            if (Array.isArray(o)) { stack.push(...o); continue; }
+            if (!o || typeof o !== 'object') continue;
+            stack.push(...Object.values(o).filter(v => v && typeof v === 'object'));
+            const ty = [].concat(o['@type'] || []).join(' ');
+            const isEvent = /Event/.test(ty) && ty !== 'EventVenue';
+            if ((isEvent || /Festival|Hackathon|CourseInstance/.test(ty)) && o.startDate) events++;
+          }
+        } catch {}
+      }
+      if (events) return res.status(200).json({...out, ok:true,
+        verdict:`${events} schema.org event(s) on the page`,
+        detail:'the venue scraper can read this — put it in events_url'});
+
+      // 3. a ticketing platform linked from it?
+      const plat = ['oztix','humanitix','trybooking','eventbrite','moshtix']
+        .filter(p => page.body.toLowerCase().includes(p + '.com'));
+      if (plat.length) return res.status(200).json({...out, ok:true,
+        verdict:`links to ${plat.join(', ')}`,
+        detail:'the scraper follows those, so this page is worth registering'});
+
+      return res.status(200).json({...out, ok:false,
+        verdict:'nothing machine-readable',
+        detail:'no JSON feed, no schema.org events, no ticketing links'});
+    } catch (e) {
+      return res.status(200).json({...out, ok:false,
+        verdict:'could not be reached', detail:String(e).slice(0,140)});
+    }
+  }
+
   // ── approve rows from the review queue ──────────────────────────────────
   // One request for a whole batch: the library import alone is 500 rows and
   // 500 round trips would be absurd. Every row still has to earn it — a

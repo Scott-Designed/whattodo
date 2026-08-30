@@ -929,12 +929,18 @@ Cloudflare AI-bot list, not a judgement about this project.
 Its Content Signals say `search=yes, ai-train=no, use=reference`. Nothing here
 trains anything, and referencing is permitted.
 
-**The decisive fact is one request nobody has made yet.** The site is WordPress,
-so it may publish the same Events Calendar JSON API surfcoastevents does — which
-would make it the second real feed this project has ever had. One line settles
-it, run by a person or the Action:
+**ANSWERED 28 Aug 2026 — it does publish the feed.** The back-of-house "Test
+this source" button ran it and got *"a JSON feed with 3 items"*, with the same
+field shape as surfcoastevents (`id, global_id, global_id_lineage, author,
+status, date, date_utc…`). So this is **the second real feed this project has
+ever had**, and the only thing left is point 2 below: `scrape_events.py` has to
+learn to carry more than one source.
 
-    curl -s "https://coastandbay.com.au/wp-json/tribe/events/v1/events?per_page=3"
+    https://coastandbay.com.au/wp-json/tribe/events/v1/events?per_page=3
+
+The check could not come from a Claude session — that site disallows ClaudeBot —
+and it did not: it came from the Vercel function, which is neither a browser nor
+ClaudeBot, identifies as `whattodo-janjuc`, and reads robots.txt first.
 
 **2. `scrape_events.py` is hardwired to one source, and that is deeper than a
 constant.** `SOURCE`/`API` are module-level, but so is the rest: the
@@ -1270,6 +1276,40 @@ pass the gate today — but 500 of them are the library import, which is exactly
 the set Scott has flagged as needing filtering. They pass every machine test and
 fail the judgement test, which is the distinction the gate exists to draw. The
 gate is forward-looking only.
+
+### Test this source — a button that runs the check
+
+Every source with a URL has one, and it does the work rather than describing it.
+`action: 'probe'` on `/api/admin` fetches the page **server-side** and reports
+what a scraper would actually find: a JSON feed and its item count, schema.org
+events and how many, links to a known ticketing platform, or nothing
+machine-readable.
+
+**Why the server and not the page.** The Vercel function is not a browser, so
+CORS cannot block it, and it is not ClaudeBot, so a site that disallows that
+crawler — Coast & Bay, Humanitix — is still readable. It identifies as
+`whattodo-janjuc`, the same as the scrapers, and reads robots.txt first. That is
+how the Coast & Bay question above got answered after sitting open for days.
+
+It refuses private addresses (`localhost`, `10.*`, `192.168.*`, link-local),
+because an endpoint that takes a URL from a browser must not become a way to
+read things only the server can reach.
+
+**A robots.txt pattern is not a prefix, and treating it as one is a false
+refusal.** The first version truncated at the first `*`, so `/*?add-to-cart=`
+became `/` and matched every path on the site. Coast & Bay and Patagonia both
+came back "robots.txt says no" when both plainly allow the pages we wanted. `*`
+is now expanded to `.*` and a trailing `$` anchors the end. **Fail-closed
+matching is worse than useless if the pattern is wrong** — it hides a working
+source behind a rule the site never wrote.
+
+### The venue list
+
+The Places tab answers "what reads this venue, and how much is it carrying":
+kind, town, the **automation** (state, what reads it, when it last read) and
+**events** (upcoming, total, plus any activities linked to it). Sortable by most
+events or automated-first. It is the same `sourceRows()` the Automations tab
+uses, so the two can never disagree.
 
 ### "Needs a person" says which person does what
 
