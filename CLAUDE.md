@@ -2874,6 +2874,93 @@ through `notice-page.js`, which has its own `row()`/`item()`. The parser is
 already shared, so adding it there is one condition in each — the town page's
 What's on is where it would earn its place next.
 
+## One thing in several places — 30 Aug 2026
+
+Scott's ask, off a screenshot of five near-identical rows: *"if an event has the
+same name and time but appears at multiple locations, can it just appear once
+and say Library, with the locations in smaller text underneath?"*
+
+Yes, and it is now what the board does. **552 rows for 640 things** on the
+default view — 88 lines that were saying the same sentence five times.
+
+**The shape of the problem, measured first: 142 of the 686 events are in 56
+clusters** sharing a name, a date and a published time across different
+branches, and **every one of them is the library**. Toddler Time on a Monday is
+five rows differing only in the branch.
+
+### The rule
+
+Same **name** + same **effective date** + same **published time** = one line.
+Three things it is careful about, all in `notice-vocab.js` beside `nextDate`:
+
+- **The key is the effective date.** `nextDate` rolls a weekly event forward, so
+  keying on the stored `starts_on` would split a standing Tuesday cluster the
+  week it rolls.
+- **Only dated things cluster.** Two cafes with one name are two cafes. Two
+  events with one name, one date and one clock time are one thing in several
+  rooms.
+- **Clustering happens AFTER `ok()`, never before.** Narrow to Torquay and the
+  five-branch row is a single Torquay row again — checked, it is. That falls out
+  for free and it is the only version that cannot lie: a collapsed row never
+  stands for something the filter has excluded.
+
+**It is deliberately not a library rule.** Nothing tests `added_by`, a place
+kind or a name. Three dawn services at one hour in three towns would collapse
+the same way and should — the row claims "this name, this time, at these
+places", which is exactly what the data says. It does not claim one organiser.
+
+### What the Where column says
+
+`placesLabel` prints **"5 libraries"**, and the branches go underneath in the
+same small type the suburb used. The noun is derived, never assumed:
+`commonPlaceWord` intersects the words of the place names and prints the shared
+one — five branches share *library* and nothing else. **With no shared word it
+says "3 places"**, which is the honest fallback and the reason two unrelated
+venues can never be given a name that only one of them carries.
+
+**More than one word can be shared** — every Geelong branch carries *geelong* as
+well as *library*. The tie is broken by position: an organisation's own noun
+trails a branch name, so each candidate is scored by how far through the names
+it falls. That is the whole of the cleverness and it is worth keeping small.
+
+`shortPlace` drops the word the row has already said — but **only a trailing
+match**, because cutting a word out of the middle of a name makes a phrase
+nobody wrote. `Geelong Library and Heritage Centre (The Dome)` therefore cannot
+lose its Library that way, and falls back on **the short name the place
+publishes for itself in brackets**: *The Dome*, which is what everyone calls it.
+
+The sub-line clips like every other column and carries the **full branch list on
+its `title`**, so nothing is hidden, only shortened.
+
+### What the open row has to keep
+
+**Collapsing the line must not lose the fact that these are different
+buildings.** The detail draws a `.branches` list: each branch by name, its town
+where the name does not already say it (*Colac Library* is in Colac), its own
+`info_url` — every library event has a different one — and its own Directions
+from its own coordinate. The single-row **Address** line is suppressed on a
+cluster, because one member's address is not the set's.
+
+### Three things that had to move with it
+
+- **`VISIBLE` is still the flat list, so the map keeps every pin.** Clustering is
+  a list-view transform and nothing else. 640 visible, 609 pinned, unchanged.
+- **The tally still counts things, not lines.** *640 things pinned* above 552
+  rows is the honest way round — the row itself says how many places it stands
+  for, and the map's count agrees with the tally rather than with the list.
+- **The pin saves the whole set.** `data-k` carries every member's key, `kept`
+  means all of them, and pressing an all-saved row clears it. `toggleSaved(k)`
+  became `setSaved(keys, on)` — one thing on the board should be one thing on
+  your list.
+
+### Not done
+
+**The subject pages do not cluster.** `place.html` and `type.html` render
+through `notice-page.js`, which has its own `row()`/`item()`; `/kids` and the
+Geelong town page are where it would earn its place next. The helpers are in
+`notice-vocab.js` precisely so that is a call, not a second copy — and they are
+DOM-free, because `api/subject.mjs` evaluates that file in a `node:vm` sandbox.
+
 ## `gig` became `music` — 30 Aug 2026
 
 Scott's call, made while retyping Pop Cultcha: a record shop cannot be a `gig`.

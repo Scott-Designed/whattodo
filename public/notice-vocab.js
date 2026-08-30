@@ -378,3 +378,82 @@ const TYPE_PLURAL={
   volunteering:'Volunteering'};
 const typeLabel = t => TYPE_PLURAL[t] || (t||'').replace(/-/g,' ')
   .replace(/^./,c=>c.toUpperCase());
+
+/* ══ one thing, several places ══════════════════════════════════════════════
+   Geelong Regional Libraries publish Toddler Time as one row per branch, so a
+   Saturday morning on the board was five identical lines differing only in the
+   branch name. 142 of the 686 events are in that shape today, across 56
+   clusters, and every one of them is the library. The board draws such a set
+   once and says where underneath.
+
+   Three things this is careful about:
+
+   - The key is the EFFECTIVE date. `nextDate` rolls a weekly event forward, so
+     grouping on the stored `starts_on` would split a standing Tuesday cluster
+     the week it rolls.
+   - Only DATED things cluster. Two cafes with the same name are two cafes; two
+     events with one name, one date and one published time are one thing in
+     several rooms.
+   - Grouping happens AFTER the filter, never before. Filter to Torquay and a
+     five-branch cluster is a single Torquay row again, which is the honest
+     answer and falls out for free.
+
+   DOM-free, like the rest of this file — api/subject.mjs evaluates it in a
+   node:vm sandbox. ════════════════════════════════════════════════════════ */
+function clusterKey(i){
+  if(!i.ev || !i.date) return null;
+  return [String(i.name||'').trim().toLowerCase(), nextDate(i),
+          String(i.time||'').trim().toLowerCase()].join('\u001f');
+}
+/* An ordered list of groups, each group an array. A cluster takes the position
+   of its first member, so whatever the sort said still holds. */
+function clusterRows(list){
+  const at=new Map(), out=[];
+  for(const i of list){
+    const k=clusterKey(i), seen=k?at.get(k):null;
+    if(seen){ seen.push(i); continue }
+    const cell=[i]; out.push(cell); if(k) at.set(k,cell);
+  }
+  return out;
+}
+
+/* What a set of place names have in common, if anything. Five branches share
+   the word "Library" and nothing else, so the row can say what they are; two
+   unrelated venues share nothing and the row says "2 places" instead. Never a
+   word only some of them carry. */
+const PLACE_STOP=new Set(['the','and','for','with']);
+const placeWords = n => String(n||'').toLowerCase().replace(/[()]/g,' ')
+  .split(/[^a-z']+/).filter(w=>w.length>2 && !PLACE_STOP.has(w));
+function commonPlaceWord(names){
+  const bag=names.map(placeWords);
+  if(bag.length<2 || bag.some(w=>!w.length)) return '';
+  const shared=[...new Set(bag[0].filter(w=>bag.every(ws=>ws.includes(w))))];
+  if(!shared.length) return '';
+  /* More than one word can be shared — every Geelong branch carries "geelong"
+     as well as "library". An organisation's own noun is the one that TRAILS a
+     branch name, so score each by how far through the names it falls. */
+  const score=w=>bag.reduce((s,ws)=>s+ws.indexOf(w)/Math.max(ws.length-1,1),0);
+  return shared.sort((a,b)=>score(b)-score(a))[0];
+}
+const pluralWord = w => /y$/.test(w) ? w.slice(0,-1)+'ies'
+                      : /(s|x|ch|sh)$/.test(w) ? w+'es' : w+'s';
+const placeNames = g => [...new Set(g.map(i=>String(i.place||'').trim()).filter(Boolean))];
+/* "5 libraries", or "5 places" when the names have nothing in common. */
+function placesLabel(g){
+  const names=placeNames(g), w=commonPlaceWord(names);
+  return (names.length||g.length)+' '+(w?pluralWord(w):'places');
+}
+/* The branch, without the word the row has already said. Only a TRAILING match
+   is cut — taking a word out of the middle of a name makes a phrase nobody
+   wrote, so "Geelong Library and Heritage Centre (The Dome)" cannot lose its
+   "Library" that way. What it can do is fall back on the short name the place
+   publishes for itself in brackets: it is called The Dome, by everyone. */
+function shortPlace(name, word){
+  const full=String(name||'');
+  if(!word) return full;
+  const esc=w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const cut=full.replace(new RegExp('\\s+'+esc(word)+'\\s*$','i'),'').trim();
+  if(cut && !new RegExp('\\b'+esc(word)+'\\b','i').test(cut)) return cut;
+  const brack=full.match(/\(([^)]{2,30})\)\s*$/);
+  return brack ? brack[1].trim() : (cut || full);
+}

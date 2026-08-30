@@ -425,6 +425,17 @@ option{background:var(--ground);color:var(--ink)}
 .dl b{display:block;font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:10px;color:var(--ink3);margin-bottom:5px}
 .dl span{color:var(--ink2)}
 .links{display:flex;flex-wrap:wrap;gap:22px;margin-top:6px}
+/* One thing in several places: the branches, under the description in the open
+   row. Each keeps its own link and its own directions — collapsing the line
+   must not lose the fact that these are different buildings. */
+.branches{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.branches li{font-family:var(--serif);font-size:16px;color:var(--ink2);line-height:1.3}
+.branches a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule2);padding-bottom:1px}
+.branches a:hover{border-bottom-color:var(--ink)}
+.branches .tm{display:inline;margin-left:9px}
+.branches .dir{font-family:var(--util);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink3);margin-left:10px;border-bottom-color:transparent}
+.branches .dir:hover{border-bottom-color:var(--ink3)}
 .links a{font-family:var(--serif);font-size:16px;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule2);padding-bottom:1px}
 .links a:hover{border-bottom-color:var(--ink)}
 .none{padding:80px 0;text-align:center;color:var(--ink3);font-size:20px}
@@ -724,8 +735,8 @@ const keyOf = i => (i.ev?'e':'a')+i.id;
 let SAVED=new Set();
 try{ SAVED=new Set(JSON.parse(localStorage.getItem(SAVEKEY)||'[]')) }catch(e){}
 const isSaved = i => SAVED.has(keyOf(i));
-function toggleSaved(k){
-  SAVED.has(k) ? SAVED.delete(k) : SAVED.add(k);
+function setSaved(keys, on){
+  keys.forEach(k=> on ? SAVED.add(k) : SAVED.delete(k));
   /* Private browsing refuses to write. The pin still works for this visit —
      it just will not be there next time, which beats not working at all. */
   try{ localStorage.setItem(SAVEKEY, JSON.stringify([...SAVED])) }catch(e){}
@@ -1326,39 +1337,60 @@ function render(){
   document.getElementById('tally').textContent =
     list.length===1 ? '1 thing pinned' : list.length+' things pinned';
   paintChips();
-  document.getElementById('rows').innerHTML = list.length ? list.map(i=>{
-    const [wVenue,wSuburb]=whereParts(i);
-    const sk=keyOf(i), kept=SAVED.has(sk);
+  /* Five branches running one story time at one hour is one line, not five.
+     Clustered AFTER the filter, so narrowing to a town leaves a single row for
+     that town; and VISIBLE above is the flat list, so the map keeps every pin.
+     The tally still counts things rather than lines — the row says how many
+     places it stands for, which is the honest way round. */
+  const groups=clusterRows(list);
+  document.getElementById('rows').innerHTML = groups.length ? groups.map(g=>{
+    const i=g[0], many=g.length>1;
+    const word = many ? commonPlaceWord(placeNames(g)) : '';
+    const branches = many ? g.map(x=>shortPlace(String(x.place||'').trim()
+                              || townOf(x.loc) || '', word)).filter(Boolean) : [];
+    const [wVenue,wSuburb] = many ? [placesLabel(g), branches.join(', ')]
+                                  : whereParts(i);
+    const keys=g.map(keyOf), sk=keys.join(' '), kept=keys.every(k=>SAVED.has(k));
     return `<div class="rec">
       <div class="rowhead${kept?' saved':''}"${(i.groups||[])[0]?` data-tint="${i.groups[0]}"`:''}>
       <button class="rowline" aria-expanded="false">
         <span class="c-icon" aria-hidden="true">${ICON_OF[i.type]?`<svg><use href="#i-${ICON_OF[i.type]}"/></svg>`:''}</span>
-        <span class="c-name"><span class="nm">${esc(i.name)}</span>${onNow(i,NOW,SUNSET)?`<span class="live" title="On right now &middot; ${esc(i.time||'')}">on now</span>`:''}${i.added?`<span class="mine" title="${i.by?esc(i.by)+' added this — ':''}not checked yet">unverified</span>`:''}</span>
+        <span class="c-name"><span class="nm">${esc(i.name)}</span>${onNow(i,NOW,SUNSET)?`<span class="live" title="On right now &middot; ${esc(i.time||'')}">on now</span>`:''}${g.some(x=>x.added)?`<span class="mine" title="${i.by?esc(i.by)+' added this — ':''}not checked yet">unverified</span>`:''}</span>
         <span class="c-type">${i.type?esc(i.type):'<span class="est" style="display:inline">unsorted</span>'}</span>
-        <span class="c-where">${esc(wVenue)}${wSuburb?`<span class="tm">${esc(wSuburb)}</span>`:''}</span>
+        <span class="c-where"${many?` title="${esc(placeNames(g).join(' \u00b7 '))}"`:''}>${esc(wVenue)}${wSuburb?`<span class="tm">${esc(wSuburb)}</span>`:''}</span>
         <span class="c-when">${whenText(i)}</span>
         <span class="c-extra">${(()=>{const x=extraOf(i);return x?esc(x.value):''})()}</span>
-        <span class="mob">${[i.type, whereLine(i), whenText(i).replace(/<[^>]+>/g,'\u001f'),
+        <span class="mob">${[i.type, many?wVenue:whereLine(i), whenText(i).replace(/<[^>]+>/g,'\u001f'),
           (()=>{const x=extraOf(i);return x?x.value:''})()]
           .flatMap(v=>String(v==null?'':v).split('\u001f')).map(v=>v.trim())
           .filter(Boolean).map(esc).join(' &middot; ')}</span>
       </button>
       <button class="savebtn${kept?' on':''}" type="button" data-k="${sk}" aria-pressed="${kept}"
-              aria-label="${kept?'Saved':'Save'}: ${esc(i.name)}"
+              aria-label="${kept?'Saved':'Save'}: ${esc(i.name)}${many?' at '+esc(wVenue):''}"
               title="${kept?'Saved — click to remove':'Save this'}"><span class="glyph">\u{1F4CC}</span></button>
       </div>
       <div class="detail"><div class="detail-in">
         <div>
           <p>${i.desc?esc(i.desc):'<em style="color:var(--ink3)">No description yet.</em>'}</p>
-          <div class="links">
+          ${many?`<ul class="branches">${g.map(x=>{
+            const nm=String(x.place||'').trim()||townOf(x.loc)||'Somewhere';
+            const tn=townOf(x.loc), href=x.info||x.ticket||(isMapLink(x.url)?'':x.url);
+            /* Colac Library is in Colac — the town only earns its place when the
+               branch name does not already say it. Same test as whereParts. */
+            const say=tn && !nm.toLowerCase().includes(tn.toLowerCase());
+            return `<li>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">${esc(nm)}</a>`:esc(nm)}`
+              + (say?`<span class="tm">${esc(tn)}</span>`:'')
+              + (x.lat!=null?` <a class="dir" href="https://www.google.com/maps/dir/?api=1&destination=${x.lat},${x.lng}" target="_blank" rel="noopener">Directions</a>`:'')
+              + `</li>`;
+          }).join('')}</ul>`:`<div class="links">
             ${i.url&&i.url!==i.info?`<a href="${esc(i.url)}" target="_blank" rel="noopener">${isMapLink(i.url)?'Open in Maps':'Website'}</a>`:''}
             ${i.info?`<a href="${esc(i.info)}" target="_blank" rel="noopener">More info</a>`:''}
             ${i.ticket?`<a href="${esc(i.ticket)}" target="_blank" rel="noopener">Tickets</a>`:''}
             ${i.lat?`<a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}" target="_blank" rel="noopener">Directions</a>`:''}
-          </div>
+          </div>`}
         </div>
         <div>
-          ${addressOf(i)?`<p class="dl"><b>Address</b><span>${esc(addressOf(i))}</span></p>`:''}
+          ${!many&&addressOf(i)?`<p class="dl"><b>Address</b><span>${esc(addressOf(i))}</span></p>`:''}
           ${i.notes?`<p class="dl"><b>Good to know</b><span>${esc(i.notes)}</span></p>`:''}
           ${(i.cond||[]).length?`<p class="dl"><b>Best conditions</b><span>${esc(i.cond.join(', '))}</span></p>`:''}
           ${(i.ages||[]).length?`<p class="dl"><b>Suits</b><span>${esc(i.ages.join(', '))}</span></p>`:''}
@@ -1714,9 +1746,12 @@ document.getElementById('savedbtn').addEventListener('click',()=>{
    has just left it. Anywhere else a redraw would shut every open row. */
 document.getElementById('rows').addEventListener('click',e=>{
   const b=e.target.closest('.savebtn'); if(!b) return;
-  const k=b.dataset.k;
-  toggleSaved(k);
-  const on=SAVED.has(k);
+  /* A clustered row carries every member's key, so its pin saves the whole set
+     — it is one thing on the board and it should be one thing on your list.
+     Pressing it when all of them are already saved is what takes them off. */
+  const ks=b.dataset.k.split(' ');
+  const on=!ks.every(k=>SAVED.has(k));
+  setSaved(ks,on);
   b.classList.toggle('on',on);
   b.closest('.rowhead').classList.toggle('saved',on);
   b.setAttribute('aria-pressed',String(on));
