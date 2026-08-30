@@ -1310,9 +1310,18 @@ automatically / Added by hand* filter. It needed no new data: `added_by` is what
 every scraper already stamps on an insert, and it had simply never been shown.
 A green ✓ means no person typed it.
 
-**The confidence column is headed "How sure", not "Date from".** It holds
-`date_confidence`, and the old label read as though the cell would contain a
-date — so a column of the word *high* looked like a bug rather than an answer.
+**`date_confidence` is not shown on the Events list at all** (removed 28 Aug
+2026, Scott's call — it was briefly headed "Date from", which read as though the
+cell held a date). It still appears in the **Review** queue, where it is
+actually load-bearing: deciding whether to approve a row is the moment the
+question matters. On a list you are scanning, it was a column of the word *high*.
+
+**`km` is NOT a flag.** Distance is deliberately left null on every import until
+there is a way to compute a driving distance — a standing decision, not an
+omission. Flagging it put *no distance 643* at the head of the Events worklist
+and *261* on Activities: the largest item on a list of things to fix was the one
+thing nobody intends to fix by hand. A worklist that leads with something you
+have decided not to do teaches you to ignore the worklist.
 
 **`/admin` is 1640px wide, not the site's 1400.** It is a desktop-only back
 office whose tables run to eleven columns; at the site's reading width the

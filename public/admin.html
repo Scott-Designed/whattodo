@@ -435,6 +435,11 @@ const mapsSearch = u => {
   return !!q && !/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(decodeURIComponent(q[1]));
 };
 
+/* `km` is deliberately NOT a flag. Distance is left null on every import until
+   there is a way to compute a driving distance, which is a standing decision
+   rather than an omission — flagging it put "no distance 643" at the head of
+   the Events worklist and "261" on Activities, which is a list of things to fix
+   telling you to fix the thing nobody intends to fix by hand. */
 function flagsFor(r, kind){
   const f = [];
   if (kind === 'events'){
@@ -443,7 +448,6 @@ function flagsFor(r, kind){
         (!r.recurrence || r.recurrence === 'none'))  f.push('in the past');
     if (r.date_confidence !== 'high')                f.push('soft date');
     if (!r.info_url && !r.ticket_url)                f.push('no link');
-    if (r.km === null)                               f.push('no distance');
     if (!r.verified)                                 f.push('unverified');
     if (!r.starts_on)                                f.push('no date');
   } else {
@@ -453,7 +457,6 @@ function flagsFor(r, kind){
     // A Maps *search* link is a query, not a place — a standing item on the
     // list in CLAUDE.md. It never resolves to one point.
     if (mapsSearch(r.url))                            f.push('maps search');
-    if (!home && r.km === null)                       f.push('no distance');
     if (!r.verified)                                  f.push('unverified');
     if (!r.description)                               f.push('no description');
   }
@@ -1314,7 +1317,7 @@ function drawEvents(){
 
   $('#elist').innerHTML = `<table><thead><tr>
       <th>Name</th><th>Type</th><th>When</th><th>Time</th><th>How often</th>
-      <th>Venue</th><th>Town</th><th>Source</th><th>Link</th><th>How sure</th><th>To fix</th><th></th>
+      <th>Venue</th><th>Town</th><th>Source</th><th>Link</th><th></th>
     </tr></thead><tbody>${out.map(r => {
       const place = DATA.places.find(p => p.id === r.place_id);
       const repeats = r.recurrence && r.recurrence !== 'none';
@@ -1343,12 +1346,6 @@ function drawEvents(){
                   onclick="event.stopPropagation()"
                   style="color:var(--ink2)">${esc(urlStub(u))} ↗</a>`
                  : '<span style="color:var(--ink3)">—</span>';
-           })()}</td>
-        <td><span class="tag ${r.date_confidence==='high'?'live':r.date_confidence==='low'?'dead':''}">${esc(r.date_confidence || '—')}</span></td>
-        <td class="cap" style="color:var(--ink3)">${(() => {
-             // Everything except the two the columns above already say.
-             const show = r.__flags.filter(f => !['no date','soft date'].includes(f));
-             return show.length ? esc(show.join(', ')) : '';
            })()}</td>
         <td style="text-align:right;color:var(--ink3);white-space:nowrap">edit →</td>
       </tr>`;
@@ -1399,7 +1396,7 @@ function drawActivities(){
              // What is left to do with this row, as words in a column. The two
              // that repeat Pinned and Km are not among them.
              const show = r.__flags.filter(f =>
-               !['no pin','no distance','coarse pin'].includes(f));
+               !['no pin','coarse pin'].includes(f));
              return show.length ? esc(show.join(', ')) : '';
            })()}</td>
         <td style="text-align:right;color:var(--ink3);white-space:nowrap">edit →</td>
