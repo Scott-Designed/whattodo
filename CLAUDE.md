@@ -1303,6 +1303,30 @@ is now expanded to `.*` and a trailing `$` anchors the end. **Fail-closed
 matching is worse than useless if the pattern is wrong** — it hides a working
 source behind a rule the site never wrote.
 
+### No chips in a table, and no badge that restates its own row
+
+Two passes with Scott on 28 Aug 2026, and the rule that came out of them:
+
+**A badge that repeats its own row is noise.** Places carried `NO KIND` beside a
+Kind column reading "—", `NO WEBSITE` beside an Automation of *no website on
+file*, `NO PIN` beside a Pinned of *no*. Every flag except `coarse pin`
+duplicated a column the row already had. The badges are gone; `coarse pin`
+became a third state on Pinned, which is where the only non-duplicated one
+belonged. Activities kept `maps search` and `unverified` — nothing else on that
+table says either — but as **a "To fix" column of plain words**, not chips.
+
+**A bordered pill inside a cell is a box drawn round a word that already has a
+column.** One CSS rule strips every `.tag` inside a `td` to plain coloured text:
+the colour is the signal, the box never was. The filter buttons above a table
+keep their shape, because those are controls rather than data.
+
+**The tab intros went too**, the same call already made for Automations. What is
+left above each table is a heading, a search box and the filter chips.
+
+`Address` is a yes/no column on Places — 59 of 139 have one — and a `no address`
+chip, because "which venues can never have their pin checked" is a real job and
+was invisible.
+
 ### The venue list
 
 The Places tab answers "what reads this venue, and how much is it carrying":

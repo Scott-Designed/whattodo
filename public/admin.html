@@ -178,6 +178,18 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
   color:var(--ink3);border:1px solid var(--rule2);padding:0 5px;border-radius:2px}
 .empty{color:var(--ink3);font-size:13px;padding:30px 0}
 
+/* No chips in a table. A bordered pill inside a cell is a box drawn around a
+   word that is already in a column of its own; the colour is the signal and
+   the box is decoration. The filter buttons above a table keep their shape,
+   because those are controls rather than data. */
+td .tag{border:none;padding:0;border-radius:0;text-transform:none;
+  letter-spacing:0;font-size:12.5px;font-weight:500;background:none}
+td .tag.live{color:var(--good)}
+td .tag.dead{color:var(--bad)}
+td .tag.warn{color:var(--accent);background:none}
+.rowflags{margin-top:0}
+td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
+  font-size:11.5px;color:var(--ink3)}
 /* ── the editor ── */
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;
   display:flex;justify-content:flex-end}
@@ -256,10 +268,6 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
 
 <section id="tab-events" hidden>
   <h2>Events</h2>
-  <p class="note">Things that happen on a date and then are over. A date is what
-     separates these from everything else — so what matters here is when, where, and
-     how well the date is actually known. Recurring ones are still events; the
-     <em>How often</em> filter holds the list down to the genuine one-offs.</p>
   <div class="controls">
     <input type="search" id="eq" placeholder="Search names, venues, descriptions…">
     <select id="etype"><option value="">Any type</option></select>
@@ -286,10 +294,6 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
 
 <section id="tab-activities" hidden>
   <h2>Activities</h2>
-  <p class="note">The evergreen half — places and things that are simply there, with no
-     date on them. What matters here is whether each one can be found: a real
-     coordinate, a driving distance, and a link that points at a place rather than a
-     search for one.</p>
   <div class="controls">
     <input type="search" id="aq" placeholder="Search names, suburbs, descriptions…">
     <select id="atype"><option value="">Any type</option></select>
@@ -306,10 +310,6 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
 
 <section id="tab-places" hidden>
   <h2>Places</h2>
-  <p class="note">The venues both of the above hang off — a curated, geocoded row per
-     building. Linking an event to one of these is what gives it a pin, a suburb and a
-     line on the map. Filling in a place’s <span class="mono">events_url</span> is also
-     the entire registry for the venue scraper: it reads any row that has one.</p>
   <div class="controls">
     <input type="search" id="pq" placeholder="Search places, suburbs, aliases…">
     <select id="pkind"><option value="">Any kind</option></select>
@@ -434,6 +434,7 @@ function placeFlags(p){
   if (p.lat === null || p.lng === null) f.push('no pin');
   if (coarse(p.lat) || coarse(p.lng))   f.push('coarse pin');
   if (!p.kind)                          f.push('no kind');
+  if (!p.address)                       f.push('no address');
   if (!p.website && !p.events_url)      f.push('no website');
   // A place nothing points at is either a duplicate or a row waiting for work.
   if (!p.__events)                      f.push('no events');
@@ -1252,7 +1253,7 @@ function drawEvents(){
         <td>${place ? esc(place.name) : r.venue ? esc(r.venue) : '<span style="color:var(--ink3)">—</span>'}
             ${r.location ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(r.location)}</span>` : ''}</td>
         <td><span class="tag ${r.date_confidence==='high'?'live':r.date_confidence==='low'?'dead':''}">${esc(r.date_confidence || '—')}</span></td>
-        <td style="text-align:right;color:var(--ink3)">edit →</td>
+        <td style="text-align:right;color:var(--ink3);white-space:nowrap">edit →</td>
       </tr>`;
     }).join('')}</tbody></table>`;
   $('#elist').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
@@ -1285,20 +1286,11 @@ function drawActivities(){
   if (!out.length){ $('#alist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
 
   $('#alist').innerHTML = `<table><thead><tr>
-      <th>Name</th><th>Type</th><th>Where</th><th>Km</th><th>Pinned</th><th>Cost</th><th></th>
+      <th>Name</th><th>Type</th><th>Where</th><th>Km</th><th>Pinned</th><th>Cost</th><th>To fix</th><th></th>
     </tr></thead><tbody>${out.map(r => `
       <tr class="clickable" data-id="${r.id}">
         <td><div class="rowname">${esc(r.name)}</div>
-            ${(() => {
-               // Only flags no column already carries. "no pin" beside a Pinned
-               // of "no", or "no distance" beside a Km of "—", is the row
-               // repeating itself. maps search, no description and unverified
-               // stay, because nothing else on this table says them.
-               const show = r.__flags.filter(f =>
-                 !['no pin','no distance','coarse pin'].includes(f));
-               return show.length
-                 ? `<div class="rowflags">${show.map(f=>`<span>${esc(f)}</span>`).join('')}</div>` : '';
-             })()}</td>
+            </td>
         <td>${esc((r.types || []).join(' · ') || '—')}</td>
         <td>${esc(r.location || '—')}</td>
         <td>${r.km === null || r.km === undefined ? '<span style="color:var(--ink3)">—</span>' : esc(r.km)}</td>
@@ -1306,7 +1298,14 @@ function drawActivities(){
              : (coarse(r.lat) || coarse(r.lng)) ? '<span class="tag warn">coarse</span>'
              : '<span class="tag live">yes</span>'}</td>
         <td>${esc(r.cost || '—')}</td>
-        <td style="text-align:right;color:var(--ink3)">edit →</td>
+        <td style="color:var(--ink3);white-space:nowrap">${(() => {
+             // What is left to do with this row, as words in a column. The two
+             // that repeat Pinned and Km are not among them.
+             const show = r.__flags.filter(f =>
+               !['no pin','no distance','coarse pin'].includes(f));
+             return show.length ? esc(show.join(', ')) : '';
+           })()}</td>
+        <td style="text-align:right;color:var(--ink3);white-space:nowrap">edit →</td>
       </tr>`).join('')}</tbody></table>`;
   $('#alist').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
     openEditor('activities', DATA.activities.find(x => x.id === +tr.dataset.id)));
@@ -1348,7 +1347,7 @@ function drawPlaces(){
   for (const r of sourceRows()) if (r.kind === 'venue') srcByName[r.name] = r;
 
   $('#plist').innerHTML = `<table><thead><tr>
-      <th>Venue</th><th>Kind</th><th>Town</th><th>Automation</th>
+      <th>Venue</th><th>Kind</th><th>Town</th><th>Address</th><th>Automation</th>
       <th>Events</th><th>Pinned</th><th></th>
     </tr></thead><tbody>${list.map(p => {
       const s  = srcByName[p.name] || {};
@@ -1361,6 +1360,7 @@ function drawPlaces(){
             ${p.aliases?.length ? `<div style="color:var(--ink3);font-size:11.5px">also: ${esc(p.aliases.join(', '))}</div>` : ''}</td>
         <td>${esc(p.kind || '—')}</td>
         <td>${esc(p.suburb || '—')}</td>
+        <td>${p.address ? 'yes' : '<span style="color:var(--ink3)">no</span>'}</td>
         <td>${st ? `<span class="tag ${st.tag}">${esc(st.label)}</span>` : '<span style="color:var(--ink3)">—</span>'}
             ${s.via && s.via !== '—' ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(s.via)}</span>` : ''}
             ${s.read ? `<br><span style="color:var(--ink3);font-size:11px">read ${esc(ago(s.read))}</span>` : ''}</td>
@@ -1371,7 +1371,7 @@ function drawPlaces(){
         <td>${!p.lat || !p.lng ? '<span class="tag">no</span>'
              : (coarse(p.lat) || coarse(p.lng)) ? '<span class="tag warn">coarse</span>'
              : '<span class="tag live">yes</span>'}</td>
-        <td style="text-align:right;color:var(--ink3)">edit →</td>
+        <td style="text-align:right;color:var(--ink3);white-space:nowrap">edit →</td>
       </tr>`;
     }).join('')}</tbody></table>`;
   $('#plist').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
