@@ -1303,6 +1303,27 @@ is now expanded to `.*` and a trailing `$` anchors the end. **Fail-closed
 matching is worse than useless if the pattern is wrong** — it hides a working
 source behind a rule the site never wrote.
 
+### One row is one line
+
+The Events table was three facts deep in places — date over time, venue over
+town, flags under the name — so a row could be 121px and the column could not be
+scanned. Each fact now has its own column: **When · Time · How often · Venue ·
+Town · Link · Date from · To fix**. All 683 rows are 39px.
+
+**Anything with no natural length limit is cut, with the whole value on the
+`title`.** A name, a venue, a `time_text` that is prose in some rows ("34km
+8.30am from Queenscliff; 17km about 9.40am from Drysdale"), a list of types.
+`white-space:nowrap` alone is not the answer — it stops the wrap and pushes the
+table sideways instead, which is what happened first. `td.cap` does both: cut,
+ellipsis, tooltip.
+
+The table lives in its own `overflow-x:auto`, so a wide table scrolls itself
+rather than the page.
+
+**Link** shows the host and first path segment — enough to tell an Oztix ticket
+page from the venue's own site — links out, and carries the full URL on the
+tooltip.
+
 ### No chips in a table, and no badge that restates its own row
 
 Two passes with Scott on 28 Aug 2026, and the rule that came out of them:

@@ -178,6 +178,16 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
   color:var(--ink3);border:1px solid var(--rule2);padding:0 5px;border-radius:2px}
 .empty{color:var(--ink3);font-size:13px;padding:30px 0}
 
+/* Any cell whose content has no natural length limit: cut it, put the whole
+   thing on the title. time_text is prose in some rows ("34km 8.30am from
+   Queenscliff; 17km about 9.40am from Drysdale") and nowrap alone just pushed
+   the table sideways instead of wrapping. */
+td.cap{max-width:20ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.cap.wide{max-width:26ch}
+/* A name is the one field with no length limit, and three of them wrapping to
+   three lines is what stops a table being scannable. Cut with an ellipsis; the
+   full name is on the title and the row opens the editor anyway. */
+td .rowname{max-width:34ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* No chips in a table. A bordered pill inside a cell is a box drawn around a
    word that is already in a column of its own; the colour is the signal and
    the box is decoration. The filter buttons above a table keep their shape,
@@ -299,7 +309,9 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
     </select>
   </div>
   <div class="flags" id="eflags"></div>
-  <div id="elist"></div>
+  <div style="overflow-x:auto">
+    <div id="elist"></div>
+  </div>
 </section>
 
 <section id="tab-activities" hidden>
@@ -1225,6 +1237,20 @@ const hit = (r, q, extra = []) => !q ||
   [r.name, r.location, r.description, (r.types || []).join(' '), ...extra]
     .some(v => String(v ?? '').toLowerCase().includes(q));
 
+/* A URL in a table cell is either a link you can press or noise. This gives
+   the host and the first path segment, which is enough to tell moshtix from
+   the venue's own site, with the whole address on the tooltip. */
+function urlStub(u, n = 28){
+  try {
+    const x = new URL(u);
+    const host = x.hostname.replace(/^www\./, '');
+    const path = x.pathname.replace(/\/$/, '');
+    const seg  = path.split('/').filter(Boolean)[0];
+    const s = host + (seg ? '/' + seg : '');
+    return s.length > n ? s.slice(0, n - 1) + '…' : s;
+  } catch { return String(u).slice(0, n); }
+}
+
 /* ── events: things that happen on a date and then are over ────────────────
    Kept apart from activities because almost nothing about them is the same
    question. An event is asked "when is it, where is it, and how sure are we";
@@ -1264,21 +1290,37 @@ function drawEvents(){
   if (!out.length){ $('#elist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
 
   $('#elist').innerHTML = `<table><thead><tr>
-      <th>Name</th><th>Type</th><th>When</th><th>How often</th><th>Where</th><th>Date from</th><th></th>
+      <th>Name</th><th>Type</th><th>When</th><th>Time</th><th>How often</th>
+      <th>Venue</th><th>Town</th><th>Link</th><th>Date from</th><th>To fix</th><th></th>
     </tr></thead><tbody>${out.map(r => {
       const place = DATA.places.find(p => p.id === r.place_id);
       const repeats = r.recurrence && r.recurrence !== 'none';
       const past = r.starts_on && r.starts_on < TODAY && !repeats;
+      // The town is the place's curated suburb where there is one; townOf
+      // collapses a row's own street address to its town otherwise.
+      const town = place?.suburb || townOf(r.location) || '';
+      const venue = place?.name || r.venue || '';
       return `<tr class="clickable" data-id="${r.id}">
-        <td><div class="rowname">${esc(r.name)}</div>
-            ${r.__flags.length ? `<div class="rowflags">${r.__flags.map(f=>`<span>${esc(f)}</span>`).join('')}</div>` : ''}</td>
-        <td>${esc((r.types || []).join(' · ') || '—')}</td>
-        <td${past ? ' style="color:var(--ink3)"' : ''}>${esc(r.starts_on || '—')}
-            ${r.time_text ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(r.time_text)}</span>` : ''}</td>
+        <td title="${esc(r.name)}"><div class="rowname">${esc(r.name)}</div></td>
+        <td class="cap" title="${esc((r.types || []).join(' · '))}">${esc((r.types || []).join(' · ') || '—')}</td>
+        <td${past ? ' style="color:var(--ink3)"' : ''} style="white-space:nowrap">${esc(r.starts_on || '—')}</td>
+        <td class="cap" style="color:var(--ink3)" title="${esc(r.time_text || '')}">${esc(r.time_text || '')}</td>
         <td>${repeats ? esc(r.recurrence) : '<span style="color:var(--ink3)">once</span>'}</td>
-        <td>${place ? esc(place.name) : r.venue ? esc(r.venue) : '<span style="color:var(--ink3)">—</span>'}
-            ${r.location ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(r.location)}</span>` : ''}</td>
+        <td class="cap wide" title="${esc(venue)}">${venue ? esc(venue) : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td class="cap" title="${esc(town)}">${town ? esc(town) : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td class="cap">${(() => {
+             const u = r.info_url || r.ticket_url;
+             return u ? `<a href="${esc(u)}" target="_blank" rel="noopener" title="${esc(u)}"
+                  onclick="event.stopPropagation()"
+                  style="color:var(--ink2)">${esc(urlStub(u))} ↗</a>`
+                 : '<span style="color:var(--ink3)">—</span>';
+           })()}</td>
         <td><span class="tag ${r.date_confidence==='high'?'live':r.date_confidence==='low'?'dead':''}">${esc(r.date_confidence || '—')}</span></td>
+        <td class="cap" style="color:var(--ink3)">${(() => {
+             // Everything except the two the columns above already say.
+             const show = r.__flags.filter(f => !['no date','soft date'].includes(f));
+             return show.length ? esc(show.join(', ')) : '';
+           })()}</td>
         <td style="text-align:right;color:var(--ink3);white-space:nowrap">edit →</td>
       </tr>`;
     }).join('')}</tbody></table>`;
