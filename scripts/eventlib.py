@@ -242,15 +242,25 @@ def eventbrite_events(org_id, token, horizon_days=400):
             'status': 'live', 'order_by': 'start_asc',
             'expand': 'venue', 'page': page})
         req = urllib.request.Request(f'{EB_API}/organizers/{org_id}/events/?{q}')
-        req.add_header('Authorization', 'Bearer ' + token)
+        # .strip(): a token set from a prompt or a copied line arrives with a
+        # trailing newline often enough to be worth defending against, and it
+        # fails as a flat 401 that looks like the wrong token entirely.
+        req.add_header('Authorization', 'Bearer ' + token.strip())
         req.add_header('User-Agent', UA)
         try:
             with urllib.request.urlopen(req, timeout=20) as r:
                 doc = json.loads(r.read().decode('utf-8', 'replace'))
         except urllib.error.HTTPError as e:
-            # 401 is a bad token, 404 an organiser that has gone. Both are worth
-            # saying out loud rather than reading as "no events".
-            raise RuntimeError(f'Eventbrite {e.code} for organiser {org_id}') from None
+            # Say which failure it is. A 401 is about the token and no amount of
+            # re-running fixes it; a 404 is about this organiser and the others
+            # may still be fine.
+            why = {401: 'token rejected — it must be the PRIVATE TOKEN from '
+                        'eventbrite.com/platform/api-keys, not an API key, public '
+                        'token or OAuth client secret',
+                   403: 'token lacks permission for this organiser',
+                   404: 'no such organiser — it may have been deleted',
+                   429: 'rate limited; try again later'}.get(e.code, 'unexpected')
+            raise RuntimeError(f'{e.code} {why}') from None
         except Exception as e:
             raise RuntimeError(f'Eventbrite unreachable: {str(e)[:60]}') from None
 

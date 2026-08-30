@@ -1754,6 +1754,20 @@ Set it from the terminal, not the web form — this project has already put the
 text of a shell command into a secret that way, and the failure surfaced three
 layers later as `unknown url type`.
 
+**First real run: 401 on all three** (30 Aug 2026). The secret was set and
+reached the job — the log shows `EVENTBRITE_TOKEN: ***` — and Eventbrite
+rejected it. A 401 is about the token itself, so re-running never fixes it. The
+usual cause is the wrong one of Eventbrite's four credentials: it must be the
+**private token** from eventbrite.com/platform/api-keys, not the API key, the
+public token or an OAuth client secret. A trailing newline from a prompt does it
+too, which is why the token is now `.strip()`ed before use.
+
+One command settles it, and needs no run:
+
+    curl -s -H "Authorization: Bearer <token>" https://www.eventbriteapi.com/v3/users/me/
+
+A good token returns your Eventbrite user; a bad one returns `NOT_AUTHORIZED`.
+
 **Without the token those rows say so** — *"Eventbrite — set EVENTBRITE_TOKEN to
 read it"* — rather than reading as no events, which is the difference between a
 source that is empty and one that is not being asked.
