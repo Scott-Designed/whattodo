@@ -2508,9 +2508,55 @@ how duplicates are made. `running` read 13 and was really 16.
 
 `get()` pages with `Range` now and callers ask for `all_rows=True`. **The lesson
 is the one nearby.py has already taught three times: a filter that drops rows
-without saying so is worse than one that fails.** Any other script trusting a
-`limit` against a table that has crossed 1000 rows wants checking — the library
-import is what pushed `listings` over.
+without saying so is worse than one that fails.**
+
+### Then every other read was audited — four more, two already wrong
+
+This is the **third** independent discovery of the same cap in one day: the
+board and `/admin` (commit 1029fb1, `notice-data.js` + `admin.html`), then
+`have.py`, then a grep of every `rest/v1` read in the repo. Do that grep before
+assuming a script is fine.
+
+    nearby.py listed_names()   listings  1207  ALREADY WRONG — was reading 1000
+    retype.py                  listings  1207  ALREADY WRONG — was reading 1000
+    scrape_library.py          grlc evts  500  time bomb, and the worst failure
+    sync.py export()           acts/evts  524/683  time bomb
+
+**`nearby.py` was the dangerous one of the two already broken.** Its
+"already listed" check went blind to 207 rows, so it would report things the
+database already holds as gaps to go and research — the duplicate-making
+direction, in the tool a research pass runs first.
+
+**`scrape_library.py`'s is the worst failure mode**, though it had not fired
+yet. That read is the *idempotency* check — the one added after a run died at
+307 of 500 with the ledger unwritten — so a short read means re-importing events
+that are already there. `limit=5000` was doing nothing, and grlc events sat at
+500, one import from crossing the cap.
+
+`eventlib.db` takes `all_rows=True` now and pages; `retype.req` and
+`nearby.listed_names` do their own. **`sync.py`'s duplicate check was never
+exposed** — it is a filtered `name=ilike` query, not a full-table read — but
+`export()` writes the spreadsheet from a full read and is fixed with the rest.
+
+**The general rule for this repo: a `limit=` above 1000 is a lie.** It reads as
+a deliberate ceiling and is silently ignored, which is why three of these sat
+unnoticed. Page, or filter server-side.
+
+### And `sync.py pending` has been broken since the multi-type migration
+
+Found running the paging fix: `pending`, `verify`, `reject` and `export` all
+still selected the **`type`** column that `TYPES_MULTI.sql` replaced with the
+`types` array. Every one answered a raw PostgREST 400 —
+*"column activities.type does not exist"*. `add` and `check` were updated at the
+time; these four were not, and nothing has run them since.
+
+Fixed — they read `types` and print it joined with `·`. Worth noticing WHY it
+went unseen for so long: this file has been saying "the moderation queue is
+empty because everything was verified in bulk", which was true on 25 Aug and has
+not been true for days. **It is 785 rows now** — 248 activities and 537 events,
+of which 500 are the library import — and the tool that shows them has been
+answering 400 the whole time. A tool nobody runs is a tool nobody notices is
+broken, and a note saying "this is empty" is what stops people running it.
 
 ### The `listings` view has no `ends_on`
 
@@ -2985,12 +3031,16 @@ caught it before it shipped; clicking around the page would not have.
 - `Barwon Heads Community Park Playground` (89) is pinned at the park polygon's
   centre, which reverse-geocodes to the pony club inside the same park. Right
   precinct, possibly not the playground — worth a better point if it matters.
-- **The moderation queue is empty because everything was verified in bulk**
-  (25 Aug 2026, all 101 at once, on Scott's instruction). Each row's
-  `source_note` says so, in those words. A `verified` flag on one of these
-  records that Scott accepted the queue, not that anyone read that row's own
-  page — treat it as weaker evidence than a flag set one row at a time, and do
-  not let it stop you questioning a date. `Ashmore Arts` (169) and `The Fives` (168) are both
+- **The moderation queue is NOT empty any more — 785 rows** (30 Aug 2026): 248
+  activities and 537 events, 500 of them the library import. It was emptied in
+  bulk on 25 Aug and has refilled since. `sync.py pending` was answering 400 for
+  most of that time (see the paging section above), so nothing was visible.
+
+  The 25 Aug clearance was all 101 at once, on Scott's instruction, and each of
+  those rows' `source_note` says so in those words. A `verified` flag on one of
+  them records that Scott accepted the queue, not that anyone read that row's
+  own page — treat it as weaker evidence than a flag set one row at a time, and
+  do not let it stop you questioning a date. `Ashmore Arts` (169) and `The Fives` (168) are both
   verified; both had their distance cleared rather than guessed and still need real ones,
   as does `Bird Rock Farm` (171)
 - Distances unverified; Waurn Ponds known wrong

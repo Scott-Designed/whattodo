@@ -35,7 +35,22 @@ KEY = os.environ.get('SUPABASE_SERVICE_KEY') or ''
 if not URL or not KEY:
     sys.exit("Set SUPABASE_URL and SUPABASE_SERVICE_KEY (in the environment or .env).")
 
-def req(method, path, body=None, extra=None):
+PAGE = 1000
+
+def req(method, path, body=None, extra=None, all_rows=False):
+    # PostgREST caps a response at 1000 rows on Supabase whatever `limit` says,
+    # and says nothing about it. all_rows pages with Range until a page comes
+    # back short, which is the only end-of-data signal it gives.
+    if all_rows:
+        out, lo = [], 0
+        while True:
+            chunk = req(method, path, body,
+                        {**(extra or {}), 'Range-Unit': 'items',
+                         'Range': f'{lo}-{lo + PAGE - 1}'})
+            out += chunk
+            if len(chunk) < PAGE:
+                return out
+            lo += PAGE
     r = urllib.request.Request(URL+path, method=method,
         data=json.dumps(body).encode() if body is not None else None)
     r.add_header('apikey', KEY); r.add_header('Authorization','Bearer '+KEY)
@@ -77,8 +92,10 @@ def export():
     from openpyxl import load_workbook
     xl = ROOT/'JanJuc_WhatToDo_Database.xlsx'
     if not xl.exists(): sys.exit(f"Put the spreadsheet at {xl} first.")
-    acts = req('GET','/rest/v1/activities?select=*&order=id')
-    evs  = req('GET','/rest/v1/events?select=*&order=id')
+    # Paged: PostgREST caps at 1000 rows silently, and a spreadsheet export that
+    # quietly stops at 1000 is a backup with a hole in it. events was at 683.
+    acts = req('GET','/rest/v1/activities?select=*&order=id', all_rows=True)
+    evs  = req('GET','/rest/v1/events?select=*&order=id', all_rows=True)
     wb = load_workbook(xl)
     stamp = datetime.date.today().isoformat()
     out = ROOT/f'JanJuc_WhatToDo_Database.{stamp}.xlsx'
@@ -98,7 +115,8 @@ def export():
     nxt = ws.max_row+1
     for a in acts:
         if a['id'] in seen: continue
-        ws.cell(nxt,1).value=a['id']; ws.cell(nxt,2).value=a['name']; ws.cell(nxt,3).value=a['type']
+        ws.cell(nxt,1).value=a['id']; ws.cell(nxt,2).value=a['name']
+        ws.cell(nxt,3).value=' · '.join(a.get('types') or [])
         ws.cell(nxt,6).value=a.get('cost'); ws.cell(nxt,7).value=a.get('location')
         ws.cell(nxt,8).value=a.get('km');   ws.cell(nxt,11).value=a.get('description')
         ws.cell(nxt,12).value=a.get('url'); ws.cell(nxt,13).value=a.get('added_by')
@@ -112,7 +130,7 @@ def export():
 
 def pending():
     for t in ('activities','events'):
-        rows = req('GET', f'/rest/v1/{t}?select=id,name,type,location,added_by,created_at&verified=eq.false&order=created_at.desc')
+        rows = req('GET', f'/rest/v1/{t}?select=id,name,types,location,added_by,created_at&verified=eq.false&order=created_at.desc')
         print(f"\n{t}: {len(rows)} awaiting a check")
         for r in rows:
             print(f"  {r['id']:>6}  {r['name'][:44]:44} {str(r.get('added_by'))[:14]:14} {str(r.get('created_at'))[:10]}")
@@ -127,14 +145,15 @@ def verify(idn):
 def reject(idn, assume_yes=False):
     """Delete a community add. Refuses verified rows; confirms unless --yes."""
     for t in ('activities','events'):
-        got = req('GET', f'/rest/v1/{t}?id=eq.{idn}&select=id,name,type,location,added_by,verified')
+        got = req('GET', f'/rest/v1/{t}?id=eq.{idn}&select=id,name,types,location,added_by,verified')
         if not got: continue
         r = got[0]
         if r['verified']:
             sys.exit(f"{t} {idn} '{r['name']}' is verified — un-verify it in Supabase first "
                      f"if you really mean to remove it.")
         print(f"{t} {idn}: {r['name']}")
-        print(f"  type {r.get('type')}   location {r.get('location')}   added by {r.get('added_by')}")
+        print(f"  types {' · '.join(r.get('types') or []) or '(unsorted)'}"
+              f"   location {r.get('location')}   added by {r.get('added_by')}")
         if not assume_yes and input("  delete permanently? [y/N] ").strip().lower() != 'y':
             print("  left alone."); return
         req('DELETE', f'/rest/v1/{t}?id=eq.{idn}')
