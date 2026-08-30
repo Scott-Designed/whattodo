@@ -296,6 +296,11 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
       <option value="once">Happens once</option>
       <option value="repeat">Repeats</option>
     </select>
+    <select id="esrc">
+      <option value="">Any source</option>
+      <option value="auto">Scraped automatically</option>
+      <option value="hand">Added by hand</option>
+    </select>
     <select id="ewhen">
       <option value="">Any time</option>
       <option value="upcoming">Still to come</option>
@@ -1251,12 +1256,25 @@ function urlStub(u, n = 28){
   } catch { return String(u).slice(0, n); }
 }
 
+/* Where a row came from, and whether a machine brought it in. `added_by` is
+   what the scrapers stamp on every insert, so this needs no new column — it
+   just has never been shown. A tick means no person typed this. */
+const SOURCE_OF = {
+  'venue-feed':      {label:'venue scraper', auto:true},
+  'surfcoastevents': {label:'calendar feed', auto:true},
+  'grlc':            {label:'library feed',  auto:true},
+  'Research':        {label:'by hand',       auto:false},
+  'Ideas Pipeline':  {label:'by hand',       auto:false},
+};
+const sourceOf = r => SOURCE_OF[r.added_by] ||
+  {label: r.added_by || 'unknown', auto: false};
+
 /* ── events: things that happen on a date and then are over ────────────────
    Kept apart from activities because almost nothing about them is the same
    question. An event is asked "when is it, where is it, and how sure are we";
    an activity is asked "can it be found on a map". One table serving both was
    showing every row an empty When column or an empty Km one. */
-let EFILTER = {q:'', type:'', rec:'', when:'', sort:'date', flag:''};
+let EFILTER = {q:'', type:'', rec:'', when:'', src:'', sort:'date', flag:''};
 
 function drawEvents(){
   const list = DATA.events.map(r => ({...r, __flags: flagsFor(r,'events')}));
@@ -1265,6 +1283,8 @@ function drawEvents(){
   const q = EFILTER.q.toLowerCase().trim();
   let out = list.filter(r => {
     if (EFILTER.type && !(r.types || []).includes(EFILTER.type)) return false;
+    if (EFILTER.src === 'auto' && !sourceOf(r).auto) return false;
+    if (EFILTER.src === 'hand' &&  sourceOf(r).auto) return false;
     if (EFILTER.flag && !r.__flags.includes(EFILTER.flag)) return false;
     // "Happens once" is the real one-off: no recurrence, or explicitly none.
     const repeats = r.recurrence && r.recurrence !== 'none';
@@ -1275,7 +1295,7 @@ function drawEvents(){
     if (EFILTER.when === 'past' && !past) return false;
     if (EFILTER.when === 'upcoming' && past) return false;
     const place = DATA.places.find(p => p.id === r.place_id);
-    return hit(r, q, [r.venue, r.artist, place?.name]);
+    return hit(r, q, [r.venue, r.artist, place?.name, r.added_by, sourceOf(r).label]);
   });
 
   out.sort({
@@ -1291,7 +1311,7 @@ function drawEvents(){
 
   $('#elist').innerHTML = `<table><thead><tr>
       <th>Name</th><th>Type</th><th>When</th><th>Time</th><th>How often</th>
-      <th>Venue</th><th>Town</th><th>Link</th><th>Date from</th><th>To fix</th><th></th>
+      <th>Venue</th><th>Town</th><th>Link</th><th>Source</th><th>Date from</th><th>To fix</th><th></th>
     </tr></thead><tbody>${out.map(r => {
       const place = DATA.places.find(p => p.id === r.place_id);
       const repeats = r.recurrence && r.recurrence !== 'none';
@@ -1314,6 +1334,12 @@ function drawEvents(){
                   onclick="event.stopPropagation()"
                   style="color:var(--ink2)">${esc(urlStub(u))} ↗</a>`
                  : '<span style="color:var(--ink3)">—</span>';
+           })()}</td>
+        <td class="cap" style="white-space:nowrap">${(() => {
+             const s = sourceOf(r);
+             return s.auto
+               ? `<span style="color:var(--good)">✓</span> <span style="color:var(--ink2)">${esc(s.label)}</span>`
+               : `<span style="color:var(--ink3)">${esc(s.label)}</span>`;
            })()}</td>
         <td><span class="tag ${r.date_confidence==='high'?'live':r.date_confidence==='low'?'dead':''}">${esc(r.date_confidence || '—')}</span></td>
         <td class="cap" style="color:var(--ink3)">${(() => {
@@ -1694,7 +1720,7 @@ const wire = (map, filter, redraw) => {
     el[ev] = e => { filter[key] = e.target.value; redraw(); };
   }
 };
-wire({'#eq':'q', '#etype':'type', '#erec':'rec', '#ewhen':'when', '#esort':'sort'},
+wire({'#eq':'q', '#etype':'type', '#erec':'rec', '#ewhen':'when', '#esrc':'src', '#esort':'sort'},
      EFILTER, () => drawEvents());
 wire({'#aq':'q', '#atype':'type', '#asort':'sort'}, AFILTER, () => drawActivities());
 wire({'#pq':'q', '#pkind':'kind', '#psort':'sort'}, PFILTER, () => drawPlaces());

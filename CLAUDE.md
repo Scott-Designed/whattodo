@@ -1303,6 +1303,21 @@ is now expanded to `.*` and a trailing `$` anchors the end. **Fail-closed
 matching is worse than useless if the pattern is wrong** — it hides a working
 source behind a rule the site never wrote.
 
+### Where an event came from
+
+The Events table has a **Source** column and an *Any source / Scraped
+automatically / Added by hand* filter. It needed no new data: `added_by` is what
+every scraper already stamps on an insert, and it had simply never been shown.
+A green ✓ means no person typed it.
+
+    ✓ library feed    500     grlc
+    by hand            74     Research + Ideas Pipeline
+    ✓ venue scraper    65     venue-feed
+    ✓ calendar feed    44     surfcoastevents
+
+609 of 683 events arrived without anyone typing them — which is the number that
+says whether the automations are worth having, and nothing was showing it.
+
 ### One row is one line
 
 The Events table was three facts deep in places — date over time, venue over
