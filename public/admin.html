@@ -571,20 +571,41 @@ function until(d){
    as though it had never worked. */
 function sourceHistory(){
   const h = {};
-  for (const run of DATA.log){
+  for (const run of DATA.log){            // newest first
     for (const step of (run.steps || [])){
       for (const src of (step.sources || [])){
-        const e = h[src.name] || (h[src.name] = {});
+        const e = h[src.name] || (h[src.name] = {newTotal: 0, runs: 0});
         if (!e.seen) { e.seen = run.recorded_at; e.state = src.state; }
+        // Every run this source has ever contributed to, so a venue that adds
+        // one gig a month still shows as productive rather than as a long
+        // string of quiet Thursdays.
+        e.newTotal += (src.new || 0);
+        if (src.state === 'read') e.runs++;
         if (!e.read && src.state === 'read'){
           e.read = run.recorded_at;
+          e.newLast = src.new || 0;
+          // How many gigs were on the page — NOT how many were new. A venue can
+          // read ten and add none, which is the normal healthy case.
           const m = /\((\d+)\s*(?:gigs?|links?|listings?)/.exec(src.how || '');
-          e.found = m ? +m[1] : null;
+          e.seenCount = m ? +m[1] : null;
         }
       }
     }
   }
   return h;
+}
+/* "3 days ago · +2 new". The timestamp alone answers "did it work"; the count
+   answers "did it matter", which is the question actually worth asking of an
+   automation that mostly re-reads gigs it already has. */
+function lastReadCell(h){
+  if (!h || !h.read) return '<span style="color:var(--ink3)">never</span>';
+  const bits = [];
+  if (h.newLast)        bits.push(`<b style="color:var(--good)">+${h.newLast} new</b>`);
+  else                  bits.push('<span style="color:var(--ink3)">nothing new</span>');
+  if (h.seenCount)      bits.push(`<span style="color:var(--ink3)">${h.seenCount} on page</span>`);
+  const life = h.newTotal && h.newTotal !== h.newLast
+    ? `<br><span style="color:var(--ink3);font-size:11px">${h.newTotal} new all time</span>` : '';
+  return `${esc(ago(h.read))}<br><span style="font-size:11.5px">${bits.join(' · ')}</span>${life}`;
 }
 const melb = d => d.toLocaleString('en-AU',
   {timeZone:'Australia/Melbourne', weekday:'short', day:'numeric', month:'short',
@@ -607,6 +628,8 @@ function drawOverview(){
   const reading = rows.filter(r => ['read','skipped'].includes(r.state)).length;
   const needs   = rows.filter(r => ['manual','dead'].includes(r.state)).length;
   const waiting = (last?.steps || []).flatMap(s => s.drift || []).filter(d => d.locked).length;
+  const lastNew = (last?.steps || []).flatMap(s => s.sources || [])
+                    .reduce((n, s) => n + (s.new || 0), 0);
 
   // A scheduled run that fired hours after its slot still ran; saying only
   // "2 days ago" hides the thing worth knowing about GitHub's scheduler.
@@ -628,7 +651,9 @@ function drawOverview(){
       <b>Last run</b>
       <div class="big">${last ? (last.ok ? 'Succeeded' : 'Failed') : 'Never'}</div>
       <div class="sm">${last ? esc(ago(last.recorded_at)) + ' · ' + esc(trigger) +
-        (lateness ? '<br>' + esc(lateness) : '') : 'nothing recorded yet'}</div>
+        (lateness ? '<br>' + esc(lateness) : '') +
+        `<br>${lastNew ? `<b>${lastNew} new event${lastNew === 1 ? '' : 's'}</b>` : 'no new events'}`
+        : 'nothing recorded yet'}</div>
     </div>
     <div class="stat">
       <b>Sources reading</b>
@@ -867,8 +892,11 @@ function drawAggregators(){
     </tr></thead><tbody>${rows.map(r => {
       const au = AUTO_STATE[r.auto];
       // the freshest successful read across every venue this platform serves
-      const reads = r.places.map(n => hist[n]?.read).filter(Boolean).sort();
-      const lastRead = r.host ? reads[reads.length - 1] : hist[r.src]?.read;
+      const mine = (r.host ? r.places : [r.src]).map(n => hist[n]).filter(Boolean);
+      const reads = mine.map(x => x.read).filter(Boolean).sort();
+      const lastRead = reads[reads.length - 1];
+      const newLast = mine.reduce((n, x) => n + (x.newLast || 0), 0);
+      const newAll  = mine.reduce((n, x) => n + (x.newTotal || 0), 0);
       const st = SRC_STATE[r.state] || {label:r.state, tag:''};
       return `<tr>
         <td><div class="rowname">${esc(r.name)}</div></td>
@@ -881,7 +909,11 @@ function drawAggregators(){
         <td><span class="tag ${au.tag}">${esc(au.label)}</span></td>
         <td>${r.tried ? `<span class="tag ${st.tag}">${esc(st.label)}</span>`
              : '<span class="tag">not in last run</span>'}</td>
-        <td>${lastRead ? esc(ago(lastRead)) : '<span style="color:var(--ink3)">never</span>'}</td>
+        <td>${lastRead ? `${esc(ago(lastRead))}<br><span style="font-size:11.5px">${
+             newLast ? `<b style="color:var(--good)">+${newLast} new</b>`
+                     : '<span style="color:var(--ink3)">nothing new</span>'}</span>${
+             newAll && newAll !== newLast ? `<br><span style="color:var(--ink3);font-size:11px">${newAll} all time</span>` : ''}`
+             : '<span style="color:var(--ink3)">never</span>'}</td>
       </tr>`;
     }).join('')}</tbody></table>`;
 }
@@ -1001,9 +1033,7 @@ function drawSources(){
         <td>${r.own ? '<span class="tag live">own listing</span> ' : ''}${
              r.via.map(v => `<span class="tag">${esc(v)}</span>`).join(' ')}</td>
         <td><span class="tag ${st.tag}">${esc(st.label)}</span></td>
-        <td>${h.read
-             ? `${esc(ago(h.read))}${h.found ? `<br><span style="color:var(--ink3);font-size:11.5px">${h.found} found</span>` : ''}`
-             : '<span style="color:var(--ink3)">never</span>'}</td>
+        <td>${lastReadCell(h)}</td>
       </tr>`;
     }).join('')}</tbody></table>${skipped}`;
 

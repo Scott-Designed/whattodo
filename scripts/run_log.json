@@ -29,7 +29,9 @@
       "via": [
        "The Events Calendar"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 3
      }
     ]
    },
@@ -53,7 +55,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Apollo Bay Hotel",
@@ -61,7 +65,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Barwon Club Hotel",
@@ -71,7 +77,9 @@
       "via": [
        "Oztix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Barwon Heads Hotel",
@@ -81,7 +89,9 @@
       "via": [
        "Oztix"
       ],
-      "own": true
+      "own": true,
+      "new": 0,
+      "dupe": 1
      },
      {
       "name": "Bellarine Catchment Network",
@@ -91,7 +101,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 1,
+      "dupe": 0
      },
      {
       "name": "Bellarine Estate Winery",
@@ -101,7 +113,9 @@
       "via": [
        "Eventbrite"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Bellbrae Estate",
@@ -109,7 +123,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Bird Rock",
@@ -117,7 +133,9 @@
       "hint": "found at / \u2014 set events_url to lock it in",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Blackmans Brewery",
@@ -127,7 +145,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Bomboras",
@@ -135,7 +155,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Creative Geelong Makers Hub",
@@ -145,7 +167,9 @@
       "via": [
        "Eventbrite"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Cuda Bar",
@@ -153,7 +177,9 @@
       "hint": null,
       "state": "dead",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Elephant & Castle Hotel",
@@ -163,7 +189,9 @@
       "via": [
        "TryBooking"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Flying Brick Cider Co",
@@ -171,7 +199,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Gather",
@@ -179,7 +209,9 @@
       "hint": null,
       "state": "refused",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Grand Hotel Portarlington",
@@ -187,7 +219,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Great Ocean Road Brewhouse",
@@ -195,7 +229,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Lambys Tavern",
@@ -203,7 +239,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Last One Inn",
@@ -211,7 +249,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Little Creatures Brewery",
@@ -219,7 +259,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Lorne Hotel",
@@ -227,7 +269,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Mt Rothwell Safe Haven",
@@ -237,7 +281,9 @@
       "via": [
        "Eventbrite"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Oneday Estate",
@@ -247,7 +293,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Piano Bar Geelong",
@@ -255,7 +303,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Provenance Wines",
@@ -263,7 +313,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Queenscliff Brewhouse",
@@ -271,7 +323,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Saints and Sailors",
@@ -279,7 +333,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Surf Coast Environment Group",
@@ -289,7 +345,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Surf Coast Mountain Bike Club",
@@ -297,7 +355,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Surf Coast Shire Offices",
@@ -305,7 +365,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "The 18th Amendment Bar",
@@ -313,7 +375,9 @@
       "hint": "found at / \u2014 set events_url to lock it in",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "The Book Club Social",
@@ -323,7 +387,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "The Sound Doctor",
@@ -333,7 +399,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 4
      },
      {
       "name": "The Whiskery",
@@ -341,7 +409,9 @@
       "hint": null,
       "state": "dead",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "The Wool Exchange Entertainment Complex",
@@ -349,7 +419,9 @@
       "hint": "found at / \u2014 set events_url to lock it in",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Torquay Bowls Club",
@@ -359,7 +431,9 @@
       "via": [
        "Eventbrite"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Torquay Hotel",
@@ -369,7 +443,9 @@
       "via": [
        "Oztix"
       ],
-      "own": true
+      "own": true,
+      "new": 2,
+      "dupe": 1
      },
      {
       "name": "Workers Club Geelong",
@@ -377,7 +453,9 @@
       "hint": "found at / \u2014 set events_url to lock it in",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      }
     ],
     "drift": []
@@ -416,7 +494,9 @@
       "via": [
        "The Events Calendar"
       ],
-      "own": false
+      "own": false,
+      "new": 1,
+      "dupe": 3
      }
     ]
    },
@@ -440,7 +520,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Apollo Bay Hotel",
@@ -448,7 +530,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Barwon Club Hotel",
@@ -458,7 +542,9 @@
       "via": [
        "Oztix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Barwon Heads Hotel",
@@ -468,7 +554,9 @@
       "via": [
        "Oztix"
       ],
-      "own": true
+      "own": true,
+      "new": 1,
+      "dupe": 0
      },
      {
       "name": "Bellarine Catchment Network",
@@ -478,7 +566,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Bellarine Estate Winery",
@@ -488,7 +578,9 @@
       "via": [
        "Eventbrite"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Bellbrae Estate",
@@ -496,7 +588,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Bird Rock",
@@ -504,7 +598,9 @@
       "hint": "found at / \u2014 set events_url to lock it in",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Blackmans Brewery",
@@ -514,7 +610,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Bomboras",
@@ -522,7 +620,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Cuda Bar",
@@ -530,7 +630,9 @@
       "hint": null,
       "state": "dead",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Elephant & Castle Hotel",
@@ -540,7 +642,9 @@
       "via": [
        "TryBooking"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Flying Brick Cider Co",
@@ -548,7 +652,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Gather",
@@ -556,7 +662,9 @@
       "hint": null,
       "state": "refused",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Grand Hotel Portarlington",
@@ -564,7 +672,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Great Ocean Road Brewhouse",
@@ -572,7 +682,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Lambys Tavern",
@@ -580,7 +692,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Last One Inn",
@@ -588,7 +702,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Little Creatures Brewery",
@@ -596,7 +712,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Lorne Hotel",
@@ -604,7 +722,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Oneday Estate",
@@ -614,7 +734,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Piano Bar Geelong",
@@ -622,7 +744,9 @@
       "hint": null,
       "state": "dead",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Provenance Wines",
@@ -630,7 +754,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Queenscliff Brewhouse",
@@ -638,7 +764,9 @@
       "hint": null,
       "state": "dead",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Saints and Sailors",
@@ -646,7 +774,9 @@
       "hint": null,
       "state": "dead",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Surf Coast Environment Group",
@@ -656,7 +786,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Surf Coast Shire Offices",
@@ -664,7 +796,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "The 18th Amendment Bar",
@@ -672,7 +806,9 @@
       "hint": "found at / \u2014 set events_url to lock it in",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "The Book Club Social",
@@ -682,7 +818,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "The Sound Doctor",
@@ -692,7 +830,9 @@
       "via": [
        "Humanitix"
       ],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "The Whiskery",
@@ -700,7 +840,9 @@
       "hint": null,
       "state": "dead",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "The Wool Exchange Entertainment Complex",
@@ -708,7 +850,9 @@
       "hint": "found at / \u2014 set events_url to lock it in",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Torquay Bowls Club",
@@ -716,7 +860,9 @@
       "hint": "homepage; no gig page found",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      },
      {
       "name": "Torquay Hotel",
@@ -726,7 +872,9 @@
       "via": [
        "Oztix"
       ],
-      "own": true
+      "own": true,
+      "new": 2,
+      "dupe": 1
      },
      {
       "name": "Workers Club Geelong",
@@ -734,7 +882,9 @@
       "hint": "found at / \u2014 set events_url to lock it in",
       "state": "nothing",
       "via": [],
-      "own": false
+      "own": false,
+      "new": 0,
+      "dupe": 0
      }
     ],
     "drift": []

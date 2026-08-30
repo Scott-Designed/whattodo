@@ -71,6 +71,9 @@ def read_events(text):
             'state': 'read' if listings else 'nothing',
             'via':   ['The Events Calendar'],
             'own':   False,
+            # The calendar is one source, so the run's own counts are its counts.
+            'new':   _int(r'^NEW — (\d+)', text) or 0,
+            'dupe':  _int(r'^SAME NAME already in the database — (\d+)', text) or 0,
         }],
     }
 
@@ -101,23 +104,36 @@ def read_venues(text):
     """What scrape_venues.py said, including a line per source it looked at."""
     m = re.search(r'^(\d+) new, (\d+) already in the database', text, re.M)
 
-    sources = []
+    sources, cur = [], None
     for line in text.splitlines():
         # "  Torquay Hotel — own listing (15 gigs over 2 pages); Oztix (14 …)"
         hit = re.match(r'^  (\S.*?) — (.+?)\s*$', line)
-        if not hit or line.startswith('  ('):
+        if hit and not line.startswith('  ('):
+            name, how = hit.group(1), hit.group(2)
+            # A trailing [..] is the scraper telling you how to pin this source down.
+            note = re.search(r'\[(.+)\]\s*$', how)
+            cur = {
+                'name':  name,
+                'how':   re.sub(r'\s*\[.+\]\s*$', '', how),
+                'hint':  note.group(1) if note else None,
+                'state': source_state(how),
+                'via':   [p for p in PLATFORMS if p.lower() in how.lower()],
+                'own':   'own listing' in how,
+                # What this source actually contributed. `seen` is how many gigs
+                # were on its page; `new` is how many were not already in the
+                # database. They are very different numbers — a venue can read
+                # ten gigs and add none — and only `new` says the run was worth
+                # anything. The gigs are listed under their venue, so the NEW
+                # markers can be counted per source rather than per run.
+                'new':   0,
+                'dupe':  0,
+            }
+            sources.append(cur)
             continue
-        name, how = hit.group(1), hit.group(2)
-        # A trailing [..] is the scraper telling you how to pin this source down.
-        note = re.search(r'\[(.+)\]\s*$', how)
-        sources.append({
-            'name':  name,
-            'how':   re.sub(r'\s*\[.+\]\s*$', '', how),
-            'hint':  note.group(1) if note else None,
-            'state': source_state(how),
-            'via':   [p for p in PLATFORMS if p.lower() in how.lower()],
-            'own':   'own listing' in how,
-        })
+        if cur is None or not line.startswith('     '):
+            continue
+        if re.search(r'\bNEW\b', line):        cur['new'] += 1
+        elif 'already there' in line:          cur['dupe'] += 1
 
     return {
         'venues':   _int(r'^\s+(\d+) venues,', text),

@@ -1307,6 +1307,20 @@ slot a run was meant to start in.
 the workflow moved to `:17` and this page still said `21:00`, so it confidently
 printed a next-run time seventeen minutes before the job could start.
 
+**"Last read" answers two questions, and they are different.** A timestamp says
+the read succeeded; it does not say the run was worth anything. Barwon Club
+Hotel reads ten gigs every time and has added none — which is the normal healthy
+case, not a fault. So each source prints **`+N new`** beside the date, `nothing
+new` when it read cleanly and had nothing to add, and how many were on the page
+as the quieter number. The overview's Last run says how many new events the
+whole run produced.
+
+`run_log.py` counts those per source rather than per run: the scraper lists each
+gig under its own venue with a `NEW` marker, so the markers can be attributed.
+The two records already in the log were backfilled by re-parsing their own
+stored text through the same parser — nothing invented, and it is why the raw
+text is kept.
+
 **"Last read" is per source, across the whole log, not just the last run.** The
 tables showed only `log[0]`, so a source that read fine on Monday and was
 skipped on Thursday looked as though it had never worked. `sourceHistory()`
@@ -2268,6 +2282,11 @@ Islaindi has no street number anywhere, so it keeps the directory's own
 road-level point — which reverse-geocodes to Cape Otway Road, Winchelsea, and
 is the honest answer for a thing that genuinely is on the roadside.
 
+**The directory these two came from is not a source and is not being pursued** —
+Scott's call, 30 Aug 2026. A listing there is weaker evidence than a first-party
+page, which is why both rows say so in their `source_note`. The two stalls stay;
+nothing reads that site.
+
 ### `Mount Duneed` did not resolve, and `Mt Duneed` was already a town
 
 `SUBURBS` spells it **`Mt Duneed`**; every business there writes **`Mount
@@ -2282,23 +2301,6 @@ appears once in the menu and every other town still resolves to itself.
 
 The generalisable bit: a vocabulary that stores one spelling silently drops
 every other one, and the symptom is a row with no town rather than an error.
-
-### theroadsidestalls.com.au is worth automating and must not be a place row
-
-WordPress with GeoDirectory, a `sitemap_index.xml`, and **a published lat/lng
-on every stall page**. robots.txt disallows only wp-admin and WooCommerce paths
-under `User-agent: *` and names no AI crawler, so a Claude session and the
-Action may both read it. That is the most machine-readable source found since
-surfcoastevents.
-
-Two things it is not. It is a **directory**, so a listing is weaker evidence
-than a first-party page — several of these stalls appear to have no other web
-presence at all, which is worth writing in the `source_note` rather than
-pretending otherwise. And it is an **aggregator**, so it must never go in a
-`places.events_url`: `scrape_venues.py` would file every stall against "The
-Roadside Stalls" as its venue, which is the Coast & Bay trap. Stalls are
-undated anyway, so importing them means a new activity importer, not the venue
-scraper.
 
 ## Research rules — this project has been burned before
 
