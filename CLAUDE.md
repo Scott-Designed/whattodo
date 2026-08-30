@@ -3461,97 +3461,46 @@ land.
 
 ## Type icons in the row gutter
 
-Scott's own artwork. Five are in so far: `skatepark` → skate, `mountain biking`
-→ bike, `cafe` → coffee (from `../Notice.Place/Icons/SVG/`), plus `nature` →
-nature and `running` → run (from `../Notice.Place/Icons Test/SVG/`, which is a
-two-colour direction still being tried).
+**The whole set is Lucide 1.34.0 (ISC), inlined — all 43 types, no gaps.**
+Scott's own artwork was tried first and is in the history at `f7ef180` /
+`00e9792`; it came out on 31 Aug 2026.
 
-**The type split silently broke three of the five and they were repointed**
-(26 Aug 2026). `ICON_OF` is keyed on a row's *first* type, and `bike track`
-became `mountain biking` while `sport` and `sport-event` were deleted — so
-`skatepark`, `cafe` and `nature` were the only ones still drawing. The bike now
-also serves `cycling` and the runner serves `running`, which is where the old
-`sport-event` runs went. That reaches **72 of 419 rows**, up from 52.
+`public/notice-icons.js` is the one home: it carries the sprite and writes it
+into the page itself, so a page adds one `<script>` and nothing else. **It is a
+lift, not a copy** — four things draw these now (the board's rows, the Type
+menu in the bar, a subject page's masthead, and the empty slot everywhere else),
+and the sprite used to live inside index.html where only the board could reach
+it. `ICON_OF` is in `notice-vocab.js` beside the rest of the type vocabulary
+rather than in the icons file, because `api/subject.mjs` evaluates that file in
+a `node:vm` sandbox and it must stay DOM-free.
 
-The lesson generalises: every map keyed on a type name — `ICON_OF`, `EXTRA_OF`,
-`GROUP_OF`, `TYPE_PLURAL`, `VERB_OF` before it was deleted — fails *silently*
-when a type is renamed, because a missing key is just no icon, no group, no
-label. There is no test for this. Grep the type name before renaming one.
+**The paths are inlined, never fetched.** Nothing about a list of this database
+may wait on a CDN to draw, which is the same rule the map already follows.
 
-Each icon is a `<symbol>` in a hidden `<svg class="sprite">` at the top of the
-body, and a row draws it with `<use href="#i-…">`. **Do not inline the path per
-row** — it is ~4KB and the list is 400 rows. `ICON_OF` maps type → symbol id, so
-adding one is two lines: the symbol, and the map entry.
-
-- **Only one of the icon's two edges can be true, because the artwork is not one
-  width.** The ink inside the 48×28 box runs from 22.5px (the cup) to 48px (the
-  skateboard), so flush-left and a constant gap-to-the-name are the same
-  requirement only if every icon is drawn to the same width. Both have been
-  tried: `xMinYMid meet` starts every icon's ink on one line at `--gut` and lets
-  the gap to the name run 24–49px; `xMaxYMid meet`, which is what ships, puts
-  every icon's ink 24px from its name and leaves the left edges ragged — 60px
-  for the skateboard, 85px for the cup, because the cup is portrait and the
-  skateboard is 3:1 and both have to fit 28px tall. **The real fix is in the artwork**: draw each icon to
-  fill the same 48px width and both edges come out true at once.
-- **The box is 48px wide and always drawn**, even for a type with no icon, or
-  every name would step left and right down the list.
-- **Both ends of a row leave the same white space, and `--gut` is that number.**
-  The icon's ink starts `--gut` in from the left edge and the pin's ink ends
-  `--gut` in from the right — 60px, just inside the page's own 64px margin,
-  which the full-bleed list can do and the text columns cannot. One number moves
-  both ends; 64 would line the icons up with the masthead exactly.
-  Two things make it hold: the row's right padding is `--gut + 40px`, the pin's
-  lane, so the text stops ~24px short of the mark; and the pin is aligned to the
-  *end* of its 36px button rather than centred in it, because an emoji's advance
-  width differs by platform and a fixed offset would only be true on this one.
-  The hit area runs inwards from there, into the padding.
-- **The slot is a fixed 48×28 box, not a fixed width.** The set is not one
-  proportion — the skateboard is 3:1, the bike is square, the cup is taller than
-  wide — so sizing on width alone made the cup 60px tall and pushed the 57px row
-  open. Each symbol carries its own `viewBox` and scales to fit inside, centred.
-- **The empty slot is still drawn** for a type with no icon, or every name would
-  step left and right down the list.
-- `fill:currentColor`, so one copy serves both colour schemes. The artwork ships
-  as `fill="black"`; that gets swapped on import.
-- **Two-colour icons: the black follows the row, the yellow does not.** The
-  test set is `#FFBB02` plus black. The yellow is the accent and is held in
-  `--icon-accent`; the black is ink and becomes `currentColor` like the mono
-  icons. That is the only treatment where nothing disappears — checked all four
-  combinations side by side. Keeping the black literal is crisper for `nature`,
-  whose dark centre sits *on* the yellow, but it erases the runner's head, which
-  floats on the page ground and vanishes in dark mode.
-- **The accent is an inline `style` on the path, not a CSS rule, and has to be.**
-  `<use>` clones the symbol into a shadow tree that a selector in this stylesheet
-  cannot reach — `.c-icon .accent{}` matches nothing and fails silently. An
-  inline style is part of what gets cloned, and `--icon-accent` still reaches it
-  because custom properties inherit across the boundary.
-- **Colour only appears on hover.** At rest every icon is the one grey, whether
-  its artwork is one colour or two, so a list of 400 rows is not a field of
-  yellow; hovering brings the ink up and lets the accent through. This settled
-  an inconsistency the two-colour set introduced — a saturated yellow beside a
-  dimmed grey detail read as a fault rather than a decision — and it matches
-  what the 📌 already does.
-
-  The mechanism: the inline fill cannot be overridden by a rule here, but it is
-  a `var()` lookup, so **the variable changes meaning per state** rather than
-  the path changing. `.c-icon{--icon-accent:currentColor}` collapses the icon to
-  one grey at rest; `.rowhead:hover .c-icon{--icon-accent:var(--accent)}` lets
-  the brand colour through. `--accent` on `:root` stays the single home of the
-  yellow. Note this makes `--icon-accent` a *state*, not a colour — do not put a
-  literal in it.
-
-  A **pinned** row is the exception: it holds the hover look for good, tint and
-  coloured icon both, so what you have saved is picked out of the list without
-  hovering. That is also the one way either colour reaches a touch screen.
-- **The bike does not survive 28px.** Its frame and spokes merge and it reads as
-  a cog. Checked at 2×; it is the artwork meeting the size, not a bug. The other
-  two are fine. Any icon with this much line detail will need a simplified
-  small-size version before the set reaches all 42 types. The two-colour pair
-  hold up far better at this size than the bike does — solid masses survive the
-  reduction where line work does not, which is the useful lesson for the rest of
-  the set. The runner is unmistakable; `nature` reads as a starburst or a sun
-  rather than as anything specifically natural, so it may be carrying the wrong
-  shape rather than the wrong size.
+- **Two symbols with one id is a silent override, and it bit.** Scott's custom
+  `i-bike` and `i-coffee` sat above Lucide's in the same sprite, and a `<use>`
+  takes the FIRST match — so `cycling`, `mountain biking` and `cafe` quietly
+  kept drawing the custom artwork while every other row went Lucide. Nothing
+  errors; the wrong icon just appears. Scott spotted it by eye. Assert on
+  duplicate ids when generating the sprite.
+- **`skatepark` is `hand-metal`** — Scott's call. Lucide has no skateboard, and
+  the thrown horns is what the culture actually signs with. It was the one type
+  with no icon for a day; it is now the reason there are none left.
+- **The slot is a fixed 48×28 box, not a fixed width**, and it is still drawn
+  for a type with no icon even though no such type exists today. That is what
+  stops a new type shifting every name in the list.
+- **Lucide is stroke art on a shared 24×24 grid**, which is the thing the custom
+  set never had: both edges of every icon come out true at once, so the ragged
+  left edge is gone and nothing needs per-icon nudging. The symbols carry
+  `fill="none"` and `stroke="currentColor"` as presentation attributes, because
+  a rule in the stylesheet cannot reach inside a `<use>` shadow tree.
+- **Colour only appears on hover, and stays on a pinned row.** `--icon-accent`
+  is a *state*, not a colour: `currentColor` at rest, `var(--accent)` on
+  `.rowhead:hover` and `.rowhead.saved`. Do not put a literal in it.
+- **Three mappings are compromises worth revisiting.** `running` → medal
+  (Lucide has no runner), `cultural` → sparkles (nothing specific fits), and
+  `cycling` and `mountain biking` share the bike. `i-shopping-bag` is in the
+  sprite and unused, left from when `shop` was a type.
 
 ## Light, dark, or follow the system
 
