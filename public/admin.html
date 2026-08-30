@@ -210,6 +210,7 @@ td .rowname{max-width:26ch;overflow:hidden;text-overflow:ellipsis;white-space:no
    word that is already in a column of its own; the colour is the signal and
    the box is decoration. The filter buttons above a table keep their shape,
    because those are controls rather than data. */
+.ifield{display:block;width:100%;margin-bottom:8px}
 td .tag{border:none;padding:0;border-radius:0;text-transform:none;
   letter-spacing:0;font-size:12.5px;font-weight:500;background:none}
 td .tag.live{color:var(--good)}
@@ -288,6 +289,7 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
 
 <nav class="tabs" role="tablist">
   <button role="tab" data-tab="autos"      aria-selected="true">Automations</button>
+  <button role="tab" data-tab="inbox"      aria-selected="false">Inbox <span class="tally" id="t-inbox"></span></button>
   <button role="tab" data-tab="review"     aria-selected="false">Review <span class="tally" id="t-review"></span></button>
   <button role="tab" data-tab="events"     aria-selected="false">Events <span class="tally" id="t-events"></span></button>
   <button role="tab" data-tab="activities" aria-selected="false">Activities <span class="tally" id="t-activities"></span></button>
@@ -314,6 +316,33 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
 
   <h2 id="a-runs">Runs</h2>
   <div id="runs"></div>
+</section>
+
+<section id="tab-inbox" hidden>
+  <div class="controls">
+    <select id="istatus">
+      <option value="new">Waiting</option>
+      <option value="">Everything</option>
+      <option value="filed">Filed</option>
+      <option value="ignored">Ignored</option>
+    </select>
+    <button class="btn ghost" id="ireload">Refresh</button>
+    <button class="btn ghost" id="ipaste">Paste an email</button>
+    <div class="msg" id="imsg" style="margin-left:0"></div>
+  </div>
+
+  <div id="ipastebox" hidden style="border:1px solid var(--line);border-radius:10px;
+       padding:14px;margin-bottom:18px;max-width:720px">
+    <input id="ifrom" placeholder="Who sent it (optional)" class="ifield">
+    <input id="isubj" placeholder="Subject" class="ifield">
+    <textarea id="ibody" rows="7" placeholder="Paste the email here" class="ifield"></textarea>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn" id="isave">Add to the queue</button>
+      <button class="btn ghost" id="icancel">Cancel</button>
+    </div>
+  </div>
+
+  <div id="inbox"></div>
 </section>
 
 <section id="tab-review" hidden>
@@ -1216,6 +1245,91 @@ async function probeSource(url){
     + (o.robots ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(o.robots)}</span>` : '');
 }
 
+/* ── the email inbox ─────────────────────────────────────────────────────────
+   The 18 sources that read "nothing machine-readable" will not grow a feed.
+   They will email a person, so this is the route that works for them: it scales
+   by asking rather than parsing.
+
+   Loaded through /api/admin, not with the anon key. Every other thing this page
+   shows is already public; an email is not — it carries whoever sent it and
+   whatever they wrote — so the table has no anon policy and this needs the
+   password even to read. */
+let IFILTER = {status: 'new'};
+let INBOX = [];
+
+async function loadInbox(){
+  if (!PASS){ $('#inbox').innerHTML =
+    '<p class="empty">Unlock first — the button at the top right. An email is the ' +
+    'one thing here that is not already public, so it needs the password to read.</p>';
+    return; }
+  const [code, out] = await post({action:'inbox', status: IFILTER.status});
+  if (code !== 200){
+    $('#inbox').innerHTML = `<p class="empty">${esc(out.message || out.error || ('error ' + code))}</p>`;
+    return; }
+  INBOX = out.rows || [];
+  drawInbox();
+}
+
+function drawInbox(){
+  const waiting = INBOX.filter(m => m.status === 'new').length;
+  $('#t-inbox').textContent = IFILTER.status === 'new' ? (INBOX.length || '') : (waiting || '');
+  if (!INBOX.length){
+    $('#inbox').innerHTML = `<p class="empty">Nothing here. Anything sent to the
+      inbox address appears in this list; nothing is read or acted on automatically.</p>`;
+    return; }
+  $('#inbox').innerHTML = `<div style="overflow-x:auto"><table><thead><tr>
+      <th>Arrived</th><th>From</th><th>Subject</th><th>What it says</th><th>Status</th><th></th>
+    </tr></thead><tbody>${INBOX.map((m,i) => `
+      <tr data-i="${i}">
+        <td style="white-space:nowrap">${esc(ago(m.received_at))}</td>
+        <td class="cap" title="${esc(m.from_addr || '')}">${esc(m.from_addr || '—')}</td>
+        <td class="cap wide" title="${esc(m.subject || '')}"><div class="rowname">${esc(m.subject || '(no subject)')}</div></td>
+        <td class="cap wide" title="${esc(m.body || '')}" style="color:var(--ink3)">${esc(m.body || '')}</td>
+        <td>${m.status === 'new' ? '<span class="tag warn">waiting</span>'
+             : m.status === 'filed' ? '<span class="tag live">filed</span>'
+             : '<span class="tag">ignored</span>'}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn" style="padding:3px 10px;font-size:11.5px" data-filed="1">Filed</button>
+          <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-ignored="1">Ignore</button>
+        </td></tr>`).join('')}</tbody></table></div>`;
+
+  $('#inbox').querySelectorAll('tr[data-i]').forEach(tr => {
+    const m = INBOX[+tr.dataset.i];
+    tr.querySelector('[data-filed]').onclick   = () => markInbox(m.id, 'filed');
+    tr.querySelector('[data-ignored]').onclick = () => markInbox(m.id, 'ignored');
+  });
+}
+
+async function pasteInbox(){
+  const b = {action:'inbox_add', from: $('#ifrom').value.trim(),
+             subject: $('#isubj').value.trim(), body: $('#ibody').value.trim()};
+  if (!b.subject && !b.body){
+    $('#imsg').className = 'msg bad'; $('#imsg').textContent = 'Nothing to add.'; return; }
+  $('#imsg').className = 'msg'; $('#imsg').textContent = 'Adding…';
+  const [code, out] = await post(b);
+  if (code !== 200){
+    $('#imsg').className = 'msg bad';
+    $('#imsg').textContent = out.message || out.error || ('error ' + code); return; }
+  $('#ifrom').value = $('#isubj').value = $('#ibody').value = '';
+  $('#ipastebox').hidden = true;
+  $('#imsg').className = 'msg good'; $('#imsg').textContent = 'In the queue.';
+  IFILTER.status = 'new'; $('#istatus').value = 'new';
+  loadInbox();
+}
+
+async function markInbox(id, status){
+  if (!PASS) return;
+  $('#imsg').className = 'msg'; $('#imsg').textContent = 'Saving…';
+  const [code, out] = await post({action:'inbox_status', id, status});
+  if (code !== 200){
+    $('#imsg').className = 'msg bad';
+    $('#imsg').textContent = out.message || out.error || ('error ' + code); return; }
+  // Nothing is deleted — the message stays as the evidence for whatever was
+  // written from it. Marking it only takes it out of the waiting list.
+  $('#imsg').className = 'msg good'; $('#imsg').textContent = 'Marked ' + status + '.';
+  loadInbox();
+}
+
 /* ── the review queue ───────────────────────────────────────────────────────
    Everything a machine added but did not feel entitled to verify. Grouped by
    where it came from, because the useful gesture is almost always "approve all
@@ -1861,7 +1975,7 @@ async function unlock(){
     body: JSON.stringify({password:p, action:'check'})});
   if (r.ok){
     PASS = p; try{ sessionStorage.setItem('notice.admin', p); }catch(e){}
-    drawLock(true);
+    drawLock(true); loadInbox();
   } else {
     const o = await r.json().catch(() => ({}));
     alert(o.message || (r.status === 401 ? 'That is not the password.' : 'Could not check: ' + r.status));
@@ -1884,7 +1998,7 @@ $('#theme').onclick = () => {
 };
 
 /* ── tabs ──────────────────────────────────────────────────────────────────*/
-const TABS = ['autos','review','events','activities','places'];
+const TABS = ['autos','inbox','review','events','activities','places'];
 const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces();
                           drawSources(); drawOverview(); drawReview(); };
 
@@ -1894,6 +2008,7 @@ function show(tab){
   for (const id of TABS)
     $('#tab-' + id).hidden = id !== tab;
   location.hash = tab;
+  if (tab === 'inbox') loadInbox();
 }
 document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => show(b.dataset.tab));
 $('#lock').onclick = unlock;
@@ -1912,6 +2027,12 @@ wire({'#eq':'q', '#etype':'type', '#erec':'rec', '#ewhen':'when', '#esrc':'src',
 wire({'#aq':'q', '#atype':'type', '#asort':'sort'}, AFILTER, () => drawActivities());
 wire({'#pq':'q', '#pkind':'kind', '#psort':'sort'}, PFILTER, () => drawPlaces());
 wire({'#rsrc':'src'}, RFILTER, () => drawReview());
+wire({'#istatus':'status'}, IFILTER, () => loadInbox());
+$('#ireload').onclick = loadInbox;
+$('#ipaste').onclick  = () => { $('#ipastebox').hidden = !$('#ipastebox').hidden;
+                                if (!$('#ipastebox').hidden) $('#isubj').focus(); };
+$('#icancel').onclick = () => { $('#ipastebox').hidden = true; };
+$('#isave').onclick   = pasteInbox;
 
 /* ── load ──────────────────────────────────────────────────────────────────
    Everything at once. GitHub and raw are allowed to fail without taking the

@@ -1869,6 +1869,67 @@ runs against the live database, and a case that passes validation is a real
 write. One did, and it overwrote Aireys Pub's coordinate with a Jan Juc one
 (restored the same day by re-geocoding from the `source_note`).
 
+## The email inbox — a source that answers back
+
+Built 30 Aug 2026, because the automation ceiling is not the parsers. **18
+sources have a website with nothing machine-readable and 63 have no website at
+all** — those are not going to grow a feed. They will email a person. So this is
+the one route that scales for them, and it works by asking rather than parsing.
+
+    inbox                 Supabase table: received_at, from_addr, to_addr,
+                          subject, body, raw, status, event_id, note
+    api/inbox.mjs         POST endpoint — receives a message, stores it
+    tools/email-worker.js Cloudflare Email Worker — the sender
+    /admin  → Inbox tab   the queue, and a paste box
+
+**The table has no anon policy, and that is the one deliberate difference from
+everything else here.** Every other thing the back of house shows is already
+public — the listings, the places, the vocabularies — so the page reads them
+with the anon key. An email is not: it carries whoever sent it and whatever they
+wrote. It is read through `api/admin.mjs` with the service key, so the Inbox tab
+needs the password even to *look*, which no other tab does.
+
+**Nothing in the path interprets the message.** The endpoint stores what
+arrived; a person turns it into a listing. That separation is the whole design —
+an inbound endpoint that wrote events directly would be a public form with no
+review, which is the one thing this project's write path has never allowed. The
+message's own markup is stripped for the readable `body` and never evaluated,
+and `raw` keeps what actually came in, because the email is the evidence for
+whatever gets written from it. Same rule as `run_log`'s raw scraper text.
+
+**The endpoint refuses everything without `INBOX_SECRET`**, which is the correct
+failure for a public URL: an open one is a spam target within a day. It answers
+`501 no_secret` when unconfigured and `401` to a wrong one, compared
+timing-safely on digests like `ADMIN_PASSWORD`.
+
+### The address does not exist yet, and the reason is DNS
+
+**`notice.place` is on Vercel's nameservers** (`ns1/ns2.vercel-dns.com`, checked
+30 Aug 2026) and has **no MX records at all**. Cloudflare Email Routing — the
+free, no-third-party, no-volume-limit answer, and what `tools/email-worker.js`
+is written for — needs the whole zone on Cloudflare. That is a nameserver move
+on a live site, so it is Scott's call and was not done unprompted.
+
+Two routes, and the tradeoff is the only thing to decide:
+
+- **Move the zone to Cloudflare.** Free forever, no third party in the mail
+  path, and the worker is already written. Cost: re-adding the Vercel records
+  (`A 76.76.21.21`, `CNAME cname.vercel-dns.com`) at Cloudflare, and the site is
+  down if they are wrong. Reversible.
+- **Keep Vercel DNS, add MX pointing at an inbound-parse service** (SendGrid
+  Inbound Parse, Postmark). No nameserver move and no risk to the site. Cost: an
+  account, and that company sees the mail.
+
+Then `INBOX_SECRET` goes in **two** places with the same value — the Vercel
+project, and `wrangler secret put INBOX_SECRET` on the worker (or the service's
+webhook header). Along with `INBOX_URL = https://www.notice.place/api/inbox`.
+
+**Until then the Inbox tab works anyway, via "Paste an email".** That is not a
+placeholder: a venue's "here is our September program" email is useful today,
+and it goes into the same table and the same queue with `from_addr` recording
+that a person put it there. The forwarding address is an upgrade to the front of
+this path, not the path itself.
+
 ## Eventbrite, and the organiser-is-not-the-venue trap
 
 Three Eventbrite organiser pages were registered 25 Aug 2026 (Scott's links).

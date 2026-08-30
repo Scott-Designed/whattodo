@@ -388,6 +388,52 @@ export default async function handler(req, res) {
     }
   }
 
+  // ── the email inbox ──────────────────────────────────────────────────────
+  // Read through here rather than with the anon key, because unlike everything
+  // else the back of house shows, an email is not public: it carries whoever
+  // sent it and whatever they wrote. The `inbox` table has no anon policy at
+  // all, so this is the only way to see it.
+  if (action === 'inbox') {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY)
+      return res.status(501).json({error: 'not_configured'});
+    const want = ['new', 'filed', 'ignored'].includes(req.body?.status)
+      ? `&status=eq.${req.body.status}` : '';
+    const rows = await db('GET',
+      `/rest/v1/inbox?select=*&order=received_at.desc&limit=200${want}`);
+    return res.status(200).json({ok: true, rows});
+  }
+
+  // Paste an email in by hand. The domain is on Vercel's nameservers, so the
+  // forwarding address is a DNS decision nobody has made yet — and a venue's
+  // "here is our September program" email is useful today. Same table, same
+  // queue; `from_addr` records that a person put it there.
+  if (action === 'inbox_add') {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY)
+      return res.status(501).json({error: 'not_configured'});
+    const subject = String(req.body?.subject || '').slice(0, 500).trim();
+    const body    = String(req.body?.body || '').slice(0, 60_000).trim();
+    if (!subject && !body)
+      return res.status(400).json({error: 'empty', message: 'no subject and no body'});
+    const [row] = await db('POST', '/rest/v1/inbox',
+      {from_addr: String(req.body?.from || '').slice(0, 320).trim() || 'pasted by hand',
+       subject: subject || null, body: body || null, raw: body || null},
+      {Prefer: 'return=representation'});
+    return res.status(200).json({ok: true, row});
+  }
+
+  if (action === 'inbox_status') {
+    if (!['new', 'filed', 'ignored'].includes(req.body?.status))
+      return res.status(400).json({error: 'bad_status'});
+    const n = Number(req.body?.id);
+    if (!Number.isInteger(n) || n <= 0) return res.status(400).json({error: 'bad_id'});
+    // Never deleted on the way past: the message is the evidence for whatever
+    // was written from it, the same reason run_log keeps the raw scraper text.
+    const [row] = await db('PATCH', `/rest/v1/inbox?id=eq.${n}`,
+      {status: req.body.status, note: req.body.note ?? null},
+      {Prefer: 'return=representation'});
+    return res.status(200).json({ok: true, row});
+  }
+
   // ── approve rows from the review queue ──────────────────────────────────
   // One request for a whole batch: the library import alone is 500 rows and
   // 500 round trips would be absurd. Every row still has to earn it — a
