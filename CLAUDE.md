@@ -1310,13 +1310,15 @@ automatically / Added by hand* filter. It needed no new data: `added_by` is what
 every scraper already stamps on an insert, and it had simply never been shown.
 A green ✓ means no person typed it.
 
-    ✓ library feed    500     grlc
-    by hand            74     Research + Ideas Pipeline
-    ✓ venue scraper    65     venue-feed
-    ✓ calendar feed    44     surfcoastevents
+**The confidence column is headed "How sure", not "Date from".** It holds
+`date_confidence`, and the old label read as though the cell would contain a
+date — so a column of the word *high* looked like a bug rather than an answer.
 
-609 of 683 events arrived without anyone typing them — which is the number that
-says whether the automations are worth having, and nothing was showing it.
+**`/admin` is 1640px wide, not the site's 1400.** It is a desktop-only back
+office whose tables run to eleven columns; at the site's reading width the
+Source column fell off the right edge. The tables also cap their long cells and
+sit in their own `overflow-x`, so widening the page was the last thing tried
+rather than the first.
 
 ### One row is one line
 

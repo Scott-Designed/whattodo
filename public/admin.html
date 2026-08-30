@@ -40,7 +40,10 @@ try{var t=localStorage.getItem('notice.theme');
 body{margin:0;background:var(--ground);color:var(--ink);
   font-family:var(--util);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:inherit}
-.page{padding:0 var(--pad) 120px;max-width:1400px;margin:0 auto}
+/* Wider than the site on purpose. This is a desktop-only back office and its
+   tables are ten columns of data; capping it at the site's reading width put
+   the Source column off the right edge. */
+.page{padding:0 var(--pad) 120px;max-width:1640px;margin:0 auto}
 @media (max-width:700px){:root{--pad:18px}}
 
 /* ── masthead ── */
@@ -182,12 +185,12 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
    thing on the title. time_text is prose in some rows ("34km 8.30am from
    Queenscliff; 17km about 9.40am from Drysdale") and nowrap alone just pushed
    the table sideways instead of wrapping. */
-td.cap{max-width:20ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-td.cap.wide{max-width:26ch}
+td.cap{max-width:16ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.cap.wide{max-width:20ch}
 /* A name is the one field with no length limit, and three of them wrapping to
    three lines is what stops a table being scannable. Cut with an ellipsis; the
    full name is on the title and the row opens the editor anyway. */
-td .rowname{max-width:34ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td .rowname{max-width:26ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* No chips in a table. A bordered pill inside a cell is a box drawn around a
    word that is already in a column of its own; the colour is the signal and
    the box is decoration. The filter buttons above a table keep their shape,
@@ -1311,7 +1314,7 @@ function drawEvents(){
 
   $('#elist').innerHTML = `<table><thead><tr>
       <th>Name</th><th>Type</th><th>When</th><th>Time</th><th>How often</th>
-      <th>Venue</th><th>Town</th><th>Link</th><th>Source</th><th>Date from</th><th>To fix</th><th></th>
+      <th>Venue</th><th>Town</th><th>Source</th><th>Link</th><th>How sure</th><th>To fix</th><th></th>
     </tr></thead><tbody>${out.map(r => {
       const place = DATA.places.find(p => p.id === r.place_id);
       const repeats = r.recurrence && r.recurrence !== 'none';
@@ -1328,18 +1331,18 @@ function drawEvents(){
         <td>${repeats ? esc(r.recurrence) : '<span style="color:var(--ink3)">once</span>'}</td>
         <td class="cap wide" title="${esc(venue)}">${venue ? esc(venue) : '<span style="color:var(--ink3)">—</span>'}</td>
         <td class="cap" title="${esc(town)}">${town ? esc(town) : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td class="cap" style="white-space:nowrap">${(() => {
+             const s = sourceOf(r);
+             return s.auto
+               ? `<span style="color:var(--good)">✓</span> <span style="color:var(--ink2)">${esc(s.label)}</span>`
+               : `<span style="color:var(--ink3)">${esc(s.label)}</span>`;
+           })()}</td>
         <td class="cap">${(() => {
              const u = r.info_url || r.ticket_url;
              return u ? `<a href="${esc(u)}" target="_blank" rel="noopener" title="${esc(u)}"
                   onclick="event.stopPropagation()"
                   style="color:var(--ink2)">${esc(urlStub(u))} ↗</a>`
                  : '<span style="color:var(--ink3)">—</span>';
-           })()}</td>
-        <td class="cap" style="white-space:nowrap">${(() => {
-             const s = sourceOf(r);
-             return s.auto
-               ? `<span style="color:var(--good)">✓</span> <span style="color:var(--ink2)">${esc(s.label)}</span>`
-               : `<span style="color:var(--ink3)">${esc(s.label)}</span>`;
            })()}</td>
         <td><span class="tag ${r.date_confidence==='high'?'live':r.date_confidence==='low'?'dead':''}">${esc(r.date_confidence || '—')}</span></td>
         <td class="cap" style="color:var(--ink3)">${(() => {
