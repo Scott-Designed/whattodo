@@ -94,6 +94,13 @@ KIND_OF = {
   # dated types, which only ever reach an activity by mistake
   'gig':'venue', 'festival':'venue', 'workshop':'group', 'comedy':'venue',
   'party':'venue', 'reading':'group',
+  # `kids` arrived with the 500 library events on 27 Aug 2026 and nothing
+  # taught this map the word, so the exhaustiveness guard exited and NOBODY
+  # SAW THE DISAGREEMENT REPORT FOR THREE DAYS — including the twelve bike-pass
+  # hand decisions, which went in unverified. It is a story-time type and
+  # reaches an activity only by mistake; a room that runs story times is a
+  # library, which is a venue.
+  'kids':'venue',
 }
 
 # weakest first — the last one standing wins a row with several types.
@@ -151,6 +158,18 @@ BY_ID = {
   525: ('shop',  'Ocean Grove bike shop'),
   526: ('shop',  'Geelong West bike shop'),
   527: ('shop',  'Belmont bike shop'),
+
+  # The produce pass of 30 Aug 2026 — two roadside stalls and three beekeepers.
+  # `produce` and `nursery` are things a place GROWS, so the rules make these
+  # venues; but nobody drives to an honesty box for its own sake. They are
+  # stockists, which is the Chocolaterie rule, so they earn a place on
+  # /produce and /nursery and stay off the board. The three beekeepers have no
+  # shopfront at all and sell through other people's shelves.
+  528: ('shop',  'a roadside stall — a stockist, not somewhere you go for its own sake'),
+  529: ('shop',  'a roadside honey stall — a stockist, not an outing'),
+  530: ('maker', 'a beekeeper selling through stockists; no shopfront'),
+  531: ('maker', 'a beekeeper selling through stockists; no shopfront'),
+  532: ('maker', 'a beekeeper selling through stockists; no shopfront'),
 }
 
 # ── A shop can no longer be inferred, and that is now permanent ──

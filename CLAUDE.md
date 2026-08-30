@@ -2162,13 +2162,108 @@ things you go and DO, and `PRECEDENCE` ranks spot above both group and shop. It
 is the 459-461 case again, twelve times over, and it is why that file says
 adding a shop means adding a line.
 
-**`classify_kinds.py` cannot currently run to confirm it.** Its exhaustiveness
-guard exits with *"KIND_OF is missing 1 type(s): kids"* — a `kids` type and
-several hundred library events landed after that script was written, and nothing
-has taught it the word. The guard is behaving correctly; the script is blocked.
-`BY_ID` was verified by parsing the file instead. **Nobody has seen that
-script's disagreement report since `kids` landed**, which is the part worth
-fixing — it is the standing list of kind/coordinate mismatches.
+**`classify_kinds.py` could not run to confirm it — FIXED 30 Aug 2026.** Its
+exhaustiveness guard exited with *"KIND_OF is missing 1 type(s): kids"*: a
+`kids` type and several hundred library events landed after that script was
+written and nothing had taught it the word. The guard was behaving correctly;
+the script was blocked, so `BY_ID` was verified by parsing the file instead and
+**nobody saw the disagreement report for three days** — the twelve bike-pass
+hand decisions among them.
+
+`'kids':'venue'` is in `KIND_OF` now, filed with the dated types that only ever
+reach an activity by mistake: a room that runs story times is a library, which
+is a venue. With the script running again the standing report is four rows, and
+**all four are the rules being crude rather than the rows being wrong**:
+
+    496  Anglesea Performing Arts   group -> venue     a company you join
+    513  Winchelsea Movie Club      group -> venue     a club you join
+    514  Bunjil Geoglyph            spot  -> venue     `arts` maps to venue
+    515  Geelong Bollards           spot  -> venue     `arts` maps to venue
+
+The last two are the monument-and-landmark vocabulary gap this file already
+records, showing up as a kind disagreement. Nothing to change; left alone, which
+is what the script does without `--reclassify`.
+
+**Read the exit code, not the output.** This blocker was briefly reported as
+fixed on the strength of `python3 scripts/classify_kinds.py | sed …` printing
+nothing alarming — but `$?` after a pipe is *sed's* status, so a script that
+exited 1 on line one looked like a clean run. That is the same trap this file
+already records for `tee` in GitHub Actions, and it is worth knowing it catches
+people twice. Redirect to a file and check `$?`, or use `set -o pipefail`.
+
+## Roadside stalls and the beekeepers — 5 rows, 30 Aug 2026
+
+Sent by Scott as links through the day, each with his own classification. Two
+stalls and three honey producers; `produce` 42 → 46, `nursery` 10 → 11.
+
+    528  Islaindi          shop   nursery · produce  Cape Otway Road, Winchelsea
+    529  Fyansford Honey   shop   produce            20 Carroll Road, Fyansford
+    530  Edmonds Honey     maker  produce            5 Lower Duneed Rd, Mount Duneed
+    531  Surfcoast Bees    maker  produce            Surf Coast
+    532  Coastal Nectar    maker  produce            Surf Coast
+
+**A roadside stall is a Shop.** `produce` and `nursery` are things a place
+GROWS, so the rules make these venues — and nobody drives to an honesty box for
+its own sake. They are stockists, which is the Chocolaterie rule, so they earn
+a place on `/produce` and `/nursery` and stay off the board. All five are in
+`BY_ID`, because a shop can no longer be inferred and a maker never could.
+
+**None of the three beekeepers gets a pin, and one of them is the interesting
+case.** Surfcoast Bees leaves its address fields blank and invites nobody;
+Coastal Nectar tells you to ask its stockists. Both are the maker rule working
+as written. **Edmonds Honey is different: Scott supplied the address himself**
+(5 Lower Duneed Rd, Mount Duneed) after the site was checked at `/`, `/contact`
+and `/about` and published no street address, phone or postcode. That is the
+Bike Matters precedent — a person handing over a fact is a source — so the
+address is recorded and the `source_note` says it came from Scott and not the
+site.
+
+**It still has no coordinate, and that is a second decision.** Nominatim has no
+house number on Lower Duneed Road: it returns two `type=secondary` road
+segments **900 m apart in two different localities** (Mount Duneed and
+Armstrong Creek), which is the multi-segment coin toss, and neither the
+business name nor the name-plus-suburb resolves to any named feature. An
+address you can post to is not the same fact as a point you can stand on.
+
+**Fyansford Honey is the best-pinned row of the five**, by the bike-shop
+technique: the directory publishes -38.1460091,144.3029375 and a structured
+Nominatim query on its address independently matches `type=house` **14 m**
+away. The OSM node is stored, and it reverse-geocodes back to 20 Carroll Road.
+Islaindi has no street number anywhere, so it keeps the directory's own
+road-level point — which reverse-geocodes to Cape Otway Road, Winchelsea, and
+is the honest answer for a thing that genuinely is on the roadside.
+
+### `Mount Duneed` did not resolve, and `Mt Duneed` was already a town
+
+`SUBURBS` spells it **`Mt Duneed`**; every business there writes **`Mount
+Duneed`**; `scanFor` matches literals, so `suburbOf` returned null and the row
+would have reached no filter and no town page.
+
+Fixed in `suburbOf` by normalising `\bmount\b` → `mt` alongside the existing
+apostrophe strip — **not** by adding a second `SUBURBS` entry, which would put
+one town in the Place menu twice, and **not** by folding it into `GEELONG`,
+which would have quietly moved a standing town into the city. Mt Duneed still
+appears once in the menu and every other town still resolves to itself.
+
+The generalisable bit: a vocabulary that stores one spelling silently drops
+every other one, and the symptom is a row with no town rather than an error.
+
+### theroadsidestalls.com.au is worth automating and must not be a place row
+
+WordPress with GeoDirectory, a `sitemap_index.xml`, and **a published lat/lng
+on every stall page**. robots.txt disallows only wp-admin and WooCommerce paths
+under `User-agent: *` and names no AI crawler, so a Claude session and the
+Action may both read it. That is the most machine-readable source found since
+surfcoastevents.
+
+Two things it is not. It is a **directory**, so a listing is weaker evidence
+than a first-party page — several of these stalls appear to have no other web
+presence at all, which is worth writing in the `source_note` rather than
+pretending otherwise. And it is an **aggregator**, so it must never go in a
+`places.events_url`: `scrape_venues.py` would file every stall against "The
+Roadside Stalls" as its venue, which is the Coast & Bay trap. Stalls are
+undated anyway, so importing them means a new activity importer, not the venue
+scraper.
 
 ## Research rules — this project has been burned before
 

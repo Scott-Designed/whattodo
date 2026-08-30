@@ -63,7 +63,12 @@ const scanFor = l => {
    "Torquay Foreshore" and "Anywhere along the Surf Coast Walk", and what
    rescues an address whose last chunk is a postcode or "Victoria". */
 function suburbOf(loc){
-  const l=String(loc||'').toLowerCase().replace(/[\u2019']/g,'');
+  /* `Mt Duneed` is how SUBURBS spells it and `Mount Duneed` is how the
+     businesses there spell it, so the literal scan missed every address a
+     research pass would actually write. Normalised rather than added as a
+     second SUBURBS entry, which would put one town in the Place menu twice. */
+  const l=String(loc||'').toLowerCase().replace(/[\u2019']/g,'')
+                         .replace(/\bmount\b/g,'mt');
   if(!l) return null;
   if(AT_HOME.test(l)) return 'Home';
   if(IN_CAR.test(l))  return 'Car';
