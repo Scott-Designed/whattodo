@@ -91,6 +91,14 @@ def source_state(how):
     low = how.lower()
     if 'skipped' in low:                   return 'skipped'
     if 'did not respond' in low:           return 'dead'
+    # An error from the source is not a read. THE DEFAULT HERE IS SUCCESS, so
+    # anything the scraper says that is not a known failure phrase comes out
+    # green — which is how four Eventbrite organisers answering 401 to a
+    # rejected token showed as "reading" on the back-of-house page, twice a
+    # week, with nothing ever appearing behind them. Anything added to the
+    # scrapers' vocabulary of failure has to be added here too.
+    if 'failed' in low or 'error' in low:  return 'failed'
+    if 'token' in low and 'set ' in low:   return 'manual'
     if 'robots.txt' in low:                return 'refused'
     if 'left for a human' in low:          return 'manual'
     if 'nothing machine-readable' in low:  return 'nothing'

@@ -1589,6 +1589,93 @@ neither. `SRCFILTER` is gone entirely. The eight rows now print each
 aggregator's own `what` (*Ticketing platform*, *The shire's whole calendar*)
 where they all used to say "aggregator".
 
+### Three columns, and the 401 they found
+
+Scott asked for more columns on what was left. The three added are **Runs**,
+**Events** and **Still to come**, and the first thing they did was expose a
+source that had been failing silently for days.
+
+- **Runs** — *Mon & Thu* / *by hand* / *not built*, off `AGGREGATORS.auto`.
+  A different question from Status: Status is what the last run did, Runs is
+  whether the thing fixes itself. Geelong Regional Libraries reads perfectly
+  and is on no schedule, which Status alone can never say.
+- **Events** — how many events in the database came through it. **It needed no
+  new data**: every importer writes the page it read into `source_note`, so the
+  host IS the provenance. `added_by` is the tidier column and cannot answer
+  this — `venue-feed` covers Oztix, Humanitix, TryBooking and Moshtix at once.
+- **Still to come** — of those, the ones not yet past. 500 library events of
+  which 467 are ahead is a different fact from 500 that have all gone, and it
+  is the half that says whether a source is still worth having.
+
+**EVENTBRITE IS 401ing AND HAS BEEN READING AS GREEN.** Three of its four
+organisers — Creative Geelong Makers Hub, Mt Rothwell, Torquay Bowls Club —
+answer `401` every run, so nothing has ever been imported through the API.
+`EVENTBRITE_TOKEN` in the GitHub Action is missing or expired. Set it with
+`gh secret set EVENTBRITE_TOKEN` from a terminal, never the web form.
+
+**Why nobody saw it: `source_state()` in `run_log.py` DEFAULTS TO SUCCESS.**
+Anything a scraper printed that was not one of five known failure phrases came
+out `read` — green, "reading". *"Eventbrite API failed — Eventbrite 401 for
+organiser 28043893657"* matched none of them. There is a `failed` state now, and
+a `manual` for a line asking for a token. **Anything added to the scrapers'
+vocabulary of failure has to be added here too**, or it is silently a success.
+
+The fix only takes effect from the next run, because the state word is baked
+into `run_log.json`. So `repair()` in admin.html re-reads the run's own
+sentence — which is in the log verbatim — and upgrades a stored `read` that
+says *failed* or *error*. **Delete it once the logs have rolled over.**
+
+An aggregator whose venues disagree now takes the error: one venue reading is
+not a working platform when the other three are 401ing, and an error is nearly
+always platform-level — a rejected token, a changed API — rather than per-venue.
+
+**Two AGGREGATORS entries were stale prose and the Runs column turned one into
+a visible lie.** Eventbrite still said "deliberately not scraped" two days after
+the API was wired up, so it printed *not built* beside a Status of *reading*.
+Coast & Bay still said the feed was "unconfirmed" after the Test button
+confirmed it. A column that cross-checks hand-written prose against live data is
+worth having for that alone.
+
+### A site-based aggregator has venues too — they are in its events
+
+Scott: *"geelong regional libraries should be considered an aggregator, it's an
+RSS feed and has lots of venues."* It was already in `AGGREGATORS`; what it was
+missing was the venue count, because it was the only source whose venues are
+not written down anywhere. A platform's venues are the `places` rows carrying
+its URL. **A site's venues are in what it brought in** — 500 events across 19
+branches, every one with a `place_id`, because the iCal carries LOCATION and GEO.
+
+**`places` and the event-derived list must stay apart, and folding them together
+broke three rows before it was caught.** `places` is the registry and it is what
+`state` and `last read` are derived from — so adding the 19 branches made each
+branch's own website read, by `scrape_venues`, count as the FEED reading:
+Geelong Regional Libraries claimed *reading · 30 min ago · +18* when the feed
+has not run since the import, and Surf Coast Events grew from nothing to 21
+venues. Organiser-is-not-the-venue in one more hat.
+
+`via` reads the registry for a platform and the events for a site; nothing else
+changed. Note a site's `places` holds the feed's own log entry, which is what
+carries its history and is not a venue — Surf Coast Events read *1 venue* and
+meant itself, which is why the row's `places` field is now empty for a site and
+`branches` holds the real list.
+
+Its label said "a real RSS feed" and is now "one calendar feed": **it reads the
+iCal**, and the reason is three paragraphs of this file.
+
+### Every date is Australian and carries its year
+
+Scott, 30 Aug 2026. `melb()` gained `year:'numeric'` — *Mon, 31 Aug 2026 ·
+7:17 am* — and `dmy()` turns a stored `YYYY-MM-DD` into *29 Aug 2026* for the
+Events list, the Review queue and the drift alarm, which all printed the raw
+ISO string. A back office is read months after the fact, beside dates running
+into next year, so the year is what stops a row being misread.
+
+**`dmy` splits the string rather than passing it to `Date()`.** A stored date is
+a DAY, not an instant; `new Date('2026-08-29')` is UTC midnight and prints the
+28th at +10. That is the `nextDate` bug, which this project has already paid for
+once. The editor's own `<input type="date">` fields stay ISO — that is the value
+format HTML requires, and the browser renders them in the reader's locale.
+
 **Two traps when editing this file with a script.** Both were hit in one
 sitting: replacing a range that starts at one function and ends at a later
 marker silently swallowed the whole sources module, which had been written

@@ -657,9 +657,22 @@ function lastReadCell(h){
     ? `<br><span style="color:var(--ink3);font-size:11px">${h.newTotal} new all time</span>` : '';
   return `${esc(ago(h.read))}<br><span style="font-size:11.5px">${bits.join(' · ')}</span>${life}`;
 }
+/* Every date on this page is Australian and carries its year — 31 Aug 2026,
+   never 8/31 and never a bare "31 Aug". A back office is read months after the
+   fact and beside a table of dates running into next year, so the year is the
+   thing that stops a row being misread. */
 const melb = d => d.toLocaleString('en-AU',
   {timeZone:'Australia/Melbourne', weekday:'short', day:'numeric', month:'short',
-   hour:'numeric', minute:'2-digit'});
+   year:'numeric', hour:'numeric', minute:'2-digit'});
+/* A stored date is 'YYYY-MM-DD' and is a DAY, not an instant — so it is split
+   rather than passed to Date(), which would read it as UTC midnight and print
+   the day before at +10. The nextDate bug, which this project has already paid
+   for once. */
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function dmy(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+  return m ? `${+m[3]} ${MONTHS[+m[2] - 1]} ${m[1]}` : (iso || '');
+}
 function ago(iso){
   const s = (Date.now() - new Date(iso)) / 1000;
   if (s < 3600) return Math.round(s/60) + ' min ago';
@@ -676,7 +689,7 @@ function drawOverview(){
   const due  = nextRun();
   const rows = sourceRows();
   const reading = rows.filter(r => ['read','skipped'].includes(r.state)).length;
-  const needs   = rows.filter(r => ['manual','dead'].includes(r.state)).length;
+  const needs   = rows.filter(r => ['manual','dead','failed'].includes(r.state)).length;
   const waiting = (last?.steps || []).flatMap(s => s.drift || []).filter(d => d.locked).length;
   const lastNew = (last?.steps || []).flatMap(s => s.sources || [])
                     .reduce((n, s) => n + (s.new || 0), 0);
@@ -735,7 +748,7 @@ function drawAutos(){
     <p class="why">These rows are verified, so the scraper reported the change rather than
        overwriting your judgement. Check the organiser’s own page, then fix or keep the date here.</p>
     <ul>${waiting.map(d => `<li><a href="#" data-goto="e${d.id}">${esc(d.name)}</a> —
-       ${esc(d.from)} → <b>${esc(d.to)}</b></li>`).join('')}</ul></div>`;
+       ${esc(dmy(d.from))} → <b>${esc(dmy(d.to))}</b></li>`).join('')}</ul></div>`;
   if (last && !last.ok) alarm += `<div class="alarm"><h3>The last run failed</h3>
     <p class="why">${last.steps.filter(s=>!s.ok).map(s=>esc(s.name) + (s.ran ? ` exited ${s.exit}` : ' never ran')).join(' · ')}.
        The output is under “How the runs went”.</p></div>`;
@@ -869,16 +882,16 @@ const AGGREGATORS = [
   {name:'TryBooking', host:'trybooking', what:'Ticketing platform',
    how:'Read from the event page.', auto:'full', note:null},
   {name:'Eventbrite', host:'eventbrite', what:'Ticketing platform',
-   how:'Detected, but deliberately not scraped — it has a free API and that is the right way in.',
-   auto:'none',
-   note:'Standing job: wire up the API rather than parsing pages.'},
+   how:'Read through Eventbrite\u2019s own API since 28 Aug 2026 — the organiser id, then the events with expand=venue, paged. start.local is used, not start.utc, or every Melbourne event would shift ten hours.',
+   auto:'full',
+   note:'Needs EVENTBRITE_TOKEN in the GitHub Action. Without a valid one every organiser answers 401 and the source reads perfectly while importing nothing — which is what \u201Cerror\u201D in the status means here. The organiser page is what gets registered, never a single /e/ link, and the venue comes off each event\u2019s own location rather than from whoever sells the tickets.'},
   {name:'Coast & Bay', host:null, src:'coastandbay.com.au',
    what:'Local publication — its “what’s on this weekend” page',
-   how:'WordPress, so it may publish the same Events Calendar JSON API surfcoastevents does — which would make it the second real feed this project has. Unconfirmed: nobody has checked whether the plugin is installed.',
+   how:'WordPress with The Events Calendar — CONFIRMED 28 Aug 2026 by the Test-this-source button, which got a JSON feed back with the same field shape surfcoastevents has. It is the second real feed this project has found.',
    auto:'none',
    note:'Two things stand in the way. The check needs one request that CANNOT come from a Claude session — coastandbay.com.au names ClaudeBot and disallows the whole site, exactly like Humanitix, so a person or the Action has to run it: curl -s "https://coastandbay.com.au/wp-json/tribe/events/v1/events?per_page=3". And scrape_events.py is hardwired to one source — the URL, the provenance note, the added_by, the drift regex and the slug-keyed seen ledger all say surfcoastevents — so a second site is a refactor, not a config line. Slugs would collide across sites; the ledger needs keying by source too.'},
   {name:'Geelong Regional Libraries', host:null, src:'events.grlc.vic.gov.au',
-   what:'Every GRLC branch — a real RSS feed',
+   what:'Every GRLC branch — one calendar feed',
    how:'Reads the iCal feed, not the RSS — iCal alone carries LOCATION and GEO, so every event knows its branch and arrives with the library\u2019s own published pin. 500 events across 19 branches imported 27 Aug 2026 by scripts/scrape_library.py.',
    auto:'part',
    note:'NEEDS FILTERING WORK — this is the open job on this source. Everything came in wholesale: 500 events over 20 days, of which 215 are story times and 161 landed with no type at all, because types are only ever proposed from what a title actually says. Nothing yet decides what is worth putting on the board: a weekly Toddler Time at every branch is 72 rows saying almost the same thing, and it now outnumbers most real categories. Two things to settle — which sessions belong on the board at all, and how the 161 unsorted get typed. It is also NOT on the Mon/Thu schedule yet; events.yml still runs only the other two scrapers, so nothing refreshes until somebody runs it.'},
@@ -887,6 +900,11 @@ const AGGREGATORS = [
    auto:'full',
    note:'Deliberately NOT in the scraper\u2019s TICKETERS list. Its event pages do carry clean JSON-LD, but a Moshtix VENUE page links out to other venues\u2019 shows — adding the pattern proposed twelve gigs at The Night Cat, Brunswick Ballroom and Howler as Queenscliff events. With no ticketer match the scraper falls back to the venue page\u2019s own listing, which contains only that venue\u2019s events, and gets exactly the right ones.'},
 ];
+const RUNS_ON = {
+  full: {label:'Mon & Thu',  tag:'live'},
+  part: {label:'by hand',    tag:'warn'},
+  none: {label:'not built',  tag:'warn'},
+};
 const AUTO_STATE = {
   full: {label:'automated',      tag:'live'},
   part: {label:'partly',         tag:'warn'},
@@ -906,6 +924,7 @@ const SRC_STATE = {
   nothing: {label:'nothing to read',         tag:''},
   dead:    {label:'site did not answer',     tag:'dead'},
   refused: {label:'robots.txt says no',      tag:''},
+  failed:  {label:'answered with an error',  tag:'dead'},
   manual:  {label:'needs a person',          tag:'warn'},
   fbweekly:{label:'Facebook — check weekly', tag:'warn'},
   untried: {label:'not tried yet',           tag:''},
@@ -921,16 +940,47 @@ function shortVia(src){
   return bits.join(' + ') || '—';
 }
 
+/* run_log.py's classifier defaults to success, so until 30 Aug 2026 anything a
+   scraper said that was not a known failure phrase was filed as 'read' — four
+   Eventbrite organisers answering 401 showed as reading, green, with nothing
+   behind them. That is fixed at the writing end, but every log ALREADY written
+   carries the wrong word and those are the ones on screen. This re-reads the
+   run's own sentence, which is in the log verbatim. Remove it once the logs
+   have rolled over. */
+const repair = src => (src.state === 'read' && /failed|error/i.test(src.how || ''))
+  ? {...src, state:'failed'} : src;
+
 function sourceRows(){
   const hist = sourceHistory();
   const last = DATA.log[0];
   const seen = new Map();
   for (const s of (last?.steps || []))
-    for (const src of (s.sources || [])) seen.set(src.name, src);
+    for (const src of (s.sources || [])) seen.set(src.name, repair(src));
 
   const rows = [];
 
   for (const a of AGGREGATORS){
+    const key = (a.host || a.src || '').toLowerCase();
+    const mineEv = key ? DATA.events.filter(e =>
+      (e.source_note || '').toLowerCase().includes(key)) : [];
+    /* A platform's venues are the place rows carrying its URL. A SITE's venues
+       are not written down anywhere — they are in what it brought in. Geelong
+       Regional Libraries is one feed over 19 branches and every one of its 500
+       events names its own, so the count is real; it just had to be counted
+       rather than looked up, which is why this row alone used to show no
+       venues at all. Surf Coast Events sets no place_id on purpose, so it has
+       none to count and keeps printing its domain. */
+    const evPlaces = [...new Set(mineEv.map(e => e.place_id).filter(Boolean))]
+      .map(id => DATA.places.find(pl => pl.id === id)?.name).filter(Boolean);
+    /* The payoff, and it needed no new data: every importer writes the page it
+       read into source_note, so the host IS the provenance. `added_by` is the
+       tidier column but it names the SCRIPT — 'venue-feed' covers Oztix,
+       Humanitix, TryBooking and Moshtix at once, so it cannot answer this.
+       An event whose date has gone still counts as read; upcoming is the half
+       that says whether the source is still worth having. */
+    const live = mineEv.filter(e => !e.starts_on
+      || (e.recurrence && e.recurrence !== 'none')
+      || (e.ends_on || e.starts_on) >= TODAY).length;
     const mine = a.host
       ? [...seen.values()].filter(s => s.via?.some(v => v.toLowerCase() === a.name.toLowerCase()))
       : [...seen.values()].filter(s => s.name === a.src);
@@ -946,7 +996,8 @@ function sourceRows(){
     const all2 = mine.length ? mine : theirs;
     let state = 'untried';
     if (all2.length){
-      if (all2.some(s => s.state === 'read'))          state = 'read';
+      if (all2.some(s => s.state === 'failed'))        state = 'failed';
+      else if (all2.some(s => s.state === 'read'))    state = 'read';
       else if (all2.every(s => s.state === 'skipped')) state = 'skipped';
       else state = all2[0].state;
     }
@@ -957,12 +1008,15 @@ function sourceRows(){
     const own = a.src ? hist[a.src] : null;
     rows.push({
       kind:'aggregator', name:a.name, state,
-      via: a.host ? (places.length ? places.length + ' venue' + (places.length>1?'s':'') : 'none yet')
-                  : (a.via || []).join(', '),
+      via: (n => n ? n + ' venue' + (n>1?'s':'') : (a.src || 'none yet'))
+             (a.host ? places.length : evPlaces.length),
+      branches: a.host ? [] : evPlaces,
       read:     own?.read || h.map(x=>x.read).filter(Boolean).sort().pop(),
       newLast:  (own?.newLast  || 0) + h.reduce((n,x)=>n+(x.newLast||0),0),
       newTotal: (own?.newTotal || 0) + h.reduce((n,x)=>n+(x.newTotal||0),0),
-      auto:a.auto, how:a.how, note:a.note, what:a.what, places, url:null,
+      auto:a.auto, how:a.how, note:a.note, what:a.what, url:null,
+      places: a.host ? places : [],
+      events:mineEv.length, live,
     });
   }
 
@@ -994,6 +1048,7 @@ function sourceRows(){
 const TODO = {
   manual:  'Decide how this one gets read — the notes below say what the choice is.',
   fbweekly:'Open the Facebook page and read it. Nothing can do this for you: a Facebook feed needs a token and client-side JS, so no scraper will ever see it.',
+  failed:  'The source answered, and answered with an error — read the line under “How it works” for what it said. An expired or missing API token is the usual cause.',
   dead:    'The site did not answer. Check the address on the place row — it may have moved or closed.',
   nourl:   'No website on file. Find one and put it in the place row, and the next run will try it.',
   nothing: 'Its site has nothing a machine can read. Nothing to do unless you find a gig or events page — put that in events_url and it becomes automatic.',
@@ -1008,7 +1063,7 @@ const todoFor = r => (r.name === 'Coast & Bay'
     ? 'Two decisions before it goes on the schedule: which sessions belong on the board at all, and how the 161 untyped ones get typed. Then add it to events.yml.'
   : TODO[r.state] || '');
 
-const SRC_ORDER = ['read','skipped','manual','fbweekly','dead','refused','untried','nothing','nourl'];
+const SRC_ORDER = ['read','skipped','failed','manual','fbweekly','dead','refused','untried','nothing','nourl'];
 
 /* Automations lists the eight aggregators and nothing else.
    It used to list every venue too — 139 rows whose status column was the same
@@ -1025,17 +1080,25 @@ function drawSources(){
 
   SRC_LIST = aggs;
   $('#sources').innerHTML = `<table><thead><tr>
-      <th>Source</th><th>Reads via</th><th>Status</th><th>Last read</th><th></th>
+      <th>Source</th><th>Reads via</th><th>Runs</th><th>Status</th><th>Last read</th>
+      <th>Events</th><th>Still to come</th><th></th>
     </tr></thead><tbody>${aggs.map((r,i) => {
       const st = SRC_STATE[r.state] || {label:r.state, tag:''};
+      const sc = RUNS_ON[r.auto] || {label:'—', tag:''};
       return `<tr class="clickable" data-i="${i}">
         <td><div class="rowname">${esc(r.name)}</div>
             <span style="color:var(--ink3);font-size:11px">${esc(r.what || 'aggregator')}</span></td>
-        <td>${esc(r.via)}</td>
-        <td><span class="tag ${st.tag}">${esc(st.label)}</span></td>
-        <td>${r.read ? `${esc(ago(r.read))}${r.newLast
+        <td class="cap" title="${esc(r.via)}">${esc(r.via)}</td>
+        <td style="white-space:nowrap"><span class="tag ${sc.tag}">${esc(sc.label)}</span></td>
+        <td style="white-space:nowrap"><span class="tag ${st.tag}">${esc(st.label)}</span></td>
+        <td style="white-space:nowrap">${r.read ? `${esc(ago(r.read))}${r.newLast
               ? ` · <b style="color:var(--good)">+${r.newLast}</b>` : ''}`
             : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td>${r.events || '<span style="color:var(--ink3)">none yet</span>'}</td>
+        <td>${r.events
+              ? (r.live ? `<b style="font-weight:500;color:var(--good)">${r.live}</b>`
+                        : '<span style="color:var(--ink3)">all past</span>')
+              : '<span style="color:var(--ink3)">—</span>'}</td>
         <td style="text-align:right;color:var(--ink3)">›</td>
       </tr>`;
     }).join('')}</tbody></table>`;
@@ -1079,7 +1142,8 @@ function openSource(r){
     ['Last read', r.read ? `${esc(ago(r.read))} · ${r.newLast ? '+' + r.newLast + ' new' : 'nothing new'}${
                     r.seenCount ? ` · ${r.seenCount} on the page` : ''}` : 'never'],
     ['All time',  r.newTotal ? r.newTotal + ' new events' : 'none yet'],
-    r.places?.length ? ['Venues', esc(r.places.join(', '))] : null,
+    r.places?.length   ? ['Venues', esc(r.places.join(', '))] : null,
+    r.branches?.length ? ['Venues', esc(r.branches.join(', '))] : null,
     r.hint ? ['To pin it down', esc(r.hint)] : null,
   ].filter(Boolean);
 
@@ -1186,7 +1250,7 @@ function drawReview(){
           <td class="clickable" data-open="1"><div class="rowname">${esc(r.name)}</div>
               <span style="color:var(--ink3);font-size:11px">${
                 types ? esc(types) : '<i>unsorted</i>'}</span></td>
-          <td${past ? ' style="color:var(--bad)"' : ''}>${esc(r.starts_on || '—')}
+          <td${past ? ' style="color:var(--bad)"' : ''} style="white-space:nowrap">${esc(dmy(r.starts_on) || '—')}
               ${r.time_text ? `<br><span style="color:var(--ink3);font-size:11px">${esc(r.time_text)}</span>` : ''}
               ${past ? '<br><span style="font-size:11px">in the past</span>' : ''}</td>
           <td><b style="font-weight:500">${esc(town || '—')}</b>
@@ -1343,7 +1407,7 @@ function drawEvents(){
       return `<tr class="clickable" data-id="${r.id}">
         <td title="${esc(r.name)}"><div class="rowname">${esc(r.name)}</div></td>
         <td class="cap" title="${esc((r.types || []).join(' · '))}">${esc((r.types || []).join(' · ') || '—')}</td>
-        <td${past ? ' style="color:var(--ink3)"' : ''} style="white-space:nowrap">${esc(r.starts_on || '—')}</td>
+        <td${past ? ' style="color:var(--ink3)"' : ''} style="white-space:nowrap">${esc(dmy(r.starts_on) || '—')}</td>
         <td class="cap" style="color:var(--ink3)" title="${esc(r.time_text || '')}">${esc(r.time_text || '')}</td>
         <td>${repeats ? esc(r.recurrence) : '<span style="color:var(--ink3)">once</span>'}</td>
         <td class="cap wide" title="${esc(venue)}">${venue ? esc(venue) : '<span style="color:var(--ink3)">—</span>'}</td>
