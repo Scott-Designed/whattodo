@@ -1924,16 +1924,17 @@ Two routes, and the tradeoff is the only thing to decide:
   cannot receive it — and pointing is all that is needed.
 
   **Postmark**, because it allows **custom headers on the webhook**, so the
-  `x-inbox-secret` header works with no change. MX on a subdomain
-  (`inbox.notice.place`) → `inbound.postmarkapp.com` priority 10.
+  `x-inbox-secret` header works with no change. MX `@` → `inbound.postmarkapp.com`, priority 10.
   **SendGrid Inbound Parse was rejected**: it POSTs `multipart/form-data`,
   which Vercel does not parse into `req.body`, so it would need a body parser
   this project does not have.
 
-  **A subdomain, not the apex.** An MX on `notice.place` itself claims all mail
-  for the domain, so the day Scott wants `scott@notice.place` he would have to
-  take this apart first. `inbox.notice.place` claims one name and leaves the
-  rest free.
+  **The MX goes on the apex**, so the address is `events@notice.place` — the
+  one you would print on the site. A subdomain would leave the rest of the
+  domain free for a mailbox one day, at the cost of `events@inbox.notice.place`,
+  which nobody would ever type. The apex claims all mail for the domain, so if
+  Scott ever wants `scott@notice.place` this has to move first — one MX record,
+  not a one-way door.
 
 `INBOX_SECRET` goes in **two** places with the same value — the Vercel project,
 and the sender (Postmark's webhook custom header, or `wrangler secret put` on
