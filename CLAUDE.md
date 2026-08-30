@@ -1395,20 +1395,23 @@ wrong question. Check which before shipping it.
 
 ### The venue list
 
-The Places tab answers "what reads this venue, and how much is it carrying".
-One line per venue, and nothing stacked:
+**The Automation column answers "when did anything last happen here", not "why
+is there no feed".** Scott's call, 30 Aug 2026, and the reasoning is that a
+venue changes far more slowly than an event does — so this table is the one you
+open to notice silence, and *no website on file* / *not tried yet* were two ways
+of writing "no" that told you nothing about how stale a row had gone.
 
-- **Automation** — a green **✓ and the date it last read** when a machine
-  actually reads it, plus what through. Everything else is a word, because "not
-  automated" has several distinct reasons (nothing to read, needs a person,
-  site did not answer, no website on file) and a cross would flatten them into
-  one.
-- **Events** — three colour-coded numbers in a fixed order, *upcoming · on
-  today · past*, with the key above the table once. It was three stacked lines;
-  the column is scanned down rather than read, so the numbers line up and the
-  words go in the legend.
-- **Address** — yes/no, with a `no address` chip. 80 of 139 have none, and an
-  address is what lets a pin be checked against anything.
+- **Automated and working**: a green pill — ✓, a sync mark, and when it last
+  read. One glance, and the only pill anywhere in a table for that reason.
+- **Everything else**: *last added 3 days ago* · *last added 8 months ago* ·
+  *nothing added yet*. Anything past six months goes amber.
+
+The reason there is no feed is still there, on the cell's tooltip and in the
+drawer. It just is not the headline.
+
+`agoLong()` exists because `ago()` stops at days, which is right for a run and
+useless here — the honest answers to "how long since anyone added anything"
+run to months and years.
 
 **31 places host nothing and have nothing to read** — a playground, a carpark, a
 beach — and they are held back by default with a button that counts them and

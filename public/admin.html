@@ -182,6 +182,15 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
   color:var(--ink3);border:1px solid var(--rule2);padding:0 5px;border-radius:2px}
 .empty{color:var(--ink3);font-size:13px;padding:30px 0}
 
+/* Automated and working, as one mark. A pill here specifically: it is the one
+   positive state on this table and it should read at a glance, which is a
+   different job from the plain words the other states use. */
+.autopill{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+  border:1px solid var(--good);color:var(--good);border-radius:999px;
+  padding:1px 9px;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.04em;background:color-mix(in oklab,var(--good) 13%,transparent)}
+.autopill .sync{font-size:12px;line-height:1}
+.stale{color:var(--accent)}
 /* Any cell whose content has no natural length limit: cut it, put the whole
    thing on the title. time_text is prose in some rows ("34km 8.30am from
    Queenscliff; 17km about 9.40am from Drysdale") and nowrap alone just pushed
@@ -1481,6 +1490,21 @@ function drawActivities(){
     openEditor('activities', DATA.activities.find(x => x.id === +tr.dataset.id)));
 }
 
+/* `ago` stops at days, which is right for a run and useless for a venue: the
+   question on the Places table is "how long since anyone added anything here",
+   and the honest answers run to months and years. */
+function agoLong(iso){
+  if (!iso) return null;
+  const d = Math.floor((Date.now() - new Date(iso)) / 86400000);
+  if (d <= 0)  return 'today';
+  if (d === 1) return 'yesterday';
+  if (d < 31)  return d + ' days ago';
+  const m = Math.round(d / 30.4);
+  if (m < 18)  return m + (m === 1 ? ' month ago' : ' months ago');
+  const y = Math.round(d / 365);
+  return y + (y === 1 ? ' year ago' : ' years ago');
+}
+
 /* ── places ────────────────────────────────────────────────────────────────*/
 let PFILTER = {q:'', kind:'', sort:'name', flag:'', state:'', showQuiet:false};
 
@@ -1560,6 +1584,11 @@ function drawPlaces(){
         if (e.starts_on <= TODAY) return 'now';
         return 'up';
       };
+      // When anything was last attached to this venue — an event or a listing.
+      // A venue changes slowly, so silence is the signal this table is for.
+      const stamps = [...ev, ...DATA.activities.filter(a => a.place_id === p.id)]
+        .map(x => x.created_at).filter(Boolean).sort();
+      const lastAdded = stamps[stamps.length - 1] || null;
       const up   = ev.filter(e => state(e) === 'up').length;
       const now  = ev.filter(e => state(e) === 'now').length;
       const past = ev.filter(e => state(e) === 'past').length;
@@ -1568,18 +1597,22 @@ function drawPlaces(){
             ${p.aliases?.length ? `<div style="color:var(--ink3);font-size:11.5px">also: ${esc(p.aliases.join(', '))}</div>` : ''}</td>
         <td>${esc(p.kind || '—')}</td>
         <td>${esc(p.suburb || '—')}</td>
-        <td style="white-space:nowrap">${(() => {
-             // A tick means a machine reads this and when it last did. Anything
-             // else is a word, because "not automated" has several distinct
-             // reasons and a cross would flatten them into one.
-             if (!st) return '<span style="color:var(--ink3)">—</span>';
+        <td style="white-space:nowrap" title="${esc((SRC_STATE[s.state] || {}).label || 'no source on file')}">${(() => {
+             // Automated and working is one green pill — tick, sync, and when it
+             // last read. That is the whole answer for those rows.
              if (['read','skipped'].includes(s.state))
-               return `<span style="color:var(--good)">✓</span> ` +
-                 `<span style="color:var(--ink2)">${s.read ? esc(ago(s.read)) : 'reads'}</span>` +
-                 (s.via && s.via !== '—' ? ` <span style="color:var(--ink3)">· ${esc(s.via)}</span>` : '');
-             // The scraper's hint — "found at / — set events_url to lock it in" —
-             // is a sentence, and one row is one line. It is in the drawer.
-             return `<span class="tag ${st.tag}">${esc(st.label)}</span>`;
+               return `<span class="autopill"><span>✓</span><span class="sync">⟳</span>`
+                    + `${s.read ? esc(ago(s.read)) : 'automated'}</span>`;
+             // For everything else the useful fact is not WHY there is no feed —
+             // "no website on file" and "not tried yet" both just mean no — but
+             // how long since anyone added anything here. A venue changes slowly,
+             // so silence is the signal. The reason is on the tooltip and in the
+             // drawer for when it is wanted.
+             const when = agoLong(lastAdded);
+             if (!when) return '<span style="color:var(--ink3)">nothing added yet</span>';
+             const cold = (Date.now() - new Date(lastAdded)) > 180 * 86400000;
+             return `<span class="${cold ? 'stale' : ''}"${cold ? '' : ' style="color:var(--ink3)"'}>`
+                  + `last added ${esc(when)}</span>`;
            })()}</td>
         <td>${ev.length ? `<span class="evs"
               ><span class="ev-up${up ? '' : ' zero'}" title="${up} upcoming">${up}</span

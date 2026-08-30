@@ -23,7 +23,7 @@ Three things about the source that the code below exists to handle:
 
 Nothing is ever inserted verified. New rows show up in `sync.py pending`.
 """
-import os, sys, json, re, html, pathlib, datetime, urllib.request, urllib.error, urllib.parse
+import os, sys, json, re, html, time, pathlib, datetime, urllib.request, urllib.error, urllib.parse
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import eventlib as E
 
@@ -86,15 +86,32 @@ def fetch_all(horizon=HORIZON):
         req = urllib.request.Request(API + '?' + urllib.parse.urlencode(q))
         req.add_header('User-Agent', UA)
         req.add_header('Accept', 'application/json')
-        try:
-            with urllib.request.urlopen(req, timeout=45) as r:
-                doc = json.loads(r.read())
-        except urllib.error.HTTPError as e:
-            # Tribe answers 404 for a page past the end rather than an empty list.
-            if e.code == 404 and page > 1: break
-            sys.exit(f"{API} page {page} -> {e.code}\n{e.read().decode()[:300]}")
-        except urllib.error.URLError as e:
-            sys.exit(f"could not reach {SOURCE}: {e.reason}")
+        # Retry a slow or dropped read rather than losing the whole run to it.
+        # A bare socket TimeoutError is NOT a URLError, so it used to propagate
+        # straight out and fail the job — 30 Aug 2026, twenty minutes of venue
+        # scraping wasted because the calendar timed out in the first second.
+        doc = None
+        for attempt in (1, 2, 3):
+            try:
+                with urllib.request.urlopen(req, timeout=45) as r:
+                    doc = json.loads(r.read())
+                break
+            except urllib.error.HTTPError as e:
+                # Tribe answers 404 for a page past the end, not an empty list.
+                if e.code == 404 and page > 1: doc = None; break
+                # A 5xx is the site having a moment, not an answer. It was
+                # serving 503 on 30 Aug 2026 while this was being written.
+                if e.code >= 500 and attempt < 3:
+                    E.log(f"  {SOURCE} answered {e.code} — retry {attempt} of 2")
+                    time.sleep(5 * attempt); continue
+                sys.exit(f"{API} page {page} -> {e.code}\n{e.read().decode()[:300]}")
+            except (urllib.error.URLError, TimeoutError, OSError) as e:
+                why = getattr(e, 'reason', e)
+                if attempt == 3:
+                    sys.exit(f"could not reach {SOURCE} after 3 tries: {why}")
+                E.log(f"  {SOURCE} timed out ({why}) — retry {attempt} of 2")
+                time.sleep(5 * attempt)
+        if doc is None: break
         batch = doc.get('events') or []
         out += batch
         if page >= (doc.get('total_pages') or 1) or not batch: break
