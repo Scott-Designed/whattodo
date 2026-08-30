@@ -1541,6 +1541,54 @@ was: it was the one part that already worked, and it became the model.
 `events_url` cannot be read by anything, so it is a standing weekly job for a
 person rather than a broken automation. It says *Facebook — check weekly*.
 
+### The venues came off Automations — 30 Aug 2026
+
+Scott's question: *"the Automations tab should just have the aggregators no?
+The places are in the places tab, is that duplication?"* It was. The tab listed
+147 sources — 8 aggregators plus **every one of the 140 `places` rows** — and a
+venue's Status column was the same `sourceRows()` output the Places tab already
+prints in its Automation column. One fact, two screens, and a venue with two
+homes; the thing this project has paid for repeatedly.
+
+**Automations is the eight aggregators and nothing else now.** That list is
+genuinely nowhere else: it is the parser story, hand-written in `AGGREGATORS`,
+and it has no row in any table.
+
+**What the venue list was actually for is the worklist under it**, and that
+stayed. The state chips are now venue-only counts, biggest first, and pressing
+one **hands the set to the Places tab** — `showVenueState()` sets `PFILTER.state`,
+clears every other filter and switches tab. `no website on file 75` lands you on
+exactly 75 rows, where the town, the address, the event counts and the editor
+already are. Two things make that honest:
+
+- **The chip clears the other filters**, or the number on it would not match the
+  list it lands you in, which is the whole promise.
+- **The quiet hold lifts for it.** Places holds back the 31 that host nothing and
+  have nothing to read; a state filter is asking, the same as a search.
+
+**A venue's automation status is on the venue's own editor drawer** —
+`automationPanel()`, above the fields. That is where the two things a table cell
+could never hold went: the per-state **What to do** line, and the scraper's own
+**hint** (*found at / — set events_url to lock it in*). The **Test this source**
+button moved with them, so the probe is still one click from a venue.
+
+**The hint is deliberately NOT a sub-line in the Places table.** It was tried and
+it is a sentence — *one row is one line* is the rule that table already keeps.
+It was also attached to the wrong branch on the first go, under *not automated*,
+where a hint can never appear: hints come off a run, so only a source that was
+read has one. It rendered nowhere and looked fine.
+
+**`.scrollbox` survived on its own merits.** Its comment said it existed for the
+136-row venue list, so deleting that list looked like reason to delete the CSS —
+but the Review queue uses it too, and a 500-row library group is exactly the case
+it was built for. Grep for a class before removing it on the strength of its
+comment.
+
+The Kind filter and the source search went with the venues: eight rows need
+neither. `SRCFILTER` is gone entirely. The eight rows now print each
+aggregator's own `what` (*Ticketing platform*, *The shire's whole calendar*)
+where they all used to say "aggregator".
+
 **Two traps when editing this file with a script.** Both were hit in one
 sitting: replacing a range that starts at one function and ends at a later
 marker silently swallowed the whole sources module, which had been written

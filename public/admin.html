@@ -119,10 +119,11 @@ pre.out{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px
   line-height:1.5;background:var(--surface);border:1px solid var(--rule);
   padding:12px 14px;overflow-x:auto;margin:8px 0 0;white-space:pre;color:var(--ink2)}
 .stepname{font-weight:600;font-size:12px;margin:14px 0 0}
-/* The venue list is 136 rows and it is one section of four, so left to grow it
-   made the Automations page 20,000px tall and pushed everything below it out of
-   reach. Same answer as the type page's buckets: fixed height, scrolls inside
-   itself, header row stays put so the columns stay readable. */
+/* A long table inside a section, held to a fixed height so it cannot push
+   everything below it out of reach — the same answer as the type page's
+   buckets, header row sticky so the columns stay readable. Written for the
+   Automations venue list, which is gone; the Review queue's groups still use
+   it, and a 500-row library group is exactly the case it was built for. */
 .scrollbox{max-height:520px;overflow-y:auto;overscroll-behavior:contain;
   border:1px solid var(--rule2)}
 .scrollbox table{border-collapse:separate;border-spacing:0}
@@ -265,17 +266,18 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
   <div id="alarm"></div>
 
   <div class="controls">
-    <input type="search" id="sq" placeholder="Search sources…">
-    <select id="skind">
-      <option value="">Every kind</option>
-      <option value="aggregator">Aggregators</option>
-      <option value="venue">Venues &amp; convenors</option>
-    </select>
     <button class="btn ghost" id="runnow">Run the scrapers now</button>
     <div class="msg" id="runmsg" style="margin-left:0"></div>
   </div>
+
+  <h2 id="a-aggregators">Aggregators</h2>
+  <p class="note">One parser, many venues. This is the whole list.</p>
+  <div id="sources"></div>
+
+  <h2 id="a-venues">Every venue, by what reads it</h2>
+  <p class="note">The count is the worklist. Each one opens the Places tab
+    holding those venues, where the town, the events and the editor already are.</p>
   <div class="flags" id="srcstates"></div>
-  <div class="scrollbox"><div id="sources"></div></div>
 
   <h2 id="a-runs">Runs</h2>
   <div id="runs"></div>
@@ -350,6 +352,7 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
       <option value="flags">Most to fix</option>
     </select>
   </div>
+  <div id="pstate"></div>
   <div class="flags" id="pflags"></div>
   <div class="flags" id="quiet"></div>
   <div class="evkey"><span>Events:</span>
@@ -908,7 +911,6 @@ const SRC_STATE = {
   untried: {label:'not tried yet',           tag:''},
   nourl:   {label:'no website on file',      tag:''},
 };
-let SRCFILTER = {state:'', q:'', kind:''};
 let SRC_LIST = [];
 
 /* The table wants a label, not a sentence. The sentence is in the drawer. */
@@ -960,7 +962,7 @@ function sourceRows(){
       read:     own?.read || h.map(x=>x.read).filter(Boolean).sort().pop(),
       newLast:  (own?.newLast  || 0) + h.reduce((n,x)=>n+(x.newLast||0),0),
       newTotal: (own?.newTotal || 0) + h.reduce((n,x)=>n+(x.newTotal||0),0),
-      auto:a.auto, how:a.how, note:a.note, places, url:null,
+      auto:a.auto, how:a.how, note:a.note, what:a.what, places, url:null,
     });
   }
 
@@ -1006,38 +1008,29 @@ const todoFor = r => (r.name === 'Coast & Bay'
     ? 'Two decisions before it goes on the schedule: which sessions belong on the board at all, and how the 161 untyped ones get typed. Then add it to events.yml.'
   : TODO[r.state] || '');
 
+const SRC_ORDER = ['read','skipped','manual','fbweekly','dead','refused','untried','nothing','nourl'];
+
+/* Automations lists the eight aggregators and nothing else.
+   It used to list every venue too — 139 rows whose status column was the same
+   sourceRows() output the Places tab already prints, so the same fact was on
+   the screen twice and a venue had two homes. What that second list was really
+   for is the worklist underneath it: `no website on file 74` is the number that
+   caps coverage, and nothing else could ask for it. So the counts stayed and
+   became a way INTO Places, where the town, the events and the editor are. */
 function drawSources(){
   const all = sourceRows();
-  const counts = {};
-  for (const r of all) counts[r.state] = (counts[r.state] || 0) + 1;
-
-  $('#srcstates').innerHTML = Object.entries(counts).sort((a,b) => b[1]-a[1])
-      .map(([s,n]) => `<button class="flagbtn ${SRCFILTER.state===s?'on':''}" data-s="${esc(s)}">${
-        esc(SRC_STATE[s]?.label || s)}<b>${n}</b></button>`).join('')
-    + (SRCFILTER.state ? '<button class="flagbtn" data-s="">clear</button>' : '');
-  $('#srcstates').querySelectorAll('[data-s]').forEach(b => b.onclick = () => {
-    SRCFILTER.state = b.dataset.s === SRCFILTER.state ? '' : b.dataset.s; drawSources();
-  });
-
-  const q = (SRCFILTER.q || '').toLowerCase().trim();
-  const order = ['read','skipped','manual','fbweekly','dead','refused','untried','nothing','nourl'];
-  const list = all
-    .filter(r => !SRCFILTER.state || r.state === SRCFILTER.state)
-    .filter(r => !SRCFILTER.kind  || r.kind  === SRCFILTER.kind)
-    .filter(r => !q || (r.name + ' ' + (r.via||'') + ' ' + (r.what||'')).toLowerCase().includes(q))
-    .sort((a,b) => a.kind.localeCompare(b.kind) ||
-                   order.indexOf(a.state) - order.indexOf(b.state) ||
+  const aggs = all.filter(r => r.kind === 'aggregator')
+    .sort((a,b) => SRC_ORDER.indexOf(a.state) - SRC_ORDER.indexOf(b.state) ||
                    a.name.localeCompare(b.name));
 
-  SRC_LIST = list;
+  SRC_LIST = aggs;
   $('#sources').innerHTML = `<table><thead><tr>
       <th>Source</th><th>Reads via</th><th>Status</th><th>Last read</th><th></th>
-    </tr></thead><tbody>${list.map((r,i) => {
+    </tr></thead><tbody>${aggs.map((r,i) => {
       const st = SRC_STATE[r.state] || {label:r.state, tag:''};
       return `<tr class="clickable" data-i="${i}">
         <td><div class="rowname">${esc(r.name)}</div>
-            <span style="color:var(--ink3);font-size:11px">${
-              r.kind === 'aggregator' ? 'aggregator' : esc(r.what || 'venue')}</span></td>
+            <span style="color:var(--ink3);font-size:11px">${esc(r.what || 'aggregator')}</span></td>
         <td>${esc(r.via)}</td>
         <td><span class="tag ${st.tag}">${esc(st.label)}</span></td>
         <td>${r.read ? `${esc(ago(r.read))}${r.newLast
@@ -1049,6 +1042,27 @@ function drawSources(){
 
   $('#sources').querySelectorAll('tr[data-i]').forEach(tr =>
     tr.onclick = () => openSource(SRC_LIST[+tr.dataset.i]));
+
+  // The venues, as counts. Pressing one hands the set to the Places tab.
+  const counts = {};
+  for (const r of all) if (r.kind === 'venue') counts[r.state] = (counts[r.state] || 0) + 1;
+  // Biggest first, because these are now purely a worklist and the size IS the
+  // point: `no website on file 75` is the number that caps coverage, not the
+  // parsers, and it should be the first thing read.
+  $('#srcstates').innerHTML = Object.entries(counts).sort((a,b) => b[1] - a[1])
+      .map(([s,n]) => `<button class="flagbtn ${PFILTER.state===s?'on':''}" data-s="${esc(s)}">${
+        esc(SRC_STATE[s]?.label || s)}<b>${n}</b></button>`).join('');
+  $('#srcstates').querySelectorAll('[data-s]').forEach(b =>
+    b.onclick = () => showVenueState(b.dataset.s));
+}
+
+/* One gesture, and it has to clear the other filters or the count on the chip
+   would not match the list it lands you in — which is the whole promise. */
+function showVenueState(state){
+  PFILTER.state = state; PFILTER.q = ''; PFILTER.kind = ''; PFILTER.flag = '';
+  $('#pq').value = ''; $('#pkind').value = '';
+  drawPlaces(); drawSources(); show('places');
+  window.scrollTo({top:0});
 }
 
 function openSource(r){
@@ -1406,7 +1420,7 @@ function drawActivities(){
 }
 
 /* ── places ────────────────────────────────────────────────────────────────*/
-let PFILTER = {q:'', kind:'', sort:'name', flag:'', showQuiet:false};
+let PFILTER = {q:'', kind:'', sort:'name', flag:'', state:'', showQuiet:false};
 
 function drawPlaces(){
   // How many events lean on each place — a place with none is either a
@@ -1418,12 +1432,20 @@ function drawPlaces(){
   const flagged = DATA.places.map(p => ({...p, __flags: placeFlags(p)}));
   drawFlags($('#pflags'), flagged, PFILTER, drawPlaces);
 
+  // What actually reads each venue, and how much it is carrying right now.
+  // Built before the filter, not after, because the Automations tab hands this
+  // list a state to hold to and the filter has to be able to read it.
+  const srcByName = {};
+  for (const r of sourceRows()) if (r.kind === 'venue') srcByName[r.name] = r;
+
   const q = PFILTER.q.toLowerCase().trim();
   const quiet = flagged.filter(hostsNothing).length;
   let list = flagged.filter(p => {
     // Held back unless you ask — by searching, by picking a kind, or by
     // pressing the tally. Never silently: the count is always on screen.
-    if (!PFILTER.showQuiet && !q && !PFILTER.kind && !PFILTER.flag && hostsNothing(p)) return false;
+    if (!PFILTER.showQuiet && !q && !PFILTER.kind && !PFILTER.flag && !PFILTER.state
+        && hostsNothing(p)) return false;
+    if (PFILTER.state && (srcByName[p.name]?.state || '') !== PFILTER.state) return false;
     if (PFILTER.kind && p.kind !== PFILTER.kind) return false;
     if (PFILTER.flag && !p.__flags.includes(PFILTER.flag)) return false;
     if (!q) return true;
@@ -1439,6 +1461,18 @@ function drawPlaces(){
   }[PFILTER.sort]);
 
   $('#t-places').textContent = DATA.places.length;
+  /* A status that asks for a person and does not say what they should do is a
+     dead end — the same rule the source drawer follows. The line is per-state,
+     so it belongs above the set rather than repeated down every row. */
+  const stt = PFILTER.state ? (SRC_STATE[PFILTER.state] || {label:PFILTER.state, tag:''}) : null;
+  $('#pstate').innerHTML = stt
+    ? `<div class="flags"><button class="flagbtn on" id="clearstate">${
+         esc(stt.label)}<b>${list.length}</b> ✕</button></div>` +
+      (TODO[PFILTER.state] ? `<p class="note">${esc(TODO[PFILTER.state])}</p>` : '')
+    : '';
+  if ($('#clearstate')) $('#clearstate').onclick = () => {
+    PFILTER.state = ''; drawPlaces(); drawSources();
+  };
   $('#quiet').innerHTML = quiet
     ? `<button class="flagbtn ${PFILTER.showQuiet ? 'on' : ''}" id="quietbtn">${
         PFILTER.showQuiet ? 'hide' : 'show'} ${quiet} that host nothing and have nothing to read</button>`
@@ -1447,10 +1481,6 @@ function drawPlaces(){
     PFILTER.showQuiet = !PFILTER.showQuiet; drawPlaces();
   };
   if (!list.length){ $('#plist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
-  // What actually reads each venue, and how much it is carrying right now.
-  const srcByName = {};
-  for (const r of sourceRows()) if (r.kind === 'venue') srcByName[r.name] = r;
-
   $('#plist').innerHTML = `<table><thead><tr>
       <th>Venue</th><th>Kind</th><th>Town</th><th>Address</th><th>Automation</th>
       <th>Events</th><th>Pinned</th><th></th>
@@ -1486,6 +1516,8 @@ function drawPlaces(){
                return `<span style="color:var(--good)">✓</span> ` +
                  `<span style="color:var(--ink2)">${s.read ? esc(ago(s.read)) : 'reads'}</span>` +
                  (s.via && s.via !== '—' ? ` <span style="color:var(--ink3)">· ${esc(s.via)}</span>` : '');
+             // The scraper's hint — "found at / — set events_url to lock it in" —
+             // is a sentence, and one row is one line. It is in the drawer.
              return `<span class="tag ${st.tag}">${esc(st.label)}</span>`;
            })()}</td>
         <td>${ev.length ? `<span class="evs"
@@ -1551,15 +1583,37 @@ function readControl(spec){
   return v;
 }
 
+/* A place's automation status, printed above its fields.
+   It used to be a row of its own on the Automations tab, which meant a venue
+   had two homes and the same status was on screen twice. What that row carried
+   and a table cell cannot — what to do about the state, the scraper's own hint,
+   and the button that tests the URL — lands here, on the venue itself. */
+function automationPanel(row){
+  const r = sourceRows().find(x => x.kind === 'venue' && x.name === row.name);
+  if (!r) return '';
+  const st = SRC_STATE[r.state] || {label:r.state, tag:''};
+  const todo = todoFor(r);
+  return `<p class="dl"><b>Automation</b><span><span class="tag ${st.tag}">${esc(st.label)}</span>${
+      r.read ? ` <span style="color:var(--ink3)">· ${esc(ago(r.read))}${
+        r.newLast ? ' · +' + r.newLast + ' new' : ''}</span>` : ''}</span></p>
+    ${todo ? `<p class="dl"><b>What to do</b><span>${esc(todo)}</span></p>` : ''}
+    ${r.hint ? `<p class="dl"><b>To pin it down</b><span>${esc(r.hint)}</span></p>` : ''}
+    <p class="dl" id="proberow" hidden><b>Test result</b><span id="probeout"></span></p>
+    ${r.url ? `<p class="dl"><b></b><span><button class="btn ghost" id="probe"
+        >Test this source</button></span></p>` : ''}`;
+}
+
 function openEditor(table, row){
   if (!row) return;
   OPEN = {table, row};
   const specs = FIELDS[table];
+  const auto = table === 'places' ? automationPanel(row) : '';
   $('#editor').innerHTML = `<div class="scrim"><div class="drawer">
     <header>
       <div class="sub">${esc(table)} · id ${row.id}</div>
       <h2>${esc(row.name)}</h2>
     </header>
+    ${auto}
     <div class="fields">${specs.map(s => control(s, row)).join('')}</div>
     <div class="drawerbar">
       <button class="btn" id="save">Save</button>
@@ -1573,6 +1627,10 @@ function openEditor(table, row){
   $('.scrim').onclick = e => { if (e.target === $('.scrim')) closeEditor(); };
   $('#save').onclick = save;
   $('#del').onclick  = remove;
+  if ($('#probe')){
+    const r = sourceRows().find(x => x.kind === 'venue' && x.name === row.name);
+    $('#probe').onclick = () => probeSource(r.url);
+  }
   document.addEventListener('keydown', onEsc);
 }
 const onEsc = e => { if (e.key === 'Escape') closeEditor(); };
@@ -1724,7 +1782,6 @@ wire({'#eq':'q', '#etype':'type', '#erec':'rec', '#ewhen':'when', '#esrc':'src',
      EFILTER, () => drawEvents());
 wire({'#aq':'q', '#atype':'type', '#asort':'sort'}, AFILTER, () => drawActivities());
 wire({'#pq':'q', '#pkind':'kind', '#psort':'sort'}, PFILTER, () => drawPlaces());
-wire({'#sq':'q', '#skind':'kind'}, SRCFILTER, () => drawSources());
 wire({'#rsrc':'src'}, RFILTER, () => drawReview());
 
 /* ── load ──────────────────────────────────────────────────────────────────
