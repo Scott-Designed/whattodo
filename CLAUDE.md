@@ -1329,6 +1329,33 @@ was invisible.
 
 ### The venue list
 
+The Places tab answers "what reads this venue, and how much is it carrying".
+One line per venue, and nothing stacked:
+
+- **Automation** — a green **✓ and the date it last read** when a machine
+  actually reads it, plus what through. Everything else is a word, because "not
+  automated" has several distinct reasons (nothing to read, needs a person,
+  site did not answer, no website on file) and a cross would flatten them into
+  one.
+- **Events** — three colour-coded numbers in a fixed order, *upcoming · on
+  today · past*, with the key above the table once. It was three stacked lines;
+  the column is scanned down rather than read, so the numbers line up and the
+  words go in the legend.
+- **Address** — yes/no, with a `no address` chip. 80 of 139 have none, and an
+  address is what lets a pin be checked against anything.
+
+**31 places host nothing and have nothing to read** — a playground, a carpark, a
+beach — and they are held back by default with a button that counts them and
+brings them back. Searching, picking a kind or picking a chip lifts the hold, so
+nothing is ever silently absent. Same bargain the board makes with the at-home
+listings.
+
+**That hold is EVIDENCE, never a guess from `kind`.** Princess Park is a park
+and hosts the Queenscliff Music Festival; the Barwon Heads riverbank hosts a
+market. A rule that hid parks would hide both. The test is "has never had an
+event **and** has no feed to get one from", which is a fact about the row rather
+than an opinion about the category.
+
 The Places tab answers "what reads this venue, and how much is it carrying":
 kind, town, the **automation** (state, what reads it, when it last read) and
 **events** (upcoming, total, plus any activities linked to it). Sortable by most

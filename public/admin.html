@@ -190,6 +190,16 @@ td .tag.warn{color:var(--accent);background:none}
 .rowflags{margin-top:0}
 td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
   font-size:11.5px;color:var(--ink3)}
+/* Events on one line: three numbers, colour-coded, in a fixed order so the
+   column can be scanned down rather than read. The key sits above the table
+   once, because a legend repeated on every row is the stacking again. */
+.evs{display:inline-flex;gap:9px;font-variant-numeric:tabular-nums}
+.ev-up{color:var(--good);font-weight:600}
+.ev-now{color:var(--accent);font-weight:600}
+.ev-past{color:var(--ink3)}
+.evs .zero{color:var(--rule2);font-weight:400}
+.evkey{font-size:11px;color:var(--ink3);margin:-6px 0 12px;
+  display:flex;gap:14px;font-family:var(--util)}
 /* ── the editor ── */
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;
   display:flex;justify-content:flex-end}
@@ -321,6 +331,11 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
     </select>
   </div>
   <div class="flags" id="pflags"></div>
+  <div class="flags" id="quiet"></div>
+  <div class="evkey"><span>Events:</span>
+    <span class="ev-up">upcoming</span>
+    <span class="ev-now">on today</span>
+    <span class="ev-past">past</span></div>
   <div id="plist"></div>
 </section>
 
@@ -429,6 +444,17 @@ function flagsFor(r, kind){
    already has — "no kind" beside a Kind of "—", "no website" beside an
    Automation of "no website on file" — and a badge that restates its own row
    is noise. `coarse pin` is a third state on the Pinned column instead. */
+/* A playground, a beach, a carpark: somewhere an event could be held but which
+   has never had one and has nothing to read. They are two-thirds of the table
+   and they crowd out the venues that actually do something, so they are held
+   back by default and counted rather than deleted — the same bargain the board
+   makes with the at-home listings.
+
+   It is deliberately EVIDENCE, not a guess from `kind`. Princess Park is a park
+   and hosts the Queenscliff Music Festival; Barwon Heads Riverbank is a
+   riverbank and hosts a market. Judging by kind would hide both. */
+const hostsNothing = p => !p.__events && !p.events_url && !p.ticketing_url;
+
 function placeFlags(p){
   const f = [];
   if (p.lat === null || p.lng === null) f.push('no pin');
@@ -1312,7 +1338,7 @@ function drawActivities(){
 }
 
 /* ── places ────────────────────────────────────────────────────────────────*/
-let PFILTER = {q:'', kind:'', sort:'name', flag:''};
+let PFILTER = {q:'', kind:'', sort:'name', flag:'', showQuiet:false};
 
 function drawPlaces(){
   // How many events lean on each place — a place with none is either a
@@ -1325,7 +1351,11 @@ function drawPlaces(){
   drawFlags($('#pflags'), flagged, PFILTER, drawPlaces);
 
   const q = PFILTER.q.toLowerCase().trim();
+  const quiet = flagged.filter(hostsNothing).length;
   let list = flagged.filter(p => {
+    // Held back unless you ask — by searching, by picking a kind, or by
+    // pressing the tally. Never silently: the count is always on screen.
+    if (!PFILTER.showQuiet && !q && !PFILTER.kind && !PFILTER.flag && hostsNothing(p)) return false;
     if (PFILTER.kind && p.kind !== PFILTER.kind) return false;
     if (PFILTER.flag && !p.__flags.includes(PFILTER.flag)) return false;
     if (!q) return true;
@@ -1341,6 +1371,13 @@ function drawPlaces(){
   }[PFILTER.sort]);
 
   $('#t-places').textContent = DATA.places.length;
+  $('#quiet').innerHTML = quiet
+    ? `<button class="flagbtn ${PFILTER.showQuiet ? 'on' : ''}" id="quietbtn">${
+        PFILTER.showQuiet ? 'hide' : 'show'} ${quiet} that host nothing and have nothing to read</button>`
+    : '';
+  if ($('#quietbtn')) $('#quietbtn').onclick = () => {
+    PFILTER.showQuiet = !PFILTER.showQuiet; drawPlaces();
+  };
   if (!list.length){ $('#plist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
   // What actually reads each venue, and how much it is carrying right now.
   const srcByName = {};
@@ -1353,21 +1390,41 @@ function drawPlaces(){
       const s  = srcByName[p.name] || {};
       const st = SRC_STATE[s.state] || null;
       const ev = DATA.events.filter(e => e.place_id === p.id);
-      const up = ev.filter(e => !e.starts_on || e.starts_on >= TODAY).length;
-      const ac = DATA.activities.filter(a => a.place_id === p.id).length;
+      // An event that started before today but has not ended is on NOW; one
+      // that repeats is never past. Three states, counted once.
+      const state = e => {
+        if (!e.starts_on) return 'up';
+        const end = e.ends_on || e.starts_on;
+        if (e.recurrence && e.recurrence !== 'none') return 'up';
+        if (end < TODAY) return 'past';
+        if (e.starts_on <= TODAY) return 'now';
+        return 'up';
+      };
+      const up   = ev.filter(e => state(e) === 'up').length;
+      const now  = ev.filter(e => state(e) === 'now').length;
+      const past = ev.filter(e => state(e) === 'past').length;
       return `<tr class="clickable" data-id="${p.id}">
         <td><div class="rowname">${esc(p.name)}</div>
             ${p.aliases?.length ? `<div style="color:var(--ink3);font-size:11.5px">also: ${esc(p.aliases.join(', '))}</div>` : ''}</td>
         <td>${esc(p.kind || '—')}</td>
         <td>${esc(p.suburb || '—')}</td>
         <td>${p.address ? 'yes' : '<span style="color:var(--ink3)">no</span>'}</td>
-        <td>${st ? `<span class="tag ${st.tag}">${esc(st.label)}</span>` : '<span style="color:var(--ink3)">—</span>'}
-            ${s.via && s.via !== '—' ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(s.via)}</span>` : ''}
-            ${s.read ? `<br><span style="color:var(--ink3);font-size:11px">read ${esc(ago(s.read))}</span>` : ''}</td>
-        <td>${ev.length ? `<b style="font-weight:500">${up}</b> <span style="color:var(--ink3)">upcoming</span>
-              ${ev.length !== up ? `<br><span style="color:var(--ink3);font-size:11.5px">${ev.length} in total</span>` : ''}`
-             : '<span style="color:var(--ink3)">none</span>'}
-            ${ac ? `<br><span style="color:var(--ink3);font-size:11px">${ac} listing${ac>1?'s':''}</span>` : ''}</td>
+        <td style="white-space:nowrap">${(() => {
+             // A tick means a machine reads this and when it last did. Anything
+             // else is a word, because "not automated" has several distinct
+             // reasons and a cross would flatten them into one.
+             if (!st) return '<span style="color:var(--ink3)">—</span>';
+             if (['read','skipped'].includes(s.state))
+               return `<span style="color:var(--good)">✓</span> ` +
+                 `<span style="color:var(--ink2)">${s.read ? esc(ago(s.read)) : 'reads'}</span>` +
+                 (s.via && s.via !== '—' ? ` <span style="color:var(--ink3)">· ${esc(s.via)}</span>` : '');
+             return `<span class="tag ${st.tag}">${esc(st.label)}</span>`;
+           })()}</td>
+        <td>${ev.length ? `<span class="evs"
+              ><span class="ev-up${up ? '' : ' zero'}" title="${up} upcoming">${up}</span
+              ><span class="ev-now${now ? '' : ' zero'}" title="${now} on today">${now}</span
+              ><span class="ev-past${past ? '' : ' zero'}" title="${past} past">${past}</span
+              ></span>` : '<span style="color:var(--ink3)">—</span>'}</td>
         <td>${!p.lat || !p.lng ? '<span class="tag">no</span>'
              : (coarse(p.lat) || coarse(p.lng)) ? '<span class="tag warn">coarse</span>'
              : '<span class="tag live">yes</span>'}</td>
