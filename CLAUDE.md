@@ -2302,6 +2302,123 @@ appears once in the menu and every other town still resolves to itself.
 The generalisable bit: a vocabulary that stores one spelling silently drops
 every other one, and the symptom is a row with no town rather than an error.
 
+## 205 listings were invisible on the live site — FIXED 30 Aug 2026
+
+**PostgREST caps a response at `db-max-rows`, which is 1000 on Supabase, and it
+does not tell you.** You get `200 OK` and a short array. `notice-data.js` asked
+for `/rest/v1/listings?select=*` in one request and trusted what came back.
+
+The library import took `listings` past 1000 on 27 Aug 2026. From that moment
+the board was drawing **1000 of 1205 rows**, the badge still said `live`, and
+the tally said *871 things pinned* — a number that looked entirely plausible
+because nobody knows what it should be. Three days, no error, nothing in the
+console.
+
+**It surfaced by luck.** Two events written on 30 Aug were the newest rows and
+therefore the ones cut, and they were both dated that day, so the check was
+"why is today's event missing from the board" rather than "is the board
+complete". Five other events dated the same day rendered fine, which is what
+ruled out a date bug and pointed at the fetch. Had those two rows been older
+they would have displaced two others and the count would still have been wrong.
+
+`fetchAll()` in `notice-data.js` pages with `limit`/`offset` and stops when a
+page comes back short, which is the only end-of-data signal PostgREST offers.
+`admin.html`'s `sb()` does the same — `events` is past 700 and climbing with
+every library import, so the only screen that can edit a row was one good week
+from hiding the newest ones.
+
+Two things to keep hold of:
+
+- **`PAGE` may be at most 1000.** Ask for more and the cap silently gives you
+  1000 back, the loop never sees a short page, and it never ends.
+- **A short array is not an empty one.** The old code only treated a *zero*
+  length response as a failure, which is why truncation sailed past the
+  `throw new Error('empty')` guard that was sitting right there.
+
+The generalisable sentence, which this file has now written three times in
+different clothes — the `--kinds` parser, the stale arts cache, this: **a query
+that silently returns less than you asked for is indistinguishable from a world
+containing less.** Anything reading a growing table has to page or assert a
+count.
+
+**The built-in fallback copy in `index.html` is separately stale** — it says
+"as at 26 Aug 2026" and 419 rows, against 1205 now. It is only shown when
+Supabase is unreachable, so it is not urgent, but it is no longer a fallback so
+much as a museum. Regenerating it is its own job and nobody has done it.
+
+## The Event Inbox pull of 30 Aug 2026 — 14 items, 19 rows
+
+The second inbox pull, and much the largest. Seven photographs, six links and a
+newspaper clipping; Scott sent five more links in the chat while it was running.
+
+**Photographs of a phone screen are now a normal capture**, not an exception —
+four of the seven were Instagram profiles or a business's own web page shot in
+Safari, and the address, the hours and the market days were all legible in
+them. An Instagram bio is the business's own publication, so it is first-party
+for its own address. That is how `Alt Rd Wines` got 880 Winchelsea–Deans Marsh
+Road, which its website does not publish at all.
+
+    533 Church Geelong          venue  gig·theatre·comedy   (place 140)
+    534 Alt Rd Wines            venue  winery·restaurant
+    535 Mt Pleasant Rd Brewers  venue  brewery·bar
+    536 Hop City                venue  bar
+    537 GOR Brewing             venue  brewery              112 Balliang St
+    538 GOR Brewing Taphouse    venue  brewery·bar·rest.    27 Baines Cres
+    539 Pop Cultcha             shop   arts                 (type is a placeholder)
+    540 Pop Cultcha Gallery     venue  art gallery          no pin
+    541 Good Blooms Flower Farm maker  produce              no pin
+    542 Ghazeepore Greens       maker  produce              no pin
+    543 Bellarine Catchment Net group  volunteering·nature  (place 82)
+    544 Happy Hour Run Crew     group  running·community
+    683 Trivia Arvo             happening  community·cinema (place 7)
+    684 Happy Hour Run          happening  weekly, Sundays
+
+**`Great Ocean Road Brewing` is NOT `Great Ocean Road Brewhouse`.** The
+Brewhouse (activity 309, place 18) is at Apollo Bay on
+greatoceanroadbrewhouse.com.au; the Brewing company is South Geelong plus a
+Torquay taphouse on greatoceanroadbrewing.com.au. This was first written up as
+a conflict in an existing row before the domains were compared. Two businesses,
+similar names, and a merge waiting to happen if nobody writes it down.
+
+**`Bellarine Catchment Network` is the "a places row is not a listing" fault
+again** — place 82, with a Humanitix `events_url`, fully known to the scraper
+and invisible to every reader since the places table was built. Exactly the
+Surf Coast Mountain Bike Club case from 28 Aug, two days later. **After adding a
+place, ask whether a reader is ever meant to find it.**
+
+**Sketch and Scribe Festival (event 73) had the wrong end date.** The row said
+5 Sep – 17 Oct at `medium` from surfcoastevents; the festival's own site says
+**5 Sep – 11 Oct**. Corrected, confidence raised to `high`, and `info_url`
+repointed off the aggregator. It was `verified = true`, which records only that
+the bulk queue was accepted on 25 Aug. **A duplicate capture exposed a wrong
+date for the third time** — the Torquay Farmers Market and the Oneday Estate
+address were the others.
+
+**Church Geelong is registered as a source and cannot be read.** robots.txt
+allows everything and names no AI crawler, but there is no Events Calendar
+plugin, no event post type in `wp/v2/types`, and the only JSON-LD is Yoast
+`WebPage`/`WebSite` boilerplate. Its 14 gigs to December are hand-built HTML.
+`events_url` is set to the homepage so it shows on the Automations tab in its
+honest state, which is *nothing to read*.
+
+**Two things were deliberately not written.** `feverup.com/en/geelong/candlelight`
+is a **ticketing aggregator** whose Candlelight concerts happen in other
+people's rooms, so a `places` row for it would file every concert at "Fever" —
+the Coast & Bay trap. And `theroadsidestalls.com.au` is not being pursued at
+all — Scott's call; the two stalls already taken from it stay.
+
+**Pop Cultcha has no honest type, and that is the shop-type retirement biting.**
+A collectibles and record shop is not `arts`, and `arts` is what it has. The
+same vocabulary gap as monuments and landmarks. Its `source_note` says the type
+is a placeholder.
+
+**Nothing published a coordinate it should not have.** Six pins are building
+level and cross-checked; six rows have none, each with the reason written down —
+Church Geelong (OSM's only "71" is on Little Ryrie Street, a different road),
+Pop Cultcha Gallery (no house number, two road segments 140 m apart), the two
+market growers and the run crew (no premises), and Bellarine Catchment Network
+(no house number on Swan Bay Road, and the road returned is in Marcus Hill).
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

@@ -170,6 +170,18 @@ BY_ID = {
   530: ('maker', 'a beekeeper selling through stockists; no shopfront'),
   531: ('maker', 'a beekeeper selling through stockists; no shopfront'),
   532: ('maker', 'a beekeeper selling through stockists; no shopfront'),
+
+  # The Event Inbox pull of 30 Aug 2026. Same shape every time: `types` says
+  # what a row is ABOUT and the kind says what it IS.
+  539: ('shop',  'a collectibles and record shop — `arts` is a placeholder type'),
+  541: ('maker', 'a flower grower who stands at markets; no farm gate'),
+  542: ('maker', 'a market garden with an Instagram bio and nothing else'),
+  # `volunteering` makes a group, `nature` makes a spot, spot wins on
+  # PRECEDENCE, and then the no-anchor correction demotes it to an idea —
+  # three right steps to a wrong answer, because this is an organisation you
+  # join that happens to work outdoors. Same trap as Nippers (289).
+  543: ('group', 'a catchment network you volunteer with, not a place'),
+  544: ('group', 'a run crew — running is what it does, not where it is'),
 }
 
 # ── A shop can no longer be inferred, and that is now permanent ──

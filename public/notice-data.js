@@ -51,12 +51,36 @@ function fromRow(r){
     added: r.verified===false, groups,
   };
 }
+/* PostgREST caps a response at `db-max-rows`, which is 1000 on Supabase, and
+   it does NOT tell you it truncated — you get 200 OK and a short array. The
+   library import took `listings` past 1000 on 27 Aug 2026 and 205 rows went
+   invisible on the live site for three days, badge still reading `live`. It
+   surfaced only because two events written on 30 Aug were the newest rows and
+   therefore the ones cut.
+
+   So every read of a growing table has to page. Stop when a page comes back
+   short — that is the only honest end-of-data signal PostgREST gives. The cap
+   is per-request, so PAGE may be at most 1000; asking for more silently
+   returns 1000 and the loop would never see a short page and never end. */
+const PAGE = 1000;
+async function fetchAll(path){
+  const out = [];
+  for(let from = 0; ; from += PAGE){
+    const sep = path.includes('?') ? '&' : '?';
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}${sep}limit=${PAGE}&offset=${from}`,
+                          {headers:sbHeaders()});
+    if(!r.ok) throw new Error(r.status);
+    const page = await r.json();
+    if(!Array.isArray(page)) throw new Error('shape');
+    out.push(...page);
+    if(page.length < PAGE) return out;
+  }
+}
+
 async function loadRemote(){
   if(!REMOTE) return null;
   try{
-    const r=await fetch(SUPABASE_URL+'/rest/v1/listings?select=*',{headers:sbHeaders()});
-    if(!r.ok) throw new Error(r.status);
-    const rows=await r.json();
+    const rows = await fetchAll('listings?select=*');
     if(!Array.isArray(rows)||!rows.length) throw new Error('empty');
     REMOTE_OK=true;
     return rows.map(fromRow);

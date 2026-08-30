@@ -226,63 +226,24 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
 
 <section id="tab-autos">
   <div id="overview"></div>
-  <nav class="subnav">
-    <a href="#a-sources">Sources</a>
-    <a href="#a-runs">Run history</a>
-    <a href="#a-runnow">Run now</a>
-    <a href="#a-what">What runs by itself</a>
-  </nav>
   <div id="alarm"></div>
 
-  <h2 id="a-sources">Where the events come from</h2>
-  <p class="note">Two different things, so they are listed separately. An
-     <b>aggregator</b> carries many venues at once — one parser reaches all of them, so
-     it is where automation actually pays. A <b>venue</b> speaks only for itself.</p>
-
-  <h3 class="subhead">Aggregators — one parser, many venues</h3>
-  <p class="note">What is tracked, how it is read, and whether that is automated. The
-     count is how many places on file reach us through each one.</p>
-  <div id="aggregators"></div>
-
-  <h3 class="subhead">Venues &amp; convenors — each speaking for itself</h3>
-  <p class="note">The registry is the <b>Places</b> table, not a list in the code: a place
-     with an <span class="mono">events_url</span> gets read, and a place with only a
-     <span class="mono">website</span> gets its usual gig paths tried. Adding a source
-     means filling in that cell — never editing a script.</p>
+  <div class="controls">
+    <input type="search" id="sq" placeholder="Search sources…">
+    <select id="skind">
+      <option value="">Every kind</option>
+      <option value="aggregator">Aggregators</option>
+      <option value="venue">Venues &amp; convenors</option>
+    </select>
+    <button class="btn ghost" id="runnow">Run the scrapers now</button>
+    <div class="msg" id="runmsg" style="margin-left:0"></div>
+  </div>
   <div class="flags" id="srcstates"></div>
   <div class="scrollbox"><div id="sources"></div></div>
 
-  <h2 id="a-runs">How the runs went</h2>
-  <p class="note">Straight off GitHub's public API — no token, because the repo is
-     public. Press a run to read what the scrapers actually printed; that output is
-     committed into the repo by the run itself, since a job summary on github.com is
-     somewhere nobody looks.</p>
+  <h2 id="a-runs">Runs</h2>
   <div id="runs"></div>
-  <h2 id="a-runnow">Run it now</h2>
-  <p class="note">Presses the same job the schedule presses. Worth doing when you
-     have just filled in an <span class="mono">events_url</span> and want to see
-     whether it reads — and it is the honest way to pick up the Humanitix venues on
-     demand, since the Action is not Claude and their robots.txt lets it in.</p>
-  <div class="controls" style="align-items:flex-start">
-    <button class="btn" id="runnow">Run the scrapers now</button>
-    <div class="msg" id="runmsg" style="margin-left:0"></div>
-  </div>
-  <details style="margin:2px 0 18px">
-    <summary style="cursor:pointer;color:var(--ink3);font-size:12.5px">Or run them yourself</summary>
-    <pre class="out">python3 scripts/scrape_venues.py --only humanitix   # look first
-python3 scripts/scrape_venues.py --only humanitix --write</pre>
-    <p class="note" style="margin:8px 0 0">Your terminal is not Claude either, so this
-       path is fine. An assistant driving the same script must pass
-       <span class="mono">--skip humanitix</span>.</p>
-  </details>
-
-  <h2 id="a-what">What runs by itself</h2>
-  <p class="note">Everything scheduled, plus the things that only run when you ask.
-     The two scrapers are steps in one GitHub Action, so they share a schedule and
-     either can fail without stopping the other.</p>
-  <div class="grid" id="autolist"></div>
-
-</section>
+</section></section>
 
 <section id="tab-events" hidden>
   <h2>Events</h2>
@@ -374,9 +335,25 @@ const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const REPO = "Scott-Designed/whattodo";
 const RAW  = `https://raw.githubusercontent.com/${REPO}/main/scripts/run_log.json`;
 
-const sb = p => fetch(SUPABASE_URL + '/rest/v1/' + p,
-  {headers:{apikey:SUPABASE_ANON, Authorization:'Bearer ' + SUPABASE_ANON}})
-  .then(r => r.ok ? r.json() : Promise.reject(new Error(p + ': ' + r.status)));
+/* Paged, because PostgREST caps a response at 1000 rows and says nothing
+   about it — a short array and a 200. `events` is past 700 and climbing with
+   every library import, so this page was one good week away from silently
+   hiding the newest rows from the only screen that can edit them. See the
+   same fix and the fuller note in notice-data.js. */
+const SB_PAGE = 1000;
+async function sb(p){
+  const out = [];
+  for(let from = 0; ; from += SB_PAGE){
+    const sep = p.includes('?') ? '&' : '?';
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${p}${sep}limit=${SB_PAGE}&offset=${from}`,
+      {headers:{apikey:SUPABASE_ANON, Authorization:'Bearer ' + SUPABASE_ANON}});
+    if(!r.ok) throw new Error(p + ': ' + r.status);
+    const page = await r.json();
+    if(!Array.isArray(page)) return page;      // a single-object read
+    out.push(...page);
+    if(page.length < SB_PAGE) return out;
+  }
+}
 
 const $  = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
@@ -694,19 +671,6 @@ function drawAutos(){
        ${due ? esc(melb(due)) : 'soon'}. Until then this page can still show GitHub’s own history below.</p></div>`;
   $('#alarm').innerHTML = alarm;
 
-  $('#autolist').innerHTML = AUTOMATIONS.map(a => `
-    <div class="card">
-      <h3>${esc(a.name)} <span class="tag ${a.state==='live'?'live':a.state==='dead'?'dead':''}">${
-        a.state==='manual' ? 'by hand' : esc(a.state)}</span></h3>
-      <p class="why">${esc(a.what)}</p>
-      <div class="kv">
-        <span><b>runs</b>${esc(a.when)}</span>
-        <span><b>kind</b>${esc(a.kind)}</span>
-        <span><b>where</b><span class="mono">${esc(a.where)}</span></span>
-        ${a.sched && due ? `<span><b>next</b>${esc(melb(due))}</span>` : ''}
-      </div>
-    </div>`).join('');
-
   // GitHub's history is the spine; the committed log fills in what was printed.
   const byId = Object.fromEntries(DATA.log.filter(r => r.run_id).map(r => [String(r.run_id), r]));
   if (!DATA.runs.length){
@@ -853,193 +817,6 @@ const AUTO_STATE = {
   part: {label:'partly',         tag:'warn'},
   none: {label:'not automated',  tag:'warn'},
 };
-
-function drawAggregators(){
-  const last = DATA.log[0];
-  const hist = sourceHistory();
-  const seen = [];
-  for (const s of (last?.steps || [])) for (const src of (s.sources || [])) seen.push(src);
-
-  const rows = AGGREGATORS.map(a => {
-    // What the last run actually did with it.
-    const mine = a.host
-      ? seen.filter(s => s.via?.some(v => v.toLowerCase() === a.name.toLowerCase()))
-      : seen.filter(s => s.name === a.src);
-
-    // Which places reach us through this platform. Stored URLs alone undercount,
-    // because the scraper also *discovers* a platform link by trying a venue's
-    // usual gig paths — Elephant & Castle's TryBooking page is found at /events
-    // and is on no row. So it is the union of what is on file and what the last
-    // run actually reached, deduped by name.
-    const byUrl = a.host
-      ? DATA.places.filter(p => [p.events_url, p.ticketing_url, p.website]
-          .some(u => (u || '').toLowerCase().includes(a.host)))
-      : [];
-    const names = new Set([...byUrl.map(p => p.name), ...mine.map(s => s.name)]);
-    const places = [...names];
-    let state = 'untried';
-    if (mine.length){
-      if (mine.some(s => s.state === 'read'))         state = 'read';
-      else if (mine.every(s => s.state === 'skipped')) state = 'skipped';
-      else state = mine[0].state;
-    }
-    return {...a, places, count: a.host ? places.length : null, state, tried: mine.length};
-  });
-
-  $('#aggregators').innerHTML = `<table><thead><tr>
-      <th>Aggregator</th><th>What it is</th><th>Venues</th><th>How it is read</th>
-      <th>Automated</th><th>Last run</th><th>Last read</th>
-    </tr></thead><tbody>${rows.map(r => {
-      const au = AUTO_STATE[r.auto];
-      // the freshest successful read across every venue this platform serves
-      const mine = (r.host ? r.places : [r.src]).map(n => hist[n]).filter(Boolean);
-      const reads = mine.map(x => x.read).filter(Boolean).sort();
-      const lastRead = reads[reads.length - 1];
-      const newLast = mine.reduce((n, x) => n + (x.newLast || 0), 0);
-      const newAll  = mine.reduce((n, x) => n + (x.newTotal || 0), 0);
-      const st = SRC_STATE[r.state] || {label:r.state, tag:''};
-      return `<tr>
-        <td><div class="rowname">${esc(r.name)}</div></td>
-        <td>${esc(r.what)}</td>
-        <td>${r.count === null ? '<span style="color:var(--ink3)">shire-wide</span>'
-             : r.count ? `<b>${r.count}</b><div style="color:var(--ink3);font-size:11.5px">${
-                 esc(r.places.sort().join(', '))}</div>`
-             : '<span style="color:var(--ink3)">none yet</span>'}</td>
-        <td>${esc(r.how)}${r.note ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(r.note)}</span>` : ''}</td>
-        <td><span class="tag ${au.tag}">${esc(au.label)}</span></td>
-        <td>${r.tried ? `<span class="tag ${st.tag}">${esc(st.label)}</span>`
-             : '<span class="tag">not in last run</span>'}</td>
-        <td>${lastRead ? `${esc(ago(lastRead))}<br><span style="font-size:11.5px">${
-             newLast ? `<b style="color:var(--good)">+${newLast} new</b>`
-                     : '<span style="color:var(--ink3)">nothing new</span>'}</span>${
-             newAll && newAll !== newLast ? `<br><span style="color:var(--ink3);font-size:11px">${newAll} all time</span>` : ''}`
-             : '<span style="color:var(--ink3)">never</span>'}</td>
-      </tr>`;
-    }).join('')}</tbody></table>`;
-}
-
-/* ── where the events come from ────────────────────────────────────────────
-   The registry is the `places` table — any row with an events_url gets read,
-   any row with only a website gets its gig paths tried. So the full list of
-   sources is every place, not just the ones a run mentioned: the 60-odd with
-   no website at all never appear in the scraper's output, and they are exactly
-   the number that caps coverage. Showing only what ran would hide the gap. */
-const SRC_STATE = {
-  read:    {label:'reading',             tag:'live'},
-  nothing: {label:'nothing to read',     tag:''},
-  dead:    {label:'site did not answer', tag:'dead'},
-  refused: {label:'robots.txt says no',  tag:''},
-  // Green, deliberately. A skipped source is a working automation that simply
-  // was not exercised by this particular run — the schedule reads it normally.
-  // Orange here read as "broken", which is the opposite of true.
-  skipped: {label:'reading · not this run', tag:'live'},
-  manual:  {label:'needs a person',      tag:'warn'},
-  // A source whose only event channel is a Facebook page. Orange like `manual`,
-  // because that is what it is — a standing job for a person — but it says how
-  // often, since the whole point of flagging it is that nobody remembers to look.
-  fbweekly:{label:'Facebook — check weekly', tag:'warn'},
-  untried: {label:'not tried yet',       tag:''},
-  nourl:   {label:'no website on file',  tag:''},
-};
-let SRCFILTER = {state:''};
-
-function sourceRows(){
-  const last = DATA.log[0];
-  const seen = new Map();
-  for (const s of (last?.steps || []))
-    for (const src of (s.sources || [])) seen.set(src.name, src);
-
-  // The calendar is not a place and speaks for the whole shire, so it belongs
-  // in the aggregator table above, not here among the individual venues.
-  const rows = [];
-
-  for (const p of DATA.places){
-    const src = seen.get(p.name);
-    let state;
-    if (src) state = src.state;
-    else if (!p.website && !p.events_url && !p.ticketing_url) state = 'nourl';
-    else state = 'untried';
-
-    // Some sources publish only to Facebook — the three mountain bike clubs are
-    // the clear case, and one of them says so in its own words ("follow the club
-    // facebook page for events"). Nothing can read a Facebook page: it wants a
-    // token and client-side JS, and Forrest's site proves it — the embedded feed
-    // plugin renders an empty container to a plain fetch. So this is not a
-    // failed automation, it is a weekly job for a person, and it should say so
-    // rather than sitting in `untried` looking like something that might yet run.
-    //
-    // Only applied where there is nothing machine-readable to lose, so a venue
-    // that also has a ticketing feed keeps the status that matters.
-    if (p.facebook && !p.events_url && !p.ticketing_url
-        && ['nothing','untried','nourl','dead'].includes(state)) state = 'fbweekly';
-
-    rows.push({
-      name: p.name, id: p.id,
-      what: [p.kind, p.suburb].filter(Boolean).join(' · ') || 'venue',
-      how: state === 'fbweekly'
-           ? 'events go to Facebook only — open the page once a week and file what is new'
-         : src ? src.how
-         : p.events_url ? 'has an events_url — read on the next run'
-         : p.website    ? 'website on file, gig paths get tried'
-         : 'nothing on file to look at',
-      via: src?.via?.length ? src.via : [],
-      own: src?.own, state, hint: src?.hint,
-      // A Facebook-only row links to the page a person actually has to open.
-      url: state === 'fbweekly' ? p.facebook
-           : p.events_url || p.ticketing_url || p.website,
-    });
-  }
-  return rows;
-}
-
-function drawSources(){
-  const all = sourceRows();
-  const counts = {};
-  for (const r of all) counts[r.state] = (counts[r.state] || 0) + 1;
-
-  $('#srcstates').innerHTML = Object.entries(counts).sort((a,b) => b[1]-a[1])
-      .map(([s,n]) => `<button class="flagbtn ${SRCFILTER.state===s?'on':''}" data-s="${esc(s)}">${
-        esc(SRC_STATE[s]?.label || s)}<b>${n}</b></button>`).join('')
-    + (SRCFILTER.state ? '<button class="flagbtn" data-s="">clear</button>' : '');
-  $('#srcstates').querySelectorAll('[data-s]').forEach(b => b.onclick = () => {
-    SRCFILTER.state = b.dataset.s === SRCFILTER.state ? '' : b.dataset.s; drawSources();
-  });
-
-  // Working sources first — the point of the list is what is and is not running.
-  const order = ['read','skipped','manual','fbweekly','dead','refused','untried','nothing','nourl'];
-  const list = all.filter(r => !SRCFILTER.state || r.state === SRCFILTER.state)
-    .sort((a,b) => order.indexOf(a.state) - order.indexOf(b.state) ||
-                   a.name.localeCompare(b.name));
-
-  const skipped = counts.skipped ? `<p class="note" style="margin:12px 0 0">
-    ${counts.skipped} source${counts.skipped>1?'s were':' was'} skipped in the last run.
-    Humanitix permits <span class="mono">whattodo-janjuc</span> but disallows
-    <span class="mono">ClaudeBot</span>, so a run driven by an assistant passes
-    <span class="mono">--skip humanitix</span>. The scheduled Action reads them normally.</p>` : '';
-
-  const hist = sourceHistory();
-  $('#sources').innerHTML = `<table><thead><tr>
-      <th>Source</th><th>What it is</th><th>How it is read</th><th>Via</th><th>Status</th><th>Last read</th>
-    </tr></thead><tbody>${list.map(r => {
-      const st = SRC_STATE[r.state] || {label:r.state, tag:''};
-      const h = hist[r.name] || {};
-      return `<tr${r.id ? ` class="clickable" data-id="${r.id}"` : ''}>
-        <td><div class="rowname">${esc(r.name)}</div>
-            ${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener"
-               onclick="event.stopPropagation()"
-               style="color:var(--ink3);font-size:11px">${esc(r.url.replace(/^https?:\/\//,'').slice(0,52))} ↗</a>` : ''}</td>
-        <td>${esc(r.what)}</td>
-        <td>${esc(r.how)}${r.hint ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(r.hint)}</span>` : ''}</td>
-        <td>${r.own ? '<span class="tag live">own listing</span> ' : ''}${
-             r.via.map(v => `<span class="tag">${esc(v)}</span>`).join(' ')}</td>
-        <td><span class="tag ${st.tag}">${esc(st.label)}</span></td>
-        <td>${lastReadCell(h)}</td>
-      </tr>`;
-    }).join('')}</tbody></table>${skipped}`;
-
-  $('#sources').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
-    openEditor('places', DATA.places.find(x => x.id === +tr.dataset.id)));
-}
 
 /* ── flag chips, shared by all three tabs ──────────────────────────────────*/
 function drawFlags(el, list, filter, redraw){
@@ -1402,7 +1179,7 @@ $('#theme').onclick = () => {
 /* ── tabs ──────────────────────────────────────────────────────────────────*/
 const TABS = ['autos','events','activities','places'];
 const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces();
-                          drawSources(); drawAggregators(); drawOverview(); };
+                          drawSources(); drawOverview(); };
 
 function show(tab){
   for (const b of document.querySelectorAll('nav.tabs button'))
@@ -1427,6 +1204,7 @@ wire({'#eq':'q', '#etype':'type', '#erec':'rec', '#ewhen':'when', '#esort':'sort
      EFILTER, () => drawEvents());
 wire({'#aq':'q', '#atype':'type', '#asort':'sort'}, AFILTER, () => drawActivities());
 wire({'#pq':'q', '#pkind':'kind', '#psort':'sort'}, PFILTER, () => drawPlaces());
+wire({'#sq':'q', '#skind':'kind'}, SRCFILTER, () => drawSources());
 
 /* ── load ──────────────────────────────────────────────────────────────────
    Everything at once. GitHub and raw are allowed to fail without taking the
@@ -1473,7 +1251,7 @@ async function load(){
     ${DATA.events.length} events · ${DATA.places.length} venues ·
     last run ${last ? esc(ago(last.recorded_at)) : DATA.runs[0] ? esc(ago(DATA.runs[0].run_started_at)) : 'unknown'}`;
 
-  drawAutos(); drawAggregators(); drawSources(); drawOverview(); redrawAll();
+  drawAutos(); drawSources(); drawOverview(); redrawAll();
   const tab = location.hash.slice(1);
   if (TABS.includes(tab)) show(tab);
 }
