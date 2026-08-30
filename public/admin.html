@@ -243,7 +243,7 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
 
   <h2 id="a-runs">Runs</h2>
   <div id="runs"></div>
-</section></section>
+</section>
 
 <section id="tab-events" hidden>
   <h2>Events</h2>
@@ -817,6 +817,174 @@ const AUTO_STATE = {
   part: {label:'partly',         tag:'warn'},
   none: {label:'not automated',  tag:'warn'},
 };
+
+/* ── every source, in one list ──────────────────────────────────────────────
+   Aggregators and venues used to be two sections with two headings and two
+   explanatory paragraphs. They are one table now with a Kind filter: the
+   distinction is real but it is a property of a row, not a reason to split the
+   page. Everything that used to be printed into a cell — how a source is read,
+   its caveats, what to do about it — is in the drawer behind a click, so the
+   list stays scannable and none of it is lost. */
+const SRC_STATE = {
+  read:    {label:'reading',                 tag:'live'},
+  skipped: {label:'reading · not this run',  tag:'live'},
+  nothing: {label:'nothing to read',         tag:''},
+  dead:    {label:'site did not answer',     tag:'dead'},
+  refused: {label:'robots.txt says no',      tag:''},
+  manual:  {label:'needs a person',          tag:'warn'},
+  fbweekly:{label:'Facebook — check weekly', tag:'warn'},
+  untried: {label:'not tried yet',           tag:''},
+  nourl:   {label:'no website on file',      tag:''},
+};
+let SRCFILTER = {state:'', q:'', kind:''};
+let SRC_LIST = [];
+
+/* The table wants a label, not a sentence. The sentence is in the drawer. */
+function shortVia(src){
+  const bits = [];
+  if (src.own) bits.push('own listing');
+  bits.push(...(src.via || []));
+  return bits.join(' + ') || '—';
+}
+
+function sourceRows(){
+  const hist = sourceHistory();
+  const last = DATA.log[0];
+  const seen = new Map();
+  for (const s of (last?.steps || []))
+    for (const src of (s.sources || [])) seen.set(src.name, src);
+
+  const rows = [];
+
+  for (const a of AGGREGATORS){
+    const mine = a.host
+      ? [...seen.values()].filter(s => s.via?.some(v => v.toLowerCase() === a.name.toLowerCase()))
+      : [...seen.values()].filter(s => s.name === a.src);
+    const byUrl = a.host
+      ? DATA.places.filter(p => [p.events_url, p.ticketing_url, p.website]
+          .some(u => (u || '').toLowerCase().includes(a.host))).map(p => p.name)
+      : [];
+    const places = [...new Set([...byUrl, ...mine.map(s => s.name)])];
+    let state = 'untried';
+    if (mine.length){
+      if (mine.some(s => s.state === 'read'))          state = 'read';
+      else if (mine.every(s => s.state === 'skipped')) state = 'skipped';
+      else state = mine[0].state;
+    }
+    if (a.auto === 'none' && state === 'untried') state = 'manual';
+    const h = places.map(n => hist[n]).filter(Boolean);
+    const own = a.src ? hist[a.src] : null;
+    rows.push({
+      kind:'aggregator', name:a.name, state,
+      via: a.host ? (places.length ? places.length + ' venue' + (places.length>1?'s':'') : 'none yet')
+                  : (a.via || []).join(', '),
+      read:     own?.read || h.map(x=>x.read).filter(Boolean).sort().pop(),
+      newLast:  (own?.newLast  || 0) + h.reduce((n,x)=>n+(x.newLast||0),0),
+      newTotal: (own?.newTotal || 0) + h.reduce((n,x)=>n+(x.newTotal||0),0),
+      auto:a.auto, how:a.how, note:a.note, places, url:null,
+    });
+  }
+
+  // The registry is the places table, not a list in the code.
+  for (const p of DATA.places){
+    const src = seen.get(p.name), h = hist[p.name] || {};
+    let state;
+    if (src) state = src.state;
+    else if (!p.website && !p.events_url && !p.ticketing_url) state = 'nourl';
+    else state = 'untried';
+    // A place with only a Facebook page is a standing weekly job for a person,
+    // not an automation waiting to happen — nothing can read one.
+    if (p.facebook && !p.events_url && !p.ticketing_url &&
+        ['nothing','untried','nourl','dead'].includes(state)) state = 'fbweekly';
+    rows.push({
+      kind:'venue', name:p.name, id:p.id, state,
+      via: src ? shortVia(src) : (p.events_url ? 'events_url set' : p.website ? 'site only' : '—'),
+      read:h.read, newLast:h.newLast||0, newTotal:h.newTotal||0,
+      seenCount:h.seenCount, how:src?.how, hint:src?.hint,
+      what:[p.kind, p.suburb].filter(Boolean).join(' · '),
+      url: state==='fbweekly' ? p.facebook : (p.events_url || p.ticketing_url || p.website),
+    });
+  }
+  return rows;
+}
+
+function drawSources(){
+  const all = sourceRows();
+  const counts = {};
+  for (const r of all) counts[r.state] = (counts[r.state] || 0) + 1;
+
+  $('#srcstates').innerHTML = Object.entries(counts).sort((a,b) => b[1]-a[1])
+      .map(([s,n]) => `<button class="flagbtn ${SRCFILTER.state===s?'on':''}" data-s="${esc(s)}">${
+        esc(SRC_STATE[s]?.label || s)}<b>${n}</b></button>`).join('')
+    + (SRCFILTER.state ? '<button class="flagbtn" data-s="">clear</button>' : '');
+  $('#srcstates').querySelectorAll('[data-s]').forEach(b => b.onclick = () => {
+    SRCFILTER.state = b.dataset.s === SRCFILTER.state ? '' : b.dataset.s; drawSources();
+  });
+
+  const q = (SRCFILTER.q || '').toLowerCase().trim();
+  const order = ['read','skipped','manual','fbweekly','dead','refused','untried','nothing','nourl'];
+  const list = all
+    .filter(r => !SRCFILTER.state || r.state === SRCFILTER.state)
+    .filter(r => !SRCFILTER.kind  || r.kind  === SRCFILTER.kind)
+    .filter(r => !q || (r.name + ' ' + (r.via||'') + ' ' + (r.what||'')).toLowerCase().includes(q))
+    .sort((a,b) => a.kind.localeCompare(b.kind) ||
+                   order.indexOf(a.state) - order.indexOf(b.state) ||
+                   a.name.localeCompare(b.name));
+
+  SRC_LIST = list;
+  $('#sources').innerHTML = `<table><thead><tr>
+      <th>Source</th><th>Reads via</th><th>Status</th><th>Last read</th><th></th>
+    </tr></thead><tbody>${list.map((r,i) => {
+      const st = SRC_STATE[r.state] || {label:r.state, tag:''};
+      return `<tr class="clickable" data-i="${i}">
+        <td><div class="rowname">${esc(r.name)}</div>
+            <span style="color:var(--ink3);font-size:11px">${
+              r.kind === 'aggregator' ? 'aggregator' : esc(r.what || 'venue')}</span></td>
+        <td>${esc(r.via)}</td>
+        <td><span class="tag ${st.tag}">${esc(st.label)}</span></td>
+        <td>${r.read ? `${esc(ago(r.read))}${r.newLast
+              ? ` · <b style="color:var(--good)">+${r.newLast}</b>` : ''}`
+            : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td style="text-align:right;color:var(--ink3)">›</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+
+  $('#sources').querySelectorAll('tr[data-i]').forEach(tr =>
+    tr.onclick = () => openSource(SRC_LIST[+tr.dataset.i]));
+}
+
+function openSource(r){
+  if (!r) return;
+  const st = SRC_STATE[r.state] || {label:r.state, tag:''};
+  const place = r.id ? DATA.places.find(p => p.id === r.id) : null;
+  const rows = [
+    ['Status',    `<span class="tag ${st.tag}">${esc(st.label)}</span>`],
+    ['Kind',      r.kind === 'aggregator' ? 'Aggregator — one parser, many venues'
+                                          : 'Venue or convenor — speaks for itself'],
+    ['Reads via', esc(r.via)],
+    ['Last read', r.read ? `${esc(ago(r.read))} · ${r.newLast ? '+' + r.newLast + ' new' : 'nothing new'}${
+                    r.seenCount ? ` · ${r.seenCount} on the page` : ''}` : 'never'],
+    ['All time',  r.newTotal ? r.newTotal + ' new events' : 'none yet'],
+    r.places?.length ? ['Venues', esc(r.places.join(', '))] : null,
+    r.hint ? ['To pin it down', esc(r.hint)] : null,
+  ].filter(Boolean);
+
+  $('#editor').innerHTML = `<div class="scrim"><div class="drawer">
+    <header><div class="sub">${esc(r.kind)}</div><h2>${esc(r.name)}</h2></header>
+    ${rows.map(([k,v]) => `<p class="dl"><b>${esc(k)}</b><span>${v}</span></p>`).join('')}
+    ${r.how  ? `<p class="dl"><b>How it works</b><span>${esc(r.how)}</span></p>` : ''}
+    ${r.note ? `<p class="dl"><b>Worth knowing</b><span>${esc(r.note)}</span></p>` : ''}
+    <div class="drawerbar">
+      ${place ? `<button class="btn" id="editplace">Edit this place</button>` : ''}
+      ${r.url ? `<a class="btn ghost" href="${esc(r.url)}" target="_blank" rel="noopener">Open the source ↗</a>` : ''}
+      <button class="btn ghost" id="close">Close</button>
+    </div>
+  </div></div>`;
+  $('#close').onclick = closeEditor;
+  $('.scrim').onclick = e => { if (e.target === $('.scrim')) closeEditor(); };
+  if (place) $('#editplace').onclick = () => openEditor('places', place);
+  document.addEventListener('keydown', onEsc);
+}
 
 /* ── flag chips, shared by all three tabs ──────────────────────────────────*/
 function drawFlags(el, list, filter, redraw){

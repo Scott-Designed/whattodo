@@ -1288,54 +1288,43 @@ Things that are load-bearing:
   the standing item on the list. Flagging both put 73 rows on the worklist, half
   of them finished. `mapsSearch()` tells them apart.
 
-### The overview strip, and why the page is not one long scroll
+### The Automations tab — rebuilt 28 Aug 2026 after a UX audit
 
-Four stats above everything, added 28 Aug 2026 because the questions this page
-is opened to answer were all below the fold: **Next run** (from the cron, in
-Melbourne time, with a countdown), **Last run** (succeeded or failed, how long
-ago, and what triggered it), **Sources reading** (n of all), **Waiting on you**.
-Everything is derived from the run log and the places table; nothing new is
-stored to build it.
+Scott said he was confused by the layout and the amount of body copy. Measured
+before touching anything: **736 words of prose on one tab** — seven explanatory
+paragraphs plus 460 words inside the table cells. Two and a half paperback
+pages, and every word explained *why* rather than showing *what*. CLAUDE.md is
+where the why belongs; it had been duplicated into the interface.
 
-**Last run prints how late it was**, and that is the useful part. GitHub's
-scheduler is best-effort: the first scheduled run to actually fire, 27 Aug 2026,
-started **3h 22m** after its 21:17 slot. Saying only "3 days ago" hides the one
-thing worth knowing about it. `prevSlot()` walks the cron backwards to find the
-slot a run was meant to start in.
+What he asked for, and what the tab now is:
 
-**`CRON_H`/`CRON_M` must match `.github/workflows/events.yml`.** They did not:
-the workflow moved to `:17` and this page still said `21:00`, so it confidently
-printed a next-run time seventeen minutes before the job could start.
+- **Almost no prose.** Visible chrome is ~164 words. Everything that used to be
+  printed into a cell — how a source is read, its caveats, what to do about it —
+  is in a **drawer behind a click**. Nothing was deleted; the `how` and `note`
+  fields on `AGGREGATORS` are still the copy, they are just not in the table.
+- **One list, not two sections.** Aggregators and venues were two headings, two
+  subheads and two paragraphs explaining the difference. They are one table with
+  a Kind filter: the distinction is a property of a row, not a reason to split
+  the page.
+- **One status per row**, not three columns. `AUTOMATED · READING · 3 days ago /
+  +2 / 5 all time` was five tokens for one idea; it is a state tag and
+  `3 days ago · +2`.
+- **Desktop only**, Scott's call — so the tables are tables and no effort goes
+  into stacking them on a phone.
 
-**"Last read" answers two questions, and they are different.** A timestamp says
-the read succeeded; it does not say the run was worth anything. Barwon Club
-Hotel reads ten gigs every time and has added none — which is the normal healthy
-case, not a fault. So each source prints **`+N new`** beside the date, `nothing
-new` when it read cleanly and had nothing to add, and how many were on the page
-as the quieter number. The overview's Last run says how many new events the
-whole run produced.
+The tab went 22,858px → 1,442px. The four-stat overview stayed exactly as it
+was: it was the one part that already worked, and it became the model.
 
-`run_log.py` counts those per source rather than per run: the scraper lists each
-gig under its own venue with a `NEW` marker, so the markers can be attributed.
-The two records already in the log were backfilled by re-parsing their own
-stored text through the same parser — nothing invented, and it is why the raw
-text is kept.
+**`fbweekly` is a state, not a failure.** A place with a Facebook page and no
+`events_url` cannot be read by anything, so it is a standing weekly job for a
+person rather than a broken automation. It says *Facebook — check weekly*.
 
-**"Last read" is per source, across the whole log, not just the last run.** The
-tables showed only `log[0]`, so a source that read fine on Monday and was
-skipped on Thursday looked as though it had never worked. `sourceHistory()`
-folds every run into one answer per source — when it last read, and how many it
-found.
-
-**The venue list scrolls inside a 520px box.** 136 rows made the Automations tab
-20,000px tall and pushed the other three sections out of reach; it is 3,900px
-now. Same idiom as the type page's buckets, including the sticky header row and
-`overscroll-behavior:contain`. Below 820px the box grows instead, because a
-nested scroll area on a phone traps the drag.
-
-Sections are ordered live-first — sources, then run history, then Run now, then
-the static "what runs by itself" cards — and the jump links follow document
-order, or the nav teaches a shape the page does not have.
+**Two traps when editing this file with a script.** Both were hit in one
+sitting: replacing a range that starts at one function and ends at a later
+marker silently swallowed the whole sources module, which had been written
+between them; and rebuilding the tab's markup left `</section></section>`,
+because the slice-end marker already carried the closing tag. Assert on what a
+replacement removes, not only on what it finds.
 
 ### Run it now
 
