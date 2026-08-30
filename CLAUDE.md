@@ -1916,13 +1916,34 @@ Two routes, and the tradeoff is the only thing to decide:
   path, and the worker is already written. Cost: re-adding the Vercel records
   (`A 76.76.21.21`, `CNAME cname.vercel-dns.com`) at Cloudflare, and the site is
   down if they are wrong. Reversible.
-- **Keep Vercel DNS, add MX pointing at an inbound-parse service** (SendGrid
-  Inbound Parse, Postmark). No nameserver move and no risk to the site. Cost: an
-  account, and that company sees the mail.
+- **Keep Vercel DNS, add MX pointing at an inbound-parse service.** No
+  nameserver move and no risk to the site. Cost: an account, and that company
+  sees the mail — which is cheap here, since the mail is venues sending gig
+  listings. **This is the route Scott chose, 31 Aug 2026**, on noticing the
+  obvious thing: Vercel does DNS, not mail, so it can point mail somewhere but
+  cannot receive it — and pointing is all that is needed.
 
-Then `INBOX_SECRET` goes in **two** places with the same value — the Vercel
-project, and `wrangler secret put INBOX_SECRET` on the worker (or the service's
-webhook header). Along with `INBOX_URL = https://www.notice.place/api/inbox`.
+  **Postmark**, because it allows **custom headers on the webhook**, so the
+  `x-inbox-secret` header works with no change. MX on a subdomain
+  (`inbox.notice.place`) → `inbound.postmarkapp.com` priority 10.
+  **SendGrid Inbound Parse was rejected**: it POSTs `multipart/form-data`,
+  which Vercel does not parse into `req.body`, so it would need a body parser
+  this project does not have.
+
+  **A subdomain, not the apex.** An MX on `notice.place` itself claims all mail
+  for the domain, so the day Scott wants `scott@notice.place` he would have to
+  take this apart first. `inbox.notice.place` claims one name and leaves the
+  rest free.
+
+`INBOX_SECRET` goes in **two** places with the same value — the Vercel project,
+and the sender (Postmark's webhook custom header, or `wrangler secret put` on
+the Cloudflare worker).
+
+**The endpoint reads three shapes and that is deliberate.** Postmark capitalises
+its fields (`From`, `TextBody`, `RawEmail`), the Cloudflare worker sends
+lowercase, and the secret arrives as either an `x-inbox-secret` header or basic
+auth in the URL. Reading all of them means switching sender later is a DNS
+change and nothing else — neither shape is the "real" one.
 
 **Until then the Inbox tab works anyway, via "Paste an email".** That is not a
 placeholder: a venue's "here is our September program" email is useful today,

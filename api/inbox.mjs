@@ -53,20 +53,33 @@ export default async function handler(req, res) {
       message: 'Set INBOX_SECRET in the Vercel project. Without it this endpoint ' +
                'refuses everything, which is the correct failure for a public URL.'});
 
-  const given = req.headers['x-inbox-secret'] || '';
+  // Two ways to present the secret, because senders differ. Postmark allows
+  // custom headers on a webhook, so the header is the tidy route; basic auth
+  // in the URL is the fallback for a sender that does not. Both are only ever
+  // read over HTTPS.
+  const auth = String(req.headers.authorization || '');
+  const basic = auth.startsWith('Basic ')
+    ? Buffer.from(auth.slice(6), 'base64').toString().split(':').pop()
+    : '';
+  const given = req.headers['x-inbox-secret'] || basic || '';
   if (!ok(given, process.env.INBOX_SECRET))
     return res.status(401).json({error: 'wrong_secret'});
 
+  // Every sender names these fields differently and none of them is wrong.
+  // Postmark capitalises (From, TextBody, RawEmail); the Cloudflare worker in
+  // tools/ sends lowercase. Read both rather than making one of them the
+  // "real" shape, or changing sender means changing this endpoint.
   const b = req.body || {};
+  const pick = (...ks) => { for (const k of ks) if (b[k]) return b[k]; return ''; };
   const row = {
-    from_addr: String(b.from || '').slice(0, 320) || null,
-    to_addr:   String(b.to || '').slice(0, 320) || null,
-    subject:   String(b.subject || '').slice(0, 500) || null,
+    from_addr: String(pick('from', 'From') || b.FromFull?.Email || '').slice(0, 320) || null,
+    to_addr:   String(pick('to', 'To', 'OriginalRecipient')).slice(0, 320) || null,
+    subject:   String(pick('subject', 'Subject')).slice(0, 500) || null,
     // The readable version is what a person skims in the queue; `raw` keeps
     // whatever actually arrived, because the message is the evidence for
     // anything later written from it.
-    body:      plain(b.text || b.html || '') || null,
-    raw:       String(b.raw || b.html || b.text || '').slice(0, CAP) || null,
+    body:      plain(pick('text', 'TextBody', 'html', 'HtmlBody')) || null,
+    raw:       String(pick('raw', 'RawEmail', 'html', 'HtmlBody', 'text', 'TextBody')).slice(0, CAP) || null,
   };
   if (!row.body && !row.subject)
     return res.status(400).json({error: 'empty', message: 'no subject and no body'});
