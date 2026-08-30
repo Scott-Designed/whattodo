@@ -1279,6 +1279,19 @@ these* rather than one at a time — 500 library rows are one decision, not five
 hundred. Each group has an **Approve all**; each row has Approve, Delete, and
 its name opens the full editor.
 
+Each row carries what you need to judge it without opening anything: the
+**town** (the first question is always "is this even in the region"), the venue
+under it, the types or *unsorted*, the date and time, a red **in the past**
+where the date has already gone, **no place** where an event has no `place_id`,
+the confidence, and a `source ↗` link to the page it was read from.
+
+**`/admin` loads `notice-vocab.js` for that**, rather than reimplementing the
+suburb rules. A back office that disagreed with the board about which town a row
+is in would be worse than useless. Checked for global collisions before adding
+the tag — 26 names against 64, none shared. Note this is why Colac and
+Bannockburn resolve at all: they were added to `SUBURBS` for the library
+branches, and without that those rows would show no town.
+
 Approving is one request for a whole batch (`action: 'verify'`, a table and a
 list of ids, `id=in.(…)`), capped at 600. **It refuses a batch where any row has
 no `source_note`** — verifying those would record that somebody looked when

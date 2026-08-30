@@ -326,6 +326,11 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
 </div>
 <div id="editor"></div>
 
+<!-- The site's own vocabulary: suburbOf, townOf, typeLabel. Loaded rather than
+     reimplemented, because a back office that disagreed with the board about
+     which town a row is in would be worse than useless. No name collisions with
+     the script below — checked. -->
+<script src="/notice-vocab.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════════════
    Back of house.
@@ -1043,18 +1048,36 @@ function drawReview(){
           data-approve="${esc(src)}">Approve all ${rows.length}</button>
       </h3>
       <div class="scrollbox"><table><thead><tr>
-        <th>Name</th><th>When</th><th>Where</th><th>Confidence</th><th></th>
+        <th>Name &amp; type</th><th>When</th><th>Town</th><th>Date from</th><th></th>
       </tr></thead><tbody>${rows.slice(0, 400).map(r => {
         const place = DATA.places.find(p => p.id === r.place_id);
+        const venue = place?.name || r.venue || '';
+        // The town is the thing you check first — is this even in the region —
+        // and it was the one fact the row did not carry. Same rules as the
+        // board: the place's curated suburb wins, the row's own location is the
+        // fallback, and townOf collapses a street address to its town.
+        const town  = place?.suburb || townOf(r.location) || '';
+        const types = (r.types || []).join(' · ');
+        const link  = r.info_url || r.ticket_url || r.url;
+        const past  = r.starts_on && r.starts_on < TODAY &&
+                      (!r.recurrence || r.recurrence === 'none');
         return `<tr data-t="${r.__t}" data-id="${r.id}">
           <td class="clickable" data-open="1"><div class="rowname">${esc(r.name)}</div>
-              <span style="color:var(--ink3);font-size:11px">${esc(r.__t === 'events' ? 'event' : 'activity')}</span></td>
-          <td>${esc(r.starts_on || '—')}</td>
-          <td>${esc(place?.name || r.venue || r.location || '—')}</td>
+              <span style="color:var(--ink3);font-size:11px">${
+                types ? esc(types) : '<i>unsorted</i>'}</span></td>
+          <td${past ? ' style="color:var(--bad)"' : ''}>${esc(r.starts_on || '—')}
+              ${r.time_text ? `<br><span style="color:var(--ink3);font-size:11px">${esc(r.time_text)}</span>` : ''}
+              ${past ? '<br><span style="font-size:11px">in the past</span>' : ''}</td>
+          <td><b style="font-weight:500">${esc(town || '—')}</b>
+              ${venue && venue !== town ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(venue)}</span>` : ''}</td>
           <td>${r.date_confidence
                 ? `<span class="tag ${r.date_confidence === 'high' ? 'live' : ''}">${esc(r.date_confidence)}</span>`
-                : '<span style="color:var(--ink3)">—</span>'}</td>
+                : '<span style="color:var(--ink3)">—</span>'}
+              ${!r.place_id && r.__t === 'events' ? '<br><span style="color:var(--ink3);font-size:11px">no place</span>' : ''}</td>
           <td style="text-align:right;white-space:nowrap">
+            ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener"
+                 onclick="event.stopPropagation()"
+                 style="color:var(--ink3);font-size:11.5px;margin-right:8px">source ↗</a>` : ''}
             <button class="btn" style="padding:3px 10px;font-size:11.5px" data-ok="1">Approve</button>
             <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-no="1">Delete</button>
           </td></tr>`;
