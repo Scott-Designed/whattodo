@@ -1289,11 +1289,22 @@ function drawActivities(){
     </tr></thead><tbody>${out.map(r => `
       <tr class="clickable" data-id="${r.id}">
         <td><div class="rowname">${esc(r.name)}</div>
-            ${r.__flags.length ? `<div class="rowflags">${r.__flags.map(f=>`<span>${esc(f)}</span>`).join('')}</div>` : ''}</td>
+            ${(() => {
+               // Only flags no column already carries. "no pin" beside a Pinned
+               // of "no", or "no distance" beside a Km of "—", is the row
+               // repeating itself. maps search, no description and unverified
+               // stay, because nothing else on this table says them.
+               const show = r.__flags.filter(f =>
+                 !['no pin','no distance','coarse pin'].includes(f));
+               return show.length
+                 ? `<div class="rowflags">${show.map(f=>`<span>${esc(f)}</span>`).join('')}</div>` : '';
+             })()}</td>
         <td>${esc((r.types || []).join(' · ') || '—')}</td>
         <td>${esc(r.location || '—')}</td>
         <td>${r.km === null || r.km === undefined ? '<span style="color:var(--ink3)">—</span>' : esc(r.km)}</td>
-        <td>${r.lat && r.lng ? '<span class="tag live">yes</span>' : '<span class="tag">no</span>'}</td>
+        <td>${!r.lat || !r.lng ? '<span class="tag">no</span>'
+             : (coarse(r.lat) || coarse(r.lng)) ? '<span class="tag warn">coarse</span>'
+             : '<span class="tag live">yes</span>'}</td>
         <td>${esc(r.cost || '—')}</td>
         <td style="text-align:right;color:var(--ink3)">edit →</td>
       </tr>`).join('')}</tbody></table>`;
