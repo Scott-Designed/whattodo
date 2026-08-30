@@ -221,6 +221,15 @@ option{background:var(--ground);color:var(--ink)}
 .acts .msg{font-family:var(--util);font-size:12px;color:var(--ink3);flex:1 1 200px;line-height:1.6}
 .mine{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);
   border:1px solid var(--rule2);padding:1px 5px;margin-left:8px;white-space:nowrap}
+/* ON NOW is the one badge on a row that is good news, so it is filled where
+   `unverified` is outlined — same size and setting, opposite weight, and the
+   two read as a pair when a row carries both.
+   The ink on it is a literal and not var(--ink) on purpose: --accent is the
+   same yellow in both schemes, so a token that flips to near-white in dark
+   mode would print white on yellow. */
+.live{font-family:var(--util);font-size:9.5px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:#1A1D16;background:var(--accent);
+  padding:1px 5px;margin-left:8px;white-space:nowrap}
 
 
 .fld.sug input,.fld.sug select,.fld.sug textarea{border-bottom-style:dashed;border-bottom-color:var(--ink2)}
@@ -387,7 +396,7 @@ option{background:var(--ground);color:var(--ink)}
   min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 /* the name clips, the unverified badge does not — it is the row's only warning */
 .c-name{display:flex;align-items:center;gap:8px;min-width:0}
-.c-name .mine{flex:none}
+.c-name .mine,.c-name .live{flex:none}
 .c-type,.c-where,.c-when,.c-cost{font-size:14px;color:var(--ink2);line-height:1.22}
 .c-extra{font-size:14px;color:var(--ink2);line-height:1.22;min-width:0}
 .est{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-top:3px}
@@ -779,16 +788,14 @@ function dayparts(i){
   if(ts.includes('night')) return ['night'];
   return ts.some(t=>NIGHTABLE.has(t)) ? ['day','night'] : ['day'];
 }
-/* "7:30pm–10:30pm" -> 19.5 ; "from sunset" -> whatever sunset is today */
-function startHour(t,sunset){
-  const s=String(t||'');
-  if(/sunset|dusk|dark|evening/i.test(s)) return sunset;
-  if(/dawn|sunrise/i.test(s)) return 6.5;
-  const m=s.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
-  if(!m) return null;
-  let h=(+m[1])%12; if(/pm/i.test(m[3])) h+=12;
-  return h+(m[2]?+m[2]/60:0);
-}
+/* Reading an hour out of `time_text` is `timeSpan` in notice-vocab.js now. It
+   lived here as `startHour`, unused, and once Soonest first and the ON NOW
+   badge both needed it there was no version of keeping it that did not end in
+   two parsers disagreeing about what "2–5pm" means. It also has to answer the
+   closing time, which this one never did.
+   `NOW` and `SUNSET` below are what the two callers pass it. */
+let NOW = melbourneNow(), SUNSET = null;
+function readClock(){ NOW = melbourneNow(); SUNSET = sunHours(melbNow()).set; }
 /* todayISO / daysAway / nextDate moved to notice-vocab.js on 26 Aug 2026 —
    the suburb and type pages date their events with the same rule. */
 
@@ -1259,6 +1266,26 @@ const whereLine = i => whereParts(i).filter(Boolean).join(', ');
    duplicate rather than rendering the same link twice. */
 const isMapLink = u => /(?:google\.[a-z.]+\/maps|maps\.google\.|maps\.app\.goo\.gl|maps\.apple\.com|openstreetmap\.org)/i.test(u||'');
 
+/* Where inside its own day a listing sits, as a fraction — so a day's events
+   read in the order you would live them rather than by distance from Jan Juc.
+   Distance was doing the whole job here and it has nothing to say about a
+   Tuesday: 56 rows of the board share the time 4pm–5pm and 55 more share
+   10:30am–11am, so within-the-day was most of what Soonest first was failing
+   to answer.
+
+   Two cases stay inside their own day rather than being promoted or demoted
+   out of it, because both are the absence of a fact rather than a late hour:
+   an event whose time was never published is not evidence of a midnight start,
+   and one that finished at eleven this morning is still a thing that was on
+   today. They sit at the end of today, under everything still to come — which
+   is what makes the order useful when you open the board at three in the
+   afternoon. Only TODAY can be finished; every other day is read in full. */
+function dayPos(i){
+  const sp = timeSpan(i.time, SUNSET);
+  if(!sp) return 23.98/24;                                   /* no hours published */
+  if(daysAway(nextDate(i))===0 && sp.to!=null && NOW.hour>=sp.to) return 23.99/24;
+  return Math.min(Math.max(sp.from,0),23.97)/24;
+}
 function sortFn(a,b){
   if(S.sort==='az')   return a.name.localeCompare(b.name);
   if(S.sort==='new'){
@@ -1268,12 +1295,13 @@ function sortFn(a,b){
   if(S.sort==='best') return (b.rating||0)-(a.rating||0)||(a.km??999)-(b.km??999);
   if(S.sort==='when'){
     /* a low-confidence date is unknown, not imminent — send those to the end, not the top */
-    const k=i=>i.ev?(i.date?(daysAway(nextDate(i))??9e5):9e5):9e3;
+    const k=i=>i.ev?(i.date?(daysAway(nextDate(i))??9e5)+dayPos(i):9e5):9e3;
     return k(a)-k(b)||(a.km??999)-(b.km??999)}
   return (a.km??999)-(b.km??999)||(b.rating||0)-(a.rating||0);
 }
 function render(){
   syncClear();
+  readClock();                       /* one reading per paint, for sortFn and the badge */
   const list=ALL.filter(ok).sort(sortFn);
   VISIBLE=list;
   const hidden = !S.group.length && !S.type.length && !S.q ? ALL.filter(i=>whenOK(i)&&(i.groups||[]).includes('home')).length : 0;
@@ -1288,7 +1316,7 @@ function render(){
       <div class="rowhead${kept?' saved':''}"${(i.groups||[])[0]?` data-tint="${i.groups[0]}"`:''}>
       <button class="rowline" aria-expanded="false">
         <span class="c-icon" aria-hidden="true">${ICON_OF[i.type]?`<svg><use href="#i-${ICON_OF[i.type]}"/></svg>`:''}</span>
-        <span class="c-name"><span class="nm">${esc(i.name)}</span>${i.added?`<span class="mine" title="${i.by?esc(i.by)+' added this — ':''}not checked yet">unverified</span>`:''}</span>
+        <span class="c-name"><span class="nm">${esc(i.name)}</span>${onNow(i,NOW,SUNSET)?`<span class="live" title="On right now &middot; ${esc(i.time||'')}">on now</span>`:''}${i.added?`<span class="mine" title="${i.by?esc(i.by)+' added this — ':''}not checked yet">unverified</span>`:''}</span>
         <span class="c-type">${i.type?esc(i.type):'<span class="est" style="display:inline">unsorted</span>'}</span>
         <span class="c-where">${esc(wVenue)}${wSuburb?`<span class="tm">${esc(wSuburb)}</span>`:''}</span>
         <span class="c-when">${whenText(i)}</span>

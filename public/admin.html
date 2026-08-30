@@ -824,7 +824,9 @@ const AGGREGATORS = [
    auto:'part',
    note:'NEEDS FILTERING WORK — this is the open job on this source. Everything came in wholesale: 500 events over 20 days, of which 215 are story times and 161 landed with no type at all, because types are only ever proposed from what a title actually says. Nothing yet decides what is worth putting on the board: a weekly Toddler Time at every branch is 72 rows saying almost the same thing, and it now outnumbers most real categories. Two things to settle — which sessions belong on the board at all, and how the 161 unsorted get typed. It is also NOT on the Mon/Thu schedule yet; events.yml still runs only the other two scrapers, so nothing refreshes until somebody runs it.'},
   {name:'Moshtix', host:'moshtix', what:'Ticketing platform',
-   how:'Recognised if one turns up; none on file yet.', auto:'none', note:null},
+   how:'Read from the venue page\u2019s own schema.org, not by following its ticket links.',
+   auto:'full',
+   note:'Deliberately NOT in the scraper\u2019s TICKETERS list. Its event pages do carry clean JSON-LD, but a Moshtix VENUE page links out to other venues\u2019 shows — adding the pattern proposed twelve gigs at The Night Cat, Brunswick Ballroom and Howler as Queenscliff events. With no ticketer match the scraper falls back to the venue page\u2019s own listing, which contains only that venue\u2019s events, and gets exactly the right ones.'},
 ];
 const AUTO_STATE = {
   full: {label:'automated',      tag:'live'},
@@ -879,12 +881,19 @@ function sourceRows(){
           .some(u => (u || '').toLowerCase().includes(a.host))).map(p => p.name)
       : [];
     const places = [...new Set([...byUrl, ...mine.map(s => s.name)])];
+    // Its venues' own results count, not just the ones whose `via` names the
+    // platform. Moshtix is read through the own-listing path, so `via` never
+    // says Moshtix and it looked like it needed a person while working fine.
+    const theirs = places.map(n => seen.get(n)).filter(Boolean);
+    const all2 = mine.length ? mine : theirs;
     let state = 'untried';
-    if (mine.length){
-      if (mine.some(s => s.state === 'read'))          state = 'read';
-      else if (mine.every(s => s.state === 'skipped')) state = 'skipped';
-      else state = mine[0].state;
+    if (all2.length){
+      if (all2.some(s => s.state === 'read'))          state = 'read';
+      else if (all2.every(s => s.state === 'skipped')) state = 'skipped';
+      else state = all2[0].state;
     }
+    // Never read, but its venues were only registered after the last run.
+    if (state === 'untried' && places.length && a.auto === 'full') state = 'untried';
     if (a.auto === 'none' && state === 'untried') state = 'manual';
     const h = places.map(n => hist[n]).filter(Boolean);
     const own = a.src ? hist[a.src] : null;
@@ -921,6 +930,25 @@ function sourceRows(){
   }
   return rows;
 }
+
+/* A status that says a person is needed and not what they should do is a
+   dead end. Every state that asks for you says the next action, in one line. */
+const TODO = {
+  manual:  'Decide how this one gets read — the notes below say what the choice is.',
+  fbweekly:'Open the Facebook page and read it. Nothing can do this for you: a Facebook feed needs a token and client-side JS, so no scraper will ever see it.',
+  dead:    'The site did not answer. Check the address on the place row — it may have moved or closed.',
+  nourl:   'No website on file. Find one and put it in the place row, and the next run will try it.',
+  nothing: 'Its site has nothing a machine can read. Nothing to do unless you find a gig or events page — put that in events_url and it becomes automatic.',
+  refused: 'Its robots.txt asks us not to read it. Nothing to do; this one stays manual.',
+  untried: 'Registered but not yet reached by a run. It will be tried on the next one.',
+};
+const todoFor = r => (r.name === 'Coast & Bay'
+    ? 'Run one command to settle it: curl -s "https://coastandbay.com.au/wp-json/tribe/events/v1/events?per_page=3". If it returns JSON this becomes the second real feed. It cannot be run from a Claude session — that site disallows ClaudeBot — so it is yours or the Action\u2019s.'
+  : r.name === 'Eventbrite'
+    ? 'Choose how to read it. Either wire up the free API (needs a token you create, stored in GitHub and Vercel) or parse the event pages\u2019 JSON-LD, which works today and needs nothing. 17 events are sitting behind it.'
+  : r.name === 'Geelong Regional Libraries'
+    ? 'Two decisions before it goes on the schedule: which sessions belong on the board at all, and how the 161 untyped ones get typed. Then add it to events.yml.'
+  : TODO[r.state] || '');
 
 function drawSources(){
   const all = sourceRows();
@@ -971,8 +999,10 @@ function openSource(r){
   if (!r) return;
   const st = SRC_STATE[r.state] || {label:r.state, tag:''};
   const place = r.id ? DATA.places.find(p => p.id === r.id) : null;
+  const todo = todoFor(r);
   const rows = [
     ['Status',    `<span class="tag ${st.tag}">${esc(st.label)}</span>`],
+    ...(todo ? [['What to do', `<b style="font-weight:500">${esc(todo)}</b>`]] : []),
     ['Kind',      r.kind === 'aggregator' ? 'Aggregator — one parser, many venues'
                                           : 'Venue or convenor — speaks for itself'],
     ['Reads via', esc(r.via)],

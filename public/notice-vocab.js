@@ -264,6 +264,81 @@ function nextDate(i){
            .toISOString().slice(0,10);
 }
 
+/* ── the hours a listing runs, read out of its free-text time ──
+   `time_text` is what the organiser published, so it is prose and not a field.
+   618 of the 683 events carry a plain range ("10:30am–11:15am"); the rest say
+   things like "Plates from 9am, race 10am", "Sept–Oct holidays" or "Sat & Sun".
+   This reads what it can and returns null for the rest. An ON NOW badge drawn
+   on hours that were inferred is the fabricated-data failure this project has
+   already paid for twice, so nothing here fills a gap in.
+
+   `to` is null when only a start was published, and that is NOT an end. Sorting
+   may use a start on its own; the badge may not, because a gig that started at
+   8pm is not evidence that it is still going at midnight.
+
+   Two things the data actually demands:
+   - the opening time often carries no am/pm and borrows the closing one —
+     "2–5pm" is the afternoon, not two in the morning.
+   - a full stop is a colon here: "7.30pm" and "8.30am" are both in the table. */
+const T_DASH  = '(?:–|—|-|to)';
+const T_CLOCK = '(\\d{1,2})(?:[:.](\\d{2}))?\\s*(am|pm)?';
+const T_RANGE = new RegExp(T_CLOCK + '\\s*' + T_DASH + '\\s*' + T_CLOCK, 'i');
+const T_ONE   = new RegExp('(\\d{1,2})(?:[:.](\\d{2}))?\\s*(am|pm)', 'i');
+/* No meridiem, no clock time. "34km 8.30am from Queenscliff" holds three
+   numbers and one of them is the hour; requiring am/pm is what tells them
+   apart without a list of units to exclude. */
+const t_clock = (h, m, ap) => {
+  if(!ap) return null;
+  return (+h % 12) + (/pm/i.test(ap) ? 12 : 0) + (m ? +m/60 : 0);
+};
+function timeSpan(t, sunset){
+  const s = String(t ?? '').trim()
+    .replace(/\bmidnight\b/ig, '12am').replace(/\b(noon|midday)\b/ig, '12pm');
+  if(!s) return null;
+  if(/\ball[- ]day\b/i.test(s)) return {from:0, to:24};
+
+  const r = T_RANGE.exec(s);
+  if(r){
+    const from = t_clock(r[1], r[2], r[3] || r[6]);   /* borrow forwards only */
+    const to   = t_clock(r[4], r[5], r[6]);
+    if(from!=null && to!=null) return {from, to: to<from ? to+24 : to};
+  }
+  const one = T_ONE.exec(s);
+  if(one) return {from: t_clock(one[1], one[2], one[3]), to:null};
+
+  /* the words, which a few rows use on their own — "from sunset", "sunset" */
+  if(/sunset|dusk|after dark|evening/i.test(s))
+    return Number.isFinite(sunset) ? {from:sunset, to:null} : null;
+  if(/dawn|sunrise/i.test(s)) return {from:6.5, to:null};
+  return null;
+}
+
+/* The board is about one coastline, so "now" is Melbourne's now wherever the
+   reader is sitting. The date and the hour have to come off the same clock, or
+   a reader in London gets today's Surf Coast events matched against their own
+   afternoon. Note todayISO above is deliberately the VIEWER's day — it answers
+   a different question (which dates to show), and this one answers "is this on
+   at this minute", so it does its own reading. */
+function melbourneNow(){
+  const p = new Intl.DateTimeFormat('en-CA', {timeZone:'Australia/Melbourne',
+      year:'numeric', month:'2-digit', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', hour12:false})
+    .formatToParts(new Date()).reduce((o,x)=>(o[x.type]=x.value, o), {});
+  return {iso:`${p.year}-${p.month}-${p.day}`, hour:(+p.hour % 24) + (+p.minute)/60};
+}
+
+/* Is this happening at this minute? Only ever true where the published time
+   gives BOTH ends. Three things it therefore cannot answer, all deliberately:
+   a start with no end, a listing with no time at all, and a festival running
+   across days — `listings` carries no ends_on, so 19–20 Sep is one date here. */
+function onNow(i, now, sunset){
+  if(!i || !i.ev || !i.date || !now) return false;
+  if(nextDate(i) !== now.iso) return false;
+  const sp = timeSpan(i.time, sunset);
+  if(!sp || sp.to == null) return false;
+  return now.hour >= sp.from && now.hour < sp.to;
+}
+
 /* The 43 types, split by whether you are adding a place you go to or a thing
    that is on. This is NOT the database's `types.band` — that groups by subject
    now (the nine GROUPS above). It is only the Add form's two lists.

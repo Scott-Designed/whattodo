@@ -1271,6 +1271,28 @@ the set Scott has flagged as needing filtering. They pass every machine test and
 fail the judgement test, which is the distinction the gate exists to draw. The
 gate is forward-looking only.
 
+### "Needs a person" says which person does what
+
+A status that asks for a human and does not say what they should do is a dead
+end — Scott's question, 28 Aug 2026. Every state that asks for you now carries a
+one-line **What to do**, first in the source drawer: the exact curl for Coast &
+Bay, the API-or-JSON-LD choice for Eventbrite with the count waiting behind it,
+the two decisions blocking the library feed. States that need nothing say
+nothing.
+
+**Moshtix was mislabelled and it exposed a real hole.** It read as *needs a
+person* while working perfectly. Two causes, both fixed: its `AGGREGATORS` entry
+still said "none on file yet" from before it had venues, and the platform's
+state was derived only from sources whose `via` names it. Moshtix is read
+through the **own-listing** path precisely because it is not in `TICKETERS`, so
+`via` never says Moshtix and the platform looked untouched. A platform's state
+now falls back to its own venues' results.
+
+The general trap: a derived status is only as honest as what it derives from,
+and the run log is a snapshot. Both Moshtix venues were registered *after* the
+last run, so nothing in the log mentioned them — which is why the honest word
+for it is now *not tried yet* rather than *needs a person*.
+
 ### The Review tab
 
 `/admin` → **Review**, with a count in the tab. Everything unverified, grouped
