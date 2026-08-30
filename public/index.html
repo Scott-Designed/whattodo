@@ -1291,11 +1291,17 @@ const isMapLink = u => /(?:google\.[a-z.]+\/maps|maps\.google\.|maps\.app\.goo\.
    today. They sit at the end of today, under everything still to come — which
    is what makes the order useful when you open the board at three in the
    afternoon. Only TODAY can be finished; every other day is read in full. */
+const HR_LAST=23.95, HR_UNKNOWN=23.96, HR_DONE=23.97;   /* the last minutes of a day */
 function dayPos(i){
   const sp = timeSpan(i.time, SUNSET);
-  if(!sp) return 23.98/24;                                   /* no hours published */
-  if(daysAway(nextDate(i))===0 && sp.to!=null && NOW.hour>=sp.to) return 23.99/24;
-  return Math.min(Math.max(sp.from,0),23.97)/24;
+  if(!sp) return HR_UNKNOWN/24;
+  /* Finished sits after unknown, and keeps its own hour inside that last slot,
+     so the tail of the day still reads seven, nine, eleven rather than falling
+     back on distance. The .02 keeps the whole bucket under 24 — one hour over
+     and it would tip into tomorrow's midnight and outrank a real 12:01am. */
+  if(daysAway(nextDate(i))===0 && sp.to!=null && NOW.hour>=sp.to)
+    return (HR_DONE + sp.from/24*0.02)/24;
+  return Math.min(Math.max(sp.from,0), HR_LAST)/24;
 }
 function sortFn(a,b){
   if(S.sort==='az')   return a.name.localeCompare(b.name);

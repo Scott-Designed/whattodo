@@ -2641,6 +2641,110 @@ spans days and prints the start date alone. Not fixed — it is a view change an
 nobody has asked for multi-day display. Worth knowing before someone re-derives
 a festival's end date from somewhere else.
 
+## Soonest first now orders the day, and ON NOW says what is happening
+
+Scott's ask, 30 Aug 2026: *"look to the opening hours to better order the day"*,
+and a badge beside `unverified`.
+
+**Distance was doing the whole job inside a day, and it has nothing to say about
+a Tuesday.** `sortFn`'s `when` branch keyed on `daysAway` alone and broke every
+tie on `km`, so a day's events came out ordered by their drive from Jan Juc.
+That is 56 rows sharing the time 4pm–5pm and 55 more sharing 10:30am–11am — most
+of the board — arranged by a number nobody was asking about. The key is
+`daysAway + dayPos(i)` now, a fraction of a day, so a day reads in the order you
+would live it.
+
+### `timeSpan` — one parser, in notice-vocab.js
+
+`time_text` is what an organiser published, so it is prose and not a field.
+**618 of 683 events carry a plain range** ("10:30am–11:15am"); 43 carry a start
+alone; the rest say things like "Plates from 9am, race 10am", "Sat & Sun" or
+"Sept–Oct holidays". `timeSpan` reads **661 of the 683** and returns null for
+the rest — every miss checked, and every one is a string with no clock in it.
+
+Three things the real data demanded, none of them obvious from the schema:
+
+- **The opening time often carries no am/pm and borrows the closing one.**
+  "2–5pm" is the afternoon. Borrowing is forwards only; "10:30am–11:15am" says
+  both ends itself.
+- **A full stop is a colon here** — "7.30pm" and "8.30am" are both in the table.
+- **Requiring am/pm is what tells an hour from a number.** "34km 8.30am from
+  Queenscliff; 17km about 9.40am from Drysdale" holds three numbers and one
+  hour, and a meridiem separates them without a list of units to exclude.
+
+**`to` is null when only a start was published, and that is NOT an end.**
+Sorting may use a start alone; the badge may not, because a gig that started at
+8pm is not evidence that it is still going at midnight. Nothing fills the gap
+in — an ON NOW drawn on hours that were inferred is the fabricated-data failure
+this file opens with.
+
+**It replaced `startHour`, which had been sitting in index.html unused.** Once
+Soonest first and the badge both needed it there was no version of keeping it
+that did not end in two parsers disagreeing about what "2–5pm" means. It also
+had to answer the closing time, which that one never did.
+
+### Where a listing sits inside its day
+
+`dayPos` in index.html. The hour of the start, over 24 — except for two things
+that are the **absence** of a fact rather than a late hour, which take reserved
+positions at the very end of the day (23.96 and 23.97 hours, both under 24 or
+they would tip into tomorrow's midnight and outrank a real 12:01am):
+
+- **no hours published** — not evidence of a midnight start.
+- **finished today** — an event that ended at eleven this morning is still a
+  thing that was on today, so it stays inside today, under everything still to
+  come. That is what makes the order useful when you open the board at three in
+  the afternoon. Only TODAY can be finished; every other day is read in full.
+  It keeps its own hour inside that last slot, so the tail still reads seven,
+  nine, eleven rather than falling back on distance.
+
+**A start with no published end never sinks, and that is deliberate.** At 2:30pm
+the 6am Happy Hour Run still sorts above the 11am market that is genuinely on.
+Mildly odd, and the honest answer: the alternative is inventing a duration, and
+the same rule would bury a "from 7am" festival that is still running. The row
+prints its own time, so nothing is being claimed.
+
+### The badge
+
+`onNow(i, now, sunset)` in notice-vocab.js. **Only ever true where the published
+time gives both ends**, so **608 of the 683 events are eligible**. Three things
+it therefore cannot answer, all on purpose: a start with no end, a listing with
+no time at all, and a **festival running across days — `listings` carries no
+`ends_on`**, so 19–20 Sep is one date here. That last one is the standing item
+in the paging section, now with a second reason to fix it.
+
+**`melbourneNow()` reads its own clock, and has to.** The date and the hour must
+come off the same one or a reader in London gets today's Surf Coast events
+matched against their own afternoon. Note `todayISO` beside it is deliberately
+the VIEWER's day — it answers which dates to show, a different question.
+
+Drawn as a filled green pill where `unverified` is an outlined square — same
+size and setting, opposite everything else, so the two read as a pair on a row
+carrying both. **`--live` is a token in all three theme states**, because a
+green dark enough to carry white text in the light scheme goes muddy against
+`#14170F`. The white on it IS a literal: both greens are chosen to take it, and
+`var(--ink)` flips to near-white in one scheme and near-black in the other.
+
+**It is computed at paint and does not tick.** Same convention as the date line
+in the masthead, which is stamped at load. A `setInterval` re-render is the
+obvious fix and is the wrong one — a re-render shuts every open row on the page.
+
+**A doubled gap was found doing this.** `.c-name` set `gap:8px` AND both badges
+set `margin-left:8px`, so the spacing was 16px. Nobody noticed with one badge;
+two cost the name 32px of a column it already clips in. The **margin** is the
+one that survives, not the gap — below 700px `.c-name` becomes a plain block and
+a gap stops applying, which is exactly where the badges ran into the name.
+
+**Still cramped between 700 and 1180px.** The name column is tight there before
+any badge, and a second one costs it about five characters. Accepted: the badge
+is worth more than the tail of a name, and the band is a split window rather
+than a phone or a desktop.
+
+**The subject pages do not draw it yet.** `place.html` and `type.html` render
+through `notice-page.js`, which has its own `row()`/`item()`. The parser is
+already shared, so adding it there is one condition in each — the town page's
+What's on is where it would earn its place next.
+
 ## `gig` became `music` — 30 Aug 2026
 
 Scott's call, made while retyping Pop Cultcha: a record shop cannot be a `gig`.
