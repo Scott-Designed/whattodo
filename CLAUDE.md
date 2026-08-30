@@ -813,6 +813,13 @@ Three things about that source, each of which the script exists to handle:
   branch is now dead: the feed updates nothing and every drifting date is a line
   in the job summary waiting for a person.
 
+  **THE RED BOX WAS KILLED 30 Aug 2026, on Scott's instruction**, and this
+  paragraph is the argument against having done it — kept, not deleted, because
+  it is the thing to read if these dates start going stale. The count survives
+  in the overview's *Waiting on you* stat, which still says "2 moved dates", so
+  nothing is silent; what has gone is the shouting and the link straight into
+  each event's editor. Nothing else in the interface names WHICH rows moved.
+
   That used to be the end of the sentence, and it was the most likely way this
   database went wrong next — a job summary is a page on github.com nobody
   visits, so a date that moved at the source went stale here silently. **Fixed
@@ -1603,9 +1610,21 @@ source that had been failing silently for days.
   new data**: every importer writes the page it read into `source_note`, so the
   host IS the provenance. `added_by` is the tidier column and cannot answer
   this — `venue-feed` covers Oztix, Humanitix, TryBooking and Moshtix at once.
-- **Still to come** — of those, the ones not yet past. 500 library events of
-  which 467 are ahead is a different fact from 500 that have all gone, and it
-  is the half that says whether a source is still worth having.
+- **Upcoming** — of those, the ones not yet past. 500 library events of which
+  467 are ahead is a different fact from 500 that have all gone, and it is the
+  half that says whether a source is still worth having.
+
+**Two headings were wrong for one turn and both were Scott's catch.** It shipped
+as *Still to come*, which does not say what it counts, and the venue count went
+under **Reads via** — a heading written when that cell held *own listing +
+Oztix*, which is HOW a source is read. It now holds a count of what it COVERS,
+and the heading never moved with the data. They are **Venues** and **Upcoming**,
+and the cell stopped carrying its own header: "6 venues" under a column called
+Venues is the badge-that-repeats-its-row rule again. Three plain counts side by
+side read as numbers or not at all. The drawer keeps the names.
+
+The venue rows on the Places tab still say *TryBooking* / *own listing* in their
+Automation cell — that is genuinely how, and `via` still means how there.
 
 **EVENTBRITE IS 401ing AND HAS BEEN READING AS GREEN.** Three of its four
 organisers — Creative Geelong Makers Hub, Mt Rothwell, Torquay Bowls Club —

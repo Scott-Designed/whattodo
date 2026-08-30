@@ -736,19 +736,14 @@ function drawAutos(){
   const last = DATA.log[0];
   const due  = nextRun();
 
-  // The one thing that should interrupt: a date that moved at the source on a
-  // row somebody vouched for. Nothing updates those and nothing will.
-  const waiting = [];
-  for (const s of (last?.steps || []))
-    for (const d of (s.drift || [])) if (d.locked) waiting.push(d);
-
+  /* The red drift box was here — every locked date change, spelled out, at the
+     top of the tab. Scott killed it 30 Aug 2026. The count survives in the
+     overview's "Waiting on you" stat, which still reads "2 moved dates", so the
+     fact is not lost; what has gone is the shouting and the direct link into
+     each event's editor. Note what that costs, because this file argued the
+     other way in August: nothing else in the interface names WHICH rows moved.
+     If they start going stale, that is why, and the box is the fix. */
   let alarm = '';
-  if (waiting.length) alarm += `<div class="alarm">
-    <h3>${waiting.length} date${waiting.length>1?'s':''} moved at the source and ${waiting.length>1?'were':'was'} left alone</h3>
-    <p class="why">These rows are verified, so the scraper reported the change rather than
-       overwriting your judgement. Check the organiser’s own page, then fix or keep the date here.</p>
-    <ul>${waiting.map(d => `<li><a href="#" data-goto="e${d.id}">${esc(d.name)}</a> —
-       ${esc(dmy(d.from))} → <b>${esc(dmy(d.to))}</b></li>`).join('')}</ul></div>`;
   if (last && !last.ok) alarm += `<div class="alarm"><h3>The last run failed</h3>
     <p class="why">${last.steps.filter(s=>!s.ok).map(s=>esc(s.name) + (s.ran ? ` exited ${s.exit}` : ' never ran')).join(' · ')}.
        The output is under “How the runs went”.</p></div>`;
@@ -797,11 +792,6 @@ function drawAutos(){
 
   $('#runs').querySelectorAll('tr[data-run]').forEach(tr => tr.onclick = () => {
     const out = $('#out-' + tr.dataset.run); out.hidden = !out.hidden;
-  });
-  $('#alarm').querySelectorAll('[data-goto]').forEach(a => a.onclick = e => {
-    e.preventDefault();
-    const id = +a.dataset.goto.slice(1);
-    show('events'); openEditor('events', DATA.events.find(x => x.id === id));
   });
 }
 
@@ -1008,8 +998,7 @@ function sourceRows(){
     const own = a.src ? hist[a.src] : null;
     rows.push({
       kind:'aggregator', name:a.name, state,
-      via: (n => n ? n + ' venue' + (n>1?'s':'') : (a.src || 'none yet'))
-             (a.host ? places.length : evPlaces.length),
+      venues: a.host ? places.length : evPlaces.length,
       branches: a.host ? [] : evPlaces,
       read:     own?.read || h.map(x=>x.read).filter(Boolean).sort().pop(),
       newLast:  (own?.newLast  || 0) + h.reduce((n,x)=>n+(x.newLast||0),0),
@@ -1080,20 +1069,20 @@ function drawSources(){
 
   SRC_LIST = aggs;
   $('#sources').innerHTML = `<table><thead><tr>
-      <th>Source</th><th>Reads via</th><th>Runs</th><th>Status</th><th>Last read</th>
-      <th>Events</th><th>Still to come</th><th></th>
+      <th>Source</th><th>Runs</th><th>Status</th><th>Last read</th>
+      <th>Venues</th><th>Events</th><th>Upcoming</th><th></th>
     </tr></thead><tbody>${aggs.map((r,i) => {
       const st = SRC_STATE[r.state] || {label:r.state, tag:''};
       const sc = RUNS_ON[r.auto] || {label:'—', tag:''};
       return `<tr class="clickable" data-i="${i}">
         <td><div class="rowname">${esc(r.name)}</div>
             <span style="color:var(--ink3);font-size:11px">${esc(r.what || 'aggregator')}</span></td>
-        <td class="cap" title="${esc(r.via)}">${esc(r.via)}</td>
         <td style="white-space:nowrap"><span class="tag ${sc.tag}">${esc(sc.label)}</span></td>
         <td style="white-space:nowrap"><span class="tag ${st.tag}">${esc(st.label)}</span></td>
         <td style="white-space:nowrap">${r.read ? `${esc(ago(r.read))}${r.newLast
               ? ` · <b style="color:var(--good)">+${r.newLast}</b>` : ''}`
             : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td>${r.venues || '<span style="color:var(--ink3)">—</span>'}</td>
         <td>${r.events || '<span style="color:var(--ink3)">none yet</span>'}</td>
         <td>${r.events
               ? (r.live ? `<b style="font-weight:500;color:var(--good)">${r.live}</b>`
@@ -1138,12 +1127,14 @@ function openSource(r){
     ...(todo ? [['What to do', `<b style="font-weight:500">${esc(todo)}</b>`]] : []),
     ['Kind',      r.kind === 'aggregator' ? 'Aggregator — one parser, many venues'
                                           : 'Venue or convenor — speaks for itself'],
-    ['Reads via', esc(r.via)],
+    ['Venues', (names => names.length
+        ? `${r.venues} — ${esc(names.join(', '))}`
+        : (r.venues ? String(r.venues) : 'none registered yet')
+      )([...(r.places || []), ...(r.branches || [])])],
     ['Last read', r.read ? `${esc(ago(r.read))} · ${r.newLast ? '+' + r.newLast + ' new' : 'nothing new'}${
                     r.seenCount ? ` · ${r.seenCount} on the page` : ''}` : 'never'],
     ['All time',  r.newTotal ? r.newTotal + ' new events' : 'none yet'],
-    r.places?.length   ? ['Venues', esc(r.places.join(', '))] : null,
-    r.branches?.length ? ['Venues', esc(r.branches.join(', '))] : null,
+
     r.hint ? ['To pin it down', esc(r.hint)] : null,
   ].filter(Boolean);
 
