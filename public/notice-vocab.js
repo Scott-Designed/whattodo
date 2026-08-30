@@ -181,6 +181,7 @@ const ICON_OF={
   festival:'ferris-wheel',
   music:'guitar',
   golf:'flag-triangle-right',
+  kids:'blocks',
   market:'store',
   'mountain biking':'bike',
   museum:'landmark',
@@ -196,6 +197,7 @@ const ICON_OF={
   restaurant:'utensils',
   'rock climbing':'mountain',
   running:'medal',
+  skatepark:'hand-metal',
   surfing:'waves',
   swimming:'waves-ladder',
   theatre:'drama',
@@ -205,8 +207,10 @@ const ICON_OF={
   winery:'wine',
   workshop:'hammer'};
 
-/* skatepark has no entry: Lucide has no skateboard, and an unrelated glyph
-   would be worse than the empty slot. */
+/* skatepark is `hand-metal`, chosen by Scott: Lucide has no skateboard, and the
+   thrown horns is what the culture actually signs with. Every type has an icon
+   now, so the empty slot the layout keeps is unused — keep it anyway, it is
+   what stops a new type shifting every name in the list. */
 
 const groupsOf = i => [...new Set(typesOf(i).map(t=>GROUP_OF[t]).filter(Boolean))];
 

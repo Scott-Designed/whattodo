@@ -3317,17 +3317,31 @@ Three were applied 31 Aug 2026:
 
 `theatre` went 1 → 10 across the arts pass and this correction.
 
-**Two are still open and are both Scott's call**, which is why they were left:
+Both remaining ones were settled by Scott the same day:
 
-- **Event 7, the Surf Coast Arts Trail, is still corrupt** — `starts_on
-  2027-08-07`, `ends_on 2026-10-12`, an end ten months before the start, and
-  neither date was ever published. The 2026 Trail ran 1–2 August and is over.
-  The honest options are to delete the row or to blank both dates and leave it
-  annual with no next date. Quietly picking one would be the same species of
-  decision that put the wrong date there in the first place.
-- **Places 98 and 102 are both the HOOP Gallery.** Merging places is the
-  three-step alias treatment — repoint what references the loser, add its name
-  to the winner's `aliases`, then delete — and needs checking what points at 102.
+- **Event 7, the Surf Coast Arts Trail, keeps its row and loses its dates.** It
+  held `starts_on 2027-08-07` and `ends_on 2026-10-12` — an end ten months
+  before the start, neither date published anywhere. The Trail is real and
+  recurring (300 artists, 65 spaces) and will run again, so deleting it would
+  throw away a good row over two bad fields. `recurrence` stays `annual`, which
+  `nextDate()` deliberately never rolls forward, so **a null `starts_on` is the
+  honest resting state**: the row exists and claims nothing. Somebody sets a
+  date when the organiser announces 2027.
+
+  Two things learned doing it. **`date_confidence` is NOT NULL**, so it cannot
+  be blanked alongside the dates — it is `low` now, because `high` on a dateless
+  row reads as a checked date when there is nothing to check. And the `info_url`
+  moved from `surfcoastarts.com` to `surfcoastartstrail.com.au`: both resolve,
+  but the first is the arts *organisation* and the second is this event — the
+  organiser-is-not-the-venue distinction turning up in a URL field.
+
+- **Places 98 and 102 were both the HOOP Gallery**; 102 is deleted. The
+  three-step merge went easily because nothing referenced it — checked
+  `events.place_id` and `activities.place_id` — but **the alias step still
+  mattered most**. 102's own `source_note` says it was "added from a ticketing
+  listing", which is exactly how it came to exist; `scrape_venues.py` matches on
+  name plus aliases, so without carrying the long name onto 98 the next run
+  would simply have recreated it.
 
 ## Research rules — this project has been burned before
 
