@@ -2471,6 +2471,66 @@ spans days and prints the start date alone. Not fixed — it is a view change an
 nobody has asked for multi-day display. Worth knowing before someone re-derives
 a festival's end date from somewhere else.
 
+## `gig` became `music` — 30 Aug 2026
+
+Scott's call, made while retyping Pop Cultcha: a record shop cannot be a `gig`.
+`gig` describes an evening out, so it could never hold the things that are
+*about* music without being a performance — a record shop, and in time an
+instrument shop or a teacher. `music` reads correctly on a type page for both.
+
+**64 rows moved** (62 events, 2 activities), and the rename ran as one
+statement through the Management API — `insert 'music'`, then
+`array_replace(types,'gig','music')` on both tables, then `delete 'gig'`.
+`array_replace` preserves position, which matters more than it looks: **the
+first element is the primary**, so a per-row rewrite that rebuilt the list
+could silently re-order 64 rows and change the word each one prints.
+`types_valid()` is a live check, so the insert has to come first and the delete
+last.
+
+**This is the rename this file has been warning about, and the warning was
+right.** Every map keyed on a type name fails *silently* — a missing key is
+just no icon, no group, no label, no error. Nine live sites had to move:
+
+    notice-vocab.js   GROUP_OF · ICON_OF · EVENT_TYPES · TYPE_PLURAL
+    index.html        NIGHTABLE · EXTRA_OF
+    api/enrich.mjs    TYPES_EVENT
+    classify_kinds.py KIND_OF
+    scrape_events.py · scrape_venues.py · scrape_library.py   what they assign
+    name_rules.py     the word a bare one-word name gains
+
+**`ICON_OF` is the one that proves the point.** `gig:'guitar'` is a real icon
+drawing on 56 rows of the board. Miss that key and 56 rows quietly lose their
+icon with nothing anywhere to say so. Grep the type name — do not trust a
+mental list of the five places, because the five places are about *adding* a
+type and a rename touches more.
+
+**`name_rules.py` was the one that should NOT be a straight substitution.** Its
+map is type → the word appended to a name too bare to stand alone, and the word
+is still *Gig*: "Ceramics Workshop", not "Ceramics Music". The key moved to
+`music`; the value stayed `Gig`.
+
+**A dead `ICON_OF` key turned up while checking, and it was mine** — `shop`
+still mapped to `shopping-bag` three days after `shop` was retired as a type.
+Four of the five maps were updated that day and `ICON_OF` was not, because it
+is not one of the five and nothing looks at it. Harmless, and removed. The
+lesson is that the five-places list is necessary and not sufficient: **the real
+rule is `grep`.**
+
+`/gig` now 404s and `/music` serves. `music` was checked against every town
+slug, every other type slug, every file in `public/`, and `RESERVED` in
+`api/subject.mjs` before anything moved.
+
+**Pop Cultcha (539) is typed `music`**, replacing the `arts` placeholder it was
+written with the same day. Its `kind` was already `shop`, so it stays off the
+board and earns its place on `/music`, which is where somebody hunting records
+would look.
+
+**The baked-in fallback was renamed too** — 109 occurrences inside the `DATA`
+blob in `index.html`. That is not hand-editing a record, it is the same
+mechanical substitution a regeneration would perform, and without it the
+offline copy would carry a type the vocabulary no longer knows. The blob is
+still stale by about 800 rows; that is a separate job.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
@@ -3063,10 +3123,13 @@ is ever inferred** — a wrong one sends someone to a place that cannot take the
    coordinate — each one is a missing pin on the map
 7. Promote the Ideas Pipeline into the database
 8. A scheduled job that re-checks estimated event dates as real ones get announced
-9. **Type icons cover 72 of 419 rows.** Six symbols against 42 types. The set was
-   drawn for the old 26 and the split widened the gap — `surfing`, `swimming`,
-   `walk`, `night`, `gig` and `at-home` are all big now and all draw the empty
-   slot. See the icon section for what the artwork has to solve first (the bike
+9. **Type icons now cover 41 of the 43 types** — this entry used to say "six
+   symbols" and was years out of date by the standards of this project. Only
+   `skatepark` and `kids` draw the empty slot: skatepark deliberately, because
+   Lucide has no skateboard and an unrelated glyph is worse than none (the
+   reason is in `notice-vocab.js` beside the map), and `kids` because it
+   arrived with the library import and nobody has picked one. The artwork notes
+   in the icon section still stand for Scott's own hand-drawn set (the bike
    does not survive 28px, and only one of an icon's two edges can be true until
    they are all drawn to the same width).
 10. **`places.offers` has a value that means nothing.** `tickets` records that the

@@ -196,7 +196,6 @@ const ICON_OF={
   restaurant:'utensils',
   'rock climbing':'mountain',
   running:'medal',
-  shop:'shopping-bag',
   surfing:'waves',
   swimming:'waves-ladder',
   theatre:'drama',

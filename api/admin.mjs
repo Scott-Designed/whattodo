@@ -226,7 +226,7 @@ export default async function handler(req, res) {
     return res.status(501).json({error: 'no_password',
       message: 'Set ADMIN_PASSWORD in the Vercel project to enable editing.'});
 
-  const {password, action = 'check', table, id, patch = {}, force = false} = req.body || {};
+  const {password, action = 'check', table, id, ids, patch = {}, force = false} = req.body || {};
   if (!passwordOk(password)) return res.status(401).json({error: 'wrong_password'});
   if (action === 'check') return res.status(200).json({ok: true});
 
@@ -262,6 +262,37 @@ export default async function handler(req, res) {
       message: r.status === 403 || r.status === 401
         ? 'GitHub refused the token — it needs Actions: read and write on this repo.'
         : detail.slice(0, 300)});
+  }
+
+  // ── approve rows from the review queue ──────────────────────────────────
+  // One request for a whole batch: the library import alone is 500 rows and
+  // 500 round trips would be absurd. Every row still has to earn it — a
+  // verified flag with no source_note is the meaningless flag this project
+  // already has a note about.
+  if (action === 'verify') {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY)
+      return res.status(501).json({error: 'not_configured'});
+    if (!['activities', 'events'].includes(table))
+      return res.status(400).json({error: 'bad_table',
+        message: 'verify works on activities or events'});
+    const list = (Array.isArray(ids) ? ids : []).map(Number)
+      .filter(n => Number.isInteger(n) && n > 0);
+    if (!list.length)   return res.status(400).json({error: 'no_ids'});
+    if (list.length > 600) return res.status(400).json({error: 'too_many',
+      message: 'verify at most 600 rows at a time'});
+
+    const inList = `(${list.join(',')})`;
+    const rows = await db('GET',
+      `/rest/v1/${table}?select=id,name,source_note&id=in.${inList}`);
+    const bare = rows.filter(r => !String(r.source_note || '').trim());
+    if (bare.length) return res.status(400).json({error: 'no_source_note',
+      message: `${bare.length} row(s) have no source_note — verifying those would ` +
+               `record that somebody looked when nothing says what they checked.`,
+      names: bare.slice(0, 5).map(r => r.name)});
+
+    const done = await db('PATCH', `/rest/v1/${table}?id=in.${inList}`,
+                          {verified: true}, {Prefer: 'return=representation'});
+    return res.status(200).json({ok: true, verified: done.length});
   }
 
   // Everything past here reads or writes the database.
