@@ -486,7 +486,14 @@ function placeFlags(p){
   if (p.lat === null || p.lng === null) f.push('no pin');
   if (coarse(p.lat) || coarse(p.lng))   f.push('coarse pin');
   if (!p.kind)                          f.push('no kind');
-  if (!p.address)                       f.push('no address');
+  // An address is NOT required and its absence is not a gap: 72 of 140 places
+  // are pinned without one, 47 by matching a named feature in OpenStreetMap
+  // (a school, a stadium, a pier resolves by name) and 25 from the library
+  // feed's own GEO. Flagging "no address" marked the majority as incomplete
+  // when nothing was wrong. What IS worth surfacing is the handful where an
+  // address exists and no pin was made from it — that is a geocode waiting to
+  // happen, and there are six.
+  if (p.address && (p.lat === null || p.lng === null)) f.push('can be pinned');
   if (!p.website && !p.events_url)      f.push('no website');
   // A place nothing points at is either a duplicate or a row waiting for work.
   if (!p.__events)                      f.push('no events');
@@ -1537,7 +1544,7 @@ function drawPlaces(){
   };
   if (!list.length){ $('#plist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
   $('#plist').innerHTML = `<table><thead><tr>
-      <th>Venue</th><th>Kind</th><th>Town</th><th>Address</th><th>Automation</th>
+      <th>Venue</th><th>Kind</th><th>Town</th><th>Automation</th>
       <th>Events</th><th>Pinned</th><th></th>
     </tr></thead><tbody>${list.map(p => {
       const s  = srcByName[p.name] || {};
@@ -1561,7 +1568,6 @@ function drawPlaces(){
             ${p.aliases?.length ? `<div style="color:var(--ink3);font-size:11.5px">also: ${esc(p.aliases.join(', '))}</div>` : ''}</td>
         <td>${esc(p.kind || '—')}</td>
         <td>${esc(p.suburb || '—')}</td>
-        <td>${p.address ? 'yes' : '<span style="color:var(--ink3)">no</span>'}</td>
         <td style="white-space:nowrap">${(() => {
              // A tick means a machine reads this and when it last did. Anything
              // else is a word, because "not automated" has several distinct

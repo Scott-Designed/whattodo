@@ -1377,9 +1377,21 @@ keep their shape, because those are controls rather than data.
 **The tab intros went too**, the same call already made for Automations. What is
 left above each table is a heading, a search box and the filter chips.
 
-`Address` is a yes/no column on Places — 59 of 139 have one — and a `no address`
-chip, because "which venues can never have their pin checked" is a real job and
-was invisible.
+**There is no Address column, and adding one was a mistake worth recording.**
+Scott caught it: Aireys Inlet Primary School has no address, has a pin, and is
+on the map. That is not an edge case — **72 of 140 places are pinned without an
+address**, 47 because a named feature resolved in OpenStreetMap (a school, a
+stadium, a pier answers to its own name) and 25 from the library feed's own
+`GEO`. A yes/no Address column marked the majority of the table "no" for a field
+that is not required and whose absence means nothing.
+
+What is actually actionable is much smaller, and is a chip now: **`can be
+pinned`** — an address on the row and no coordinate made from it, which is a
+geocode waiting to happen. There are six. The eight with neither are already
+covered by `no pin`.
+
+The general shape: a column that is mostly "no" is either a real crisis or the
+wrong question. Check which before shipping it.
 
 ### The venue list
 
