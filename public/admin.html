@@ -219,6 +219,7 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
 
 <nav class="tabs" role="tablist">
   <button role="tab" data-tab="autos"      aria-selected="true">Automations</button>
+  <button role="tab" data-tab="review"     aria-selected="false">Review <span class="tally" id="t-review"></span></button>
   <button role="tab" data-tab="events"     aria-selected="false">Events <span class="tally" id="t-events"></span></button>
   <button role="tab" data-tab="activities" aria-selected="false">Activities <span class="tally" id="t-activities"></span></button>
   <button role="tab" data-tab="places"     aria-selected="false">Places <span class="tally" id="t-places"></span></button>
@@ -243,6 +244,14 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
 
   <h2 id="a-runs">Runs</h2>
   <div id="runs"></div>
+</section>
+
+<section id="tab-review" hidden>
+  <div class="controls">
+    <select id="rsrc"><option value="">Everything waiting</option></select>
+    <div class="msg" id="rmsg" style="margin-left:0"></div>
+  </div>
+  <div id="review"></div>
 </section>
 
 <section id="tab-events" hidden>
@@ -986,6 +995,114 @@ function openSource(r){
   document.addEventListener('keydown', onEsc);
 }
 
+/* ── the review queue ───────────────────────────────────────────────────────
+   Everything a machine added but did not feel entitled to verify. Grouped by
+   where it came from, because the useful gesture is almost always "approve all
+   of these" rather than one at a time — 500 library rows are one decision, not
+   five hundred. */
+let RFILTER = {src: ''};
+
+function reviewRows(){
+  return [
+    ...DATA.events.filter(r => !r.verified).map(r => ({...r, __t:'events'})),
+    ...DATA.activities.filter(r => !r.verified).map(r => ({...r, __t:'activities'})),
+  ];
+}
+
+function drawReview(){
+  const all = reviewRows();
+  $('#t-review').textContent = all.length || '';
+
+  const bySrc = {};
+  for (const r of all) (bySrc[r.added_by || 'unknown'] ||= []).push(r);
+  const sel = $('#rsrc');
+  if (sel.options.length <= 1 || sel.dataset.n !== String(all.length)){
+    sel.dataset.n = String(all.length);
+    sel.innerHTML = '<option value="">Everything waiting</option>' +
+      Object.entries(bySrc).sort((a,b) => b[1].length - a[1].length)
+        .map(([k,v]) => `<option value="${esc(k)}"${RFILTER.src===k?' selected':''}>${esc(k)} · ${v.length}</option>`).join('');
+  }
+
+  const groups = Object.entries(bySrc)
+    .filter(([k]) => !RFILTER.src || k === RFILTER.src)
+    .sort((a,b) => b[1].length - a[1].length);
+
+  if (!all.length){
+    $('#review').innerHTML = `<p class="empty">Nothing waiting. Everything in the
+      database has either been checked by you or auto-verified because it came off
+      a first-party page with a date that checks out.</p>`;
+    return;
+  }
+
+  $('#review').innerHTML = groups.map(([src, rows]) => {
+    const ev = rows.filter(r => r.__t === 'events').map(r => r.id);
+    const ac = rows.filter(r => r.__t === 'activities').map(r => r.id);
+    return `<h3 class="subhead" style="display:flex;align-items:center;gap:12px">
+        <span>${esc(src)} · ${rows.length}</span>
+        <button class="btn" style="padding:4px 12px;font-size:11.5px"
+          data-approve="${esc(src)}">Approve all ${rows.length}</button>
+      </h3>
+      <div class="scrollbox"><table><thead><tr>
+        <th>Name</th><th>When</th><th>Where</th><th>Confidence</th><th></th>
+      </tr></thead><tbody>${rows.slice(0, 400).map(r => {
+        const place = DATA.places.find(p => p.id === r.place_id);
+        return `<tr data-t="${r.__t}" data-id="${r.id}">
+          <td class="clickable" data-open="1"><div class="rowname">${esc(r.name)}</div>
+              <span style="color:var(--ink3);font-size:11px">${esc(r.__t === 'events' ? 'event' : 'activity')}</span></td>
+          <td>${esc(r.starts_on || '—')}</td>
+          <td>${esc(place?.name || r.venue || r.location || '—')}</td>
+          <td>${r.date_confidence
+                ? `<span class="tag ${r.date_confidence === 'high' ? 'live' : ''}">${esc(r.date_confidence)}</span>`
+                : '<span style="color:var(--ink3)">—</span>'}</td>
+          <td style="text-align:right;white-space:nowrap">
+            <button class="btn" style="padding:3px 10px;font-size:11.5px" data-ok="1">Approve</button>
+            <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-no="1">Delete</button>
+          </td></tr>`;
+      }).join('')}</tbody></table></div>
+      ${rows.length > 400 ? `<p class="note">Showing the first 400. Approve all ${rows.length} does the lot.</p>` : ''}`;
+  }).join('');
+
+  $('#review').querySelectorAll('[data-approve]').forEach(b => b.onclick = () => {
+    const rows = bySrc[b.dataset.approve] || [];
+    approve('events',     rows.filter(r => r.__t === 'events').map(r => r.id),
+            'activities', rows.filter(r => r.__t === 'activities').map(r => r.id));
+  });
+  $('#review').querySelectorAll('tr[data-id]').forEach(tr => {
+    const t = tr.dataset.t, id = +tr.dataset.id;
+    tr.querySelector('[data-open]').onclick = () => openEditor(t, DATA[t].find(x => x.id === id));
+    tr.querySelector('[data-ok]').onclick   = () => approve(t, [id]);
+    tr.querySelector('[data-no]').onclick   = () => rejectRow(t, id);
+  });
+}
+
+function rsay(html, cls){ $('#rmsg').className = 'msg ' + (cls||''); $('#rmsg').innerHTML = html; }
+
+async function approve(t1, ids1, t2, ids2){
+  if (!PASS) return rsay('Unlock first — the button at the top right.', 'bad');
+  const jobs = [[t1, ids1], [t2, ids2]].filter(([t, ids]) => t && ids && ids.length);
+  rsay('Approving…');
+  let done = 0;
+  for (const [table, ids] of jobs){
+    const [code, out] = await post({action:'verify', table, ids});
+    if (code !== 200) return rsay(esc(out.message || out.error || ('error ' + code)), 'bad');
+    done += out.verified || 0;
+    for (const r of DATA[table]) if (ids.includes(r.id)) r.verified = true;
+  }
+  rsay(`Approved ${done}.`, 'good');
+  drawReview(); redrawAll();
+}
+
+async function rejectRow(table, id){
+  if (!PASS) return rsay('Unlock first.', 'bad');
+  const row = DATA[table].find(x => x.id === id);
+  if (!confirm(`Delete “${row?.name}”? This cannot be undone here.`)) return;
+  const [code, out] = await post({action:'delete', table, id});
+  if (code !== 200) return rsay(esc(out.message || out.error || ('error ' + code)), 'bad');
+  DATA[table] = DATA[table].filter(x => x.id !== id);
+  rsay('Deleted.', 'good');
+  drawReview(); redrawAll();
+}
+
 /* ── flag chips, shared by all three tabs ──────────────────────────────────*/
 function drawFlags(el, list, filter, redraw){
   const counts = {};
@@ -1345,9 +1462,9 @@ $('#theme').onclick = () => {
 };
 
 /* ── tabs ──────────────────────────────────────────────────────────────────*/
-const TABS = ['autos','events','activities','places'];
+const TABS = ['autos','review','events','activities','places'];
 const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces();
-                          drawSources(); drawOverview(); };
+                          drawSources(); drawOverview(); drawReview(); };
 
 function show(tab){
   for (const b of document.querySelectorAll('nav.tabs button'))
@@ -1373,6 +1490,7 @@ wire({'#eq':'q', '#etype':'type', '#erec':'rec', '#ewhen':'when', '#esort':'sort
 wire({'#aq':'q', '#atype':'type', '#asort':'sort'}, AFILTER, () => drawActivities());
 wire({'#pq':'q', '#pkind':'kind', '#psort':'sort'}, PFILTER, () => drawPlaces());
 wire({'#sq':'q', '#skind':'kind'}, SRCFILTER, () => drawSources());
+wire({'#rsrc':'src'}, RFILTER, () => drawReview());
 
 /* ── load ──────────────────────────────────────────────────────────────────
    Everything at once. GitHub and raw are allowed to fail without taking the

@@ -25,7 +25,24 @@ def load_env():
                 k, v = line.split('=', 1)
                 os.environ.setdefault(k.strip(), v.strip())
 
-def db(method, path, body=None, extra=None):
+# PostgREST caps a response at 1000 rows on Supabase whatever `limit` says, and
+# it says nothing about it — 200 OK and a short array. Pass all_rows=True to page
+# with Range until a page comes back short, which is the only end-of-data signal
+# it gives. Found three times on 30 Aug 2026: the board, /admin, and have.py.
+PAGE = 1000
+
+def db(method, path, body=None, extra=None, all_rows=False):
+    if all_rows:
+        out, lo = [], 0
+        while True:
+            chunk = db(method, path, body,
+                       {**(extra or {}), 'Range-Unit': 'items',
+                        'Range': f'{lo}-{lo + PAGE - 1}'})
+            out += chunk
+            if len(chunk) < PAGE:
+                return out
+            lo += PAGE
+
     url = (os.environ.get('SUPABASE_URL') or '').rstrip('/')
     key = os.environ.get('SUPABASE_SERVICE_KEY') or ''
     if not url or not key:

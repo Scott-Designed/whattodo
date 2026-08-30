@@ -2,7 +2,7 @@
 """Read each venue's own ticketing page and offer the gigs it lists.
 
     python3 scripts/scrape_venues.py              # look and report, writes nothing
-    python3 scripts/scrape_venues.py --write      # insert the new ones, unverified
+    python3 scripts/scrape_venues.py --write      # insert the new ones
     python3 scripts/scrape_venues.py --only oztix # just the venues on one platform
 
 The registry is the database, not this file: any row in `venues` with an
@@ -413,6 +413,27 @@ def build(venue, g, registry):
         vname = None
     vsub  = g.get('venue_suburb') or (venue.get('suburb') if not g.get('venue_name') else None)
     vid   = g.pop('_place_id', None)
+    conf  = g.get('conf', 'medium')
+    # ── auto-verify, and exactly what it is claiming ────────────────────────
+    # This file used to say nothing is ever inserted verified. That rule was
+    # protecting two different things at once: "the machine's checks passed"
+    # and "a person judged this belongs on the board". The first is entirely
+    # mechanical, and refusing to state it left a queue nobody worked.
+    #
+    # A row earns `verified` here only when all four hold:
+    #   * high confidence — read off a first-party page, AND the weekday printed
+    #     on that page matched the date. A page that says Saturday 17 Sep when
+    #     the 17th is a Thursday is refuted by its own contents and never gets
+    #     here.
+    #   * a real date,
+    #   * a linked place, so the venue is a curated row and not a guess,
+    #   * a source_note saying where it came from.
+    #
+    # A `medium` row — a date pulled out of a title by regex with no weekday to
+    # check it against — still goes to the queue, which is what the queue is for.
+    # Judgement calls a machine cannot make (is this worth listing, has it been
+    # cancelled) remain a person's, and unverified is how they are asked for.
+    auto = bool(conf == 'high' and g.get('starts_on') and vid)
     return {
         'name'           : g['name'][:200],
         'types'          : ['music'],
@@ -430,10 +451,14 @@ def build(venue, g, registry):
         # a scraper quietly restoring it would undo that within months. No
         # source publishes this vocabulary — a null is honest, a guess is not.
         'conditions'     : None,
-        'date_confidence': g.get('conf', 'medium'),
+        'date_confidence': conf,
         'added_by'       : 'venue-feed',
+        'verified'       : auto,
         'source_note'    : (f"read from {urllib.parse.urlsplit(g.get('url') or '').netloc} "
-                            f"for {venue['name']}; imported {E.today().isoformat()}"),
+                            f"for {venue['name']}; imported {E.today().isoformat()}"
+                            + ("; auto-verified: first-party page, printed weekday "
+                               "matched the date, linked to a known place"
+                               if auto else "")),
     }
     # km is deliberately absent — see CLAUDE.md. Fill it in on review.
 
@@ -502,7 +527,8 @@ def main(argv):
                 print(f"     {g['starts_on']}  {g['name'][:44]:46} already there as {hit['id']}")
                 continue
             new.append((key, row))
-            print(f"     {g['starts_on']}  {g['name'][:44]:46} NEW  [{row['date_confidence']}]")
+            print(f"     {g['starts_on']}  {g['name'][:44]:46} NEW  "
+                  f"[{row['date_confidence']}{'  verified' if row['verified'] else ''}]")
 
     if made:
         print(f"\nrooms not previously on file — {len(made)}")
@@ -518,7 +544,9 @@ def main(argv):
         print(f"added event {got[0]['id'] if got else '?'}: {row['name']}")
         seen.add(key)
     seen.save(SEEN_NOTE)
-    print(f"\n{len(new)} added unverified. Review: python3 scripts/sync.py pending")
+    auto_n = sum(1 for _, r in new if r.get("verified"))
+    print(f"\n{len(new)} added — {auto_n} auto-verified, {len(new)-auto_n} "
+          f"waiting for you at /admin")
 
 if __name__ == '__main__':
     main(sys.argv[1:])

@@ -272,11 +272,23 @@ def listed_names():
     data = (ROOT / 'public' / 'notice-data.js').read_text()
     url = re.search(r'SUPABASE_URL\s*=\s*"([^"]+)"', data).group(1).rstrip('/')
     key = re.search(r'SUPABASE_ANON\s*=\s*"([^"]+)"', data).group(1)
-    req = urllib.request.Request(url + '/rest/v1/listings?select=name&limit=2000')
-    req.add_header('apikey', key)
-    req.add_header('Authorization', 'Bearer ' + key)
-    with urllib.request.urlopen(req) as r:
-        return [(norm(x['name']), x['name'], keywords(x['name'])) for x in json.load(r)]
+    # Page it. PostgREST caps at 1000 rows however big `limit` is and says
+    # nothing — `limit=2000` was reading 1000 of 1207, so this script's
+    # "already listed" check silently went blind to 207 rows and would report
+    # them as gaps to go and research. That is the duplicate-making direction.
+    out, lo = [], 0
+    while True:
+        req = urllib.request.Request(url + '/rest/v1/listings?select=name')
+        req.add_header('apikey', key)
+        req.add_header('Authorization', 'Bearer ' + key)
+        req.add_header('Range-Unit', 'items')
+        req.add_header('Range', f'{lo}-{lo + 999}')
+        with urllib.request.urlopen(req) as r:
+            chunk = json.load(r)
+        out += chunk
+        if len(chunk) < 1000:
+            return [(norm(x['name']), x['name'], keywords(x['name'])) for x in out]
+        lo += 1000
 
 
 def match(name, listed):

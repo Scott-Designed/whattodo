@@ -1236,6 +1236,55 @@ that venue's events, and gets exactly the right two. The lesson generalises: for
 a platform whose venue page is already a correct listing, the own-listing path
 is the safe reader and link-following is the unsafe one.
 
+## Verifying — what a machine may claim, and what it may not
+
+**The old rule was "nothing is ever inserted verified".** It was protecting two
+different things at once, and Scott pulled it apart on 28 Aug 2026: *"surely a
+machine can check these as part of the automation?"* It largely can.
+
+`verified` was conflating **"the machine's checks passed"** — mechanical, and
+already performed before any insert — with **"a person judged this belongs on
+the board"**, which no scraper can do. Refusing to state the first left a queue
+nobody worked, and bulk-accepting it (25 Aug) made the flag mean nothing.
+
+**`scrape_venues.py` now auto-verifies a row when all four hold**, and only then:
+
+- `date_confidence == 'high'` — read off a first-party page **and** the weekday
+  printed there matched the date. A page saying "Saturday 17 Sep" when the 17th
+  is a Thursday refutes itself and never reaches this point.
+- a real `starts_on`,
+- a `place_id`, so the venue is a curated row rather than a guess,
+- a `source_note`, which says so: *"auto-verified: first-party page, printed
+  weekday matched the date, linked to a known place"*.
+
+A `medium` row — a date pulled out of a `<title>` by regex, with no weekday to
+check it against — still goes to the queue. So does anything unlinked or
+undated. Judgement a machine cannot make (is this worth listing, has it been
+cancelled, is the venue attribution right on an ambiguous page) stays a
+person's, and the queue is how it is asked for. The Moshtix case is the standing
+example: every one of those twelve Melbourne gigs would have passed a mechanical
+check.
+
+**Deliberately NOT applied retrospectively.** 527 of the 785 waiting rows would
+pass the gate today — but 500 of them are the library import, which is exactly
+the set Scott has flagged as needing filtering. They pass every machine test and
+fail the judgement test, which is the distinction the gate exists to draw. The
+gate is forward-looking only.
+
+### The Review tab
+
+`/admin` → **Review**, with a count in the tab. Everything unverified, grouped
+by `added_by`, because the useful gesture is nearly always *approve all of
+these* rather than one at a time — 500 library rows are one decision, not five
+hundred. Each group has an **Approve all**; each row has Approve, Delete, and
+its name opens the full editor.
+
+Approving is one request for a whole batch (`action: 'verify'`, a table and a
+list of ids, `id=in.(…)`), capped at 600. **It refuses a batch where any row has
+no `source_note`** — verifying those would record that somebody looked when
+nothing says what they checked, which is the exact failure this file already
+notes about the 25 Aug bulk accept.
+
 ## Back of house — /admin
 
 `public/admin.html`, live at **https://notice.place/admin**. One page,

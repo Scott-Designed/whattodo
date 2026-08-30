@@ -198,7 +198,11 @@ def main(argv):
     # UIDs it already holds makes a re-run idempotent whatever the ledger says.
     seen = E.Seen(SEEN)
     have = set()
-    for r in E.db('GET', '/rest/v1/events?select=source_note&added_by=eq.grlc&limit=5000'):
+    # all_rows: this is the idempotency check, so a short read means re-importing
+    # events that are already there. `limit=5000` did nothing — PostgREST caps at
+    # 1000 — and grlc events were at 500 and one import from crossing it.
+    for r in E.db('GET', '/rest/v1/events?select=source_note&added_by=eq.grlc',
+                  all_rows=True):
         m = re.search(r'UID (\d+)', r.get('source_note') or '')
         if m: have.add(m.group(1))
     fresh = [e for e in evs if e['uid'] not in seen and e['uid'] not in have]

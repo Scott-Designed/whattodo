@@ -261,12 +261,31 @@ def load_env():
             if '=' in line and not line.strip().startswith('#'):
                 k, v = line.split('=', 1); os.environ.setdefault(k.strip(), v.strip())
 
-def req(method, path, body=None):
+# PostgREST caps a response at 1000 rows on Supabase whatever `limit` says, and
+# it says nothing about it — 200 OK and a short array. Pass all_rows=True to page
+# with Range until a page comes back short, which is the only end-of-data signal
+# it gives. Found three times on 30 Aug 2026: the board, /admin, and have.py.
+PAGE = 1000
+
+def req(method, path, body=None, all_rows=False):
+    if all_rows:
+        out, lo = [], 0
+        while True:
+            chunk = _req(method, path, body, _range=(lo, lo + PAGE - 1))
+            out += chunk
+            if len(chunk) < PAGE:
+                return out
+            lo += PAGE
+    return _req(method, path, body)
+
+def _req(method, path, body=None, _range=None):
     r = urllib.request.Request(URL+path, method=method,
         data=json.dumps(body).encode() if body is not None else None)
     r.add_header('apikey', KEY); r.add_header('Authorization', 'Bearer '+KEY)
     r.add_header('Content-Type', 'application/json')
     r.add_header('User-Agent', 'whattodo-janjuc')
+    if _range:
+        r.add_header('Range-Unit', 'items'); r.add_header('Range', f'{_range[0]}-{_range[1]}')
     try:
         with urllib.request.urlopen(r) as resp:
             raw = resp.read()
@@ -293,7 +312,7 @@ def main():
         sys.exit("The listings view has no `types` column — run supabase/TYPES_MULTI.sql first.")
 
     rows = {r['key']: r for r in
-            req('GET', '/rest/v1/listings?select=key,name,types&limit=2000')}
+            req('GET', '/rest/v1/listings?select=key,name,types', all_rows=True)}
 
     # A typo here would write a type the check constraint rejects, and the
     # first the caller would know is a 400 from row 90 of 190.
