@@ -1395,23 +1395,23 @@ wrong question. Check which before shipping it.
 
 ### The venue list
 
-**The Automation column answers "when did anything last happen here", not "why
-is there no feed".** Scott's call, 30 Aug 2026, and the reasoning is that a
-venue changes far more slowly than an event does — so this table is the one you
-open to notice silence, and *no website on file* / *not tried yet* were two ways
-of writing "no" that told you nothing about how stale a row had gone.
+**One icon leads the Automation column so the table reads down it**: a **sync**
+mark means a machine keeps this venue up to date, a **hand** means a person
+does. Both are Lucide (`refresh-cw`, `hand`), taken verbatim from
+lucide-static 1.37.0 under its ISC licence and kept as `<symbol>`s with a
+`<use>` per row — not redrawn, and not four paths inlined 140 times.
 
-- **Automated and working**: a green pill — ✓, a sync mark, and when it last
-  read. One glance, and the only pill anywhere in a table for that reason.
-- **Everything else**: *last added 3 days ago* · *last added 8 months ago* ·
-  *nothing added yet*. Anything past six months goes amber.
+- **sync** — then a green pill naming what reads it (*own listing + Oztix*,
+  *Humanitix*), then when it last read. 27 venues.
+- **hand** — then *last added 3 days ago*, amber past six months. 79 venues.
+- **neither** — *nothing added yet*, for a venue nothing has ever been attached
+  to.
 
-The reason there is no feed is still there, on the cell's tooltip and in the
-drawer. It just is not the headline.
-
-`agoLong()` exists because `ago()` stops at days, which is right for a run and
-useless here — the honest answers to "how long since anyone added anything"
-run to months and years.
+**Which icon a row gets is evidence, not a label anyone maintains.** A hand
+means it has listings and nothing reads it; the day a feed starts working the
+row changes by itself. Church Geelong is the case that prompted it: robots.txt
+on its ticketing subdomain is `Disallow: /`, its own site publishes no
+structured data, and Scott keeps it current by hand.
 
 **31 places host nothing and have nothing to read** — a playground, a carpark, a
 beach — and they are held back by default with a button that counts them and

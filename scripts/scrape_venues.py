@@ -551,9 +551,23 @@ def main(argv):
                   or by_name.get(E.norm(g['name']))
             if hit:
                 dupe.append((hit, row))
-                print(f"     {g['starts_on']}  {g['name'][:44]:46} already there as {hit['id']}")
+                where = hit['id'] if hit.get('id') else 'another venue in this run'
+                print(f"     {g['starts_on']}  {g['name'][:44]:46} already there as {where}")
                 continue
             new.append((key, row))
+            # A row queued THIS RUN has to join the dedupe maps too. They are
+            # built once from the database before the loop, so without this the
+            # same event found at a second venue passes the check again — every
+            # one of the 20 GRLC library sites links the same TryBooking page,
+            # and "Holly Ringland - The World Beneath Her Feet" was inserted 18
+            # times on 30 Aug 2026. The `seen` key cannot catch it either: it is
+            # keyed on the venue being read, so 18 libraries make 18 keys for
+            # one event.
+            queued = {'id': None, 'name': row['name'], 'starts_on': g['starts_on'],
+                      'place_id': row['place_id']}
+            by_name[E.norm(g['name'])] = queued
+            if row['place_id']:
+                by_slot[(row['place_id'], g['starts_on'])] = queued
             print(f"     {g['starts_on']}  {g['name'][:44]:46} NEW  "
                   f"[{row['date_confidence']}{'  verified' if row['verified'] else ''}]")
 

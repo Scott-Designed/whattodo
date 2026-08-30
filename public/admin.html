@@ -182,6 +182,11 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
   color:var(--ink3);border:1px solid var(--rule2);padding:0 5px;border-radius:2px}
 .empty{color:var(--ink3);font-size:13px;padding:30px 0}
 
+/* The icon leads the Automation column so the whole table can be read down it:
+   sync = a machine keeps this up to date, hand = a person does. */
+.howicon{width:14px;height:14px;flex:none;vertical-align:-2px;margin-right:7px}
+.howicon.auto{color:var(--good)}
+.howicon.byhand{color:var(--ink3)}
 /* Automated and working, as one mark. A pill here specifically: it is the one
    positive state on this table and it should read at a glance, which is a
    different job from the plain words the other states use. */
@@ -250,6 +255,25 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
 </head>
 <body>
 <div class="page">
+
+<!-- Lucide (ISC) — refresh-cw and hand, verbatim from lucide-static 1.37.0.
+     A symbol + <use> rather than the paths inlined per row. -->
+<svg class="sprite" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="i-sync" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+    <path d="M21 3v5h-5"/>
+    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+    <path d="M8 16H3v5"/>
+  </symbol>
+  <symbol id="i-hand" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+    <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
+    <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
+    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+  </symbol>
+</svg>
 
 <header>
   <div>
@@ -1594,15 +1618,23 @@ function drawPlaces(){
       const past = ev.filter(e => state(e) === 'past').length;
       return `<tr class="clickable" data-id="${p.id}">
         <td><div class="rowname">${esc(p.name)}</div>
-            ${p.aliases?.length ? `<div style="color:var(--ink3);font-size:11.5px">also: ${esc(p.aliases.join(', '))}</div>` : ''}</td>
+</td>
         <td>${esc(p.kind || '—')}</td>
         <td>${esc(p.suburb || '—')}</td>
         <td style="white-space:nowrap" title="${esc((SRC_STATE[s.state] || {}).label || 'no source on file')}">${(() => {
              // Automated and working is one green pill — tick, sync, and when it
              // last read. That is the whole answer for those rows.
-             if (['read','skipped'].includes(s.state))
-               return `<span class="autopill"><span>✓</span><span class="sync">⟳</span>`
-                    + `${s.read ? esc(ago(s.read)) : 'automated'}</span>`;
+             const icon = k => `<svg class="howicon ${k === 'i-sync' ? 'auto' : 'byhand'}"><use href="#${k}"/></svg>`;
+             if (['read','skipped'].includes(s.state)){
+               // The pill says what reads it — Oztix, Humanitix, its own gig
+               // listing — because that is what you check when a venue goes
+               // quiet. The sync mark leads the column instead of sitting in
+               // the pill, so the two states line up down the table.
+               const via = s.via && s.via !== '—' ? s.via : 'automated';
+               return icon('i-sync')
+                    + `<span class="autopill"><span>✓</span>${esc(via)}</span>`
+                    + (s.read ? ` <span style="color:var(--ink3)">${esc(ago(s.read))}</span>` : '');
+             }
              // For everything else the useful fact is not WHY there is no feed —
              // "no website on file" and "not tried yet" both just mean no — but
              // how long since anyone added anything here. A venue changes slowly,
@@ -1611,7 +1643,10 @@ function drawPlaces(){
              const when = agoLong(lastAdded);
              if (!when) return '<span style="color:var(--ink3)">nothing added yet</span>';
              const cold = (Date.now() - new Date(lastAdded)) > 180 * 86400000;
-             return `<span class="${cold ? 'stale' : ''}"${cold ? '' : ' style="color:var(--ink3)"'}>`
+             // A hand means a person is keeping this one up: it has listings and
+             // nothing reads it. Evidence again, not a label to remember to set.
+             return icon('i-hand')
+                  + `<span class="${cold ? 'stale' : ''}"${cold ? '' : ' style="color:var(--ink3)"'}>`
                   + `last added ${esc(when)}</span>`;
            })()}</td>
         <td>${ev.length ? `<span class="evs"
