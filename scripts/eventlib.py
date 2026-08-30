@@ -214,6 +214,84 @@ def from_jsonld(o):
         'url'      : clean_url(o.get('url')),
     }
 
+# ── Eventbrite, through its own API ─────────────────────────────────────────
+# The right road for this one: an organiser page lists its events behind JS,
+# and the API hands them over with the VENUE attached, which is the fact that
+# matters — the organiser is not the room. Needs EVENTBRITE_TOKEN in the
+# environment; without it the caller reports the venue as needing a person
+# rather than guessing.
+#
+# The token is read from the environment and nowhere else. It never goes in a
+# place row, in the page, or in a log line.
+EB_API = 'https://www.eventbriteapi.com/v3'
+
+def eventbrite_org_id(url):
+    """The organiser id out of any /o/ URL — bare, or slug-then-id."""
+    m = re.search(r'/o/(?:[a-z0-9\-]*?-)?(\d{6,})', str(url or ''), re.I)
+    return m.group(1) if m else None
+
+def eventbrite_events(org_id, token, horizon_days=400):
+    """Live events for one organiser, in the same shape as from_jsonld.
+
+    Paged: the API caps a page at 50 and says so in `pagination`, and an
+    organiser with more than that would otherwise be silently truncated.
+    """
+    out, page = [], 1
+    while page <= 10:
+        q = urllib.parse.urlencode({
+            'status': 'live', 'order_by': 'start_asc',
+            'expand': 'venue', 'page': page})
+        req = urllib.request.Request(f'{EB_API}/organizers/{org_id}/events/?{q}')
+        req.add_header('Authorization', 'Bearer ' + token)
+        req.add_header('User-Agent', UA)
+        try:
+            with urllib.request.urlopen(req, timeout=20) as r:
+                doc = json.loads(r.read().decode('utf-8', 'replace'))
+        except urllib.error.HTTPError as e:
+            # 401 is a bad token, 404 an organiser that has gone. Both are worth
+            # saying out loud rather than reading as "no events".
+            raise RuntimeError(f'Eventbrite {e.code} for organiser {org_id}') from None
+        except Exception as e:
+            raise RuntimeError(f'Eventbrite unreachable: {str(e)[:60]}') from None
+
+        for ev in doc.get('events') or []:
+            g = eventbrite_one(ev)
+            if g: out.append(g)
+        pg = doc.get('pagination') or {}
+        if not pg.get('has_more_items'): break
+        page += 1
+    cutoff = (today() + datetime.timedelta(days=horizon_days)).isoformat()
+    return [g for g in out if g['starts_on'] <= cutoff]
+
+def eventbrite_one(ev):
+    """One API event -> the fields this database keeps."""
+    # `local` is the wall time at the venue, which is what a listing should say.
+    # `utc` is also given and using it would shift every Melbourne event.
+    start = ((ev.get('start') or {}).get('local') or '')
+    m = re.match(r'(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}))?', start)
+    if not m: return None
+    day, hhmm = m.group(1), m.group(2)
+    end = ((ev.get('end') or {}).get('local') or '')
+    me = re.match(r'(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}))?', end)
+    tt = None
+    if hhmm:
+        tt = clock(hhmm)
+        if me and me.group(2) and me.group(1) == day:
+            tt += '–' + clock(me.group(2))
+    v = ev.get('venue') or {}
+    a = v.get('address') or {}
+    return {
+        'venue_name'   : (v.get('name') or '').strip() or None,
+        'venue_suburb' : (a.get('city') or '').strip() or None,
+        'venue_address': (a.get('address_1') or '').strip() or None,
+        'name'         : ((ev.get('name') or {}).get('text') or '').strip(),
+        'starts_on'    : day,
+        'ends_on'      : me.group(1) if me and me.group(1) > day else None,
+        'time_text'    : tt,
+        'description'  : text((ev.get('description') or {}).get('text') or ''),
+        'url'          : clean_url(ev.get('url')),
+    }
+
 # ── remembering what has been offered ───────────────────────────────────────
 class Seen:
     """Every source id ever offered, so something rejected does not come back

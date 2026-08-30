@@ -30,7 +30,7 @@ host's robots.txt (see eventlib.robots_ok). Humanitix permits that crawler but
 refuses ClaudeBot, so an assistant must not fetch those pages on your behalf —
 run this yourself the first time.
 """
-import sys, re, json, html, time, datetime, urllib.parse
+import os, sys, re, json, html, time, datetime, urllib.parse
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))
 import eventlib as E
 
@@ -63,8 +63,10 @@ TICKETERS = [
 # OWN JSON-LD, which already lists only that venue's events, rather than
 # crawling outward. Until that exists, Moshtix rows read nothing.
 #
-# Eventbrite publishes a free API; scraping it is the worse road, so we only
-# note that a venue uses it and leave the row for a human.
+# Eventbrite is read through its own API, not by scraping — see step 2b in
+# read_venue(). It stays in this set so the link-following branch never touches
+# an /e/ page: an organiser id is what the API needs, and a loose ticket link on
+# somebody's website does not carry one.
 API_INSTEAD = {'Eventbrite'}
 
 # A host page links to its own help pages, search, categories and back to
@@ -255,6 +257,27 @@ def gigs_for(venue):
     for g in direct: g['conf'] = 'high'
     if direct: how.append(f'schema.org on the page ({len(direct)})')
 
+    # 2b — Eventbrite, through its own API rather than its pages. An organiser
+    #      page renders its list in JS, so there is nothing to follow; the API
+    #      hands the events over WITH the venue attached, which is the fact that
+    #      matters here. The organiser is not the room — all nine Creative
+    #      Geelong events name the Makers Hub, not Creative Geelong Inc.
+    eb_id = E.eventbrite_org_id(venue.get('events_url') or '')
+    if eb_id:
+        token = os.environ.get('EVENTBRITE_TOKEN')
+        if not token:
+            how.append('Eventbrite — set EVENTBRITE_TOKEN to read it')
+        else:
+            try:
+                gigs = E.eventbrite_events(eb_id, token)
+                # First-party and structured, with a real venue on each event:
+                # the same standing as a venue's own gig listing.
+                for g in gigs: g['conf'] = 'high'
+                direct += gigs
+                how.append(f'Eventbrite API ({len(gigs)})')
+            except RuntimeError as e:
+                how.append(f'Eventbrite API failed — {e}')
+
     # 3 — follow the ticketing links, for the detail the listing does not carry.
     #     Across every sheet: a gig on page 2 deserves its blurb too.
     page = '\n'.join(sheets)
@@ -268,7 +291,11 @@ def gigs_for(venue):
         links = [l for l in links if not l.rstrip('/').endswith(('/host', '/outlet'))]
         if not links: continue
         if label in API_INSTEAD:
-            how.append(f'{label} ({len(links)}) — has a free API, left for a human')
+            # Already read above when this row is an organiser page. Otherwise
+            # these are loose /e/ links on somebody's website, and the API
+            # cannot help with those without an id to ask about.
+            if eb_id: continue
+            how.append(f'{label} ({len(links)}) — needs an organiser page, or a person')
             continue
         got = 0
         for link in links[:LINK_CAP]:

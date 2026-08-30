@@ -71,6 +71,9 @@ jobs:
         env:
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          # Optional. Without it the Eventbrite organisers report that they need
+          # it rather than quietly reading as empty.
+          EVENTBRITE_TOKEN:     ${{ secrets.EVENTBRITE_TOKEN }}
         run: |
           set +e -o pipefail
           python3 scripts/scrape_venues.py --write 2>&1 | tee venues.txt

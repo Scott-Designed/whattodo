@@ -1740,9 +1740,40 @@ address names. `kind` is null: it is a workshop and market space and
 `place_kinds` has no honest word for it, so it sits in the back-of-house "no
 kind" flag for a person to decide.
 
-**Nothing reads either of them yet.** `scrape_venues.py` has
-`API_INSTEAD = {'Eventbrite'}` — it detects the events (it reports "Eventbrite
-(9) — has a free API, left for a human") and deliberately refuses to scrape.
+**Read through the API since 28 Aug 2026** — Scott has a token. `eventlib`
+gained `eventbrite_org_id()` and `eventbrite_events()`, and `scrape_venues.py`
+reads an organiser through the API at step 2b, before any link-following.
+
+**Needs `EVENTBRITE_TOKEN` in the environment**, and nowhere else — never in a
+place row, never in the page, never in a log line. Two homes:
+
+    gh secret set EVENTBRITE_TOKEN        # the scheduled Action; the one that matters
+    echo 'EVENTBRITE_TOKEN=…' >> .env     # only to run it from a terminal
+
+Set it from the terminal, not the web form — this project has already put the
+text of a shell command into a secret that way, and the failure surfaced three
+layers later as `unknown url type`.
+
+**Without the token those rows say so** — *"Eventbrite — set EVENTBRITE_TOKEN to
+read it"* — rather than reading as no events, which is the difference between a
+source that is empty and one that is not being asked.
+
+Three things the implementation gets right and a naive one would not:
+
+- **`start.local`, not `start.utc`.** The API gives both; the local one is the
+  wall time at the venue, which is what a listing should print. Using UTC would
+  shift every Melbourne event by ten or eleven hours — the `nextDate` bug again.
+- **`expand=venue`**, so each event carries the room it happens in. That is the
+  whole reason the API beats the page here: the organiser is not the venue, and
+  all nine Creative Geelong events name the Makers Hub rather than Creative
+  Geelong Inc.
+- **It pages.** The API caps a page at 50 and reports `has_more_items`; an
+  organiser with more would otherwise be silently truncated.
+
+`API_INSTEAD` still holds `Eventbrite`, but its meaning has changed: it now
+stops the link-following branch touching a loose `/e/` page found on somebody's
+website, because the API needs an organiser id and a stray ticket link does not
+carry one.
 
 Worth knowing before that is revisited: the premise has weakened. Eventbrite's
 event pages carry **clean schema.org JSON-LD**, and `eventlib.jsonld_events`
