@@ -1288,6 +1288,41 @@ Things that are load-bearing:
   the standing item on the list. Flagging both put 73 rows on the worklist, half
   of them finished. `mapsSearch()` tells them apart.
 
+### The overview strip, and why the page is not one long scroll
+
+Four stats above everything, added 28 Aug 2026 because the questions this page
+is opened to answer were all below the fold: **Next run** (from the cron, in
+Melbourne time, with a countdown), **Last run** (succeeded or failed, how long
+ago, and what triggered it), **Sources reading** (n of all), **Waiting on you**.
+Everything is derived from the run log and the places table; nothing new is
+stored to build it.
+
+**Last run prints how late it was**, and that is the useful part. GitHub's
+scheduler is best-effort: the first scheduled run to actually fire, 27 Aug 2026,
+started **3h 22m** after its 21:17 slot. Saying only "3 days ago" hides the one
+thing worth knowing about it. `prevSlot()` walks the cron backwards to find the
+slot a run was meant to start in.
+
+**`CRON_H`/`CRON_M` must match `.github/workflows/events.yml`.** They did not:
+the workflow moved to `:17` and this page still said `21:00`, so it confidently
+printed a next-run time seventeen minutes before the job could start.
+
+**"Last read" is per source, across the whole log, not just the last run.** The
+tables showed only `log[0]`, so a source that read fine on Monday and was
+skipped on Thursday looked as though it had never worked. `sourceHistory()`
+folds every run into one answer per source — when it last read, and how many it
+found.
+
+**The venue list scrolls inside a 520px box.** 136 rows made the Automations tab
+20,000px tall and pushed the other three sections out of reach; it is 3,900px
+now. Same idiom as the type page's buckets, including the sticky header row and
+`overscroll-behavior:contain`. Below 820px the box grows instead, because a
+nested scroll area on a phone traps the drag.
+
+Sections are ordered live-first — sources, then run history, then Run now, then
+the static "what runs by itself" cards — and the jump links follow document
+order, or the nav teaches a shape the page does not have.
+
 ### Run it now
 
 The Automations tab has a **Run the scrapers now** button. It does not fetch
