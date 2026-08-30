@@ -126,7 +126,7 @@ RETYPE = {
 'e148': ['arts', 'art gallery'],         # Linda Judge Exhibition at Hoop Gallery
 'e54':  ['arts'],                        # Art of the Minds
 'e63':  ['comedy'],                      # Comedy Night featuring Dave O'Neil
-'e59':  ['gig', 'community'],            # Carols by the Barwon
+'e59':  ['music', 'community'],            # Carols by the Barwon
 'e47':  ['festival', 'community'],       # Aireys Inlet Fair
 'e51':  ['festival', 'nature', 'arts'],  # Angair Wildflower & Arts Show
 
@@ -134,9 +134,9 @@ RETYPE = {
 'e27': ['festival', 'surfing', 'cinema'],   # Bells Beach Surf Film Festival
 'e29': ['festival', 'cinema'],              # Geelong Pride Film Festival
 'e30': ['festival', 'nature', 'arts'],      # ANGAIR Wildflower & Art Weekend
-'e10': ['festival', 'gig'],                 # Anglesea Music Festival
-'e41': ['festival', 'gig'],                 # National Celtic Folk Festival
-'e33': ['festival', 'gig'],                 # Queenscliff Music Festival
+'e10': ['festival', 'music'],                 # Anglesea Music Festival
+'e41': ['festival', 'music'],                 # National Celtic Folk Festival
+'e33': ['festival', 'music'],                 # Queenscliff Music Festival
 'e42': ['festival', 'arts'],                # Lorne Sculpture Biennale
 'e7':  ['festival', 'arts'],                # Surf Coast Arts Trail
 'e37': ['festival', 'produce'],             # Portarlington Mussel Festival
@@ -170,15 +170,15 @@ RETYPE = {
 'a102': ['night', 'at-home'],            # Backyard Bonfire / Fire Pit Night
 'a103': ['night', 'at-home', 'cinema'],  # Outdoor Movie Night at Home
 'a100': ['night', 'pub'],                # Pub Trivia Night – Surf Coast
-'a273': ['gig', 'night'],                # The Blues Train – Bellarine Railway
+'a273': ['music', 'night'],                # The Blues Train – Bellarine Railway
 'a91':  ['nature'],                      # Whale Watching – Point Addis — daytime
 'a92':  ['nature'],                      # Whale Watching – Teddy's Lookout — daytime
 
 # ── gig: the ~28 that were never music ──────────────────────────────────
 'e103': ['party'],                       # 2000s + 2010s Party
 'e136': ['party'],                       # Classic Club Anthems Party
-'e104': ['party', 'gig'],                # AFL Grand Final After-party
-'e140': ['party', 'gig'],                # Grand Final Afterparty ft. MAD.DAY
+'e104': ['party', 'music'],                # AFL Grand Final After-party
+'e140': ['party', 'music'],                # Grand Final Afterparty ft. MAD.DAY
 'e130': ['reading'],                     # August Quiet Club at The Sewing Collective
 'e131': ['reading'],                     # Quiet Club
 'e133': ['reading'],                     # Quiet Club
@@ -201,9 +201,9 @@ RETYPE = {
 'e116': ['nature', 'walk'],              # Orchids in the Park – Barwon Heads
 'e128': ['community'],                   # SCEG AGM 2026 at Patagonia Torquay
 'e120': ['festival', 'bar'],             # Point Break – Brewery Invitational
-'e95':  ['gig', 'festival'],             # DRENCHER FESTIVAL 2026
-'e99':  ['gig', 'festival'],             # Stars & Bars Festival Geelong
-'e87':  ['gig', 'restaurant'],           # Waterloo – Abba Tribute Dinner & Show
+'e95':  ['music', 'festival'],             # DRENCHER FESTIVAL 2026
+'e99':  ['music', 'festival'],             # Stars & Bars Festival Geelong
+'e87':  ['music', 'restaurant'],           # Waterloo – Abba Tribute Dinner & Show
 
 # ── community: keeps community, gains what it actually is ───────────────
 'a270': ['community', 'arts'],           # Anglesea Art House

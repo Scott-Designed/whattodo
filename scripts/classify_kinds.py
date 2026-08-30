@@ -92,7 +92,7 @@ KIND_OF = {
   'at-home':'idea',
 
   # dated types, which only ever reach an activity by mistake
-  'gig':'venue', 'festival':'venue', 'workshop':'group', 'comedy':'venue',
+  'music':'venue', 'festival':'venue', 'workshop':'group', 'comedy':'venue',
   'party':'venue', 'reading':'group',
   # `kids` arrived with the 500 library events on 27 Aug 2026 and nothing
   # taught this map the word, so the exhaustiveness guard exited and NOBODY

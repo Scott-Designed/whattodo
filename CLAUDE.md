@@ -2408,6 +2408,69 @@ Pop Cultcha Gallery (no house number, two road segments 140 m apart), the two
 market growers and the run crew (no premises), and Bellarine Catchment Network
 (no house number on Swan Bay Road, and the road returned is in Marcus Hill).
 
+## Two running events, and a past one kept on purpose — 30 Aug 2026
+
+    685  Bellarine Rail Trail Run   Sun 23 Aug 2026  annual  place 141  ALREADY HAPPENED
+    686  Geelong Running Festival   19-20 Sep 2026   annual  place 142
+
+    141  Queenscliff Railway Station                        -38.264327, 144.661633
+    142  Nyaal Banyul Geelong Convention and Event Centre    -38.142490, 144.358628
+
+**685 is in the past and that is the point.** Scott's instruction: keep a record
+so next year's edition can be tracked against it. It is the 22nd running, so
+`recurrence = annual` is well evidenced — and `nextDate` deliberately does NOT
+roll annual forward, so the row sits in the past rather than inventing a 2027
+date. **Do not infer one.** The site announces no 2027 date, and working the
+next edition out from the last is precisely the Surf Coast Arts Trail failure.
+Somebody has to read a published date off brtrun.com.au.
+
+`brtrun.com.au` is worth knowing: BRT is the **Bellarine Rail Trail**, the run
+is Queenscliff to Drysdale and back, and the organisers are firm that it is
+"a group training run and NOT a race". Contact Brett Coleman, 0438 434 260.
+
+**686 is the INAUGURAL Geelong Running Festival**, which its own news page says
+outright. So `annual` there is Scott's designation of intent, not a commitment
+the organiser has published, and the row's `source_note` says so. Safe for the
+same reason: annual is never rolled forward.
+
+**Queenscliff Railway Station had to be found through Overpass, not Nominatim.**
+Nominatim returns *nothing* for that name, and "Bellarine Railway" returns two
+`narrow_gauge` LINE segments 4 km apart — the track, not the station. Querying
+`railway=station|halt` in a bbox found the real node (operator: Geelong Steam
+Preservation Society), along with Drysdale, Swan Bay and Lakers Siding. **When
+Nominatim has no feature by name, ask Overpass for the tag.** `kind` is null:
+`place_kinds` has no word for a railway station.
+
+The convention centre is the "ask for the feature by name" rule paying off
+again — by name it resolves `type=conference_centre` with a house number; its
+street, which is how the festival publishes it, resolves to a road centreline.
+
+### `have.py` was silently showing 1000 of 1207 listings
+
+Found because the two events above did not appear in `have.py running` a minute
+after being written. **PostgREST caps a response at 1000 rows however large the
+`limit` is, and it does it silently** — no error, no flag, just a short list.
+The query said `limit=2000`, the table held 1207, and 207 rows were invisible.
+
+That is the worst failure this particular tool can have, because
+`RESEARCH_RULES.md` tells a pass to run `have.py` FIRST to decide what is
+missing — so a hidden row gets researched and written a second time, which is
+how duplicates are made. `running` read 13 and was really 16.
+
+`get()` pages with `Range` now and callers ask for `all_rows=True`. **The lesson
+is the one nearby.py has already taught three times: a filter that drops rows
+without saying so is worse than one that fails.** Any other script trusting a
+`limit` against a table that has crossed 1000 rows wants checking — the library
+import is what pushed `listings` over.
+
+### The `listings` view has no `ends_on`
+
+Noticed writing 686, which runs 19-20 September. `events.ends_on` is set and
+correct, but the view does not carry it, so the page cannot show that a listing
+spans days and prints the start date alone. Not fixed — it is a view change and
+nobody has asked for multi-day display. Worth knowing before someone re-derives
+a festival's end date from somewhere else.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

@@ -27,11 +27,36 @@ block = vocab.split('const GROUP_OF={',1)[1].split('};',1)[0]
 GROUP_OF = {k.strip().strip("'\""): v.strip().strip("'\"")
             for k, v in re.findall(r"([^,{:]+):\s*'(\w+)'", block)}
 
-def get(path):
-    r = urllib.request.Request(URL + path)
-    r.add_header('apikey', KEY); r.add_header('Authorization', 'Bearer ' + KEY)
-    with urllib.request.urlopen(r) as resp:
-        return json.loads(resp.read())
+# PostgREST caps a response at 1000 rows no matter what `limit` says, and it
+# does it SILENTLY — no error, no flag, just a short list. `limit=2000` on the
+# listings query therefore returned 1000 of 1207 and this script quietly
+# under-reported every type, which is the worst failure a "what do we already
+# have?" tool can have: a research pass reads it first to decide what is
+# missing, so a hidden row gets researched and added a second time.
+#
+# Found 30 Aug 2026, when two events written a minute earlier did not appear.
+# Same family as the three silent-discard bugs in nearby.py — a filter that
+# drops rows without saying so. So page with Range instead of trusting a limit,
+# and let the caller ask for everything.
+PAGE = 1000
+
+def get(path, all_rows=False):
+    def page(lo, hi):
+        r = urllib.request.Request(URL + path)
+        r.add_header('apikey', KEY); r.add_header('Authorization', 'Bearer ' + KEY)
+        if all_rows:
+            r.add_header('Range-Unit', 'items'); r.add_header('Range', f'{lo}-{hi}')
+        with urllib.request.urlopen(r) as resp:
+            return json.loads(resp.read())
+    if not all_rows:
+        return page(0, PAGE - 1)
+    out, lo = [], 0
+    while True:
+        chunk = page(lo, lo + PAGE - 1)
+        out += chunk
+        if len(chunk) < PAGE:
+            return out
+        lo += PAGE
 
 arg = ' '.join(sys.argv[1:]).strip()
 
@@ -39,7 +64,7 @@ arg = ' '.join(sys.argv[1:]).strip()
 # both: a venue can be a place row the scraper reads without ever having a
 # listing on the board, and re-adding it as an activity makes a second copy.
 if arg == 'places':
-    ps = get('/rest/v1/places?select=id,name,suburb,kind,website,events_url&limit=500')
+    ps = get('/rest/v1/places?select=id,name,suburb,kind,website,events_url', all_rows=True)
     print(f'{len(ps)} places\n')
     for r in sorted(ps, key=lambda r: ((r.get('suburb') or 'zz'), r['name'])):
         feed = 'feed' if r.get('events_url') else ('site' if r.get('website') else '·')
@@ -47,7 +72,8 @@ if arg == 'places':
               f'{r.get("kind") or "(no kind)"}')
     sys.exit()
 
-rows = get('/rest/v1/listings?select=key,name,types,location,is_event,starts_on,lat&limit=2000')
+rows = get('/rest/v1/listings?select=key,name,types,location,is_event,starts_on,lat',
+           all_rows=True)
 count = collections.Counter(t for r in rows for t in (r.get('types') or []))
 
 if not arg:

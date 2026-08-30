@@ -52,7 +52,7 @@ GEO = {'the','a','of','and','at','main','beach','reserve','park','hall','club',
 # A one-word name is too bare to stand alone; the type says what kind of thing.
 # Keyed on the row's FIRST type, which is the one the page prints.
 TYPE_WORD = {'workshop':'Workshop','market':'Market','festival':'Festival',
-             'gig':'Gig','comedy':'Comedy Night','party':'Party','reading':'Reading',
+             'music':'Gig','comedy':'Comedy Night','party':'Party','reading':'Reading',
              'class':'Class','course':'Course'}
 DASH = r'[-–—]'
 

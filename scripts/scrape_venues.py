@@ -415,7 +415,7 @@ def build(venue, g, registry):
     vid   = g.pop('_place_id', None)
     return {
         'name'           : g['name'][:200],
-        'types'          : ['gig'],
+        'types'          : ['music'],
         'starts_on'      : g['starts_on'],
         'ends_on'        : g.get('ends_on'),
         'time_text'      : g.get('time_text'),

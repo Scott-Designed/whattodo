@@ -54,7 +54,7 @@ UA       = 'whattodo-janjuc/1.0 (+https://whattodo-nu.vercel.app)'
 # Country specifically — a generic arts listing is `arts`.
 TYPE_PRIORITY = [
     ('Markets',                  'market'),
-    ('Live Music',               'gig'),
+    ('Live Music',               'music'),
     ('Workshops & Talks',        'workshop'),
     ('Festivals & Celebrations', 'festival'),
     ('Major',                    'festival'),

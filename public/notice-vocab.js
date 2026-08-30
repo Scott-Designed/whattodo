@@ -149,7 +149,7 @@ const GROUP_OF={
   arts:'arts', 'art gallery':'arts', theatre:'arts', museum:'arts',
   cinema:'arts', cultural:'arts',
 
-  gig:'music', party:'music', comedy:'music', festival:'music',
+  music:'music', party:'music', comedy:'music', festival:'music',
 
   community:'community', volunteering:'community', workshop:'community',
   reading:'community', kids:'community',
@@ -179,7 +179,7 @@ const ICON_OF={
   cycling:'bike',
   'farm life':'tractor',
   festival:'ferris-wheel',
-  gig:'guitar',
+  music:'guitar',
   golf:'flag-triangle-right',
   market:'store',
   'mountain biking':'bike',
@@ -272,7 +272,7 @@ function nextDate(i){
    Nine types can honestly be either: an exhibition is on for a fortnight, a
    gallery is open all year. They sit under events, because someone filling in
    this form with a date in mind is the case that needs the shorter list. */
-const EVENT_TYPES=['gig','comedy','party','reading','festival','workshop',
+const EVENT_TYPES=['music','comedy','party','reading','festival','workshop',
   'community','market','arts','kids'];
 const PLACE_TYPES=['beach','surfing','swimming','paddling','water',
   'walk','running','cycling','mountain biking','skatepark','rock climbing','golf','nature',
@@ -299,7 +299,7 @@ const TYPE_PLURAL={
   nursery:'Nurseries',
   arts:'Arts', 'art gallery':'Galleries', theatre:'Theatres', museum:'Museums',
   cinema:'Cinemas', cultural:'Wadawurrung Country',
-  gig:'Gigs', comedy:'Comedy', party:'Parties', reading:'Reading',
+  music:'Music', comedy:'Comedy', party:'Parties', reading:'Reading',
   festival:'Festivals', workshop:'Workshops', community:'Community',
   volunteering:'Volunteering'};
 const typeLabel = t => TYPE_PLURAL[t] || (t||'').replace(/-/g,' ')

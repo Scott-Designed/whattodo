@@ -14,7 +14,7 @@ const TYPES_PLACE = ['beach','surfing','swimming','paddling','water',
   'cafe','bakery','restaurant','bar','pub','winery','brewery',
   'produce','farm life','nursery',
   'art gallery','theatre','museum','cinema','cultural','volunteering'];
-const TYPES_EVENT = ['gig','comedy','party','reading','festival','workshop',
+const TYPES_EVENT = ['music','comedy','party','reading','festival','workshop',
   'community','market','arts','kids'];
 const CONDITIONS = ['any-weather','low-tide','high-tide','new-moon','full-moon','clear-sky',
   'calm-sea','warm','low-wind','dry-trails','dry-ground','no-fire-ban','geomagnetic-storm',

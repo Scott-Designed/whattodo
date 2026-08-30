@@ -84,7 +84,7 @@ TYPE_RULES = [
     (r'history|heritage|genealog|local history',                        ['cultural']),
     (r'tech|computer|digital|device|online',                            ['workshop']),
     (r'garden|nature|bird',                                             ['nature']),
-    (r'music|concert|sing',                                             ['gig']),
+    (r'music|concert|sing',                                             ['music']),
 ]
 KIDS = re.compile(r'story ?time|baby time|toddler time|rhyme|preschool|kids|children', re.I)
 
