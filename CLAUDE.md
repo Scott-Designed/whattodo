@@ -3746,6 +3746,56 @@ The convention centre is the "ask for the feature by name" rule paying off
 again — by name it resolves `type=conference_centre` with a house number; its
 street, which is how the festival publishes it, resolves to a road centreline.
 
+## The three parkruns got their pins — 31 Aug 2026
+
+Scott sent three coordinates through the day, one per message, for the three
+parkruns a research pass had written the day before and explicitly logged as
+having **no `place_id` and therefore no pin**. Places 181-183 were built from
+them and events 741-743 linked.
+
+    181  Barwon Estuary Picnic Area   Ocean Grove     reserve     -38.267169, 144.513262   e741
+    182  Balyang Sanctuary            Geelong         park        -38.165853, 144.331681   e743
+    183  Portarlington Foreshore      Portarlington   foreshore   -38.113862, 144.654368   e742
+
+**A coordinate from Scott is a source, and it still gets checked.** The Bike
+Matters precedent — a person handing over a fact is a source — but each one was
+reverse-geocoded before it was written, and **all three came back as the exact
+street and postcode parkrun's own event page publishes**: 39 Peers Crescent
+3226, Marnock Road Newtown 3220, 1A The Esplanade 3223. That is two independent
+statements of the same fact, which is the strongest pin this project knows how
+to make, and it is the check that catches open water.
+
+**Scott's point beat OSM's on Balyang.** The event's own note had a verified
+coordinate ready — OSM's named `Balyang Sanctuary` park feature — and it was
+**not** used: it is a polygon centroid 190 m north-west, and Scott's is where
+people stand at 8am. A centroid is where a shape balances, not where a thing
+happens.
+
+**`Portarlington Foreshore` is a DESCRIPTIVE NAME, not a published one**, and
+its `source_note` says so in those words. parkrun publishes a street and no
+venue name; Nominatim has no such feature, and the only thing it offers is a
+cycleway called "The Foreshore" 2 km east at **Indented Head** — the exact trap
+event 742's own note had already recorded. Rename it if a better local name
+turns up. Checked against the neighbours before writing: it is not WG Little
+Reserve (77, 215 m away) and not Portarlington Recreation Reserve (69, 1.1 km).
+
+**No `events_url` on any of the three, deliberately.** parkrun.com.au answers
+**403** to an automated fetch — both `/<event>/` and `/<event>/course/`, tried
+with our own UA — so registering one would create a source that can never read.
+The day-before pass recorded a 405 on the same host; either way it is shut. The
+rule this file already keeps: an `events_url` is a promise to a machine, so if
+the machine cannot read it, it must not be set.
+
+**Overpass was down for this whole session** — `Dispatcher_Client::request_read_and_idx::timeout`
+from the main endpoint and nothing from kumi.systems. Nominatim carried the
+work. Worth knowing before assuming a query is malformed.
+
+**Still open on these three: the names.** All three read
+`… Parkrun – every Saturday`, and all three carry `Saturdays 8:00am` in
+`time_text`, so the suffix is now saying twice what the row already says once.
+They are also `verified = false`. Both are a person's call and neither was
+touched.
+
 ### `have.py` was silently showing 1000 of 1207 listings
 
 Found because the two events above did not appear in `have.py running` a minute
