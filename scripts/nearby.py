@@ -112,6 +112,30 @@ KIND_TAGS = {
     # a type page.
     'bike': {'shop': {'bicycle', 'sports', 'outdoor'},
              'craft': {'bicycle'}},
+    # what an ocean pass is looking for. Two warnings that belong with the list.
+    #
+    # **The query requires ["name"], so an unnamed feature is invisible.** That
+    # matters more here than anywhere else: plenty of surf breaks are unnamed
+    # nodes, or carry a local name nobody mapped, and a beach can be one long
+    # named polygon covering several places people think of separately. Expect
+    # this net to under-report and check the towns by hand behind it.
+    #
+    # **`sport=surfing` is usually a SECONDARY tag on a beach**, so a break often
+    # arrives labelled `beach` rather than `surfing`. Judge from the row, not the
+    # label. `natural` is listed first so a surf beach reads as a beach, which is
+    # the more useful default.
+    # `natural=reef` was here for one run and came straight back out: it returned
+    # Merian Reef and Victory Shoal, which are submerged. Every row this project
+    # writes has to be somewhere a person can stand, and the one failure it has
+    # already paid for is fifty pins in Bass Strait. A category that can only
+    # ever return water does not belong in a net feeding a listings database.
+    'ocean': {'natural': {'beach'},
+              'leisure': {'slipway', 'marina', 'swimming_area', 'swimming_pool',
+                          'beach_resort'},
+              'man_made': {'pier'},
+              'sport': {'surfing', 'scuba_diving', 'sailing', 'canoe', 'swimming'},
+              'amenity': {'boat_rental', 'dive_centre'},
+              'shop': {'surf', 'scuba_diving', 'watersports'}},
 }
 ALL_TAGS = {}
 for kd in KIND_TAGS.values():
@@ -278,7 +302,7 @@ def listed_names():
     # them as gaps to go and research. That is the duplicate-making direction.
     out, lo = [], 0
     while True:
-        req = urllib.request.Request(url + '/rest/v1/listings?select=name')
+        req = urllib.request.Request(url + '/rest/v1/listings?select=name,location')
         req.add_header('apikey', key)
         req.add_header('Authorization', 'Bearer ' + key)
         req.add_header('Range-Unit', 'items')
@@ -287,16 +311,34 @@ def listed_names():
             chunk = json.load(r)
         out += chunk
         if len(chunk) < 1000:
-            return [(norm(x['name']), x['name'], keywords(x['name'])) for x in out]
+            return [(norm(x['name']), x['name'], keywords(x['name']),
+                     suburb_of(x.get('location'))) for x in out]
         lo += 1000
 
 
-def match(name, listed):
+def suburb_of(loc):
+    """Which town a listing's free-text location names, longest match first."""
+    l = re.sub(r"[\u2019']", '', (loc or '').lower())
+    for t in sorted(SUBURB_WORDS, key=len, reverse=True):
+        if re.search(r'(^|[^a-z])' + re.escape(t) + r'([^a-z]|$)', l):
+            return t
+    return None
+
+
+def match(name, listed, town=None):
     """Catches 'Blackmans Brewery' vs "Blackman's Brewery, Torquay" without catching
     'Yo! Chicken' vs 'Piping Hot Chicken Shop'. One shared word is not a venue, and
     reporting a real miss as already-listed hides the gap this script exists to show."""
     n, kw = norm(name), keywords(name)
-    for k, original, other in listed:
+    here = (town or '').lower() or None
+    for k, original, other, its_town in listed:
+        # A venue is in one town, and on the coast the town is often the ONLY
+        # thing telling two names apart: Torquay, Point Lonsdale and Barwon Heads
+        # all have a Front Beach, and `keywords` strips the town as noise, so
+        # without this the sweep reported Point Lonsdale's Front Beach as already
+        # listed and hid a real gap. Found 31 Aug 2026 adding the ocean net.
+        if here and its_town and its_town != here:
+            continue
         if k == n:
             return original
         if kw and (kw == other or (len(kw) >= 2 and kw <= other)):
@@ -362,7 +404,7 @@ def main():
             if t not in cache['towns']:
                 continue
             found, _c = town_pois(cache, t, kind, radius)
-            miss = [n for n in found if not match(n, listed)]
+            miss = [n for n in found if not match(n, listed, t)]
             rows.append((t, len(found), len(miss)))
         for t, o, m in sorted(rows, key=lambda r: -r[2]):
             bar = '█' * min(m, 40)
@@ -378,7 +420,7 @@ def main():
     found, (tlat, tlon) = town_pois(cache, town, kind, radius)
     have, missing = [], []
     for name in sorted(found):
-        hit = match(name, listed)
+        hit = match(name, listed, town)
         (have if hit else missing).append((name, '/'.join(sorted(found[name])), hit))
 
     print(f'\n{town} — {kind}, {radius:g}km around {tlat:.4f},{tlon:.4f} '

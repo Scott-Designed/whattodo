@@ -1,9 +1,10 @@
 {
- "fetched": "2026-08-28 17:36",
+ "fetched": "2026-08-31 10:11",
  "kinds": [
   "arts",
   "bike",
   "food",
+  "ocean",
   "produce"
  ],
  "pois": [
@@ -68,10 +69,22 @@
    "label": "attraction"
   },
   {
+   "name": "Cheviot Beach",
+   "lat": -38.3129732,
+   "lon": 144.6672586,
+   "label": "beach"
+  },
+  {
    "name": "Portarlington Pub",
    "lat": -38.1151953,
    "lon": 144.6530922,
    "label": "pub"
+  },
+  {
+   "name": "Torquay Boat Ramp",
+   "lat": -38.328212,
+   "lon": 144.3273217,
+   "label": "slipway"
   },
   {
    "name": "Highway One",
@@ -218,6 +231,18 @@
    "label": "cafe"
   },
   {
+   "name": "Point Richards Boatramp",
+   "lat": -38.1086002,
+   "lon": 144.6297235,
+   "label": "slipway"
+  },
+  {
+   "name": "Point Richards Boatramp",
+   "lat": -38.1084992,
+   "lon": 144.6301736,
+   "label": "slipway"
+  },
+  {
    "name": "McDonald's",
    "lat": -37.8970107,
    "lon": 144.7535175,
@@ -348,6 +373,48 @@
    "lat": -38.3368383,
    "lon": 144.7431692,
    "label": "hotel"
+  },
+  {
+   "name": "Portsea Hole",
+   "lat": -38.3116785,
+   "lon": 144.7116777,
+   "label": "scuba_diving"
+  },
+  {
+   "name": "Portsea Pier",
+   "lat": -38.318444,
+   "lon": 144.713389,
+   "label": "scuba_diving"
+  },
+  {
+   "name": "Portsea Pier East Reef",
+   "lat": -38.317167,
+   "lon": 144.717,
+   "label": "scuba_diving"
+  },
+  {
+   "name": "Portsea Pier West Reef",
+   "lat": -38.318045,
+   "lon": 144.711236,
+   "label": "scuba_diving"
+  },
+  {
+   "name": "Eliza Ramsden",
+   "lat": -38.295417,
+   "lon": 144.673077,
+   "label": "scuba_diving"
+  },
+  {
+   "name": "Castle Rock",
+   "lat": -38.298333,
+   "lon": 144.597778,
+   "label": "scuba_diving"
+  },
+  {
+   "name": "Coogee",
+   "lat": -38.30865,
+   "lon": 144.570333,
+   "label": "scuba_diving"
   },
   {
    "name": "Jashin Courtyard",
@@ -848,6 +915,12 @@
    "label": "attraction"
   },
   {
+   "name": "Queenscliff Yacht Club",
+   "lat": -38.2615019,
+   "lon": 144.6676144,
+   "label": "marina"
+  },
+  {
    "name": "Mamre Hotel",
    "lat": -38.3489938,
    "lon": 143.4292663,
@@ -876,6 +949,18 @@
    "lat": -38.1460265,
    "lon": 144.3600577,
    "label": "hotel"
+  },
+  {
+   "name": "Blairgowrie Marina",
+   "lat": -38.3560946,
+   "lon": 144.7728426,
+   "label": "marina"
+  },
+  {
+   "name": "Tyrone Boat Ramp",
+   "lat": -38.3644897,
+   "lon": 144.7970957,
+   "label": "slipway"
   },
   {
    "name": "Lara Indian Restaurant",
@@ -1046,10 +1131,22 @@
    "label": "bicycle"
   },
   {
+   "name": "Queenscliff Boat Ramp",
+   "lat": -38.2633027,
+   "lon": 144.6639166,
+   "label": "slipway"
+  },
+  {
    "name": "Old Cable Station Museum",
    "lat": -38.7368408,
    "lon": 143.6806097,
    "label": "museum"
+  },
+  {
+   "name": "Bellarine Aquatic Centre",
+   "lat": -38.2590425,
+   "lon": 144.5404242,
+   "label": "swimming_pool"
   },
   {
    "name": "The Mex",
@@ -1128,6 +1225,24 @@
    "lat": -38.2410704,
    "lon": 144.1746283,
    "label": "cafe"
+  },
+  {
+   "name": "Fairfax Street Boat Ramp",
+   "lat": -38.1122205,
+   "lon": 144.6646107,
+   "label": "slipway"
+  },
+  {
+   "name": "Indented Head Boat Ramp",
+   "lat": -38.1465918,
+   "lon": 144.7199558,
+   "label": "slipway"
+  },
+  {
+   "name": "St Leonards Boat Ramp",
+   "lat": -38.1797438,
+   "lon": 144.7158608,
+   "label": "slipway"
   },
   {
    "name": "KFC",
@@ -1374,6 +1489,12 @@
    "lat": -38.754611,
    "lon": 143.6688332,
    "label": "restaurant"
+  },
+  {
+   "name": "Port of Apollo Bay",
+   "lat": -38.757013,
+   "lon": 143.676164,
+   "label": "marina"
   },
   {
    "name": "Angela's Guest House",
@@ -1700,6 +1821,12 @@
    "label": "fast_food"
   },
   {
+   "name": "Beach Road Boat Ramp",
+   "lat": -38.0278846,
+   "lon": 144.565314,
+   "label": "slipway"
+  },
+  {
    "name": "BP Shop",
    "lat": -37.892068,
    "lon": 144.6308375,
@@ -1902,6 +2029,12 @@
    "lat": -38.1728166,
    "lon": 144.3985281,
    "label": "cafe"
+  },
+  {
+   "name": "Limeburners Point",
+   "lat": -38.143507,
+   "lon": 144.385207,
+   "label": "slipway"
   },
   {
    "name": "Reddy Express",
@@ -2372,6 +2505,12 @@
    "label": "attraction"
   },
   {
+   "name": "Altona Boat Ramp",
+   "lat": -37.8659055,
+   "lon": 144.8480616,
+   "label": "slipway"
+  },
+  {
    "name": "Bubba Pizza Tarneit",
    "lat": -37.8398896,
    "lon": 144.6742827,
@@ -2454,6 +2593,12 @@
    "lat": -38.4044779,
    "lon": 144.1879958,
    "label": "alcohol"
+  },
+  {
+   "name": "Guvvos Beach",
+   "lat": -38.4298533,
+   "lon": 144.1560409,
+   "label": "beach"
   },
   {
    "name": "Mr Grubb Cafe",
@@ -3386,6 +3531,18 @@
    "label": "community_centre"
   },
   {
+   "name": "Kayak launch / Fishing platform",
+   "lat": -38.4624151,
+   "lon": 144.0996564,
+   "label": "slipway"
+  },
+  {
+   "name": "Kayak launch / Fishing platform",
+   "lat": -38.4634319,
+   "lon": 144.0981375,
+   "label": "slipway"
+  },
+  {
    "name": "HAM",
    "lat": -38.2073458,
    "lon": 144.2733555,
@@ -4142,6 +4299,18 @@
    "label": "fast_food"
   },
   {
+   "name": "Princes Street",
+   "lat": -38.3503231,
+   "lon": 144.3017864,
+   "label": "beach"
+  },
+  {
+   "name": "Queenscliff - Pier Beach",
+   "lat": -38.267514,
+   "lon": 144.6664018,
+   "label": "beach"
+  },
+  {
    "name": "Antipodes",
    "lat": -38.3395824,
    "lon": 144.7375095,
@@ -4538,6 +4707,12 @@
    "label": "artwork"
   },
   {
+   "name": "Paul Sadler Swimland Westgate",
+   "lat": -37.8317799,
+   "lon": 144.8254036,
+   "label": "swimming"
+  },
+  {
    "name": "The Salty Dog Cafe",
    "lat": -38.3277774,
    "lon": 144.3267059,
@@ -4692,6 +4867,12 @@
    "lat": -38.1020039,
    "lon": 144.0504045,
    "label": "monument"
+  },
+  {
+   "name": "Princess Street (Steps/Boobs)",
+   "lat": -38.355683,
+   "lon": 144.2965155,
+   "label": "beach"
   },
   {
    "name": "KFC",
@@ -5046,6 +5227,12 @@
    "lat": -38.4651306,
    "lon": 144.0990102,
    "label": "restaurant"
+  },
+  {
+   "name": "Strapper Surf",
+   "lat": -38.465191,
+   "lon": 144.0987337,
+   "label": "surf"
   },
   {
    "name": "Geelong Camera Obscura",
@@ -5480,6 +5667,12 @@
    "label": "coffee"
   },
   {
+   "name": "RAAFs Beach",
+   "lat": -38.2790301,
+   "lon": 144.5026639,
+   "label": "beach"
+  },
+  {
    "name": "Liquorland",
    "lat": -38.1739419,
    "lon": 144.5729797,
@@ -5586,6 +5779,12 @@
    "lat": -38.1644479,
    "lon": 144.4133098,
    "label": "convenience"
+  },
+  {
+   "name": "Disability beach",
+   "lat": -37.8917747,
+   "lon": 144.1666924,
+   "label": "beach"
   },
   {
    "name": "Lokal Cafe 3030",
@@ -5796,6 +5995,12 @@
    "lat": -37.8659092,
    "lon": 144.8309545,
    "label": "cafe"
+  },
+  {
+   "name": "Sweeney's Swim School",
+   "lat": -37.865595,
+   "lon": 144.8311953,
+   "label": "swimming"
   },
   {
    "name": "Acai Boy",
@@ -6512,10 +6717,34 @@
    "label": "hotel"
   },
   {
+   "name": "Rye Pier",
+   "lat": -38.3672045,
+   "lon": 144.8229106,
+   "label": "pier"
+  },
+  {
    "name": "Pope's Eye",
    "lat": -38.2766629,
    "lon": 144.6986446,
    "label": "attraction"
+  },
+  {
+   "name": "Sorrento Ocean Beach",
+   "lat": -38.3468372,
+   "lon": 144.7281928,
+   "label": "beach"
+  },
+  {
+   "name": "Point Wilson Pier",
+   "lat": -38.0921768,
+   "lon": 144.5249324,
+   "label": "pier"
+  },
+  {
+   "name": "Shell Refinery Pier",
+   "lat": -38.0868266,
+   "lon": 144.3862175,
+   "label": "pier"
   },
   {
    "name": "Rifle Range",
@@ -6524,16 +6753,148 @@
    "label": "attraction"
   },
   {
+   "name": "Rippleside Pier",
+   "lat": -38.1287462,
+   "lon": 144.3579673,
+   "label": "pier"
+  },
+  {
+   "name": "Griffins Jetty",
+   "lat": -38.1356549,
+   "lon": 144.3570471,
+   "label": "pier"
+  },
+  {
+   "name": "Griffins Jetty",
+   "lat": -38.1357342,
+   "lon": 144.3563519,
+   "label": "pier"
+  },
+  {
+   "name": "Cunningham Pier",
+   "lat": -38.1415488,
+   "lon": 144.3623849,
+   "label": "pier"
+  },
+  {
+   "name": "Portarlington Pier",
+   "lat": -38.1117133,
+   "lon": 144.6531257,
+   "label": "pier"
+  },
+  {
    "name": "Reading Cinemas",
    "lat": -38.2004632,
    "lon": 144.3200051,
    "label": "cinema"
   },
   {
+   "name": "Eastern Pier",
+   "lat": -38.1446767,
+   "lon": 144.3662879,
+   "label": "pier"
+  },
+  {
+   "name": "Stony Pier",
+   "lat": -38.1448982,
+   "lon": 144.3654399,
+   "label": "pier"
+  },
+  {
+   "name": "Royal Geelong Yacht Club",
+   "lat": -38.1433837,
+   "lon": 144.3680777,
+   "label": "pier"
+  },
+  {
+   "name": "Royal Geelong Yacht Club",
+   "lat": -38.1434855,
+   "lon": 144.3676099,
+   "label": "pier"
+  },
+  {
+   "name": "Royal Geelong Yacht Club",
+   "lat": -38.1437756,
+   "lon": 144.3684452,
+   "label": "pier"
+  },
+  {
+   "name": "Royal Geelong Yacht Club",
+   "lat": -38.1439838,
+   "lon": 144.3673199,
+   "label": "pier"
+  },
+  {
+   "name": "Royal Geelong Yacht Club",
+   "lat": -38.1441732,
+   "lon": 144.3680871,
+   "label": "pier"
+  },
+  {
+   "name": "Royal Geelong Yacht Club",
+   "lat": -38.144526,
+   "lon": 144.3677958,
+   "label": "pier"
+  },
+  {
+   "name": "Royal Geelong Yacht Club",
+   "lat": -38.1449025,
+   "lon": 144.3674453,
+   "label": "pier"
+  },
+  {
+   "name": "Royal Geelong Yacht Club",
+   "lat": -38.1440708,
+   "lon": 144.3675104,
+   "label": "pier"
+  },
+  {
+   "name": "Shell Refinery Pier",
+   "lat": -38.0889087,
+   "lon": 144.3861977,
+   "label": "pier"
+  },
+  {
    "name": "Old Geelong Gaol",
    "lat": -38.1538565,
    "lon": 144.3654504,
    "label": "attraction"
+  },
+  {
+   "name": "Portsea Pier",
+   "lat": -38.3184064,
+   "lon": 144.7137134,
+   "label": "pier"
+  },
+  {
+   "name": "Lara Swimming Pool",
+   "lat": -38.0246791,
+   "lon": 144.3975363,
+   "label": "swimming"
+  },
+  {
+   "name": "Whites Beach",
+   "lat": -38.3198557,
+   "lon": 144.3452705,
+   "label": "beach"
+  },
+  {
+   "name": "Nudist Beach (clothing Optional)",
+   "lat": -38.3112196,
+   "lon": 144.3696056,
+   "label": "beach"
+  },
+  {
+   "name": "Point Impossible Beach",
+   "lat": -38.3070484,
+   "lon": 144.3762405,
+   "label": "beach"
+  },
+  {
+   "name": "Bancoora Beach",
+   "lat": -38.2919684,
+   "lon": 144.4090911,
+   "label": "beach"
   },
   {
    "name": "Ocean Grove Park",
@@ -6548,6 +6909,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Kardinia Aquatic Centre",
+   "lat": -38.1595121,
+   "lon": 144.3528994,
+   "label": "swimming"
+  },
+  {
    "name": "Reddy Express",
    "lat": -38.1438043,
    "lon": 144.3530057,
@@ -6558,6 +6925,18 @@
    "lat": -38.1173779,
    "lon": 144.354401,
    "label": "convenience"
+  },
+  {
+   "name": "Leisurelink Aquatic & Recreation Centre",
+   "lat": -38.1968616,
+   "lon": 144.3203466,
+   "label": "swimming"
+  },
+  {
+   "name": "Altona Yacht Club",
+   "lat": -37.8665711,
+   "lon": 144.8464416,
+   "label": "sailing"
   },
   {
    "name": "Fyansford Hotel",
@@ -6608,6 +6987,12 @@
    "label": "convenience"
   },
   {
+   "name": "Apollo Bay Surf Life Saving Club",
+   "lat": -38.7560077,
+   "lon": 143.6697362,
+   "label": "surfing"
+  },
+  {
    "name": "Jan Juc General Store",
    "lat": -38.3496821,
    "lon": 144.2994112,
@@ -6624,6 +7009,12 @@
    "lat": -38.1523421,
    "lon": 144.357596,
    "label": "pub"
+  },
+  {
+   "name": "Eastern Beach Children's Pool",
+   "lat": -38.1468804,
+   "lon": 144.3735774,
+   "label": "swimming_pool"
   },
   {
    "name": "Waurn Ponds Hotel",
@@ -6752,6 +7143,12 @@
    "label": "vineyard"
   },
   {
+   "name": "Point Lonsdale (Back) Surf",
+   "lat": -38.2897941,
+   "lon": 144.6064335,
+   "label": "beach"
+  },
+  {
    "name": "Barwon Hotel",
    "lat": -38.2430516,
    "lon": 143.9914483,
@@ -6764,10 +7161,22 @@
    "label": "library"
   },
   {
+   "name": "St Leonards Pier",
+   "lat": -38.1703919,
+   "lon": 144.7204573,
+   "label": "pier"
+  },
+  {
    "name": "KFC",
    "lat": -38.1730961,
    "lon": 144.3452434,
    "label": "fast_food"
+  },
+  {
+   "name": "Western Beach Boat Club",
+   "lat": -38.1401685,
+   "lon": 144.3588241,
+   "label": "pier"
   },
   {
    "name": "Mandarin Court Chinese Restaurant",
@@ -6872,6 +7281,12 @@
    "label": "fast_food"
   },
   {
+   "name": "Bridgewater Bay Beach",
+   "lat": -38.3740989,
+   "lon": 144.7665828,
+   "label": "beach"
+  },
+  {
    "name": "Cafe Permas",
    "lat": -37.8187175,
    "lon": 144.7455599,
@@ -6906,6 +7321,12 @@
    "lat": -38.148764,
    "lon": 144.3587701,
    "label": "fast_food"
+  },
+  {
+   "name": "Sandy Gully Beach",
+   "lat": -38.4601978,
+   "lon": 144.1121748,
+   "label": "beach"
   },
   {
    "name": "McDonald's",
@@ -6968,6 +7389,12 @@
    "label": "cafe"
   },
   {
+   "name": "Splashdown",
+   "lat": -38.1783054,
+   "lon": 144.4035214,
+   "label": "swimming"
+  },
+  {
    "name": "Pizza Hut",
    "lat": -38.0891837,
    "lon": 144.3360608,
@@ -7004,6 +7431,12 @@
    "label": "cinema"
   },
   {
+   "name": "Eastern Beach",
+   "lat": -38.1462474,
+   "lon": 144.3699099,
+   "label": "beach"
+  },
+  {
    "name": "Seabrook Community Centre",
    "lat": -37.8860105,
    "lon": 144.7591233,
@@ -7022,10 +7455,28 @@
    "label": "vineyard"
   },
   {
+   "name": "Royal Geelong Yacht Club",
+   "lat": -38.1444547,
+   "lon": 144.3672636,
+   "label": "marina"
+  },
+  {
    "name": "Pirra Homestead",
    "lat": -38.0087612,
    "lon": 144.4100851,
    "label": "heritage"
+  },
+  {
+   "name": "Apollo Bay Community Pool",
+   "lat": -38.7525658,
+   "lon": 143.6605919,
+   "label": "swimming"
+  },
+  {
+   "name": "Apollo Bay Boat Harbour",
+   "lat": -38.7584544,
+   "lon": 143.6770311,
+   "label": "marina"
   },
   {
    "name": "Mt Duneed Estate",
@@ -7094,16 +7545,64 @@
    "label": "vineyard"
   },
   {
+   "name": "Beachlea Boat Hire",
+   "lat": -38.1391925,
+   "lon": 144.7118846,
+   "label": "boat_rental"
+  },
+  {
+   "name": "Lismore Pool",
+   "lat": -37.9537413,
+   "lon": 143.3476209,
+   "label": "swimming_pool"
+  },
+  {
    "name": "Jokers On Ryrie",
    "lat": -38.1497309,
    "lon": 144.3620694,
    "label": "pub"
   },
   {
+   "name": "Bells Beach",
+   "lat": -38.3689757,
+   "lon": 144.2832892,
+   "label": "beach"
+  },
+  {
    "name": "All Smiles - Sorrento Ocean Beach",
    "lat": -38.3458821,
    "lon": 144.728074,
    "label": "cafe"
+  },
+  {
+   "name": "Blairgowrie Pier",
+   "lat": -38.3576352,
+   "lon": 144.7729729,
+   "label": "pier"
+  },
+  {
+   "name": "Blairgowrie Pier",
+   "lat": -38.3547944,
+   "lon": 144.770039,
+   "label": "pier"
+  },
+  {
+   "name": "Blairgowrie Pier",
+   "lat": -38.3559578,
+   "lon": 144.7717091,
+   "label": "pier"
+  },
+  {
+   "name": "Blairgowrie Pier",
+   "lat": -38.3555989,
+   "lon": 144.7719395,
+   "label": "pier"
+  },
+  {
+   "name": "Blairgowrie Pier",
+   "lat": -38.3555226,
+   "lon": 144.7722869,
+   "label": "pier"
   },
   {
    "name": "Go Vita Geelong",
@@ -7116,6 +7615,48 @@
    "lat": -38.1419707,
    "lon": 144.3478652,
    "label": "fast_food"
+  },
+  {
+   "name": "Dimmicks Beach",
+   "lat": -38.3827426,
+   "lon": 144.7770299,
+   "label": "beach"
+  },
+  {
+   "name": "Pearce's Beach ",
+   "lat": -38.3801966,
+   "lon": 144.77362,
+   "label": "beach"
+  },
+  {
+   "name": "Koonya Ocean Beach",
+   "lat": -38.3647402,
+   "lon": 144.75236,
+   "label": "beach"
+  },
+  {
+   "name": "Koonya Ocean Beach",
+   "lat": -38.3616224,
+   "lon": 144.7489956,
+   "label": "beach"
+  },
+  {
+   "name": "Diamond Bay Beach",
+   "lat": -38.3542137,
+   "lon": 144.7418156,
+   "label": "beach"
+  },
+  {
+   "name": "St Pauls Beach",
+   "lat": -38.3517658,
+   "lon": 144.7341553,
+   "label": "beach"
+  },
+  {
+   "name": "Number Sixteen Beach",
+   "lat": -38.3936495,
+   "lon": 144.7911433,
+   "label": "beach"
   },
   {
    "name": "Oporto",
@@ -7232,6 +7773,12 @@
    "label": "cafe"
   },
   {
+   "name": "Strapper Surf",
+   "lat": -38.267619,
+   "lon": 144.5228149,
+   "label": "surf"
+  },
+  {
    "name": "Bliss + Co Wholefoods",
    "lat": -38.2680436,
    "lon": 144.5222713,
@@ -7242,6 +7789,12 @@
    "lat": -38.2676365,
    "lon": 144.5229642,
    "label": "confectionery"
+  },
+  {
+   "name": "Greenroom Surf Shop",
+   "lat": -38.2680453,
+   "lon": 144.5224278,
+   "label": "surf"
   },
   {
    "name": "Liquorland",
@@ -7428,6 +7981,12 @@
    "lat": -38.1650186,
    "lon": 144.3896911,
    "label": "alcohol"
+  },
+  {
+   "name": "Bay City Scuba",
+   "lat": -38.1592523,
+   "lon": 144.3859374,
+   "label": "scuba_diving"
   },
   {
    "name": "Fish & Chips",
@@ -7820,6 +8379,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Geelong Aquatic Centre",
+   "lat": -38.1596914,
+   "lon": 144.3372864,
+   "label": "swimming"
+  },
+  {
    "name": "Kim's Milk Bar",
    "lat": -38.1594066,
    "lon": 144.3445375,
@@ -7866,6 +8431,12 @@
    "lat": -38.1624695,
    "lon": 144.3533942,
    "label": "cafe"
+  },
+  {
+   "name": "Geelong Canoe Club",
+   "lat": -38.1644761,
+   "lon": 144.3322165,
+   "label": "canoe"
   },
   {
    "name": "Music Workshop",
@@ -7980,6 +8551,12 @@
    "lat": -38.1498691,
    "lon": 144.365465,
    "label": "cafe"
+  },
+  {
+   "name": "Royal Geelong Yacht Club",
+   "lat": -38.1453858,
+   "lon": 144.3661694,
+   "label": "sailing"
   },
   {
    "name": "Sir Charles Darling Hotel",
@@ -8726,6 +9303,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Tri Swimming",
+   "lat": -38.1375626,
+   "lon": 144.3521248,
+   "label": "swimming"
+  },
+  {
    "name": "Pizza Bar",
    "lat": -38.1427001,
    "lon": 144.3476991,
@@ -9422,6 +10005,12 @@
    "label": "hotel"
   },
   {
+   "name": "Lorne Beach",
+   "lat": -38.5381234,
+   "lon": 143.9778366,
+   "label": "beach"
+  },
+  {
    "name": "Apollo Bay Waterfront Motor Inn",
    "lat": -38.753279,
    "lon": 143.6686479,
@@ -9446,10 +10035,22 @@
    "label": "hotel"
   },
   {
+   "name": "Canoe slipway",
+   "lat": -38.5519969,
+   "lon": 143.7551836,
+   "label": "slipway"
+  },
+  {
    "name": "Forrest Guesthouse",
    "lat": -38.5173344,
    "lon": 143.7143231,
    "label": "guest_house"
+  },
+  {
+   "name": "The Promenade",
+   "lat": -38.1461058,
+   "lon": 144.373577,
+   "label": "pier"
   },
   {
    "name": "A La Grecque",
@@ -9572,6 +10173,12 @@
    "label": "convenience"
   },
   {
+   "name": "Werribee Outdoor Pool",
+   "lat": -37.9060724,
+   "lon": 144.6518858,
+   "label": "swimming"
+  },
+  {
    "name": "Bell Post Hill Convenience",
    "lat": -38.1042286,
    "lon": 144.3275288,
@@ -9632,6 +10239,12 @@
    "label": "convenience"
   },
   {
+   "name": "Point Henry Pier",
+   "lat": -38.1287178,
+   "lon": 144.4352396,
+   "label": "pier"
+  },
+  {
    "name": "Hungry Jack's",
    "lat": -38.1990491,
    "lon": 144.3156222,
@@ -9642,6 +10255,12 @@
    "lat": -37.9521138,
    "lon": 144.4340085,
    "label": "attraction"
+  },
+  {
+   "name": "Southside Clothing Optional (nudist) Beach",
+   "lat": -38.3762909,
+   "lon": 144.2727456,
+   "label": "beach"
   },
   {
    "name": "Go Naked Coffee",
@@ -9660,6 +10279,24 @@
    "lat": -38.3410583,
    "lon": 144.3211146,
    "label": "cafe"
+  },
+  {
+   "name": "Torquay Back Beach (Surf Beach)",
+   "lat": -38.3426629,
+   "lon": 144.3220012,
+   "label": "beach"
+  },
+  {
+   "name": "Jan Juc Beach",
+   "lat": -38.347473,
+   "lon": 144.3104922,
+   "label": "beach"
+  },
+  {
+   "name": "Fishermans Beach",
+   "lat": -38.3272785,
+   "lon": 144.3302223,
+   "label": "beach"
   },
   {
    "name": "Reddy Express",
@@ -9758,6 +10395,12 @@
    "label": "convenience"
   },
   {
+   "name": "Pool",
+   "lat": -37.912569,
+   "lon": 144.7782921,
+   "label": "swimming_pool"
+  },
+  {
    "name": "Saltwater Coast Lifestyle Centre",
    "lat": -37.9125339,
    "lon": 144.7780039,
@@ -9780,6 +10423,12 @@
    "lat": -38.2132718,
    "lon": 144.1801806,
    "label": "pub"
+  },
+  {
+   "name": "Addiscot Beach",
+   "lat": -38.3858936,
+   "lon": 144.2577726,
+   "label": "beach"
   },
   {
    "name": "7-Eleven",
@@ -9812,6 +10461,12 @@
    "label": "hotel"
   },
   {
+   "name": "Altona Beach",
+   "lat": -37.8713041,
+   "lon": 144.8285125,
+   "label": "beach"
+  },
+  {
    "name": "Bakers Delight",
    "lat": -37.8281063,
    "lon": 144.8477252,
@@ -9842,6 +10497,12 @@
    "label": "artwork"
   },
   {
+   "name": "Lorne Pier",
+   "lat": -38.5473777,
+   "lon": 143.9874547,
+   "label": "pier"
+  },
+  {
    "name": "Old Tramway Track",
    "lat": -38.5481937,
    "lon": 143.9864318,
@@ -9852,6 +10513,18 @@
    "lat": -37.8457632,
    "lon": 144.845005,
    "label": "garden_centre"
+  },
+  {
+   "name": "Northern Beach",
+   "lat": -37.9636673,
+   "lon": 144.7106328,
+   "label": "beach"
+  },
+  {
+   "name": "Southern Beach",
+   "lat": -37.9703243,
+   "lon": 144.7034782,
+   "label": "beach"
   },
   {
    "name": "Torquay Sundial",
@@ -9908,6 +10581,18 @@
    "label": "restaurant"
   },
   {
+   "name": "Indented Head Boat Ramp Jetty",
+   "lat": -38.1463847,
+   "lon": 144.7201905,
+   "label": "pier"
+  },
+  {
+   "name": "Old Lorne Pier",
+   "lat": -38.5479253,
+   "lon": 143.9867423,
+   "label": "pier"
+  },
+  {
    "name": "Old Tramway Track",
    "lat": -38.5484195,
    "lon": 143.9862477,
@@ -9936,6 +10621,24 @@
    "lat": -38.3635077,
    "lon": 144.7841327,
    "label": "community_centre"
+  },
+  {
+   "name": "Shelly Beach",
+   "lat": -38.7924871,
+   "lon": 143.6234609,
+   "label": "beach"
+  },
+  {
+   "name": "Eastern Beach Swimming Enclosure",
+   "lat": -38.1461744,
+   "lon": 144.373577,
+   "label": "swimming"
+  },
+  {
+   "name": "Station Beach",
+   "lat": -38.8239189,
+   "lon": 143.4786904,
+   "label": "beach"
   },
   {
    "name": "KFC",
@@ -9968,10 +10671,22 @@
    "label": "museum"
   },
   {
+   "name": "The Canal",
+   "lat": -37.9115977,
+   "lon": 144.7708488,
+   "label": "swimming"
+  },
+  {
    "name": "Hobsons Bay Greek Community Hall",
    "lat": -37.8410536,
    "lon": 144.8444889,
    "label": "community_centre"
+  },
+  {
+   "name": "Goodfellow Aquatic Centre",
+   "lat": -38.1096646,
+   "lon": 144.3253735,
+   "label": "swimming"
   },
   {
    "name": "Rye Hotel",
@@ -10058,7 +10773,7 @@
    "label": "winery"
   },
   {
-   "name": "Ampol Foodary",
+   "name": "Foodary",
    "lat": -37.8464202,
    "lon": 144.8088337,
    "label": "convenience"
@@ -10080,6 +10795,12 @@
    "lat": -38.0131028,
    "lon": 144.21293,
    "label": "winery"
+  },
+  {
+   "name": "Altona Dog Beach",
+   "lat": -37.8639661,
+   "lon": 144.8516778,
+   "label": "beach"
   },
   {
    "name": "Dan Murphy's",
@@ -10110,6 +10831,12 @@
    "lat": -37.8425824,
    "lon": 144.8430958,
    "label": "cinema"
+  },
+  {
+   "name": "Scubra Doctor",
+   "lat": -38.3769434,
+   "lon": 144.8066668,
+   "label": "scuba_diving"
   },
   {
    "name": "Portsea Hotel",
@@ -10184,6 +10911,12 @@
    "label": "hotel"
   },
   {
+   "name": "Alexander Thompson Jetty",
+   "lat": -38.1434364,
+   "lon": 144.3632325,
+   "label": "pier"
+  },
+  {
    "name": "El Roja",
    "lat": -38.1446418,
    "lon": 144.3651994,
@@ -10194,6 +10927,12 @@
    "lat": -38.1447426,
    "lon": 144.3651415,
    "label": "fast_food"
+  },
+  {
+   "name": "Eastern Beach",
+   "lat": -38.1467616,
+   "lon": 144.373378,
+   "label": "beach"
   },
   {
    "name": "McDonald's",
@@ -10220,6 +10959,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Queenscliff - Pier Beach",
+   "lat": -38.2684996,
+   "lon": 144.6677636,
+   "label": "beach"
+  },
+  {
    "name": "Subway",
    "lat": -38.1009795,
    "lon": 144.3541919,
@@ -10242,6 +10987,24 @@
    "lat": -38.1484987,
    "lon": 144.3576522,
    "label": "restaurant"
+  },
+  {
+   "name": "Buckleys (Stingray)  Bay",
+   "lat": -38.2957301,
+   "lon": 144.4006794,
+   "label": "beach"
+  },
+  {
+   "name": "Breamlea Beach",
+   "lat": -38.2995767,
+   "lon": 144.38734,
+   "label": "beach"
+  },
+  {
+   "name": "Front Beach",
+   "lat": -38.3340818,
+   "lon": 144.3269972,
+   "label": "beach"
   },
   {
    "name": "Grill'd",
@@ -10316,7 +11079,7 @@
    "label": "convenience"
   },
   {
-   "name": "BP",
+   "name": "BP Shop",
    "lat": -37.8390463,
    "lon": 144.8251929,
    "label": "convenience"
@@ -10332,6 +11095,12 @@
    "lat": -37.8679291,
    "lon": 144.8307947,
    "label": "fast_food"
+  },
+  {
+   "name": "Snorkel and Dive Safari",
+   "lat": -37.8676058,
+   "lon": 144.8308601,
+   "label": "scuba_diving"
   },
   {
    "name": "Subway",
@@ -10790,6 +11559,12 @@
    "label": "fast_food"
   },
   {
+   "name": "Wangim Walk",
+   "lat": -38.1431312,
+   "lon": 144.3661223,
+   "label": "pier"
+  },
+  {
    "name": "EG Australia",
    "lat": -38.306979,
    "lon": 144.330007,
@@ -11006,16 +11781,64 @@
    "label": "restaurant"
   },
   {
+   "name": "Sorrento Sailing Couta Boat Club",
+   "lat": -38.344574,
+   "lon": 144.7552197,
+   "label": "sailing"
+  },
+  {
+   "name": "SSCBC Pier",
+   "lat": -38.3438151,
+   "lon": 144.756287,
+   "label": "pier"
+  },
+  {
    "name": "Nepean Historical Society",
    "lat": -38.3410862,
    "lon": 144.7365086,
    "label": "museum"
   },
   {
+   "name": "Shelley Beach",
+   "lat": -38.3214945,
+   "lon": 144.7284441,
+   "label": "beach"
+  },
+  {
+   "name": "Portsea Back Beach",
+   "lat": -38.3361197,
+   "lon": 144.7055967,
+   "label": "beach"
+  },
+  {
+   "name": "Portsea Front Beach",
+   "lat": -38.3184653,
+   "lon": 144.7165739,
+   "label": "beach"
+  },
+  {
+   "name": "Point King Beach",
+   "lat": -38.3235703,
+   "lon": 144.7365629,
+   "label": "beach"
+  },
+  {
    "name": "The Baths",
    "lat": -38.339497,
    "lon": 144.7452077,
    "label": "restaurant"
+  },
+  {
+   "name": "Sorrento Foreshore",
+   "lat": -38.3413389,
+   "lon": 144.7511646,
+   "label": "beach"
+  },
+  {
+   "name": "Tideways Beach",
+   "lat": -38.3472136,
+   "lon": 144.7613128,
+   "label": "beach"
   },
   {
    "name": "McDonald's",
@@ -11126,10 +11949,136 @@
    "label": "health_food"
   },
   {
+   "name": "Altona Pier",
+   "lat": -37.8722228,
+   "lon": 144.8298834,
+   "label": "pier"
+  },
+  {
    "name": "Weiser's Bakery",
    "lat": -38.11117,
    "lon": 144.3342416,
    "label": "bakery"
+  },
+  {
+   "name": "Anglesea",
+   "lat": -38.4151179,
+   "lon": 144.187232,
+   "label": "beach"
+  },
+  {
+   "name": "Werribee South beach dog off-leash area",
+   "lat": -37.9721898,
+   "lon": 144.7003123,
+   "label": "beach"
+  },
+  {
+   "name": "Eumeralla",
+   "lat": -38.4005032,
+   "lon": 144.2238011,
+   "label": "beach"
+  },
+  {
+   "name": "Fairhaven",
+   "lat": -38.4734042,
+   "lon": 144.0686422,
+   "label": "beach"
+  },
+  {
+   "name": "Fowlers Beach",
+   "lat": -38.3726281,
+   "lon": 144.7628459,
+   "label": "beach"
+  },
+  {
+   "name": "Front Beach",
+   "lat": -38.2838372,
+   "lon": 144.6153681,
+   "label": "beach"
+  },
+  {
+   "name": "Glenaire East",
+   "lat": -38.8157597,
+   "lon": 143.4692443,
+   "label": "beach"
+  },
+  {
+   "name": "Godfrey Creek",
+   "lat": -38.6096163,
+   "lon": 143.9171266,
+   "label": "beach"
+  },
+  {
+   "name": "Grand Scenic",
+   "lat": -38.1646572,
+   "lon": 144.4817833,
+   "label": "beach"
+  },
+  {
+   "name": "Grassy Point West Beach",
+   "lat": -38.1144461,
+   "lon": 144.6739134,
+   "label": "beach"
+  },
+  {
+   "name": "Grassy / Point George",
+   "lat": -38.1267873,
+   "lon": 144.7007736,
+   "label": "beach"
+  },
+  {
+   "name": "Grey River",
+   "lat": -38.6843709,
+   "lon": 143.8398141,
+   "label": "beach"
+  },
+  {
+   "name": "Carisbrook Creek",
+   "lat": -38.6939091,
+   "lon": 143.8088328,
+   "label": "beach"
+  },
+  {
+   "name": "Werribee Sewer Farm South",
+   "lat": -38.0016811,
+   "lon": 144.6173975,
+   "label": "beach"
+  },
+  {
+   "name": "Werribee South",
+   "lat": -37.9740879,
+   "lon": 144.6955979,
+   "label": "beach"
+  },
+  {
+   "name": "Princes Street",
+   "lat": -38.351541,
+   "lon": 144.2999569,
+   "label": "beach"
+  },
+  {
+   "name": "Urquhart Bluff",
+   "lat": -38.4333166,
+   "lon": 144.1564634,
+   "label": "beach"
+  },
+  {
+   "name": "White Crest",
+   "lat": -38.7017798,
+   "lon": 143.7826399,
+   "label": "beach"
+  },
+  {
+   "name": "Pearses 1",
+   "lat": -38.3817357,
+   "lon": 144.775108,
+   "label": "beach"
+  },
+  {
+   "name": "Reedy Creek Beach",
+   "lat": -38.5117037,
+   "lon": 143.9988536,
+   "label": "beach"
   },
   {
    "name": "Jolly Miller",
@@ -11216,6 +12165,12 @@
    "label": "restaurant"
   },
   {
+   "name": "AquaPulse",
+   "lat": -37.8832178,
+   "lon": 144.6834803,
+   "label": "swimming"
+  },
+  {
    "name": "Pizza 888",
    "lat": -37.8675123,
    "lon": 144.8300907,
@@ -11274,6 +12229,12 @@
    "lat": -37.8247657,
    "lon": 144.6832269,
    "label": "community_centre"
+  },
+  {
+   "name": "Limeburners Lagoon Beach",
+   "lat": -38.0722863,
+   "lon": 144.4038728,
+   "label": "beach"
   },
   {
    "name": "Reddy Express",
@@ -11553,6 +12514,12 @@
   },
   {
    "name": "Rokewood Lagoon",
+   "lat": -37.9009006,
+   "lon": 143.725614,
+   "label": "swimming_pool"
+  },
+  {
+   "name": "Rokewood Lagoon",
    "lat": -37.9010202,
    "lon": 143.7255689,
    "label": "attraction"
@@ -11612,6 +12579,18 @@
    "label": "restaurant"
   },
   {
+   "name": "Wyndham Harbour Marina",
+   "lat": -37.9684328,
+   "lon": 144.7073654,
+   "label": "marina"
+  },
+  {
+   "name": "Guvvos Beach",
+   "lat": -38.4299448,
+   "lon": 144.1564427,
+   "label": "beach"
+  },
+  {
    "name": "Booln Booln Cultural Centre",
    "lat": -38.2184312,
    "lon": 144.3393372,
@@ -11646,6 +12625,12 @@
    "lat": -38.0239133,
    "lon": 144.4146567,
    "label": "fast_food"
+  },
+  {
+   "name": "Northern Bellarine Aquatic Centre",
+   "lat": -38.188804,
+   "lon": 144.5544992,
+   "label": "swimming"
   },
   {
    "name": "Cucina One12",
@@ -11694,6 +12679,12 @@
    "lat": -38.3337901,
    "lon": 144.3209576,
    "label": "community_centre"
+  },
+  {
+   "name": "Balmoral Quay Marina",
+   "lat": -38.1266521,
+   "lon": 144.3596175,
+   "label": "marina"
   },
   {
    "name": "Norlane Community Centre",
@@ -11840,6 +12831,12 @@
    "label": "fast_food"
   },
   {
+   "name": "Whites Beach",
+   "lat": -38.3147487,
+   "lon": 144.3611925,
+   "label": "beach"
+  },
+  {
    "name": "Geelong Gallery",
    "lat": -38.146957,
    "lon": 144.3569187,
@@ -11870,6 +12867,12 @@
    "label": "community_centre"
   },
   {
+   "name": "Australian Diving Instruction",
+   "lat": -38.1013023,
+   "lon": 144.3637193,
+   "label": "scuba_diving"
+  },
+  {
    "name": "Subway",
    "lat": -38.187516,
    "lon": 144.4561386,
@@ -11892,6 +12895,12 @@
    "lat": -37.9536489,
    "lon": 143.3431871,
    "label": "cafe"
+  },
+  {
+   "name": "Heathers Swim School",
+   "lat": -38.3542787,
+   "lon": 143.5825665,
+   "label": "swimming"
   },
   {
    "name": "Geelong Vintage Market",
@@ -11978,6 +12987,18 @@
    "label": "convenience"
   },
   {
+   "name": "Step Beach",
+   "lat": -38.4655106,
+   "lon": 144.1071499,
+   "label": "beach"
+  },
+  {
+   "name": "Smelly Beach",
+   "lat": -38.4637699,
+   "lon": 144.1082898,
+   "label": "beach"
+  },
+  {
    "name": "Da Moose Cafe",
    "lat": -37.8513527,
    "lon": 144.8332147,
@@ -11988,6 +13009,12 @@
    "lat": -37.8477226,
    "lon": 144.6995857,
    "label": "theatre"
+  },
+  {
+   "name": "Shell Refinery Pier",
+   "lat": -38.0878473,
+   "lon": 144.3863573,
+   "label": "pier"
   },
   {
    "name": "Liberty",
@@ -12038,6 +13065,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Red Rocks (Black Rocks) Beach",
+   "lat": -38.3961585,
+   "lon": 144.2444008,
+   "label": "beach"
+  },
+  {
    "name": "Premix King East Geelong",
    "lat": -38.1630418,
    "lon": 144.3729817,
@@ -12060,6 +13093,12 @@
    "lat": -38.2310511,
    "lon": 144.3740495,
    "label": "cafe"
+  },
+  {
+   "name": "Lorne Sea Baths",
+   "lat": -38.5395501,
+   "lon": 143.9761812,
+   "label": "swimming"
   },
   {
    "name": "Peter Thwaites Lecture Theatre",
@@ -12086,10 +13125,172 @@
    "label": "alcohol"
   },
   {
+   "name": "Otway Reef",
+   "lat": -38.8682007,
+   "lon": 143.517309,
+   "label": "reef"
+  },
+  {
+   "name": "Henty Reef",
+   "lat": -38.7859548,
+   "lon": 143.7042274,
+   "label": "reef"
+  },
+  {
+   "name": "Ingoldsby Reefs",
+   "lat": -38.4135275,
+   "lon": 144.2158524,
+   "label": "reef"
+  },
+  {
+   "name": "Ingoldsby Reefs",
+   "lat": -38.4078869,
+   "lon": 144.2309831,
+   "label": "reef"
+  },
+  {
+   "name": "Bird Rock",
+   "lat": -38.3497067,
+   "lon": 144.3033288,
+   "label": "reef"
+  },
+  {
+   "name": "Charlemont Reef",
+   "lat": -38.2980419,
+   "lon": 144.4806052,
+   "label": "reef"
+  },
+  {
+   "name": "Point Lonsdale Reef",
+   "lat": -38.2927081,
+   "lon": 144.6144689,
+   "label": "reef"
+  },
+  {
+   "name": "Mushroom Rock",
+   "lat": -38.2943964,
+   "lon": 144.6170702,
+   "label": "reef"
+  },
+  {
+   "name": "Yellowtail Rock",
+   "lat": -38.2950831,
+   "lon": 144.617417,
+   "label": "reef"
+  },
+  {
+   "name": "Victory Shoal",
+   "lat": -38.2804484,
+   "lon": 144.6328859,
+   "label": "reef"
+  },
+  {
+   "name": "Drapers Reef",
+   "lat": -38.2711379,
+   "lon": 144.6682839,
+   "label": "reef"
+  },
+  {
+   "name": "Nicholson Knoll",
+   "lat": -38.3037886,
+   "lon": 144.702201,
+   "label": "reef"
+  },
+  {
+   "name": "Royal George Shoal",
+   "lat": -38.2467958,
+   "lon": 144.7236321,
+   "label": "reef"
+  },
+  {
+   "name": "William Sand",
+   "lat": -38.2302296,
+   "lon": 144.7391987,
+   "label": "reef"
+  },
+  {
+   "name": "West Middle Sand",
+   "lat": -38.2293845,
+   "lon": 144.7532179,
+   "label": "reef"
+  },
+  {
+   "name": "Middle Sand",
+   "lat": -38.2237136,
+   "lon": 144.7762527,
+   "label": "reef"
+  },
+  {
+   "name": "West Sand",
+   "lat": -38.2172955,
+   "lon": 144.7236382,
+   "label": "reef"
+  },
+  {
+   "name": "Swan Spit",
+   "lat": -38.250243,
+   "lon": 144.7011365,
+   "label": "reef"
+  },
+  {
+   "name": "Middle Ground",
+   "lat": -38.2995813,
+   "lon": 144.8025291,
+   "label": "reef"
+  },
+  {
+   "name": "South Sand",
+   "lat": -38.3372567,
+   "lon": 144.7901763,
+   "label": "reef"
+  },
+  {
+   "name": "Spoil Ground Shoal",
+   "lat": -38.3303494,
+   "lon": 144.8215302,
+   "label": "reef"
+  },
+  {
+   "name": "Governor Reef",
+   "lat": -38.1535038,
+   "lon": 144.7285159,
+   "label": "reef"
+  },
+  {
+   "name": "Inner Governor Reef",
+   "lat": -38.149028,
+   "lon": 144.7240363,
+   "label": "reef"
+  },
+  {
+   "name": "Harding Reach",
+   "lat": -38.1121592,
+   "lon": 144.6686618,
+   "label": "reef"
+  },
+  {
+   "name": "Saltwater Swim School",
+   "lat": -37.8196861,
+   "lon": 144.7197503,
+   "label": "swimming"
+  },
+  {
+   "name": "GBoards Australia",
+   "lat": -38.3097312,
+   "lon": 144.3183044,
+   "label": "surf"
+  },
+  {
    "name": "Maple Bakery & Cafe",
    "lat": -38.3097157,
    "lon": 144.3174312,
    "label": "cafe"
+  },
+  {
+   "name": "Ramblers Road Shellfish Reef",
+   "lat": -38.1139292,
+   "lon": 144.6207653,
+   "label": "reef"
   },
   {
    "name": "Club Mambourin",
@@ -12102,6 +13303,12 @@
    "lat": -38.3515742,
    "lon": 143.5898912,
    "label": "library"
+  },
+  {
+   "name": "Altona Pier",
+   "lat": -37.8730042,
+   "lon": 144.8296372,
+   "label": "pier"
   },
   {
    "name": "Reddy Express",
@@ -12132,6 +13339,12 @@
    "lat": -38.0269855,
    "lon": 144.4306926,
    "label": "bakery"
+  },
+  {
+   "name": "Merian Reef",
+   "lat": -38.2893583,
+   "lon": 144.6167246,
+   "label": "reef"
   },
   {
    "name": "Hobsons Bay Men's Shed",
@@ -12242,6 +13455,18 @@
    "label": "coffee"
   },
   {
+   "name": "Salt Water Swim Schools",
+   "lat": -38.2257141,
+   "lon": 144.3261583,
+   "label": "swimming"
+  },
+  {
+   "name": "Cosy Corner",
+   "lat": -38.3382248,
+   "lon": 144.3264145,
+   "label": "beach"
+  },
+  {
    "name": "Tasman Meats",
    "lat": -37.9038204,
    "lon": 144.6605092,
@@ -12294,6 +13519,18 @@
    "lat": -38.4760319,
    "lon": 143.7521638,
    "label": "orchard"
+  },
+  {
+   "name": "St Leonards Boat Ramp Jetty",
+   "lat": -38.1798996,
+   "lon": 144.7162709,
+   "label": "pier"
+  },
+  {
+   "name": "Red Bluff",
+   "lat": -38.1846309,
+   "lon": 144.7139934,
+   "label": "beach"
   },
   {
    "name": "McDonald's",
@@ -12446,6 +13683,42 @@
    "label": "bakery"
   },
   {
+   "name": "Sunnymead Beach",
+   "lat": -38.4480114,
+   "lon": 144.1218864,
+   "label": "beach"
+  },
+  {
+   "name": "Red Rocks Beach",
+   "lat": -38.442006,
+   "lon": 144.1271971,
+   "label": "beach"
+  },
+  {
+   "name": "Horseshoe Rock",
+   "lat": -38.4653087,
+   "lon": 144.1082462,
+   "label": "reef"
+  },
+  {
+   "name": "Plunge Off Rock",
+   "lat": -38.4632756,
+   "lon": 144.1102263,
+   "label": "reef"
+  },
+  {
+   "name": "Swim Off Rock",
+   "lat": -38.4630581,
+   "lon": 144.110733,
+   "label": "reef"
+  },
+  {
+   "name": "Thirteenth Beach",
+   "lat": -38.2856857,
+   "lon": 144.4620923,
+   "label": "beach"
+  },
+  {
    "name": "BCF",
    "lat": -38.2479003,
    "lon": 144.5394247,
@@ -12480,6 +13753,12 @@
    "lat": -38.340012,
    "lon": 143.5848653,
    "label": "fast_food"
+  },
+  {
+   "name": "Colac Yacht Club",
+   "lat": -38.3322782,
+   "lon": 143.5761356,
+   "label": "sailing"
   },
   {
    "name": "St Andrews Kitchen",
@@ -12530,6 +13809,12 @@
    "label": "cafe"
   },
   {
+   "name": "Point Roadknight Beach",
+   "lat": -38.4248702,
+   "lon": 144.1812496,
+   "label": "beach"
+  },
+  {
    "name": "Get Lost Outdoors & Toys",
    "lat": -38.3399724,
    "lon": 143.5884856,
@@ -12564,6 +13849,12 @@
    "lat": -38.1515268,
    "lon": 144.3838794,
    "label": "hotel"
+  },
+  {
+   "name": "Great Sand",
+   "lat": -38.263003,
+   "lon": 144.760554,
+   "label": "reef"
   }
  ],
  "towns": {
