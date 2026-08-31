@@ -147,6 +147,11 @@ BY_ID = {
   # Odonata MANAGES Mt Rothwell (place 104) and is pinned there; the sanctuary
   # is the place, the foundation is the group.
   700: ('group', 'Odonata is the foundation that runs Mt Rothwell, not the sanctuary'),
+  # Same pair, the other half. `nature` and `night` both map to spot, but the
+  # sanctuary is predator-proof fenced and its own page offers only booked
+  # tours, volunteer days and private events — a door, a booking and a price.
+  # "Anything with a door defaults to Venue" is the standing rule.
+  701: ('venue', 'Mt Rothwell is fenced and entry is by booked tour, not a walk-in'),
 
   # `community` makes a group, which is right for a Landcare branch and wrong
   # for a building. A library is somewhere you walk into.
