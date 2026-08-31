@@ -1833,9 +1833,14 @@ and `.ylab` is `H - PADT - PADB` or the labels stop tracking the gridlines.
 
 ### A second axis, and a switch for the library
 
-Two asks, 31 Aug 2026, and they turn out to be the same problem: **500 of the
-706 events are library story times**, so they set the shape of every line and
-everything else hides underneath.
+Two asks, 31 Aug 2026, and they turn out to be the same problem: **the library
+is most of the calendar**, so it sets the shape of every line and everything
+else hides underneath.
+
+**Those counts move, so do not trust the numbers in this section.** They were
+500 of 706 when the chart was built and 285 of 491 an hour later — another
+session was deleting story times and adding beaches while this was being
+written. Re-count before quoting.
 
 **The library switch is the more useful of the two.** With it excluded the
 window goes **662 → 162 listings** and the daily lines become readable. The
@@ -1843,12 +1848,29 @@ number that survives the flip is the one worth knowing: *added by hand* stays
 at **55 either way**, which is the proof that the library import is entirely
 automated and that the hand-built calendar is a sixth of what is on the board.
 
-**Running total gets its own axis on the right**, because a cumulative line
-reaches the high hundreds while a day peaks around forty — on one scale the
-daily lines flatten into noise. It is drawn dashed and with no area fill, and
-its axis is labelled in its own colour, or the reader has no way to tell which
-line to read against which numbers. It is **off by default**: two scales is a
-thing you ask for, not something to be handed.
+**The green line is a LEVEL, not a running sum** — Scott corrected the first
+version within the hour: *"it should just be how many events were on the site on
+this day."* A cumulative line answers how much has passed through, which is a
+different and less useful question than how big the board was.
+
+`out.total` counts, for each day, the events **written by then and not yet
+finished**. It rises as imports land (0 on 22 Aug, 131 by the 26th, 422 by the
+30th) and decays as events pass. Verified against an independent Python count
+before shipping — same six numbers.
+
+**Both halves are honest about what they are.** Left of today it is rebuilt from
+what is in the database NOW, and `created_at` only reaches 23 Aug 2026, so 0
+before that means the database did not exist, not that the coast was quiet.
+Right of today it is a projection and can only fall, since nothing yet imported
+gets added to the past. The caption says both when the line is on.
+
+**The card shows today's value, not a sum**, because a sum under a level curve
+is meaningless.
+
+It takes **its own axis on the right**: it runs in the hundreds while a day
+peaks around forty, so on one scale the daily lines flatten into noise. Drawn
+dashed with no area fill, axis labelled in its own colour. **Off by default** —
+two scales is a thing you ask for.
 
 `PADR` widens from 8 to 40 only when a right-axis series is showing, so the plot
 does not permanently reserve space for a line that is usually hidden.

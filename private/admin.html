@@ -2408,7 +2408,7 @@ const SERIES = [
   {k:'hand',  t:'Added by hand',  c:'#C8776A',       s:'somebody typed it'},
   // Its own axis on the right: a running total reaches the high hundreds while
   // a day peaks around forty, so on one scale the daily lines flatten to noise.
-  {k:'total', t:'Running total',  c:'#7FB08A',       s:'adding up across the window',
+  {k:'total', t:'On the site',    c:'#7FB08A',       s:'events the board was carrying',
    axis:'right'},
 ];
 const AUTO_BY = ['grlc', 'surfcoastevents', 'venue-feed'];
@@ -2461,11 +2461,21 @@ function chartData(){
       d = nx.toISOString().slice(0, 10);
     }
   }
-  // The total is the daily count accumulating left to right, so the line
-  // answers "how much of the window have we covered by this date".
-  let run = 0;
-  out.total = out.all.map(v => (run += v));
-  seen.total = seen.all;
+  // "How many events were on the site on this day" — the size of the board,
+  // not a running sum. A row counts on day D if it had been written by then and
+  // had not yet finished. Scott's correction: a cumulative line answers how
+  // much has passed through, which is a different and less useful question.
+  //
+  // Honest about its two halves. To the LEFT of today it is reconstructed from
+  // what is in the database now, and `created_at` only reaches 23 Aug 2026 —
+  // before that the line is 0 because the database did not exist, not because
+  // the coast was quiet. To the RIGHT it is a projection: how many of today's
+  // known events will still be ahead on that date, which only falls, since
+  // nothing yet imported can be added to the past.
+  const rows = DATA.events.filter(e =>
+    (CHART.library || e.added_by !== LIBRARY) && e.created_at && e.starts_on);
+  out.total = days.map(d => rows.filter(e =>
+    e.created_at.slice(0, 10) <= d && (e.ends_on || e.starts_on) >= d).length);
   return {days, out, seen, todayAt: days.indexOf(TODAY)};
 }
 
@@ -2498,7 +2508,11 @@ function drawChart(){
 
   $('#chart').innerHTML = `
     <div class="cardrow">${SERIES.map(s => {
-      const total = seen[s.k].size;
+      // A sum under this curve would be meaningless — it is a level, not a
+      // rate — so the card shows where it stands today.
+      const total = s.k === 'total'
+        ? out.total[todayAt >= 0 ? todayAt : out.total.length - 1]
+        : seen[s.k].size;
       const on = CHART.on[s.k];
       return `<button class="scard${on ? '' : ' off'}" data-series="${s.k}">
         <div class="scardn">${total.toLocaleString()}
@@ -2543,7 +2557,12 @@ function drawChart(){
       <div class="xlab">${ticks.map(({d, i}) =>
         `<span style="left:${(x(i) / W * 100).toFixed(2)}%">${esc(dmy(d).replace(/ \d{4}$/, ''))}</span>`).join('')}</div>
     </div>
-    <p class="tiles2" style="margin:8px 0 0">Events by the day they happen —
+    <p class="tiles2" style="margin:8px 0 0">${CHART.on.total
+      ? `<b>On the site</b> is how many events the board was carrying that day —
+         written by then and not yet finished. Left of today it is rebuilt from
+         what is in the database now, which only reaches 23 Aug 2026; right of
+         today it can only fall, since nothing here is added to the past.<br>` : ''}
+      Events by the day they happen —
       ${CHART.days} days either side of today, as far back as the record goes.
       A listing spanning several days counts on each of them.</p>`;
 
