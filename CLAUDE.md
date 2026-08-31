@@ -3796,6 +3796,64 @@ work. Worth knowing before assuming a query is malformed.
 They are also `verified = false`. Both are a person's call and neither was
 touched.
 
+### A weekly event says "Every Saturday" — 31 Aug 2026
+
+Scott: *"Instead of 'This Saturday' for recurring events, Change it to 'Every
+Saturday' and remove it from title."* Both halves, because they are one fact
+with two homes — the name said `– every Saturday` while the When column said
+`This Saturday`, which is the same duplication the venue-in-the-name rules were
+written to end.
+
+**WEEKLY ONLY, and that is the whole of the gate.** The page prints
+`Every <weekday>` for weekly and nothing else, so that is the only recurrence a
+name may shed. `Community Market – first Sunday of Month` (88) keeps every word,
+because nothing else on the row says it — monthly is not rolled forward by
+`nextDate()` and there is nowhere for "first Sunday" to go. **Fortnightly keeps
+"This"**, which is exactly what it means: this one, not every one.
+
+**Today and Tomorrow still win.** A weekly event two to six days out reads
+`Every Saturday`; on the day itself it reads `Today`. Whether a thing is on now
+is the more urgent question, and the open row carries the recurrence either way.
+
+Two files print this label and both changed — `whenText()` in index.html and
+`whenLabel()` in `notice-page.js`, which is what a town or type page draws. They
+had to move together, or `/running` would have gone on printing a date for a row
+whose name no longer says how often.
+
+The weekday already came off the time text — "Saturdays 8:00am" prints as
+"8:00am" — so the row reads *Every Saturday · 8:00am* rather than saying
+Saturday twice. That rule was already there; it is what makes this one read.
+
+### `name_rules.py` takes the recurrence out too, and grew a `--only`
+
+The recurrence strip runs BEFORE the place rules and joins its reason to
+theirs, so one name can lose both. `tidy()` is now a wrapper holding OVERRIDE,
+KEEP and the recurrence; `tidy_place()` is the old body. **The tables are tested
+on the name as published**, once, in the wrapper — testing them again inside
+would be against a name this module has already edited, which is not what they
+are keyed on.
+
+    python3 scripts/name_rules.py --only=recurrence --write
+
+**`--only` is not a convenience, it is a safety catch.** The dry run proposes
+**33** renames and 28 of them are venue changes that have been sitting unapplied
+since August; a plain `--write` would have accepted the lot as a side effect of
+this one-line ask. Worse, one of them is wrong: rule 4 now wants to turn
+`Torquay Library Activities` — which is an OVERRIDE target — into `Library
+Activities`. **A rule set can attack its own OVERRIDE output**, and nothing
+stops it. Read the dry run.
+
+Five renamed: 84 Torquay Parkrun, 86 Trebeck Reserve Parkrun, 741 Ocean Grove
+Parkrun, 742 Portarlington Parkrun, 743 Balyang Sanctuary Parkrun. Each one's
+`source_note` carries `Published as "<old title>"`, as every rename here does.
+
+**Another session was writing to the database at the same moment**, and it
+showed: event 84 was `Parkrun – every Saturday` when this session read it and
+`Torquay Parkrun – every Saturday` four minutes later. An OVERRIDE had already
+been written for the bare-`Parkrun` case and was deleted again, because its key
+no longer existed — a dead OVERRIDE keyed on a name nothing carries is worse
+than none. **Re-read a row before believing a plan made against it.**
+
 ### `have.py` was silently showing 1000 of 1207 listings
 
 Found because the two events above did not appear in `have.py running` a minute

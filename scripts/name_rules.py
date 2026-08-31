@@ -44,16 +44,10 @@ KEEP = {
   'Lorne Sculpture Biennale':      'the biennale is named for the town',
 }
 # Where the right answer is a rewrite rather than a subtraction.
-# A value is the new name, or (new name, the reason) where 'named by hand' does
-# not say enough.
 OVERRIDE = {
   'Torquay Library – School Holiday Program': 'Torquay Library Activities',
   'Dawn Service – Torquay RSL': 'Anzac Day Dawn Service',   # what it is, not who runs it
   'Repair Café Surf Coast': 'Repair Café',                  # it has one hall, in Aireys Inlet
-  # Subtraction alone leaves "Parkrun", which says nothing with five of them in
-  # the database. The town is this one's identity, not a venue borrowed from Where.
-  'Parkrun – every Saturday': ('Torquay Parkrun',
-      'recurrence dropped by hand — subtracting it alone leaves "Parkrun"'),
 }
 # Words that are part of a place name rather than a place: they may appear in a
 # chunk being tested without making it something other than the venue.
