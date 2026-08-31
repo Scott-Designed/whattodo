@@ -1701,6 +1701,14 @@ are not the page's, and mapping the mouse back through the viewBox
 right edge rather than after, and the hitbox stops short of the axis labels so
 leaving downwards dismisses it.
 
+**The tooltip names the weekday** — *Tue, 1 Sep 2026* — because on a calendar
+chart the spikes ARE the weekdays: the library's story times land Mon–Thu, and
+without the day the peaks are unreadable. `dow()` builds the date from the
+string's own parts through `Date.UTC`, for the reason `dmy()` splits rather than
+parses: a stored date is a DAY, not an instant, and `new Date('2026-08-31')` is
+UTC midnight, which prints the 30th at +10. Checked against four known dates
+including a new year.
+
 **Tripling the height meant changing the viewBox, not the CSS.** The svg is
 `preserveAspectRatio="none"`, so scaling by CSS alone stretches every 2px stroke
 to 6px vertically and leaves it 2px across. `H` and the CSS height move together,

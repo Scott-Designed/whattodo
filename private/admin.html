@@ -116,8 +116,8 @@ a.pill{text-decoration:none;line-height:1}
 .dot{width:9px;height:9px;border-radius:50%;border:2px solid;flex:none}
 .chartbox{position:relative;padding:0 0 20px 0;border:1px solid var(--rule2);
   border-radius:12px;background:var(--surface)}
-.chartsvg{display:block;width:100%;height:630px}
-.ylab{position:absolute;left:6px;top:8px;height:598px;display:flex;
+.chartsvg{display:block;width:100%;height:504px}
+.ylab{position:absolute;left:6px;top:8px;height:472px;display:flex;
   flex-direction:column;justify-content:space-between;font-size:10px;color:var(--ink3)}
 .xlab{position:relative;height:14px;margin-top:-6px}
 .xlab span{position:absolute;transform:translateX(-50%);font-size:10px;
@@ -2409,6 +2409,12 @@ const SERIES = [
 const AUTO_BY = ['grlc', 'surfcoastevents', 'venue-feed'];
 let CHART = {on: {all: true, auto: true, hand: true}, days: 90};
 
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const dow = iso => {
+  const [y, m, d] = String(iso).split('-').map(Number);
+  return DOW[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+};
+
 function chartData(){
   // Both sides of today, because a listings site is judged on what it has
   // ALREADY carried as much as on what is coming. `back` is capped at the
@@ -2450,7 +2456,7 @@ function chartData(){
 
 function drawChart(){
   const {days, out, seen, todayAt} = chartData();
-  const W = 1000, H = 630, PADL = 34, PADB = 22, PADT = 10;
+  const W = 1000, H = 504, PADL = 34, PADB = 22, PADT = 10;
   const shown = SERIES.filter(s => CHART.on[s.k]);
   const peak = Math.max(1, ...shown.flatMap(s => out[s.k]));
   const x = i => PADL + (i / Math.max(1, days.length - 1)) * (W - PADL - 8);
@@ -2522,7 +2528,7 @@ function drawChart(){
     const left = (x(i) / W) * r.width;
     guide.hidden = false; guide.style.left = left + 'px';
     tip.hidden = false;
-    tip.innerHTML = `<b>${esc(dmy(days[i]))}</b>` + shown.map(s =>
+    tip.innerHTML = `<b>${esc(dow(days[i]))}, ${esc(dmy(days[i]))}</b>` + shown.map(s =>
       `<span><i style="background:${s.c}"></i>${esc(s.t)} <b>${out[s.k][i]}</b></span>`).join('');
     // Flip before it runs off the right edge rather than after.
     const w = tip.offsetWidth;
