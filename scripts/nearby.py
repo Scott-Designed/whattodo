@@ -129,6 +129,23 @@ KIND_TAGS = {
     # writes has to be somewhere a person can stand, and the one failure it has
     # already paid for is fifty pins in Bass Strait. A category that can only
     # ever return water does not belong in a net feeding a listings database.
+    # what a landscape pass is looking for. This group is unusual: it is short of
+    # PINS rather than rows, and nearly every missing pin is a named Parks
+    # Victoria or GORCPA feature — a waterfall, a lookout, a rainforest walk — so
+    # the map is a good net here.
+    #
+    # `boundary=protected_area` is deliberately absent: a national park boundary
+    # is a polygon the size of a shire, and its centroid is the administrative
+    # trap this project already refuses. Ask for the waterfall, not the park.
+    # `highway=trailhead` is the useful one for a walk, because a walk's honest
+    # coordinate is where you start it, not the middle of the track.
+    'landscape': {'natural': {'waterfall', 'peak', 'cave_entrance', 'spring',
+                              'cliff', 'arch', 'tree'},
+                  'tourism': {'viewpoint', 'picnic_site', 'attraction', 'zoo'},
+                  'leisure': {'nature_reserve', 'garden', 'bird_hide'},
+                  'highway': {'trailhead'},
+                  'man_made': {'lighthouse', 'tower'},
+                  'historic': {'ruins'}},
     'ocean': {'natural': {'beach'},
               'leisure': {'slipway', 'marina', 'swimming_area', 'swimming_pool',
                           'beach_resort'},

@@ -1,18 +1,43 @@
 {
- "fetched": "2026-08-31 10:11",
+ "fetched": "2026-08-31 12:50",
  "kinds": [
   "arts",
   "bike",
   "food",
+  "landscape",
   "ocean",
   "produce"
  ],
  "pois": [
   {
+   "name": "Blanket Leaf Picnic Ground",
+   "lat": -38.5165192,
+   "lon": 143.929613,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Flinders Peak",
+   "lat": -37.9509194,
+   "lon": 144.4247986,
+   "label": "viewpoint"
+  },
+  {
    "name": "Point Cook Homestead",
    "lat": -37.9261016,
    "lon": 144.7929218,
    "label": "attraction"
+  },
+  {
+   "name": "Cheetham Wetlands Observation Tower",
+   "lat": -37.9127628,
+   "lon": 144.792676,
+   "label": "tower"
+  },
+  {
+   "name": "Outlook",
+   "lat": -37.8647452,
+   "lon": 144.2448655,
+   "label": "viewpoint"
   },
   {
    "name": "Jimmy'Z",
@@ -39,6 +64,18 @@
    "label": "convenience"
   },
   {
+   "name": "Guvvos Beach",
+   "lat": -38.4290197,
+   "lon": 144.1554306,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Anglesea Lookout",
+   "lat": -38.4164678,
+   "lon": 144.1816488,
+   "label": "viewpoint"
+  },
+  {
    "name": "McDonald's",
    "lat": -37.8054287,
    "lon": 144.8093151,
@@ -57,10 +94,22 @@
    "label": "attraction"
   },
   {
+   "name": "Brownhill Heights",
+   "lat": -38.173699,
+   "lon": 144.3003771,
+   "label": "viewpoint"
+  },
+  {
    "name": "Memorial Arch",
    "lat": -38.4720398,
    "lon": 144.0445751,
    "label": "attraction"
+  },
+  {
+   "name": "London Bridge Lookout",
+   "lat": -38.3294732,
+   "lon": 144.6934073,
+   "label": "viewpoint"
   },
   {
    "name": "Norris Barracks",
@@ -69,16 +118,46 @@
    "label": "attraction"
   },
   {
+   "name": "Cattle Jetty",
+   "lat": -38.3054919,
+   "lon": 144.6809598,
+   "label": "ruins"
+  },
+  {
    "name": "Cheviot Beach",
    "lat": -38.3129732,
    "lon": 144.6672586,
    "label": "beach"
   },
   {
+   "name": "Wombat Hill Lookout",
+   "lat": -38.1468371,
+   "lon": 144.3024932,
+   "label": "viewpoint"
+  },
+  {
    "name": "Portarlington Pub",
    "lat": -38.1151953,
    "lon": 144.6530922,
    "label": "pub"
+  },
+  {
+   "name": "Southside",
+   "lat": -38.3723233,
+   "lon": 144.2775054,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Little Rock Lookout",
+   "lat": -38.3476455,
+   "lon": 144.3040557,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Bird Rock Lookout",
+   "lat": -38.3497823,
+   "lon": 144.3020255,
+   "label": "viewpoint"
   },
   {
    "name": "Torquay Boat Ramp",
@@ -115,6 +194,54 @@
    "lat": -38.1002724,
    "lon": 144.0591579,
    "label": "restaurant"
+  },
+  {
+   "name": "Ocean View Lookout",
+   "lat": -38.4682413,
+   "lon": 144.0533971,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Spion Kop",
+   "lat": -38.4682424,
+   "lon": 144.0694501,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Moggs Creek Picnic Area",
+   "lat": -38.4582158,
+   "lon": 144.0604513,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Distillery Creek Picnic Area",
+   "lat": -38.4443986,
+   "lon": 144.09494,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Abandoned well",
+   "lat": -38.3776316,
+   "lon": 144.2646605,
+   "label": "ruins"
+  },
+  {
+   "name": "Old Jarosite Mine",
+   "lat": -38.3778101,
+   "lon": 144.2650164,
+   "label": "ruins"
+  },
+  {
+   "name": "Peters Hill Fire Tower",
+   "lat": -38.3963246,
+   "lon": 144.0040643,
+   "label": "tower"
+  },
+  {
+   "name": "Wurdee Boluc Reservoir Lookout",
+   "lat": -38.2870184,
+   "lon": 144.0516003,
+   "label": "viewpoint"
   },
   {
    "name": "Barwon Park",
@@ -231,6 +358,18 @@
    "label": "cafe"
   },
   {
+   "name": "Cheviot Hill",
+   "lat": -38.3113158,
+   "lon": 144.6666311,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Eagle's Nest",
+   "lat": -38.3077042,
+   "lon": 144.6607946,
+   "label": "viewpoint"
+  },
+  {
    "name": "Point Richards Boatramp",
    "lat": -38.1086002,
    "lon": 144.6297235,
@@ -339,6 +478,12 @@
    "label": "cafe"
   },
   {
+   "name": "Queenscliff Black Lighthouse",
+   "lat": -38.2715967,
+   "lon": 144.6618522,
+   "label": "lighthouse"
+  },
+  {
    "name": "Koonya Store",
    "lat": -38.3575585,
    "lon": 144.7574418,
@@ -441,10 +586,22 @@
    "label": "hotel"
   },
   {
+   "name": "Castle Cove Lookout",
+   "lat": -38.782147,
+   "lon": 143.4276685,
+   "label": "viewpoint"
+  },
+  {
    "name": "Ocean Grove Bowls Club",
    "lat": -38.2664181,
    "lon": 144.5165857,
    "label": "restaurant"
+  },
+  {
+   "name": "cascades",
+   "lat": -38.5464667,
+   "lon": 143.9621777,
+   "label": "viewpoint"
   },
   {
    "name": "Bob Sugar",
@@ -471,10 +628,28 @@
    "label": "restaurant"
   },
   {
+   "name": "Bird Hide - Spectacle Lake",
+   "lat": -37.919674,
+   "lon": 144.7733516,
+   "label": "bird_hide"
+  },
+  {
+   "name": "Bird Hide - Truganina Swamp",
+   "lat": -37.868951,
+   "lon": 144.8052431,
+   "label": "bird_hide"
+  },
+  {
    "name": "Split Point Lighthouse",
    "lat": -38.4680026,
    "lon": 144.104468,
    "label": "attraction"
+  },
+  {
+   "name": "Hutt Gully",
+   "lat": -38.4300034,
+   "lon": 144.1474478,
+   "label": "viewpoint"
   },
   {
    "name": "Sunnymead Hotel",
@@ -483,10 +658,22 @@
    "label": "hotel"
   },
   {
+   "name": "Eagle Rock Lookout",
+   "lat": -38.468199,
+   "lon": 144.1048101,
+   "label": "viewpoint"
+  },
+  {
    "name": "Aireys Inlet General Store",
    "lat": -38.4588652,
    "lon": 144.1071263,
    "label": "convenience"
+  },
+  {
+   "name": "Urquhart Bluff",
+   "lat": -38.4364666,
+   "lon": 144.1276505,
+   "label": "viewpoint"
   },
   {
    "name": "Le Comptoir",
@@ -499,6 +686,12 @@
    "lat": -38.4659354,
    "lon": 144.1022045,
    "label": "attraction"
+  },
+  {
+   "name": "Cinema Point",
+   "lat": -38.4852682,
+   "lon": 144.0288367,
+   "label": "viewpoint"
   },
   {
    "name": "Movida Lorne",
@@ -517,6 +710,18 @@
    "lat": -38.5424669,
    "lon": 143.9748474,
    "label": "hotel"
+  },
+  {
+   "name": "Big Hill",
+   "lat": -38.4966189,
+   "lon": 144.0122904,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Devil's Elbow",
+   "lat": -38.4821417,
+   "lon": 144.0322021,
+   "label": "viewpoint"
   },
   {
    "name": "Grand Pacific Hotel",
@@ -657,6 +862,12 @@
    "label": "pub"
   },
   {
+   "name": "W.B. Godfrey Wreck",
+   "lat": -38.6079313,
+   "lon": 143.9183742,
+   "label": "viewpoint"
+  },
+  {
    "name": "Wye River General Store",
    "lat": -38.6347852,
    "lon": 143.8905258,
@@ -687,16 +898,40 @@
    "label": "guest_house"
   },
   {
+   "name": "Mount Defiance Lookout",
+   "lat": -38.587175,
+   "lon": 143.9339412,
+   "label": "viewpoint"
+  },
+  {
    "name": "The Deck House",
    "lat": -38.6409195,
    "lon": 143.8922307,
    "label": "guest_house"
   },
   {
+   "name": "Artillery Rocks",
+   "lat": -38.6010844,
+   "lon": 143.9210345,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Cape Patton Lookout",
+   "lat": -38.6919681,
+   "lon": 143.829968,
+   "label": "viewpoint"
+  },
+  {
    "name": "Flick Surfboards Factory Outlet",
    "lat": -38.3262547,
    "lon": 144.3183378,
    "label": "sports"
+  },
+  {
+   "name": "Barwon Valley Lookout",
+   "lat": -38.1437084,
+   "lon": 144.3237946,
+   "label": "viewpoint"
   },
   {
    "name": "Salt Brewing Co.",
@@ -739,6 +974,18 @@
    "lat": -38.3388003,
    "lon": 144.7407625,
    "label": "deli"
+  },
+  {
+   "name": "Sorrento back beach",
+   "lat": -38.3457744,
+   "lon": 144.7247884,
+   "label": "viewpoint"
+  },
+  {
+   "name": "St Paul's Lookout",
+   "lat": -38.3564414,
+   "lon": 144.7444172,
+   "label": "viewpoint"
   },
   {
    "name": "Warung Bali",
@@ -801,6 +1048,12 @@
    "label": "guest_house"
   },
   {
+   "name": "Aire River",
+   "lat": -38.8103062,
+   "lon": 143.4672182,
+   "label": "viewpoint"
+  },
+  {
    "name": "Frost Gelato",
    "lat": -38.1493963,
    "lon": 144.3607442,
@@ -825,6 +1078,18 @@
    "label": "guest_house"
   },
   {
+   "name": "Barham Paradise Scenic Reserve",
+   "lat": -38.7507764,
+   "lon": 143.6195877,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Jebbs Pool",
+   "lat": -38.5662178,
+   "lon": 143.9439423,
+   "label": "viewpoint"
+  },
+  {
    "name": "Subway",
    "lat": -38.2585726,
    "lon": 144.548933,
@@ -835,6 +1100,12 @@
    "lat": -38.2585301,
    "lon": 144.5478274,
    "label": "fast_food"
+  },
+  {
+   "name": "Reef Lookout",
+   "lat": -38.4586171,
+   "lon": 144.1147785,
+   "label": "viewpoint"
   },
   {
    "name": "Gellibrand General Store",
@@ -855,6 +1126,12 @@
    "label": "convenience"
   },
   {
+   "name": "Staughton Vale Cliff Face",
+   "lat": -37.8462728,
+   "lon": 144.2697483,
+   "label": "viewpoint"
+  },
+  {
    "name": "Glyn Street Fish & Chip Shop",
    "lat": -38.1836034,
    "lon": 144.3372245,
@@ -865,6 +1142,24 @@
    "lat": -38.1834916,
    "lon": 144.3372453,
    "label": "fast_food"
+  },
+  {
+   "name": "Moolap Exchange Telecom Tower",
+   "lat": -38.1725382,
+   "lon": 144.4003698,
+   "label": "tower"
+  },
+  {
+   "name": "Summit Lookout (East)",
+   "lat": -38.2513156,
+   "lon": 143.5087054,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Summit Lookout (West)",
+   "lat": -38.2480184,
+   "lon": 143.5045907,
+   "label": "viewpoint"
   },
   {
    "name": "McDonald's",
@@ -909,6 +1204,12 @@
    "label": "fast_food"
   },
   {
+   "name": "Queenscliff White Lighthouse",
+   "lat": -38.2737785,
+   "lon": 144.6593078,
+   "label": "lighthouse"
+  },
+  {
    "name": "Erskine Falls",
    "lat": -38.5067063,
    "lon": 143.9132314,
@@ -933,6 +1234,24 @@
    "label": "memorial"
   },
   {
+   "name": "Point Lewis Lookout",
+   "lat": -38.834418,
+   "lon": 143.5803012,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Johanna Lookout",
+   "lat": -38.7623074,
+   "lon": 143.3779842,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Cantilever",
+   "lat": -38.6487162,
+   "lon": 143.4958901,
+   "label": "viewpoint"
+  },
+  {
    "name": "Hot House Pizza",
    "lat": -37.8932121,
    "lon": 144.7280784,
@@ -949,6 +1268,12 @@
    "lat": -38.1460265,
    "lon": 144.3600577,
    "label": "hotel"
+  },
+  {
+   "name": "Sentinel Rock Lookout",
+   "lat": -38.7987754,
+   "lon": 143.4499393,
+   "label": "viewpoint"
   },
   {
    "name": "Blairgowrie Marina",
@@ -979,6 +1304,18 @@
    "lat": -38.0985674,
    "lon": 144.355616,
    "label": "pub"
+  },
+  {
+   "name": "West Barwon Reservoir",
+   "lat": -38.5309546,
+   "lon": 143.721153,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Meredith Pioneer Park",
+   "lat": -37.84694,
+   "lon": 144.07306,
+   "label": "picnic_site"
   },
   {
    "name": "Point Cook Library",
@@ -1137,6 +1474,12 @@
    "label": "slipway"
   },
   {
+   "name": "Marriners Lookout",
+   "lat": -38.7368224,
+   "lon": 143.6676641,
+   "label": "viewpoint"
+  },
+  {
    "name": "Old Cable Station Museum",
    "lat": -38.7368408,
    "lon": 143.6806097,
@@ -1215,6 +1558,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Buckley's Cave",
+   "lat": -38.2921428,
+   "lon": 144.6136958,
+   "label": "cave_entrance"
+  },
+  {
    "name": "The Ridge Organic Food Store & Caf\u00e9",
    "lat": -38.633383,
    "lon": 143.5670727,
@@ -1287,6 +1636,12 @@
    "label": "pub"
   },
   {
+   "name": "Nelsons Lookout",
+   "lat": -37.865624,
+   "lon": 144.258754,
+   "label": "viewpoint"
+  },
+  {
    "name": "Phoenix",
    "lat": -37.873421,
    "lon": 144.748131,
@@ -1353,16 +1708,52 @@
    "label": "restaurant"
   },
   {
+   "name": "Battery Site",
+   "lat": -37.862462,
+   "lon": 144.1822676,
+   "label": "ruins"
+  },
+  {
+   "name": "Calcining Pits",
+   "lat": -37.862459,
+   "lon": 144.181784,
+   "label": "ruins"
+  },
+  {
+   "name": "The Bernhardt Mine",
+   "lat": -37.8631912,
+   "lon": 144.1795013,
+   "label": "ruins"
+  },
+  {
    "name": "Time Beacon sculpture",
    "lat": -37.883767,
    "lon": 144.7974537,
    "label": "artwork"
   },
   {
+   "name": "Castle Rock Lookout",
+   "lat": -38.5714352,
+   "lon": 143.9479856,
+   "label": "viewpoint"
+  },
+  {
    "name": "Phantom Falls",
    "lat": -38.5422178,
    "lon": 143.9476257,
    "label": "attraction"
+  },
+  {
+   "name": "Swallow Cave",
+   "lat": -38.5658508,
+   "lon": 143.9610704,
+   "label": "cave_entrance"
+  },
+  {
+   "name": "Swallow Cave Lookout",
+   "lat": -38.5657347,
+   "lon": 143.9607978,
+   "label": "viewpoint"
   },
   {
    "name": "Otway Estate",
@@ -1399,6 +1790,12 @@
    "lat": -38.7800685,
    "lon": 143.4313886,
    "label": "cafe"
+  },
+  {
+   "name": "The Redwoods Picnic Area",
+   "lat": -38.6684405,
+   "lon": 143.5801606,
+   "label": "picnic_site"
   },
   {
    "name": "Reunion",
@@ -1515,6 +1912,48 @@
    "label": "fast_food"
   },
   {
+   "name": "Bunker",
+   "lat": -38.30862,
+   "lon": 144.6643986,
+   "label": "ruins"
+  },
+  {
+   "name": "Bunker",
+   "lat": -38.3075656,
+   "lon": 144.6601741,
+   "label": "ruins"
+  },
+  {
+   "name": "Lookout",
+   "lat": -38.307614,
+   "lon": 144.660386,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Fort Pearce (Bunkers)",
+   "lat": -38.3070604,
+   "lon": 144.6586962,
+   "label": "ruins"
+  },
+  {
+   "name": "Powerhouse",
+   "lat": -38.3066963,
+   "lon": 144.6584012,
+   "label": "ruins"
+  },
+  {
+   "name": "Bunker",
+   "lat": -38.3077592,
+   "lon": 144.6581037,
+   "label": "ruins"
+  },
+  {
+   "name": "Bunker",
+   "lat": -38.311535,
+   "lon": 144.666995,
+   "label": "ruins"
+  },
+  {
    "name": "Edge Geelong",
    "lat": -38.1446078,
    "lon": 144.3628168,
@@ -1539,6 +1978,12 @@
    "label": "memorial"
   },
   {
+   "name": "United Albion Mine",
+   "lat": -37.8527076,
+   "lon": 144.1893346,
+   "label": "ruins"
+  },
+  {
    "name": "Vietnam Memorial",
    "lat": -38.1194215,
    "lon": 144.3539063,
@@ -1549,6 +1994,12 @@
    "lat": -38.1226648,
    "lon": 144.3575756,
    "label": "memorial"
+  },
+  {
+   "name": "Treefern Track Outlook",
+   "lat": -38.6507319,
+   "lon": 143.4986843,
+   "label": "viewpoint"
   },
   {
    "name": "Railway Hotel",
@@ -1585,6 +2036,12 @@
    "lat": -38.7563014,
    "lon": 143.6692176,
    "label": "restaurant"
+  },
+  {
+   "name": "Buckleys Falls",
+   "lat": -38.1511105,
+   "lon": 144.3068901,
+   "label": "viewpoint"
   },
   {
    "name": "Ocean Grove Hotel",
@@ -1689,6 +2146,42 @@
    "label": "memorial"
   },
   {
+   "name": "Teddy's Lookout",
+   "lat": -38.5542391,
+   "lon": 143.9789488,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Maits Rest",
+   "lat": -38.7538886,
+   "lon": 143.5556818,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Koalas",
+   "lat": -38.8260638,
+   "lon": 143.5245199,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Good shed",
+   "lat": -37.8981226,
+   "lon": 143.6737323,
+   "label": "ruins"
+  },
+  {
+   "name": "Goods Shed",
+   "lat": -37.8291747,
+   "lon": 143.6601181,
+   "label": "ruins"
+  },
+  {
+   "name": "Old Tennis courts",
+   "lat": -38.6361865,
+   "lon": 143.5758157,
+   "label": "ruins"
+  },
+  {
    "name": "Laverton Spices",
    "lat": -37.862974,
    "lon": 144.7714336,
@@ -1719,6 +2212,270 @@
    "label": "pub"
   },
   {
+   "name": "Coal Stage",
+   "lat": -38.0321886,
+   "lon": 143.6450205,
+   "label": "ruins"
+  },
+  {
+   "name": "Golf Hill",
+   "lat": -37.9593,
+   "lon": 144.10098,
+   "label": "peak"
+  },
+  {
+   "name": "Green Hill",
+   "lat": -37.80014,
+   "lon": 144.53581,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Anakie",
+   "lat": -37.88545,
+   "lon": 144.26814,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Moriac",
+   "lat": -38.19827,
+   "lon": 144.16603,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Pollock",
+   "lat": -38.16537,
+   "lon": 144.07314,
+   "label": "peak"
+  },
+  {
+   "name": "One Tree Hill",
+   "lat": -37.82569,
+   "lon": 144.48808,
+   "label": "peak"
+  },
+  {
+   "name": "Bald Hill",
+   "lat": -38.08155,
+   "lon": 143.4087,
+   "label": "peak"
+  },
+  {
+   "name": "Black Hill",
+   "lat": -38.1785,
+   "lon": 143.69893,
+   "label": "peak"
+  },
+  {
+   "name": "Diamond Hill",
+   "lat": -38.45645,
+   "lon": 143.92417,
+   "label": "peak"
+  },
+  {
+   "name": "E S Hill",
+   "lat": -38.82581,
+   "lon": 143.50257,
+   "label": "peak"
+  },
+  {
+   "name": "Gentle Annie Hill",
+   "lat": -38.44319,
+   "lon": 144.011,
+   "label": "peak"
+  },
+  {
+   "name": "Gentle Annie Hill",
+   "lat": -38.71111,
+   "lon": 143.71522,
+   "label": "peak"
+  },
+  {
+   "name": "Gow Hill",
+   "lat": -38.01262,
+   "lon": 143.86977,
+   "label": "peak"
+  },
+  {
+   "name": "Groves Hill",
+   "lat": -38.63095,
+   "lon": 143.66585,
+   "label": "peak"
+  },
+  {
+   "name": "Hallett Hill",
+   "lat": -38.65074,
+   "lon": 143.62724,
+   "label": "peak"
+  },
+  {
+   "name": "Lawrys Hill",
+   "lat": -38.83942,
+   "lon": 143.51364,
+   "label": "peak"
+  },
+  {
+   "name": "Madden Hill",
+   "lat": -38.66775,
+   "lon": 143.61015,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Chapple",
+   "lat": -38.66238,
+   "lon": 143.45164,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Cowley",
+   "lat": -38.54824,
+   "lon": 143.85982,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Defiance",
+   "lat": -38.57862,
+   "lon": 143.91599,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Gellibrand",
+   "lat": -38.23347,
+   "lon": 143.79238,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Hesse",
+   "lat": -38.16558,
+   "lon": 143.83863,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Kinross",
+   "lat": -37.85796,
+   "lon": 143.47886,
+   "label": "peak"
+  },
+  {
+   "name": "Mount MacKenzie",
+   "lat": -38.61843,
+   "lon": 143.32244,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Mercer",
+   "lat": -37.81967,
+   "lon": 143.86387,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Meuron",
+   "lat": -38.67419,
+   "lon": 143.84592,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Murray",
+   "lat": -38.52687,
+   "lon": 143.45748,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Pleasant",
+   "lat": -38.23615,
+   "lon": 143.84304,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Rebecca",
+   "lat": -38.03503,
+   "lon": 143.71195,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Sabine",
+   "lat": -38.62414,
+   "lon": 143.72998,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Saint George",
+   "lat": -38.56086,
+   "lon": 143.9666,
+   "label": "peak"
+  },
+  {
+   "name": "Parker Hill",
+   "lat": -38.84565,
+   "lon": 143.55512,
+   "label": "peak"
+  },
+  {
+   "name": "Peters Hill",
+   "lat": -38.39656,
+   "lon": 144.00397,
+   "label": "peak"
+  },
+  {
+   "name": "Pine Ridge Hill",
+   "lat": -38.63363,
+   "lon": 143.75065,
+   "label": "peak"
+  },
+  {
+   "name": "Quiney Hill",
+   "lat": -37.9191,
+   "lon": 143.92465,
+   "label": "peak"
+  },
+  {
+   "name": "Robertsons Hill",
+   "lat": -38.31856,
+   "lon": 143.51328,
+   "label": "peak"
+  },
+  {
+   "name": "Scaw Fell",
+   "lat": -38.56777,
+   "lon": 143.94991,
+   "label": "peak"
+  },
+  {
+   "name": "Silk Hill",
+   "lat": -38.4624,
+   "lon": 143.93202,
+   "label": "peak"
+  },
+  {
+   "name": "Sugarloaf Hill",
+   "lat": -38.69714,
+   "lon": 143.80114,
+   "label": "peak"
+  },
+  {
+   "name": "Wallinduc Hill",
+   "lat": -37.84022,
+   "lon": 143.55505,
+   "label": "peak"
+  },
+  {
+   "name": "Warrion Hill",
+   "lat": -38.22408,
+   "lon": 143.53005,
+   "label": "peak"
+  },
+  {
+   "name": "Watch Hill",
+   "lat": -38.1284,
+   "lon": 143.62936,
+   "label": "peak"
+  },
+  {
+   "name": "Websters Hill",
+   "lat": -38.63531,
+   "lon": 143.64216,
+   "label": "peak"
+  },
+  {
    "name": "Degani Melbourne Road Drive Thru",
    "lat": -38.068533,
    "lon": 144.377983,
@@ -1731,16 +2488,64 @@
    "label": "guest_house"
   },
   {
+   "name": "viewing platform",
+   "lat": -38.5520618,
+   "lon": 143.7551759,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Viewing platform",
+   "lat": -38.5519495,
+   "lon": 143.7551906,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Old Stockyards",
+   "lat": -38.6368566,
+   "lon": 143.572324,
+   "label": "ruins"
+  },
+  {
+   "name": "Goods Shed",
+   "lat": -38.6366533,
+   "lon": 143.5732734,
+   "label": "ruins"
+  },
+  {
    "name": "War Memorial",
    "lat": -38.637351,
    "lon": 143.5698689,
    "label": "memorial"
   },
   {
+   "name": "Telstra Tower",
+   "lat": -38.6329751,
+   "lon": 143.5641783,
+   "label": "tower"
+  },
+  {
+   "name": "Stockyard",
+   "lat": -38.3287806,
+   "lon": 143.7815013,
+   "label": "ruins"
+  },
+  {
+   "name": "Old stock yards",
+   "lat": -38.5214967,
+   "lon": 143.5392464,
+   "label": "ruins"
+  },
+  {
    "name": "Paul Benjamin Photography",
    "lat": -38.339937,
    "lon": 143.5881665,
    "label": "photographer"
+  },
+  {
+   "name": "Platypus Beach",
+   "lat": -38.5530147,
+   "lon": 143.7592227,
+   "label": "viewpoint"
   },
   {
    "name": "Straw Falls",
@@ -1797,6 +2602,12 @@
    "label": "cafe"
   },
   {
+   "name": "Carisbrook Falls Lookout",
+   "lat": -38.689959,
+   "lon": 143.8104291,
+   "label": "viewpoint"
+  },
+  {
    "name": "Meercat Bistro",
    "lat": -37.9221367,
    "lon": 144.6671848,
@@ -1833,6 +2644,12 @@
    "label": "convenience"
   },
   {
+   "name": "Westies Seat",
+   "lat": -38.3987831,
+   "lon": 144.2134768,
+   "label": "viewpoint"
+  },
+  {
    "name": "Old Headquarters Building",
    "lat": -38.3981801,
    "lon": 144.2141004,
@@ -1855,6 +2672,12 @@
    "lat": -38.5185217,
    "lon": 143.7142667,
    "label": "cafe"
+  },
+  {
+   "name": "Len Sprague Reserve",
+   "lat": -38.5307396,
+   "lon": 143.7206166,
+   "label": "picnic_site"
   },
   {
    "name": "Red Rooster",
@@ -1929,6 +2752,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Loutit Bay Lookout",
+   "lat": -38.4681858,
+   "lon": 144.1024762,
+   "label": "viewpoint"
+  },
+  {
    "name": "War Memorial",
    "lat": -37.9536886,
    "lon": 143.3434517,
@@ -1945,6 +2774,12 @@
    "lat": -38.7566265,
    "lon": 143.666706,
    "label": "hotel"
+  },
+  {
+   "name": "Edwards Point",
+   "lat": -38.2172383,
+   "lon": 144.6941903,
+   "label": "viewpoint"
   },
   {
    "name": "Bikes Direct",
@@ -2211,6 +3046,18 @@
    "label": "attraction"
   },
   {
+   "name": "Grahams Creek Picnic Area",
+   "lat": -37.8547533,
+   "lon": 144.1626746,
+   "label": "picnic_site"
+  },
+  {
+   "name": "The Crossing Picnic Area",
+   "lat": -37.8669084,
+   "lon": 144.1658075,
+   "label": "picnic_site"
+  },
+  {
    "name": "Ocean Grove Pizza and Pasta",
    "lat": -38.2680945,
    "lon": 144.523971,
@@ -2239,6 +3086,18 @@
    "lat": -38.371003,
    "lon": 144.8257869,
    "label": "cafe"
+  },
+  {
+   "name": "Upper Kalimna Falls",
+   "lat": -38.5624221,
+   "lon": 143.9093102,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Lower Kalimna Falls",
+   "lat": -38.5603164,
+   "lon": 143.9182044,
+   "label": "viewpoint"
   },
   {
    "name": "King Neptune Fish & Chips and Burgers",
@@ -2337,6 +3196,12 @@
    "label": "fast_food"
   },
   {
+   "name": "Splitter Falls Lookout",
+   "lat": -38.5095833,
+   "lon": 143.9315131,
+   "label": "viewpoint"
+  },
+  {
    "name": "Barbeques Galore",
    "lat": -37.8731885,
    "lon": 144.7203398,
@@ -2371,6 +3236,24 @@
    "lat": -38.4653235,
    "lon": 144.0983712,
    "label": "cafe"
+  },
+  {
+   "name": "Cape Otway Lighthouse Cemetery",
+   "lat": -38.849816,
+   "lon": 143.51121,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Hayley Point Lookout",
+   "lat": -38.777596,
+   "lon": 143.66434,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Cape Otway Lightstation Lookout",
+   "lat": -38.8512889,
+   "lon": 143.5144531,
+   "label": "viewpoint"
   },
   {
    "name": "Cape Otway Conservation Ecology Centre",
@@ -2485,6 +3368,12 @@
    "lat": -38.143979,
    "lon": 144.3614568,
    "label": "restaurant"
+  },
+  {
+   "name": "Police Point Lookout",
+   "lat": -38.3154803,
+   "lon": 144.7045059,
+   "label": "viewpoint"
   },
   {
    "name": "The Salty Dog Fish & Chippery",
@@ -2619,6 +3508,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Lorne-Queenscliff Coastal Reserve",
+   "lat": -38.4805994,
+   "lon": 144.0336047,
+   "label": "viewpoint"
+  },
+  {
    "name": "Maple Tree Lorne Seafood Restaurant",
    "lat": -38.5404735,
    "lon": 143.9751177,
@@ -2745,6 +3640,12 @@
    "label": "cafe"
   },
   {
+   "name": "Lower Landing",
+   "lat": -38.5543447,
+   "lon": 143.9783764,
+   "label": "viewpoint"
+  },
+  {
    "name": "Lorne Beach Pavilion",
    "lat": -38.539683,
    "lon": 143.976476,
@@ -2781,10 +3682,28 @@
    "label": "gallery"
   },
   {
+   "name": "Otway Ranges Lookout",
+   "lat": -38.5529388,
+   "lon": 143.9775598,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Glowflies (at night)",
+   "lat": -38.6592321,
+   "lon": 143.8157126,
+   "label": "viewpoint"
+  },
+  {
    "name": "The Canyon",
    "lat": -38.5459741,
    "lon": 143.943289,
    "label": "attraction"
+  },
+  {
+   "name": "Sheoak Falls Lookout",
+   "lat": -38.5652198,
+   "lon": 143.96279,
+   "label": "viewpoint"
   },
   {
    "name": "Sailors' rest",
@@ -2823,6 +3742,18 @@
    "label": "cafe"
   },
   {
+   "name": "The Canyon",
+   "lat": -38.5457138,
+   "lon": 143.9430205,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Perruches site",
+   "lat": -38.5419776,
+   "lon": 143.975663,
+   "label": "viewpoint"
+  },
+  {
    "name": "Ampol Foodary Laverton North",
    "lat": -37.8194569,
    "lon": 144.8191087,
@@ -2833,6 +3764,12 @@
    "lat": -37.9663561,
    "lon": 144.7089568,
    "label": "restaurant"
+  },
+  {
+   "name": "Urquharts Falls",
+   "lat": -38.7315923,
+   "lon": 143.6944258,
+   "label": "viewpoint"
   },
   {
    "name": "Ginger Monkey",
@@ -2931,6 +3868,12 @@
    "label": "fast_food"
   },
   {
+   "name": "Lone Pine",
+   "lat": -37.8319697,
+   "lon": 144.8409618,
+   "label": "tree"
+  },
+  {
    "name": "Mary Mother of God",
    "lat": -37.8318126,
    "lon": 144.8422246,
@@ -2973,6 +3916,12 @@
    "label": "cafe"
   },
   {
+   "name": "Red Rock",
+   "lat": -38.2480659,
+   "lon": 143.504667,
+   "label": "peak"
+  },
+  {
    "name": "Red Rock Volcano Complex",
    "lat": -38.2500111,
    "lon": 143.5052321,
@@ -3001,6 +3950,24 @@
    "lat": -38.5367614,
    "lon": 143.9751612,
    "label": "restaurant"
+  },
+  {
+   "name": "Melaleuca Swamp",
+   "lat": -38.4231507,
+   "lon": 144.1025269,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Currawong Falls Lookout",
+   "lat": -38.4226747,
+   "lon": 144.0884963,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Bunjils Lookout",
+   "lat": -37.9496421,
+   "lon": 144.1673704,
+   "label": "viewpoint"
   },
   {
    "name": "Lorne Community House",
@@ -3145,6 +4112,12 @@
    "lat": -38.7574875,
    "lon": 143.6686153,
    "label": "cafe"
+  },
+  {
+   "name": "The Dell Lookout",
+   "lat": -38.153092,
+   "lon": 144.5625553,
+   "label": "viewpoint"
   },
   {
    "name": "Portarlington Community Cupboard",
@@ -3411,6 +4384,12 @@
    "label": "bakery"
   },
   {
+   "name": "Ozone Paddle Steamer Ship Wreck",
+   "lat": -38.1400692,
+   "lon": 144.7132869,
+   "label": "viewpoint"
+  },
+  {
    "name": "Victoria Tasty Kebab Stop",
    "lat": -38.1387256,
    "lon": 144.3547308,
@@ -3495,6 +4474,12 @@
    "label": "cafe"
   },
   {
+   "name": "The Helicopter Tree",
+   "lat": -38.0918293,
+   "lon": 144.2890189,
+   "label": "tree"
+  },
+  {
    "name": "Costa Hall",
    "lat": -38.1437592,
    "lon": 144.3598292,
@@ -3529,6 +4514,12 @@
    "lat": -38.2658077,
    "lon": 144.5230308,
    "label": "community_centre"
+  },
+  {
+   "name": "Former Beech Forest Hotel",
+   "lat": -38.6357524,
+   "lon": 143.5739368,
+   "label": "ruins"
   },
   {
    "name": "Kayak launch / Fishing platform",
@@ -3607,6 +4598,12 @@
    "lat": -38.2073453,
    "lon": 144.2734192,
    "label": "memorial"
+  },
+  {
+   "name": "Crowes Buffer Stop",
+   "lat": -38.6908989,
+   "lon": 143.3668528,
+   "label": "ruins"
   },
   {
    "name": "AUSPLOUGH 97",
@@ -4173,6 +5170,12 @@
    "label": "library"
   },
   {
+   "name": "Bungies Hole Landing",
+   "lat": -37.906095,
+   "lon": 144.6494623,
+   "label": "viewpoint"
+  },
+  {
    "name": "IGA Liquor",
    "lat": -37.8613013,
    "lon": 144.6743637,
@@ -4233,6 +5236,12 @@
    "label": "fast_food"
   },
   {
+   "name": "Werribee Manor Ruins",
+   "lat": -37.8942116,
+   "lon": 144.6502204,
+   "label": "ruins"
+  },
+  {
    "name": "Hi Sushi",
    "lat": -38.1476369,
    "lon": 144.3614731,
@@ -4285,6 +5294,12 @@
    "lat": -38.1515295,
    "lon": 144.3586645,
    "label": "artwork"
+  },
+  {
+   "name": "Whitecliffs Lookout",
+   "lat": -38.3669751,
+   "lon": 144.8105235,
+   "label": "viewpoint"
   },
   {
    "name": "Limeburner's Kiln",
@@ -4587,6 +5602,12 @@
    "label": "attraction"
   },
   {
+   "name": "Festival Tree",
+   "lat": -38.0225377,
+   "lon": 144.4099647,
+   "label": "tree"
+  },
+  {
    "name": "Torquay Larder",
    "lat": -38.3323741,
    "lon": 144.3255343,
@@ -4653,10 +5674,64 @@
    "label": "cafe"
   },
   {
+   "name": "Button Hill",
+   "lat": -38.1485031,
+   "lon": 144.3097947,
+   "label": "peak"
+  },
+  {
+   "name": "Wombat Hill",
+   "lat": -38.1468359,
+   "lon": 144.3025018,
+   "label": "peak"
+  },
+  {
    "name": "Butlers Guesthouse",
    "lat": -38.3340066,
    "lon": 143.7880687,
    "label": "guest_house"
+  },
+  {
+   "name": "Herne Hill",
+   "lat": -38.1424859,
+   "lon": 144.3156306,
+   "label": "peak"
+  },
+  {
+   "name": "Bell Post Hill",
+   "lat": -38.11275,
+   "lon": 144.3252955,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Duneed",
+   "lat": -38.2403964,
+   "lon": 144.3158639,
+   "label": "peak"
+  },
+  {
+   "name": "Bayview",
+   "lat": -38.1604166,
+   "lon": 144.204044,
+   "label": "peak"
+  },
+  {
+   "name": "Rocky Point",
+   "lat": -38.1632085,
+   "lon": 144.3362566,
+   "label": "peak"
+  },
+  {
+   "name": "Mercer Hill",
+   "lat": -38.1518498,
+   "lon": 144.3429371,
+   "label": "peak"
+  },
+  {
+   "name": "Montpellier Hill",
+   "lat": -38.1617593,
+   "lon": 144.3130769,
+   "label": "peak"
   },
   {
    "name": "Bakers Delight",
@@ -4681,6 +5756,66 @@
    "lat": -38.0698643,
    "lon": 144.3990843,
    "label": "memorial"
+  },
+  {
+   "name": "Mt Brandon (Brandons Hill)",
+   "lat": -38.1493073,
+   "lon": 144.3019565,
+   "label": "peak"
+  },
+  {
+   "name": "Dog Rocks",
+   "lat": -38.0968902,
+   "lon": 144.2659095,
+   "label": "peak"
+  },
+  {
+   "name": "Marcus Hill",
+   "lat": -38.2414505,
+   "lon": 144.6101311,
+   "label": "peak"
+  },
+  {
+   "name": "Kensington (Leopold) Hill",
+   "lat": -38.1902727,
+   "lon": 144.4712411,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Bellarine",
+   "lat": -38.1529142,
+   "lon": 144.6124603,
+   "label": "peak"
+  },
+  {
+   "name": "Murradoc Hill",
+   "lat": -38.1629241,
+   "lon": 144.6029653,
+   "label": "peak"
+  },
+  {
+   "name": "Heards Hill",
+   "lat": -38.1737829,
+   "lon": 144.2997123,
+   "label": "peak"
+  },
+  {
+   "name": "Pettavel Hill",
+   "lat": -38.2208649,
+   "lon": 144.246505,
+   "label": "peak"
+  },
+  {
+   "name": "Clifford Hill",
+   "lat": -38.2134714,
+   "lon": 144.2211999,
+   "label": "peak"
+  },
+  {
+   "name": "Tower Hill",
+   "lat": -38.0626621,
+   "lon": 144.328703,
+   "label": "peak"
   },
   {
    "name": "Wingeel (Barunah Plains South) Soldiers Settlement Memorial",
@@ -4821,10 +5956,22 @@
    "label": "cafe"
   },
   {
+   "name": "The Cap",
+   "lat": -38.2156133,
+   "lon": 143.9128499,
+   "label": "peak"
+  },
+  {
    "name": "Cressy Avenue of Honour Monument",
    "lat": -38.0338615,
    "lon": 143.630887,
    "label": "monument"
+  },
+  {
+   "name": "Clifton Springs",
+   "lat": -38.1514575,
+   "lon": 144.5651612,
+   "label": "ruins"
   },
   {
    "name": "Oh Happy Day",
@@ -4839,10 +5986,28 @@
    "label": "fast_food"
   },
   {
+   "name": "Flynns Hill",
+   "lat": -38.0401779,
+   "lon": 143.5799791,
+   "label": "peak"
+  },
+  {
    "name": "Wyndham Art Gallery",
    "lat": -37.9037257,
    "lon": 144.6578395,
    "label": "gallery"
+  },
+  {
+   "name": "Bells Hill",
+   "lat": -37.923065,
+   "lon": 143.8576775,
+   "label": "peak"
+  },
+  {
+   "name": "Dawsons Hill",
+   "lat": -38.1147375,
+   "lon": 143.5530536,
+   "label": "peak"
   },
   {
    "name": "Shelford War Memorial",
@@ -5001,10 +6166,112 @@
    "label": "cafe"
   },
   {
+   "name": "George Hill",
+   "lat": -37.9127829,
+   "lon": 144.7530934,
+   "label": "peak"
+  },
+  {
+   "name": "Cowie Hill",
+   "lat": -37.8389763,
+   "lon": 144.6691359,
+   "label": "peak"
+  },
+  {
+   "name": "Greek Hill",
+   "lat": -37.8096143,
+   "lon": 144.642822,
+   "label": "peak"
+  },
+  {
+   "name": "Red Hill",
+   "lat": -37.8308397,
+   "lon": 144.7522945,
+   "label": "peak"
+  },
+  {
+   "name": "Bald Hill",
+   "lat": -37.8408978,
+   "lon": 143.5752336,
+   "label": "peak"
+  },
+  {
+   "name": "Bulldog Hill",
+   "lat": -37.8311879,
+   "lon": 143.6492901,
+   "label": "peak"
+  },
+  {
+   "name": "Golden Hill",
+   "lat": -37.8357556,
+   "lon": 143.6450006,
+   "label": "peak"
+  },
+  {
    "name": "Illabarook & Rokewood Junction War Memorial",
    "lat": -37.8320027,
    "lon": 143.6596213,
    "label": "memorial"
+  },
+  {
+   "name": "Kirks Hill",
+   "lat": -37.8419255,
+   "lon": 143.6725541,
+   "label": "peak"
+  },
+  {
+   "name": "Paddys Hill",
+   "lat": -37.8516412,
+   "lon": 143.6762597,
+   "label": "peak"
+  },
+  {
+   "name": "Sow & Pigs Hill",
+   "lat": -37.8520794,
+   "lon": 143.6972672,
+   "label": "peak"
+  },
+  {
+   "name": "Nil Desperandum Hill",
+   "lat": -37.8298234,
+   "lon": 143.6728685,
+   "label": "peak"
+  },
+  {
+   "name": "Skeltons Hill",
+   "lat": -37.826205,
+   "lon": 143.6519578,
+   "label": "peak"
+  },
+  {
+   "name": "Wheelers Hill",
+   "lat": -37.8236595,
+   "lon": 143.657551,
+   "label": "peak"
+  },
+  {
+   "name": "Doctors Hill",
+   "lat": -37.8124571,
+   "lon": 143.6619197,
+   "label": "peak"
+  },
+  {
+   "name": "Mia Mia Hill",
+   "lat": -37.8058635,
+   "lon": 143.6633254,
+   "label": "peak"
+  },
+  {
+   "name": "Scotchmans Hill",
+   "lat": -37.8184905,
+   "lon": 143.7067792,
+   "label": "peak"
+  },
+  {
+   "name": "Boundary Hill",
+   "lat": -37.839987,
+   "lon": 143.7413419,
+   "label": "peak"
   },
   {
    "name": "United",
@@ -5055,6 +6322,12 @@
    "label": "library"
   },
   {
+   "name": "Gallipoli Oak",
+   "lat": -38.0696322,
+   "lon": 144.3988437,
+   "label": "tree"
+  },
+  {
    "name": "John Court Cafe",
    "lat": -38.0701395,
    "lon": 144.4028999,
@@ -5083,6 +6356,18 @@
    "lat": -37.8672468,
    "lon": 144.7431026,
    "label": "fast_food"
+  },
+  {
+   "name": "Mount Lawaluk",
+   "lat": -37.834306,
+   "lon": 143.8860444,
+   "label": "peak"
+  },
+  {
+   "name": "Sparrow Hill",
+   "lat": -37.9570973,
+   "lon": 144.5750146,
+   "label": "peak"
   },
   {
    "name": "Gifts for the Geek",
@@ -5193,6 +6478,18 @@
    "label": "cafe"
   },
   {
+   "name": "Nanny Browns Hill",
+   "lat": -38.3170029,
+   "lon": 143.6947467,
+   "label": "peak"
+  },
+  {
+   "name": "Niagara",
+   "lat": -38.3460511,
+   "lon": 143.7864408,
+   "label": "viewpoint"
+  },
+  {
    "name": "Pioneers of Lara",
    "lat": -38.0227368,
    "lon": 144.3965788,
@@ -5235,6 +6532,36 @@
    "label": "surf"
   },
   {
+   "name": "Judds Hill",
+   "lat": -38.1991623,
+   "lon": 143.642708,
+   "label": "peak"
+  },
+  {
+   "name": "Halls Hill",
+   "lat": -37.8530191,
+   "lon": 143.7247558,
+   "label": "peak"
+  },
+  {
+   "name": "Savage Hill",
+   "lat": -37.835347,
+   "lon": 143.7468664,
+   "label": "peak"
+  },
+  {
+   "name": "Green Hill",
+   "lat": -38.2688555,
+   "lon": 144.1641782,
+   "label": "peak"
+  },
+  {
+   "name": "Barwon Bluff (Mount Colite)",
+   "lat": -38.28976,
+   "lon": 144.4994072,
+   "label": "peak"
+  },
+  {
    "name": "Geelong Camera Obscura",
    "lat": -38.1622556,
    "lon": 144.3155904,
@@ -5245,6 +6572,36 @@
    "lat": -38.1477804,
    "lon": 144.3582208,
    "label": "bakery"
+  },
+  {
+   "name": "Nepean Hill",
+   "lat": -38.3035661,
+   "lon": 144.65284,
+   "label": "peak"
+  },
+  {
+   "name": "Pearce Hill",
+   "lat": -38.3078731,
+   "lon": 144.6607909,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Levy",
+   "lat": -38.334333,
+   "lon": 144.7074129,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Kerferd",
+   "lat": -38.3426923,
+   "lon": 144.7239712,
+   "label": "peak"
+  },
+  {
+   "name": "St Pauls",
+   "lat": -38.3562787,
+   "lon": 144.7443372,
+   "label": "peak"
   },
   {
    "name": "Bakers Delight",
@@ -5277,6 +6634,78 @@
    "label": "restaurant"
   },
   {
+   "name": "Scrubby Hill",
+   "lat": -38.3886273,
+   "lon": 144.2012439,
+   "label": "peak"
+  },
+  {
+   "name": "Tip Hill",
+   "lat": -38.3815753,
+   "lon": 144.2053602,
+   "label": "peak"
+  },
+  {
+   "name": "Clyde Hill",
+   "lat": -38.0205856,
+   "lon": 144.1719307,
+   "label": "peak"
+  },
+  {
+   "name": "Griffen Hill",
+   "lat": -37.8264637,
+   "lon": 144.2600675,
+   "label": "peak"
+  },
+  {
+   "name": "Granite Rock",
+   "lat": -37.8723245,
+   "lon": 144.309809,
+   "label": "peak"
+  },
+  {
+   "name": "Boundary Hill",
+   "lat": -38.401889,
+   "lon": 143.6988919,
+   "label": "peak"
+  },
+  {
+   "name": "Bull Hill",
+   "lat": -38.4934111,
+   "lon": 143.5823705,
+   "label": "peak"
+  },
+  {
+   "name": "Clancy Hill",
+   "lat": -38.5298373,
+   "lon": 143.55734,
+   "label": "peak"
+  },
+  {
+   "name": "Big Hill",
+   "lat": -38.487684,
+   "lon": 144.0192598,
+   "label": "peak"
+  },
+  {
+   "name": "Lookout Hill",
+   "lat": -38.4349794,
+   "lon": 144.0745018,
+   "label": "peak"
+  },
+  {
+   "name": "Berthon Hill",
+   "lat": -38.4585752,
+   "lon": 144.0883556,
+   "label": "peak"
+  },
+  {
+   "name": "Mount Ingoldsby",
+   "lat": -38.4112428,
+   "lon": 144.1573274,
+   "label": "peak"
+  },
+  {
    "name": "Centenary of Reticulated Water Supply Monument",
    "lat": -38.157051,
    "lon": 144.3114346,
@@ -5301,6 +6730,12 @@
    "label": "attraction"
   },
   {
+   "name": "Erskine Falls Upper Lookout",
+   "lat": -38.5071785,
+   "lon": 143.9136205,
+   "label": "viewpoint"
+  },
+  {
    "name": "Freckleberry Chocolate Factory",
    "lat": -38.125758,
    "lon": 144.3508445,
@@ -5317,6 +6752,24 @@
    "lat": -38.3322536,
    "lon": 144.3242778,
    "label": "alcohol"
+  },
+  {
+   "name": "Acorn Tree",
+   "lat": -38.1533549,
+   "lon": 144.336107,
+   "label": "tree"
+  },
+  {
+   "name": "Gibraltar Hill",
+   "lat": -37.8742798,
+   "lon": 144.1800537,
+   "label": "peak"
+  },
+  {
+   "name": "Hoppers Hill",
+   "lat": -37.8891871,
+   "lon": 144.697775,
+   "label": "peak"
   },
   {
    "name": "Starbucks",
@@ -5337,10 +6790,52 @@
    "label": "convenience"
   },
   {
+   "name": "Sheoak Point",
+   "lat": -37.9238278,
+   "lon": 144.1291158,
+   "label": "peak"
+  },
+  {
    "name": "Moranghurk Soldiers Settlement Memorial",
    "lat": -37.9246068,
    "lon": 144.1134365,
    "label": "memorial"
+  },
+  {
+   "name": "Payters Hill",
+   "lat": -38.8510255,
+   "lon": 143.5143975,
+   "label": "peak"
+  },
+  {
+   "name": "Camp Hill",
+   "lat": -38.8445509,
+   "lon": 143.509184,
+   "label": "peak"
+  },
+  {
+   "name": "Toms Hill",
+   "lat": -38.8429632,
+   "lon": 143.5021824,
+   "label": "peak"
+  },
+  {
+   "name": "Ter Hill",
+   "lat": -38.8287178,
+   "lon": 143.4973516,
+   "label": "peak"
+  },
+  {
+   "name": "Guerards Hill",
+   "lat": -38.8072882,
+   "lon": 143.4868594,
+   "label": "peak"
+  },
+  {
+   "name": "Red Hill",
+   "lat": -38.7968487,
+   "lon": 143.486811,
+   "label": "peak"
   },
   {
    "name": "Skinny Dippers Cafe",
@@ -5395,6 +6890,12 @@
    "lat": -37.9100163,
    "lon": 143.757799,
    "label": "memorial"
+  },
+  {
+   "name": "Goulters Hill",
+   "lat": -38.4259743,
+   "lon": 143.5263452,
+   "label": "peak"
   },
   {
    "name": "Lets-a-Loaf",
@@ -5577,10 +7078,40 @@
    "label": "bakery"
   },
   {
+   "name": "Coragulac Hill",
+   "lat": -38.2512073,
+   "lon": 143.5085246,
+   "label": "peak"
+  },
+  {
+   "name": "Cororooke House entrance",
+   "lat": -38.3157489,
+   "lon": 143.5298199,
+   "label": "ruins"
+  },
+  {
    "name": "Tutti",
    "lat": -38.147352,
    "lon": 144.356579,
    "label": "cafe"
+  },
+  {
+   "name": "Mullock Point",
+   "lat": -37.8463695,
+   "lon": 143.6433448,
+   "label": "peak"
+  },
+  {
+   "name": "Montrose Hill",
+   "lat": -37.8357278,
+   "lon": 143.6561979,
+   "label": "peak"
+  },
+  {
+   "name": "Old Pitfield Plains Mining Area",
+   "lat": -37.8044152,
+   "lon": 143.6198448,
+   "label": "ruins"
   },
   {
    "name": "Maestro",
@@ -5617,6 +7148,36 @@
    "lat": -38.2679919,
    "lon": 144.5220559,
    "label": "bar"
+  },
+  {
+   "name": "Itinerants Cave",
+   "lat": -37.8254541,
+   "lon": 144.6996536,
+   "label": "cave_entrance"
+  },
+  {
+   "name": "Leakes Wine Cellars",
+   "lat": -37.8301546,
+   "lon": 144.7038361,
+   "label": "ruins"
+  },
+  {
+   "name": "Red Hill",
+   "lat": -38.8171917,
+   "lon": 143.5529106,
+   "label": "peak"
+  },
+  {
+   "name": "Hall Hill",
+   "lat": -38.6729731,
+   "lon": 143.5950122,
+   "label": "peak"
+  },
+  {
+   "name": "Cockerill Hill",
+   "lat": -38.661437,
+   "lon": 143.5785075,
+   "label": "peak"
   },
   {
    "name": "9 Grams",
@@ -5721,6 +7282,12 @@
    "label": "cafe"
   },
   {
+   "name": "Cameron Hill",
+   "lat": -38.1030689,
+   "lon": 144.1338008,
+   "label": "peak"
+  },
+  {
    "name": "The Playhouse",
    "lat": -38.1480075,
    "lon": 144.3564726,
@@ -5737,6 +7304,24 @@
    "lat": -38.1474395,
    "lon": 144.3562724,
    "label": "theatre"
+  },
+  {
+   "name": "Langdale Pike",
+   "lat": -38.5708026,
+   "lon": 143.9411916,
+   "label": "peak"
+  },
+  {
+   "name": "View Hill",
+   "lat": -38.4353051,
+   "lon": 143.9131819,
+   "label": "peak"
+  },
+  {
+   "name": "Little River Bird Hide",
+   "lat": -38.0052362,
+   "lon": 144.5909332,
+   "label": "bird_hide"
   },
   {
    "name": "Vines Road Community Centre",
@@ -5967,6 +7552,12 @@
    "label": "cafe"
   },
   {
+   "name": "Western Horseriding",
+   "lat": -37.9459367,
+   "lon": 144.3905022,
+   "label": "picnic_site"
+  },
+  {
    "name": "The Potters Garden B&B",
    "lat": -38.3989668,
    "lon": 144.8150268,
@@ -5979,10 +7570,28 @@
    "label": "theatre"
   },
   {
+   "name": "Beamish Hill",
+   "lat": -37.9737115,
+   "lon": 144.2266631,
+   "label": "peak"
+  },
+  {
    "name": "Carl's Jr.",
    "lat": -37.8458807,
    "lon": 144.6692606,
    "label": "fast_food"
+  },
+  {
+   "name": "Bunjil Mirr Lookout",
+   "lat": -38.3846486,
+   "lon": 144.1457067,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Erskine Falls Lower Lookout",
+   "lat": -38.5069984,
+   "lon": 143.9139464,
+   "label": "viewpoint"
   },
   {
    "name": "Pier Street Meats",
@@ -6207,6 +7816,12 @@
    "label": "bakery"
   },
   {
+   "name": "Austin Road Bird Hide",
+   "lat": -38.0395825,
+   "lon": 144.5150882,
+   "label": "bird_hide"
+  },
+  {
    "name": "United",
    "lat": -37.8034734,
    "lon": 144.7507396,
@@ -6327,10 +7942,124 @@
    "label": "cafe"
   },
   {
+   "name": "George Hill",
+   "lat": -38.1466011,
+   "lon": 144.2431402,
+   "label": "peak"
+  },
+  {
+   "name": "Gleeson Hill",
+   "lat": -38.1561627,
+   "lon": 144.2609651,
+   "label": "peak"
+  },
+  {
+   "name": "Sugarloaf Hill",
+   "lat": -38.1407401,
+   "lon": 144.2155161,
+   "label": "peak"
+  },
+  {
+   "name": "Rogers Hill",
+   "lat": -38.1227076,
+   "lon": 144.2252003,
+   "label": "peak"
+  },
+  {
+   "name": "James Hill",
+   "lat": -37.9032274,
+   "lon": 144.5120172,
+   "label": "peak"
+  },
+  {
+   "name": "Haider Hill",
+   "lat": -38.1315021,
+   "lon": 143.9413752,
+   "label": "peak"
+  },
+  {
+   "name": "Vegad Hill",
+   "lat": -38.1334397,
+   "lon": 143.9328387,
+   "label": "peak"
+  },
+  {
+   "name": "Wangerrip Hill",
+   "lat": -38.713993,
+   "lon": 143.3207308,
+   "label": "peak"
+  },
+  {
+   "name": "Crowes Hill",
+   "lat": -38.6955368,
+   "lon": 143.3553589,
+   "label": "peak"
+  },
+  {
+   "name": "Lavers Hill",
+   "lat": -38.6779277,
+   "lon": 143.3977514,
+   "label": "peak"
+  },
+  {
+   "name": "Amiets Hill",
+   "lat": -38.6695622,
+   "lon": 143.438965,
+   "label": "peak"
+  },
+  {
+   "name": "Newling Hill",
+   "lat": -38.5150426,
+   "lon": 143.3748179,
+   "label": "peak"
+  },
+  {
    "name": "Claribeaux",
    "lat": -38.1819551,
    "lon": 144.5344806,
    "label": "restaurant"
+  },
+  {
+   "name": "Black Hill",
+   "lat": -38.5139984,
+   "lon": 143.9220788,
+   "label": "peak"
+  },
+  {
+   "name": "Burst My Gall Hill",
+   "lat": -38.7248904,
+   "lon": 143.6853462,
+   "label": "peak"
+  },
+  {
+   "name": "Sabine Falls Lookout",
+   "lat": -38.6377662,
+   "lon": 143.7388178,
+   "label": "viewpoint"
+  },
+  {
+   "name": "Morris Point",
+   "lat": -38.6868342,
+   "lon": 143.7179964,
+   "label": "peak"
+  },
+  {
+   "name": "Tanybryn Hill",
+   "lat": -38.6746735,
+   "lon": 143.71844,
+   "label": "peak"
+  },
+  {
+   "name": "Spiers Hill",
+   "lat": -38.6622883,
+   "lon": 143.7309207,
+   "label": "peak"
+  },
+  {
+   "name": "The Bump",
+   "lat": -38.5912889,
+   "lon": 143.7244335,
+   "label": "peak"
   },
   {
    "name": "Maits Rest",
@@ -6357,6 +8086,18 @@
    "label": "fast_food"
   },
   {
+   "name": "Mount Pleasant",
+   "lat": -38.3380259,
+   "lon": 144.3048715,
+   "label": "peak"
+  },
+  {
+   "name": "Crows Nest",
+   "lat": -38.7272667,
+   "lon": 143.6534741,
+   "label": "peak"
+  },
+  {
    "name": "Il Matto",
    "lat": -38.338004,
    "lon": 144.3219748,
@@ -6373,6 +8114,18 @@
    "lat": -38.3380403,
    "lon": 144.3222823,
    "label": "sports"
+  },
+  {
+   "name": "Pillbox site",
+   "lat": -38.2713531,
+   "lon": 144.6441372,
+   "label": "ruins"
+  },
+  {
+   "name": "Former searchlight emplacement",
+   "lat": -38.2729842,
+   "lon": 144.6541456,
+   "label": "ruins"
   },
   {
    "name": "Leopold War Memorial",
@@ -6463,6 +8216,12 @@
    "lat": -38.2480673,
    "lon": 144.5382105,
    "label": "convenience"
+  },
+  {
+   "name": "Wildlife Wonders",
+   "lat": -38.7839227,
+   "lon": 143.6360898,
+   "label": "zoo"
   },
   {
    "name": "TwoTen Coffee",
@@ -6729,16 +8488,34 @@
    "label": "attraction"
   },
   {
+   "name": "Cobbledicks Streamside Reserve",
+   "lat": -37.8169674,
+   "lon": 144.5842531,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Sorrento Ocean Beach",
    "lat": -38.3468372,
    "lon": 144.7281928,
    "label": "beach"
   },
   {
+   "name": "Altona Coastal Park",
+   "lat": -37.8589878,
+   "lon": 144.8551526,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Point Wilson Pier",
    "lat": -38.0921768,
    "lon": 144.5249324,
    "label": "pier"
+  },
+  {
+   "name": "Werribee Open Range Zoo",
+   "lat": -37.9233402,
+   "lon": 144.6686446,
+   "label": "zoo"
   },
   {
    "name": "Shell Refinery Pier",
@@ -6855,6 +8632,18 @@
    "label": "pier"
   },
   {
+   "name": "Sabine Falls Picnic Area",
+   "lat": -38.6329111,
+   "lon": 143.7499274,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Grey River Picnic Area",
+   "lat": -38.6596935,
+   "lon": 143.8159558,
+   "label": "picnic_site"
+  },
+  {
    "name": "Old Geelong Gaol",
    "lat": -38.1538565,
    "lon": 144.3654504,
@@ -6927,6 +8716,18 @@
    "label": "convenience"
   },
   {
+   "name": "Geelong Botanic Gardens",
+   "lat": -38.150081,
+   "lon": 144.3777033,
+   "label": "garden"
+  },
+  {
+   "name": "BBQ",
+   "lat": -38.1558063,
+   "lon": 144.3521159,
+   "label": "picnic_site"
+  },
+  {
    "name": "Leisurelink Aquatic & Recreation Centre",
    "lat": -38.1968616,
    "lon": 144.3203466,
@@ -6945,10 +8746,28 @@
    "label": "pub"
   },
   {
+   "name": "Sheoak Picnic Area",
+   "lat": -38.5548409,
+   "lon": 143.9436112,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Love Creek",
+   "lat": -38.47896,
+   "lon": 143.5829339,
+   "label": "picnic_site"
+  },
+  {
    "name": "Holiday Inn",
    "lat": -37.9018655,
    "lon": 144.662213,
    "label": "hotel"
+  },
+  {
+   "name": "Lions Park",
+   "lat": -38.5310064,
+   "lon": 143.9803493,
+   "label": "picnic_site"
   },
   {
    "name": "Australian National Surfing Museum",
@@ -7143,6 +8962,12 @@
    "label": "vineyard"
   },
   {
+   "name": "Victorian State Rose Garden",
+   "lat": -37.9285093,
+   "lon": 144.6738355,
+   "label": "garden"
+  },
+  {
    "name": "Point Lonsdale (Back) Surf",
    "lat": -38.2897941,
    "lon": 144.6064335,
@@ -7197,6 +9022,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Conewarre K48 Streamside Reserve",
+   "lat": -38.2686133,
+   "lon": 144.3764829,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Barwon Heads Hotel",
    "lat": -38.2828092,
    "lon": 144.4930135,
@@ -7219,6 +9050,12 @@
    "lat": -38.161218,
    "lon": 144.3504019,
    "label": "fast_food"
+  },
+  {
+   "name": "Ocean Grove Nature Reserve",
+   "lat": -38.2459043,
+   "lon": 144.5284535,
+   "label": "nature_reserve"
   },
   {
    "name": "Portarlington Bayside Miniature Railway",
@@ -7263,6 +9100,12 @@
    "label": "cafe"
   },
   {
+   "name": "Lake Lorne Reserve",
+   "lat": -38.1819019,
+   "lon": 144.5564579,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Meredith Hotel",
    "lat": -37.8454717,
    "lon": 144.0729961,
@@ -7285,6 +9128,12 @@
    "lat": -38.3740989,
    "lon": 144.7665828,
    "label": "beach"
+  },
+  {
+   "name": "Hibiscus Grove Reserve",
+   "lat": -38.3712629,
+   "lon": 144.7919035,
+   "label": "nature_reserve"
   },
   {
    "name": "Cafe Permas",
@@ -7315,6 +9164,12 @@
    "lat": -38.2620747,
    "lon": 144.5120104,
    "label": "convenience"
+  },
+  {
+   "name": "Ashcroft Conservation Reserve",
+   "lat": -37.8623444,
+   "lon": 144.7391574,
+   "label": "nature_reserve"
   },
   {
    "name": "El Santo De Los Tacos",
@@ -7359,6 +9214,12 @@
    "label": "community_centre"
   },
   {
+   "name": "Stony Creek Picnic Area",
+   "lat": -37.8567412,
+   "lon": 144.2509487,
+   "label": "picnic_site"
+  },
+  {
    "name": "Nyona House",
    "lat": -37.8671946,
    "lon": 144.7612016,
@@ -7383,6 +9244,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Mount Mercer Nature Conservation Reserve",
+   "lat": -37.8787253,
+   "lon": 143.9196151,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Bean Squeeze",
    "lat": -38.1446749,
    "lon": 144.3353538,
@@ -7393,6 +9260,24 @@
    "lat": -38.1783054,
    "lon": 144.4035214,
    "label": "swimming"
+  },
+  {
+   "name": "Anakie Gorge Picnic Area",
+   "lat": -37.8601998,
+   "lon": 144.2723201,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Bert Boardman Recreation Area",
+   "lat": -37.8813585,
+   "lon": 144.1810805,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Leach-Wood Gardens",
+   "lat": -38.1588955,
+   "lon": 144.3317623,
+   "label": "garden"
   },
   {
    "name": "Pizza Hut",
@@ -7455,6 +9340,12 @@
    "label": "vineyard"
   },
   {
+   "name": "Laverton Grasslands Flora Reserve",
+   "lat": -37.8416593,
+   "lon": 144.7959594,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Royal Geelong Yacht Club",
    "lat": -38.1444547,
    "lon": 144.3672636,
@@ -7465,6 +9356,18 @@
    "lat": -38.0087612,
    "lon": 144.4100851,
    "label": "heritage"
+  },
+  {
+   "name": "South Channel Fort",
+   "lat": -38.3065481,
+   "lon": 144.8015175,
+   "label": "ruins"
+  },
+  {
+   "name": "Rice Nature Reserve",
+   "lat": -38.2680497,
+   "lon": 144.348836,
+   "label": "nature_reserve"
   },
   {
    "name": "Apollo Bay Community Pool",
@@ -7575,6 +9478,12 @@
    "label": "cafe"
   },
   {
+   "name": "Coppin's Lookout",
+   "lat": -38.3449869,
+   "lon": 144.7252775,
+   "label": "viewpoint"
+  },
+  {
    "name": "Blairgowrie Pier",
    "lat": -38.3576352,
    "lon": 144.7729729,
@@ -7605,6 +9514,18 @@
    "label": "pier"
   },
   {
+   "name": "Bellarine Landcare Indigenous Nursery",
+   "lat": -38.1936901,
+   "lon": 144.55618,
+   "label": "garden"
+  },
+  {
+   "name": "Marengo Reefs Marine Sanctuary",
+   "lat": -38.7774855,
+   "lon": 143.6701769,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Go Vita Geelong",
    "lat": -38.1416731,
    "lon": 144.3478535,
@@ -7615,6 +9536,12 @@
    "lat": -38.1419707,
    "lon": 144.3478652,
    "label": "fast_food"
+  },
+  {
+   "name": "Derrimut Grassland Nature Conservation Reserve",
+   "lat": -37.8073568,
+   "lon": 144.7947075,
+   "label": "nature_reserve"
   },
   {
    "name": "Dimmicks Beach",
@@ -10005,6 +11932,12 @@
    "label": "hotel"
   },
   {
+   "name": "Portarlington (Point Richard) Flora and Fauna Reserve",
+   "lat": -38.115155,
+   "lon": 144.6326596,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Lorne Beach",
    "lat": -38.5381234,
    "lon": 143.9778366,
@@ -10029,10 +11962,40 @@
    "label": "community_centre"
   },
   {
+   "name": "Goods Shed",
+   "lat": -38.2402037,
+   "lon": 143.9830169,
+   "label": "ruins"
+  },
+  {
    "name": "RACV Torquay Resort",
    "lat": -38.3406758,
    "lon": 144.3112569,
    "label": "hotel"
+  },
+  {
+   "name": "Yellow Gum Picnic Area",
+   "lat": -37.9613593,
+   "lon": 144.4135642,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Kurrajong Picnic Area",
+   "lat": -37.9541023,
+   "lon": 144.4047987,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Big Rock Picnic Area",
+   "lat": -37.9550994,
+   "lon": 144.4149764,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Lower Picnic Ground",
+   "lat": -37.9603315,
+   "lon": 144.420841,
+   "label": "picnic_site"
   },
   {
    "name": "Canoe slipway",
@@ -10111,6 +12074,12 @@
    "lat": -37.862606,
    "lon": 144.6861713,
    "label": "convenience"
+  },
+  {
+   "name": "Colac Botanic Garden",
+   "lat": -38.3325388,
+   "lon": 143.5900312,
+   "label": "garden"
   },
   {
    "name": "McDonald's",
@@ -10305,6 +12274,24 @@
    "label": "convenience"
   },
   {
+   "name": "Baker's Flat Picnic Ground",
+   "lat": -37.9619768,
+   "lon": 144.4155173,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Avalon Views Picnic Ground",
+   "lat": -37.9626779,
+   "lon": 144.426162,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Red Gum Picnic Ground",
+   "lat": -37.9619187,
+   "lon": 144.420395,
+   "label": "picnic_site"
+  },
+  {
    "name": "EG Australia",
    "lat": -37.840368,
    "lon": 144.6728262,
@@ -10377,6 +12364,18 @@
    "label": "convenience"
   },
   {
+   "name": "Bellarine I110 Bushland Reserve",
+   "lat": -38.1919337,
+   "lon": 144.560598,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "The Sensory Garden",
+   "lat": -37.9018855,
+   "lon": 144.6201264,
+   "label": "garden"
+  },
+  {
    "name": "Foodary",
    "lat": -38.1832936,
    "lon": 144.5511946,
@@ -10417,6 +12416,18 @@
    "lat": -38.1516641,
    "lon": 144.3592108,
    "label": "cafe"
+  },
+  {
+   "name": "Cub's Grill",
+   "lat": -37.911856,
+   "lon": 144.7809106,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Bear's Grill",
+   "lat": -37.9127704,
+   "lon": 144.7804605,
+   "label": "picnic_site"
   },
   {
    "name": "Mount Moriac Hotel",
@@ -10515,6 +12526,12 @@
    "label": "garden_centre"
   },
   {
+   "name": "Altona Nature Conservation Reserve",
+   "lat": -37.8499425,
+   "lon": 144.7839818,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Northern Beach",
    "lat": -37.9636673,
    "lon": 144.7106328,
@@ -10587,6 +12604,12 @@
    "label": "pier"
   },
   {
+   "name": "Gilbertsons Grassland Nature Conservation Reserve",
+   "lat": -37.8092459,
+   "lon": 144.7738592,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Old Lorne Pier",
    "lat": -38.5479253,
    "lon": 143.9867423,
@@ -10629,6 +12652,18 @@
    "label": "beach"
   },
   {
+   "name": "Rothwell Reserve",
+   "lat": -37.974825,
+   "lon": 144.5088877,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Dimmicks Bushland Reserve",
+   "lat": -38.3827424,
+   "lon": 144.7820361,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Eastern Beach Swimming Enclosure",
    "lat": -38.1461744,
    "lon": 144.373577,
@@ -10651,6 +12686,18 @@
    "lat": -37.8380933,
    "lon": 144.7279404,
    "label": "convenience"
+  },
+  {
+   "name": "Urinal Wall",
+   "lat": -37.9427087,
+   "lon": 144.4204746,
+   "label": "cliff"
+  },
+  {
+   "name": "Royalty Walls",
+   "lat": -37.9405119,
+   "lon": 144.42201,
+   "label": "cliff"
   },
   {
    "name": "McDonald's",
@@ -10683,10 +12730,22 @@
    "label": "community_centre"
   },
   {
+   "name": "Lara Heritage Museum Garden",
+   "lat": -38.0336633,
+   "lon": 144.3940238,
+   "label": "garden"
+  },
+  {
    "name": "Goodfellow Aquatic Centre",
    "lat": -38.1096646,
    "lon": 144.3253735,
    "label": "swimming"
+  },
+  {
+   "name": "Morongo Gardens",
+   "lat": -38.1119826,
+   "lon": 144.3286862,
+   "label": "garden"
   },
   {
    "name": "Rye Hotel",
@@ -10707,6 +12766,12 @@
    "label": "heritage"
   },
   {
+   "name": "Armstrong Creek Public Purposes Reserve",
+   "lat": -38.2376952,
+   "lon": 144.3369934,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Mannerim Soldiers Memorial",
    "lat": -38.2189096,
    "lon": 144.5812888,
@@ -10717,6 +12782,306 @@
    "lat": -38.0245336,
    "lon": 144.4157255,
    "label": "cafe"
+  },
+  {
+   "name": "Queenscliff Natural Features Reserve",
+   "lat": -38.2718526,
+   "lon": 144.6361194,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Coradjil Nature Conservation Reserve",
+   "lat": -38.5110546,
+   "lon": 143.2774696,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Wongarra Bushland Reserve",
+   "lat": -38.6901326,
+   "lon": 143.7152267,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Penny Royal Creek Bushland Reserve",
+   "lat": -38.4448742,
+   "lon": 143.8817263,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Wensleydale Bushland Reserve",
+   "lat": -38.3445576,
+   "lon": 144.0372813,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Durdidwarrah Bushland Reserve",
+   "lat": -37.9328683,
+   "lon": 144.229473,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Bannockburn Bushland Reserve",
+   "lat": -38.046403,
+   "lon": 144.1662867,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Paraparap Bushland Reserve",
+   "lat": -38.3137708,
+   "lon": 144.1693945,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Cargerie I43 Bushland Reserve",
+   "lat": -37.8348013,
+   "lon": 143.9386149,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Moreep I44 Bushland Reserve",
+   "lat": -37.8344197,
+   "lon": 144.1293619,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Drakes Bushland Reserve",
+   "lat": -38.1670872,
+   "lon": 144.5893508,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Bellarine I109 Bushland Reserve",
+   "lat": -38.2314686,
+   "lon": 144.5504699,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Dereel H27 Bushland Reserve",
+   "lat": -37.8243292,
+   "lon": 143.7358501,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Dereel H25 Bushland Reserve",
+   "lat": -37.8114976,
+   "lon": 143.7127357,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Dereel H28 Bushland Reserve",
+   "lat": -37.8332684,
+   "lon": 143.761287,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Dereel H26 Bushland Reserve",
+   "lat": -37.8040864,
+   "lon": 143.7457549,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Karuc-a-ruc Creek Streamside Reserve",
+   "lat": -37.84156,
+   "lon": 143.8038679,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Woady Yallock River, Pitfield Streamside Reserve",
+   "lat": -37.8070527,
+   "lon": 143.5853546,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Yeo Streamside Reserve",
+   "lat": -38.3893635,
+   "lon": 143.7677688,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Cressy Streamside Reserve",
+   "lat": -37.9890598,
+   "lon": 143.6467004,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Little River, Ripley Streamside Reserve",
+   "lat": -37.8547853,
+   "lon": 144.3854916,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Coolebarchurk Streamside Reserve",
+   "lat": -37.8716254,
+   "lon": 144.1278009,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Barwon River Streamside Reserve",
+   "lat": -38.1422517,
+   "lon": 144.1911569,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Cressy Flora Reserve",
+   "lat": -38.0245827,
+   "lon": 143.633308,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Illabarook Grassland Flora Reserve",
+   "lat": -37.8178221,
+   "lon": 143.6491223,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Barongarook West Bushland Reserve",
+   "lat": -38.3959387,
+   "lon": 143.5669388,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Commeralghip Flora Reserve",
+   "lat": -37.8444932,
+   "lon": 143.6577188,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Gellibrand North Bushland Reserve",
+   "lat": -38.5006765,
+   "lon": 143.5573931,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Aireys Inlet Bushland Reserve",
+   "lat": -38.4488594,
+   "lon": 144.1085029,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Warrambine Flora Reserve",
+   "lat": -37.9432163,
+   "lon": 143.8589374,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lake Cundare Wildlife Reserve (no hunting)",
+   "lat": -38.1533878,
+   "lon": 143.6142797,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lake Dubban Wildlife Reserve (hunting)",
+   "lat": -38.224424,
+   "lon": 144.0680155,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lake Gherang Gherang Wildlife Reserve (hunting)",
+   "lat": -38.2541803,
+   "lon": 144.06451,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lake Ayrey Wildlife Reserve (no hunting)",
+   "lat": -38.3048,
+   "lon": 143.7611439,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Teesdale Sheoak Nature Conservation Reserve",
+   "lat": -38.0195913,
+   "lon": 144.040719,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lake Murdeduke Wildlife Reserve (hunting)",
+   "lat": -38.1728574,
+   "lon": 143.8943217,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lake Rosine Wildlife Reserve (no hunting)",
+   "lat": -38.0341791,
+   "lon": 143.5703957,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lake Thurrumbong Wildlife Reserve (hunting)",
+   "lat": -38.266997,
+   "lon": 143.6964185,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lake Struan Wildlife Reserve (hunting)",
+   "lat": -38.0147975,
+   "lon": 143.416222,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Dreeite Nature Conservation Reserve",
+   "lat": -38.1668905,
+   "lon": 143.5387371,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lake Terangpom Wildlife Reserve (no hunting)",
+   "lat": -38.1266261,
+   "lon": 143.3247996,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Parkers Road (Bambra) Bushland Reserve",
+   "lat": -38.407186,
+   "lon": 143.9163669,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Wild Dog Bushland Reserve",
+   "lat": -38.7211977,
+   "lon": 143.6566595,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Edna Bowman Nature Conservation Reserve",
+   "lat": -38.4058398,
+   "lon": 144.1943814,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Freshwater Swamp, Little River Wildlife Reserve (no hunting)",
+   "lat": -37.937715,
+   "lon": 144.4995207,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Salt Lagoon, St Leonards Wildlife Reserve",
+   "lat": -38.158716,
+   "lon": 144.7098259,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Serendip Wetlands Education Facility",
+   "lat": -38.0025437,
+   "lon": 144.4100209,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Brown Swamp Wildlife Reserve (hunting)",
+   "lat": -38.2664296,
+   "lon": 144.1339994,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "The Spit Wildlife Reserve",
+   "lat": -38.0369282,
+   "lon": 144.5470072,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Avalon Coastal Reserve",
+   "lat": -38.0777812,
+   "lon": 144.4458792,
+   "label": "nature_reserve"
   },
   {
    "name": "25 Metre Range",
@@ -10759,6 +13124,42 @@
    "lat": -37.8681844,
    "lon": 144.7613602,
    "label": "restaurant"
+  },
+  {
+   "name": "Maidstone Street Grassland",
+   "lat": -37.853919,
+   "lon": 144.8130734,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Wave Wall",
+   "lat": -37.9526325,
+   "lon": 144.4281378,
+   "label": "cliff"
+  },
+  {
+   "name": "Flinders Peak Slabs",
+   "lat": -37.952821,
+   "lon": 144.4280514,
+   "label": "cliff"
+  },
+  {
+   "name": "Emu-foot Grassland",
+   "lat": -37.8780465,
+   "lon": 144.7659441,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Burns Road Environs",
+   "lat": -37.8522886,
+   "lon": 144.7882373,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Horsburgh Drive Grassland",
+   "lat": -37.8421064,
+   "lon": 144.8087149,
+   "label": "nature_reserve"
   },
   {
    "name": "Altona Meadows Library",
@@ -10821,6 +13222,12 @@
    "label": "chocolate"
   },
   {
+   "name": "Corio Native Grasslands Reserve",
+   "lat": -38.0608762,
+   "lon": 144.3954479,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Aireys Pub",
    "lat": -38.4614434,
    "lon": 144.1047509,
@@ -10881,10 +13288,22 @@
    "label": "cafe"
   },
   {
+   "name": "Ocean Acres Nature Reserve",
+   "lat": -38.3157655,
+   "lon": 144.2873503,
+   "label": "nature_reserve"
+  },
+  {
    "name": "SaltWater Community Centre",
    "lat": -37.9109491,
    "lon": 144.7705438,
    "label": "community_centre"
+  },
+  {
+   "name": "Future Sparrovale Nature Reserve",
+   "lat": -38.2185471,
+   "lon": 144.3941579,
+   "label": "nature_reserve"
   },
   {
    "name": "De Grandi Cycle Works",
@@ -10893,16 +13312,40 @@
    "label": "bicycle"
   },
   {
+   "name": "Pearce Barracks",
+   "lat": -38.3064012,
+   "lon": 144.6581395,
+   "label": "ruins"
+  },
+  {
    "name": "Gun Emplacement 6",
    "lat": -38.3023918,
    "lon": 144.6522523,
    "label": "attraction"
   },
   {
+   "name": "Infrared Bunker",
+   "lat": -38.3017515,
+   "lon": 144.6523325,
+   "label": "ruins"
+  },
+  {
    "name": "Colac Otway Performing Arts & Cultural Centre",
    "lat": -38.3427536,
    "lon": 143.5854408,
    "label": "community_centre"
+  },
+  {
+   "name": "Lake Colac Bird Sanctuary",
+   "lat": -38.3308734,
+   "lon": 143.599153,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Geelong West Community Garden",
+   "lat": -38.1429314,
+   "lon": 144.3439524,
+   "label": "garden"
   },
   {
    "name": "Quality Hotel Bayside Geelong",
@@ -10957,6 +13400,12 @@
    "lat": -38.1482558,
    "lon": 144.3635018,
    "label": "restaurant"
+  },
+  {
+   "name": "Shortland Bluff",
+   "lat": -38.2708775,
+   "lon": 144.6562287,
+   "label": "cliff"
   },
   {
    "name": "Queenscliff - Pier Beach",
@@ -12213,6 +14662,18 @@
    "label": "alcohol"
   },
   {
+   "name": "Old Australian Portland Cement Works Switchyard",
+   "lat": -38.1412009,
+   "lon": 144.3138734,
+   "label": "ruins"
+  },
+  {
+   "name": "Starlink Earth Station Anakie",
+   "lat": -37.9535702,
+   "lon": 144.3281078,
+   "label": "tower"
+  },
+  {
    "name": "Leopold Library",
    "lat": -38.1859846,
    "lon": 144.4643236,
@@ -12309,6 +14770,12 @@
    "label": "convenience"
   },
   {
+   "name": "Grovedale Community Garden",
+   "lat": -38.2087852,
+   "lon": 144.3346621,
+   "label": "garden"
+  },
+  {
    "name": "Verandah",
    "lat": -38.1729247,
    "lon": 144.3446852,
@@ -12397,6 +14864,12 @@
    "lat": -38.0455449,
    "lon": 144.1727646,
    "label": "convenience"
+  },
+  {
+   "name": "Kororoit Creek Nature Reserve",
+   "lat": -37.8364704,
+   "lon": 144.8353729,
+   "label": "nature_reserve"
   },
   {
    "name": "Kenty's Bakery",
@@ -12501,6 +14974,12 @@
    "label": "cafe"
   },
   {
+   "name": "Australian Garden",
+   "lat": -37.8886189,
+   "lon": 144.693601,
+   "label": "garden"
+  },
+  {
    "name": "Balliang Memorial Hall",
    "lat": -37.8328611,
    "lon": 144.3485566,
@@ -12561,6 +15040,12 @@
    "label": "memorial"
   },
   {
+   "name": "Waurn Ponds Lime Kiln",
+   "lat": -38.2079418,
+   "lon": 144.2802446,
+   "label": "ruins"
+  },
+  {
    "name": "The Heights Homestead",
    "lat": -38.1488521,
    "lon": 144.3303153,
@@ -12595,6 +15080,12 @@
    "lat": -38.2184312,
    "lon": 144.3393372,
    "label": "community_centre"
+  },
+  {
+   "name": "Parterre",
+   "lat": -37.9298926,
+   "lon": 144.6704569,
+   "label": "garden"
   },
   {
    "name": "Cafe Belle",
@@ -12633,6 +15124,24 @@
    "label": "swimming"
   },
   {
+   "name": "21st Century Garden",
+   "lat": -38.149152,
+   "lon": 144.37648,
+   "label": "garden"
+  },
+  {
+   "name": "Native Border",
+   "lat": -38.1492236,
+   "lon": 144.3778013,
+   "label": "garden"
+  },
+  {
+   "name": "Rose Garden",
+   "lat": -38.1496504,
+   "lon": 144.3775562,
+   "label": "garden"
+  },
+  {
    "name": "Cucina One12",
    "lat": -38.1726162,
    "lon": 144.3450131,
@@ -12651,6 +15160,90 @@
    "label": "restaurant"
   },
   {
+   "name": "Stony Creek (Durdidwarrah) Reference Area",
+   "lat": -37.8257315,
+   "lon": 144.2344307,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Porcupine Creek Reference Area",
+   "lat": -38.5009837,
+   "lon": 143.6355583,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Unnamed P0151 Private Nature Reserve",
+   "lat": -38.22969,
+   "lon": 144.0430748,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Unnamed P0176 Private Nature Reserve",
+   "lat": -38.7359905,
+   "lon": 143.6709365,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Aquila Creek Reference Area",
+   "lat": -38.4734212,
+   "lon": 143.8894941,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Unnamed P0353 Private Nature Reserve",
+   "lat": -38.3506929,
+   "lon": 143.392748,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Parker River Reference Area",
+   "lat": -38.8242799,
+   "lon": 143.5359909,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Durdidwarrah Creek Reference Area",
+   "lat": -37.7940837,
+   "lon": 144.182981,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Olangolah Creek Reference Area",
+   "lat": -38.620923,
+   "lon": 143.699562,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Dog Rocks Reserve",
+   "lat": -38.0969075,
+   "lon": 144.2656445,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Stony Creek (Otways) Reference Area",
+   "lat": -38.7986722,
+   "lon": 143.5808225,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Calder River Reference Area",
+   "lat": -38.7258714,
+   "lon": 143.561879,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Crinoline Creek Reference Area",
+   "lat": -38.625263,
+   "lon": 143.3530653,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Painkalac Creek Reference Area",
+   "lat": -38.4352489,
+   "lon": 143.9982877,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Red Rooster",
    "lat": -38.2281372,
    "lon": 144.3371104,
@@ -12661,6 +15254,12 @@
    "lat": -38.2279872,
    "lon": 144.3371381,
    "label": "convenience"
+  },
+  {
+   "name": "Rose Garden",
+   "lat": -38.1351327,
+   "lon": 144.3253352,
+   "label": "garden"
   },
   {
    "name": "Point Lonsdale Lighthouse",
@@ -12813,6 +15412,18 @@
    "label": "guest_house"
   },
   {
+   "name": "Anakie Gorge Picnic Area",
+   "lat": -37.8608168,
+   "lon": 144.2713254,
+   "label": "picnic_site"
+  },
+  {
+   "name": "Little River Picnic Area",
+   "lat": -37.8166579,
+   "lon": 144.2680108,
+   "label": "picnic_site"
+  },
+  {
    "name": "EG Australia",
    "lat": -38.3411951,
    "lon": 143.5848548,
@@ -12889,6 +15500,12 @@
    "lat": -37.8437159,
    "lon": 144.8439377,
    "label": "outdoor"
+  },
+  {
+   "name": "Ocean Grove Community Garden",
+   "lat": -38.2672782,
+   "lon": 144.5266881,
+   "label": "garden"
   },
   {
    "name": "Lismore Driver Reviver",
@@ -13017,6 +15634,12 @@
    "label": "pier"
   },
   {
+   "name": "Moorabool River Reserve",
+   "lat": -38.0936989,
+   "lon": 144.2738385,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Liberty",
    "lat": -37.8657917,
    "lon": 144.8394715,
@@ -13095,6 +15718,12 @@
    "label": "cafe"
   },
   {
+   "name": "Food Bowl",
+   "lat": -38.4061083,
+   "lon": 144.8407453,
+   "label": "garden"
+  },
+  {
    "name": "Lorne Sea Baths",
    "lat": -38.5395501,
    "lon": 143.9761812,
@@ -13125,150 +15754,6 @@
    "label": "alcohol"
   },
   {
-   "name": "Otway Reef",
-   "lat": -38.8682007,
-   "lon": 143.517309,
-   "label": "reef"
-  },
-  {
-   "name": "Henty Reef",
-   "lat": -38.7859548,
-   "lon": 143.7042274,
-   "label": "reef"
-  },
-  {
-   "name": "Ingoldsby Reefs",
-   "lat": -38.4135275,
-   "lon": 144.2158524,
-   "label": "reef"
-  },
-  {
-   "name": "Ingoldsby Reefs",
-   "lat": -38.4078869,
-   "lon": 144.2309831,
-   "label": "reef"
-  },
-  {
-   "name": "Bird Rock",
-   "lat": -38.3497067,
-   "lon": 144.3033288,
-   "label": "reef"
-  },
-  {
-   "name": "Charlemont Reef",
-   "lat": -38.2980419,
-   "lon": 144.4806052,
-   "label": "reef"
-  },
-  {
-   "name": "Point Lonsdale Reef",
-   "lat": -38.2927081,
-   "lon": 144.6144689,
-   "label": "reef"
-  },
-  {
-   "name": "Mushroom Rock",
-   "lat": -38.2943964,
-   "lon": 144.6170702,
-   "label": "reef"
-  },
-  {
-   "name": "Yellowtail Rock",
-   "lat": -38.2950831,
-   "lon": 144.617417,
-   "label": "reef"
-  },
-  {
-   "name": "Victory Shoal",
-   "lat": -38.2804484,
-   "lon": 144.6328859,
-   "label": "reef"
-  },
-  {
-   "name": "Drapers Reef",
-   "lat": -38.2711379,
-   "lon": 144.6682839,
-   "label": "reef"
-  },
-  {
-   "name": "Nicholson Knoll",
-   "lat": -38.3037886,
-   "lon": 144.702201,
-   "label": "reef"
-  },
-  {
-   "name": "Royal George Shoal",
-   "lat": -38.2467958,
-   "lon": 144.7236321,
-   "label": "reef"
-  },
-  {
-   "name": "William Sand",
-   "lat": -38.2302296,
-   "lon": 144.7391987,
-   "label": "reef"
-  },
-  {
-   "name": "West Middle Sand",
-   "lat": -38.2293845,
-   "lon": 144.7532179,
-   "label": "reef"
-  },
-  {
-   "name": "Middle Sand",
-   "lat": -38.2237136,
-   "lon": 144.7762527,
-   "label": "reef"
-  },
-  {
-   "name": "West Sand",
-   "lat": -38.2172955,
-   "lon": 144.7236382,
-   "label": "reef"
-  },
-  {
-   "name": "Swan Spit",
-   "lat": -38.250243,
-   "lon": 144.7011365,
-   "label": "reef"
-  },
-  {
-   "name": "Middle Ground",
-   "lat": -38.2995813,
-   "lon": 144.8025291,
-   "label": "reef"
-  },
-  {
-   "name": "South Sand",
-   "lat": -38.3372567,
-   "lon": 144.7901763,
-   "label": "reef"
-  },
-  {
-   "name": "Spoil Ground Shoal",
-   "lat": -38.3303494,
-   "lon": 144.8215302,
-   "label": "reef"
-  },
-  {
-   "name": "Governor Reef",
-   "lat": -38.1535038,
-   "lon": 144.7285159,
-   "label": "reef"
-  },
-  {
-   "name": "Inner Governor Reef",
-   "lat": -38.149028,
-   "lon": 144.7240363,
-   "label": "reef"
-  },
-  {
-   "name": "Harding Reach",
-   "lat": -38.1121592,
-   "lon": 144.6686618,
-   "label": "reef"
-  },
-  {
    "name": "Saltwater Swim School",
    "lat": -37.8196861,
    "lon": 144.7197503,
@@ -13285,12 +15770,6 @@
    "lat": -38.3097157,
    "lon": 144.3174312,
    "label": "cafe"
-  },
-  {
-   "name": "Ramblers Road Shellfish Reef",
-   "lat": -38.1139292,
-   "lon": 144.6207653,
-   "label": "reef"
   },
   {
    "name": "Club Mambourin",
@@ -13339,12 +15818,6 @@
    "lat": -38.0269855,
    "lon": 144.4306926,
    "label": "bakery"
-  },
-  {
-   "name": "Merian Reef",
-   "lat": -38.2893583,
-   "lon": 144.6167246,
-   "label": "reef"
   },
   {
    "name": "Hobsons Bay Men's Shed",
@@ -13425,6 +15898,12 @@
    "label": "community_centre"
   },
   {
+   "name": "Altona Community Gardens Inc.",
+   "lat": -37.8704786,
+   "lon": 144.8113558,
+   "label": "garden"
+  },
+  {
    "name": "Club Tarneit",
    "lat": -37.8344446,
    "lon": 144.7014138,
@@ -13435,6 +15914,12 @@
    "lat": -38.0181496,
    "lon": 144.4098338,
    "label": "community_centre"
+  },
+  {
+   "name": "The Fernery",
+   "lat": -38.5255372,
+   "lon": 143.5406453,
+   "label": "garden"
   },
   {
    "name": "Art Reach Studio",
@@ -13617,6 +16102,12 @@
    "label": "restaurant"
   },
   {
+   "name": "Fell Reserve Rose Garden",
+   "lat": -37.8596886,
+   "lon": 144.8425371,
+   "label": "garden"
+  },
+  {
    "name": "Domino's",
    "lat": -38.339939,
    "lon": 143.5837925,
@@ -13671,6 +16162,12 @@
    "label": "hotel"
   },
   {
+   "name": "Valley Picnic Ground",
+   "lat": -37.9584484,
+   "lon": 144.4162569,
+   "label": "picnic_site"
+  },
+  {
    "name": "Colac Neighbourhood House",
    "lat": -38.3410296,
    "lon": 143.5803811,
@@ -13695,28 +16192,16 @@
    "label": "beach"
   },
   {
-   "name": "Horseshoe Rock",
-   "lat": -38.4653087,
-   "lon": 144.1082462,
-   "label": "reef"
-  },
-  {
-   "name": "Plunge Off Rock",
-   "lat": -38.4632756,
-   "lon": 144.1102263,
-   "label": "reef"
-  },
-  {
-   "name": "Swim Off Rock",
-   "lat": -38.4630581,
-   "lon": 144.110733,
-   "label": "reef"
-  },
-  {
    "name": "Thirteenth Beach",
    "lat": -38.2856857,
    "lon": 144.4620923,
    "label": "beach"
+  },
+  {
+   "name": "K Road Cliffs",
+   "lat": -37.9400775,
+   "lon": 144.6717253,
+   "label": "cliff"
   },
   {
    "name": "BCF",
@@ -13735,6 +16220,12 @@
    "lat": -37.8977242,
    "lon": 144.5970433,
    "label": "fast_food"
+  },
+  {
+   "name": "Barwon Heads Community Arts Garden",
+   "lat": -38.2724819,
+   "lon": 144.4843923,
+   "label": "garden"
   },
   {
    "name": "Dianella Community Centre",
@@ -13761,6 +16252,30 @@
    "label": "sailing"
   },
   {
+   "name": "Portsea Lagoon Wildlife Sanctuary",
+   "lat": -38.3283467,
+   "lon": 144.7136178,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Blairgowrie Community Garden",
+   "lat": -38.3612554,
+   "lon": 144.7648928,
+   "label": "garden"
+  },
+  {
+   "name": "Robyn Court Bushland Reserve",
+   "lat": -38.3758367,
+   "lon": 144.8026079,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Betty Street Bushland Reserve",
+   "lat": -38.3810012,
+   "lon": 144.8013113,
+   "label": "nature_reserve"
+  },
+  {
    "name": "St Andrews Kitchen",
    "lat": -38.4242748,
    "lon": 144.8389401,
@@ -13783,6 +16298,12 @@
    "lat": -38.3717973,
    "lon": 144.8213851,
    "label": "community_centre"
+  },
+  {
+   "name": "Weeroona Bushland Reserve",
+   "lat": -38.3886198,
+   "lon": 144.8412934,
+   "label": "nature_reserve"
   },
   {
    "name": "Pammy's Pizza",
@@ -13827,16 +16348,418 @@
    "label": "community_centre"
   },
   {
+   "name": "Mornington Peninsula National Park",
+   "lat": -38.4136582,
+   "lon": 144.8584364,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Apollo Marine Park",
+   "lat": -39.1305551,
+   "lon": 143.7506962,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Great Ocean Road",
    "lat": -38.5607579,
    "lon": 143.4679704,
    "label": "attraction"
   },
   {
+   "name": "Point Nepean National Park",
+   "lat": -38.3153523,
+   "lon": 144.7271938,
+   "label": "nature_reserve"
+  },
+  {
    "name": "Wathaurong Aboriginal Co-operative",
    "lat": -38.1003161,
    "lon": 144.3500463,
    "label": "community_centre"
+  },
+  {
+   "name": "Point Addis Marine National Park",
+   "lat": -38.4187108,
+   "lon": 144.2465042,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Otway Forest Park",
+   "lat": -38.5425343,
+   "lon": 143.6246682,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Aire River Wildlife Reserve (hunting)",
+   "lat": -38.7772959,
+   "lon": 143.4607285,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Kennet River Coastal Reserve",
+   "lat": -38.6678702,
+   "lon": 143.8604054,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Anglesea Bushland Reserve",
+   "lat": -38.4019284,
+   "lon": 144.1979702,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Great Otway National Park",
+   "lat": -38.5896224,
+   "lon": 143.7149334,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Wye River Coastal Reserve",
+   "lat": -38.6354202,
+   "lon": 143.8916664,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lorne - Queenscliff Coastal Reserve",
+   "lat": -38.4248715,
+   "lon": 144.2744862,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Barwon Bluff Marine Sanctuary",
+   "lat": -38.2911481,
+   "lon": 144.50131,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Greater Otway NP (addition)",
+   "lat": -38.7857762,
+   "lon": 143.4390637,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lake Connewarre Wildlife Reserve",
+   "lat": -38.2383663,
+   "lon": 144.4484807,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Anglesea Depot",
+   "lat": -38.3886643,
+   "lon": 144.1724769,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lily Pond Bushland Reserve",
+   "lat": -38.5195661,
+   "lon": 143.9862062,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Eagle Rock Marine Sanctuary",
+   "lat": -38.4690946,
+   "lon": 144.1058052,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Barham Paradise Scenic Reserve",
+   "lat": -38.740928,
+   "lon": 143.623483,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Apollo Bay Coastal Reserve",
+   "lat": -38.7516641,
+   "lon": 143.6986296,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Elliot River - Addis Bay Coastal Reserve",
+   "lat": -38.7438882,
+   "lon": 143.7141372,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Barwon Downs Bushland Reserve",
+   "lat": -38.4776424,
+   "lon": 143.755266,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Eumeralla Education Area",
+   "lat": -38.3952711,
+   "lon": 144.2149737,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Breamlea Flora and Fauna Reserve",
+   "lat": -38.2959154,
+   "lon": 144.3845517,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Point Danger Marine Sanctuary",
+   "lat": -38.3407383,
+   "lon": 144.33033,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Steiglitz Historic Park",
+   "lat": -37.8740462,
+   "lon": 144.1712092,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Brisbane Ranges National Park",
+   "lat": -37.8244957,
+   "lon": 144.2373915,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Swan Bay - Edwards Point Wildlife Reserve",
+   "lat": -38.2179996,
+   "lon": 144.6720669,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Port Phillip Heads Marine National Park",
+   "lat": -38.2591157,
+   "lon": 144.6922732,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "You Yangs Regional Park",
+   "lat": -37.9466283,
+   "lon": 144.4155401,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Western Grasslands Nature Conservation Reserve",
+   "lat": -37.8504731,
+   "lon": 144.5533027,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Point Cooke Marine Sanctuary",
+   "lat": -37.9221949,
+   "lon": 144.7958491,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Altona Meadows Natural Features Reserve",
+   "lat": -37.8918848,
+   "lon": 144.7821871,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Truganina South Nature Conservation Reserve",
+   "lat": -37.8457697,
+   "lon": 144.7370378,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Boonderoo Nature Conservation Reserve",
+   "lat": -37.9627069,
+   "lon": 144.0440711,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Angliss Grassland (Laverton North) Nature Conservation Reserve",
+   "lat": -37.8171779,
+   "lon": 144.7773575,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Inverleigh Flora Reserve",
+   "lat": -38.0674319,
+   "lon": 144.0389939,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Murroon Bushland Reserve",
+   "lat": -38.4580624,
+   "lon": 143.7877754,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Gherang Gherang Bushland Reserve",
+   "lat": -38.3085724,
+   "lon": 144.1470928,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Gellibrand Bushland Reserve",
+   "lat": -38.5100391,
+   "lon": 143.5597295,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Bambra Bushland Reserve",
+   "lat": -38.3683494,
+   "lon": 143.9492093,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Limeburners Lagoon (Hovells Creek) Flora and Fauna Reserve",
+   "lat": -38.0575695,
+   "lon": 144.4136441,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Marengo Nature Conservation Reserve",
+   "lat": -38.7773816,
+   "lon": 143.6544103,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Cargerie I42 Bushland Reserve",
+   "lat": -37.8439257,
+   "lon": 143.9256541,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Wurdi Youyang Bushland Reserve",
+   "lat": -37.9145065,
+   "lon": 144.4255673,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Moreep Bushland Reserve",
+   "lat": -37.8223206,
+   "lon": 144.1496454,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Dereel H24 Bushland Reserve",
+   "lat": -37.806874,
+   "lon": 143.7099907,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Johanna Falls Scenic Reserve",
+   "lat": -38.7402009,
+   "lon": 143.3658684,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Red Rock Scenic Reserve",
+   "lat": -38.2491127,
+   "lon": 143.5085695,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Ombersley Streamside Reserve",
+   "lat": -38.1853631,
+   "lon": 143.8447671,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Yaugher Bushland Reserve",
+   "lat": -38.5338635,
+   "lon": 143.5434347,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Wild Dog Creek Streamside Reserve",
+   "lat": -38.7285901,
+   "lon": 143.6777619,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Mount Anakie Scenic Reserve",
+   "lat": -37.8852276,
+   "lon": 144.2656049,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Enfield State Park",
+   "lat": -37.762817,
+   "lon": 143.7626618,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Floating Islands Flora and Fauna Reserve",
+   "lat": -38.3441196,
+   "lon": 143.3999631,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Dereel Lagoon Wildlife Reserve (no hunting)",
+   "lat": -37.8206168,
+   "lon": 143.7458984,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Corindhap Nature Conservation Reserve",
+   "lat": -37.8690986,
+   "lon": 143.7396776,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lake Beeac Wildlife Reserve (no hunting)",
+   "lat": -38.2069578,
+   "lon": 143.6213708,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Kooraweera Lakes Wildlife Reserve (no hunting)",
+   "lat": -38.0958655,
+   "lon": 143.2815754,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Pomborneit North Nature Conservation Reserve",
+   "lat": -38.2367239,
+   "lon": 143.3406176,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Illabrook Rail Line Nature Conservation Reserve",
+   "lat": -37.8156565,
+   "lon": 143.6561629,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Bungador Stoney Rises Nature Conservation Reserve",
+   "lat": -38.3708241,
+   "lon": 143.2975252,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Irrewillipe Bushland Reserve",
+   "lat": -38.4351833,
+   "lon": 143.5035497,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Retreat Creek Streamside Reserve",
+   "lat": -38.3686239,
+   "lon": 143.9352503,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Rokewood Common Nature Conservation Reserve",
+   "lat": -37.9091595,
+   "lon": 143.7182636,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Lonsdale Lakes Wildlife Reserve",
+   "lat": -38.2674259,
+   "lon": 144.5847128,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Port Phillip Bay Coastal Reserve (COM)",
+   "lat": -38.1755989,
+   "lon": 144.6997687,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Meredith Education Area",
+   "lat": -37.8480119,
+   "lon": 144.1292146,
+   "label": "nature_reserve"
   },
   {
    "name": "Rhythms of Life, Australia",
@@ -13851,10 +16774,16 @@
    "label": "hotel"
   },
   {
-   "name": "Great Sand",
-   "lat": -38.263003,
-   "lon": 144.760554,
-   "label": "reef"
+   "name": "Aire River Heritage River",
+   "lat": -38.7370856,
+   "lon": 143.5147663,
+   "label": "nature_reserve"
+  },
+  {
+   "name": "Werribee Regional Park",
+   "lat": -37.9502686,
+   "lon": 144.6620774,
+   "label": "nature_reserve"
   }
  ],
  "towns": {

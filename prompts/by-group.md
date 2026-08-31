@@ -99,46 +99,109 @@ the existing data, and anything you found that the 43-type vocabulary had no wor
 
 ## 2 · The landscape
 
-> nature 54 · walk 32 · night 21
+> nature 59 · walk 34 · night 23   — 101 rows and only **42 pinned**
+
+**This pass is different from the other eight: it is a PINNING job first and a
+research job second.** The landscape group is not short of rows, it is short of
+coordinates — 42% pinned, by far the worst of any group (produce, the next
+worst, is 76%). And the unpinned ones are not vague ideas: 22 genuinely name no
+single place and are correctly null, but **37 name a real, findable place** and
+simply have never been geocoded. Erskine Falls, Triplet Falls, Hopetoun Falls,
+Maits Rest, Melba Gully, Teddy's Lookout, the Otway Redwoods, Ironbark Basin,
+Cape Otway Lightstation — the region's headline walks, none of them on the map.
+
+Nearly every one is a named Parks Victoria or GORCPA feature, which is the case
+where "ask for the feature by name" works best. `nearby.py --kinds landscape`
+already matches several of them to their existing rows.
 
 ```text
-Read prompts/RESEARCH_RULES.md and CLAUDE.md, then research listings for The landscape group.
+Clone the repo — do not go looking for a folder on the Mac and do not accept one
+somebody suggests. It is public, so this needs no key and no token:
 
-Work its three types thinnest first: night (21), walk (32), nature (54).
-This is the best-covered group, so the target is not volume — it is filling the gaps the existing
-54 nature rows leave. Read them first and work out what is missing before you search.
+    git clone https://github.com/Scott-Designed/whattodo.git
+    cd whattodo
 
-This is a loop. For each type, in order:
-  1. `python3 scripts/have.py <type>` — read the existing rows and note which towns are absent.
-  2. Search for what is missing. Good sources: Parks Victoria, the Great Otway National Park
-     pages, the Surf Coast Walk stage descriptions, Otway waterfall and rainforest walks,
-     ANGAIR, Bellarine Catchment Network, council reserve pages, Trust for Nature.
-  3. First-party source, geocode, build the row, drop what you cannot source. km stays null.
-  4. Batch to scratch, `sync.py add --dry-run`, fix, then write for real.
-  5. Append to prompts/log/landscape.md.
-  6. Straight on to the next type.
+Then `python3 scripts/nearby.py --refresh` once. Never run --refresh again mid-pass.
+You need a .env in the repo root with SUPABASE_URL and SUPABASE_SERVICE_KEY before
+sync.py will run — Scott supplies it. Without it sync.py exits before it parses anything,
+so --dry-run is blocked too, not just the write. Do not push; writes go to Supabase and
+the worklog comes back as a file.
+
+Read prompts/RESEARCH_RULES.md and CLAUDE.md, then work The landscape group.
+
+DO HALF ONE BEFORE HALF TWO. They are different jobs.
+
+── HALF ONE: pin what is already here ──
+
+`python3 scripts/have.py walk`, then `nature`, then `night`. Rows printed with a leading
+`·` have NO COORDINATE. There are about 37 that name a real place, and putting them on the
+map is worth more than any number of new rows.
+
+For each one:
+  1. Ask Nominatim for the FEATURE BY NAME — "Erskine Falls", not "Lorne". A named
+     waterfall, lookout, reserve or lightstation resolves to the feature; the same place
+     asked for as a town or a street resolves to a boundary or a road centreline, and this
+     week a street query returned two segments 4.5km apart.
+  2. REFUSE `type=administrative`. That is a suburb or park boundary, not a place — "Bells
+     Beach" resolves to a polygon whose centre is 2.6km from the beach.
+  3. Reverse-geocode every candidate before you accept it. Nothing under it means do not
+     write it.
+  4. **A walk's coordinate is its TRAILHEAD**, not the middle of the track and not the
+     summit. If the feature you matched is the falls but the walk starts at a car park,
+     say which one you used in `source_note` — several rows written this week pin the
+     access rather than the thing, and each says so.
+  5. Anything you cannot place stays null, and the reason goes in the log. A null pin is
+     honest; a wrong one is the failure this project has already paid for.
+
+You cannot patch existing rows from sync.py. Produce the pins as a table in the worklog —
+id, name, lat, lng, what Nominatim matched, and the reverse-geocode result — and I will
+apply them.
+
+── HALF TWO: what is missing ──
+
+Then, and only then, look for rows that do not exist. Work the three types thinnest first:
+night (23), walk (34), nature (59).
+
+  1. `python3 scripts/nearby.py "<town>" --kinds landscape --radius 6000`. Use a bigger
+     radius than usual — Otway features are a long way from the town centre they belong to.
+  2. Then check by hand. Parks Victoria, the Great Ocean Road Coast and Parks Authority,
+     the Otway Ranges walks guides, ANGAIR, council reserve pages, Trust for Nature.
+  3. Before writing, search existing names for the candidate's distinctive word.
+  4. Build the row, `sync.py add --dry-run`, fix, write. Append to prompts/log/landscape.md.
+
+Judgement on what the sweep returns:
+  - **`natural=peak` is mostly noise.** The Otways are full of named hills nobody visits —
+    Cockerill Hill, Hall Hill, Camp Hill, Black Hill all came back on a test sweep. A peak
+    earns a row only if a land manager describes a walk or a lookout there.
+  - **`historic=ruins` is the monument-and-landmark vocabulary gap**, not a type. The
+    Former Beech Forest Hotel and the Goods Shed are real and there is no honest type for
+    them. Log them; do not force them into `nature`.
+  - `tourism=attraction` is a grab bag — it returned a horse-riding business at Cape Otway.
+    Judge each.
 
 Specific to this group:
-  - The line between landscape and outdoors is being in it versus doing something in it. A walk
-     and a glow-worm hunt are landscape; a mountain bike trail is outdoors. CLAUDE.md says this
-     is the one grouping call worth arguing with — if a listing sits badly, log the argument
-     rather than quietly filing it in the other group.
-  - A walk's coordinate is its **trailhead**, not the middle of the track and not the town.
-    "Bells Beach" geocoding to an administrative polygon 2.6 km from the beach is the trap here;
-    check the `type` Nominatim returns and reject `administrative`.
-  - Put the distance and the grade of a walk in `duration` and `notes`, from the park's own
-    page. Do not estimate either.
-  - `night` is after dark outdoors — stargazing, glow worms, sunset points, moonrise, bioluminescence.
-    Those carry real conditions: clear-sky, new-moon, full-moon, geomagnetic-storm. A dark-sky
-    listing that is 100 km inland is out of the region regardless of how good the sky is.
-  - Seasonal things — wildflowers, whale watching, fungi, glow worms — belong in `season` and
-    `notes`, and the source has to say the season, not you.
+  - **The line between landscape and outdoors is being in it versus doing something in it.**
+    A walk and a glow-worm hunt are landscape; a mountain bike trail is outdoors. CLAUDE.md
+    calls this the one grouping decision worth arguing with — if a row sits badly, log the
+    argument rather than quietly filing it in the other group.
+  - `night` is after dark outdoors — stargazing, glow worms, sunset points, moonrise. Those
+    carry real conditions: `clear-sky`, `new-moon`, `full-moon`, `geomagnetic-storm`. OSM
+    will not help here at all; this type is entirely source-driven.
+  - **Do not write `any-weather` to fill the field.** The ocean pass put it on 34 of 41 rows
+    against a convention of 2 in 44, and `met()` returns TRUE for it, so it claims the
+    listing suits any weather. A rainforest walk in a storm does not.
+  - Seasonal things — wildflowers, glow worms, fungi, whales — belong in `season` and
+    `notes`, and `season` is a LIST from any/spring/summer/autumn/winter and nothing else.
+    The sentence about when the season actually runs goes in `notes`.
+  - Distance and grade of a walk come from the park's own page into `duration` and `notes`.
+    Do not estimate either. km stays null always.
+  - A dated thing needs a `place_id` or it cannot be on the map. `have.py places` first.
 
-Do not stop until all three types have been through the loop. Post one summary at the end:
-rows added per type, the towns still with nothing in this group, and any grouping calls you disagreed with.
+Do not stop until both halves are done and all three types have been through the loop.
+
+Post one summary: the pin table from half one, rows added per type in half two, everything
+you could not place and why, and anything the 43-type vocabulary had no word for.
 ```
-
----
 
 ## 3 · The outdoors
 
