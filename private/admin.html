@@ -319,6 +319,18 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
   display:flex;justify-content:flex-end}
 .drawer{background:var(--ground);width:min(620px,100%);height:100%;overflow-y:auto;
   border-left:1px solid var(--rule2);padding:24px var(--pad) 80px}
+/* `.dl` was used eleven times in the source drawer and defined NOWHERE, so
+   every label/value row rendered as a bold word with the value running on
+   after it. Same shape as the invented `--surface2` and `.lbl` this file has
+   already paid for: an unknown class is not an error, it just does nothing.
+   The label takes the th treatment the tables use, so the drawer and the
+   tables read as the same page. */
+.dl{display:grid;grid-template-columns:118px 1fr;gap:0 14px;align-items:baseline;
+    margin:0 0 13px;font-size:13px;line-height:1.55}
+.dl>b{font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--ink3);padding-top:2px}
+.dl>span{color:var(--ink2)}
+@media (max-width:700px){ .dl{grid-template-columns:1fr;gap:2px} }
 .drawer header{padding:0 0 16px;border-bottom:1px solid var(--rule2);margin-bottom:18px}
 .drawer h2{font-size:30px;margin:0}
 .fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
@@ -1205,6 +1217,10 @@ function sourceRows(){
       newTotal: (own?.newTotal || 0) + h.reduce((n,x)=>n+(x.newTotal||0),0),
       auto:a.auto, how:a.how, note:a.note, what:a.what, url:null,
       places: a.host ? places : [],
+      // The rows themselves, not just the count. The run log has only ever
+      // carried numbers — it can say +13 and never say WHICH thirteen — and
+      // the events are already loaded, so the drawer can simply show them.
+      evRows: mineEv,
       events:mineEv.length, live,
     });
   }
@@ -1317,6 +1333,53 @@ function showVenueState(state){
   window.scrollTo({top:0});
 }
 
+/* What a source actually brought in, and what was already here.
+
+   "New" is measured against the run BEFORE the last one: anything created since
+   then arrived in the last run. created_at is the only thing that can answer
+   this — the run log carries counts, so it can say +13 and never say which
+   thirteen, which is the whole reason this exists.
+
+   With fewer than two runs on file there is nothing to measure against, so it
+   says so rather than marking everything new. A source read for the first time
+   genuinely has no "before". */
+function sourceEventList(r){
+  const evs = (r.evRows || []).slice()
+    .sort((a,b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  if (!evs.length) return '';
+  const cut   = DATA.log[1]?.recorded_at || null;
+  const isNew = e => !!cut && (e.created_at || '') > cut;
+  const fresh = evs.filter(isNew).length;
+
+  const where = e => (e.place_id && DATA.places.find(p => p.id === e.place_id)?.name)
+                  || e.venue || e.location || '';
+  const line = e => {
+    const tag = isNew(e) ? '<span class="tag live">new</span>'
+              : (e.verified ? '' : '<span class="tag warn">unverified</span>');
+    const when = e.recurrence && e.recurrence !== 'none'
+      ? esc(e.recurrence) : esc(dmy(e.starts_on) || '—');
+    return `<tr>
+      <td style="white-space:nowrap;color:var(--ink3)">${when}</td>
+      <td class="cap" title="${esc(e.name || '')}">${esc(e.name || '')}</td>
+      <td class="cap" style="color:var(--ink3)" title="${esc(where(e))}">${esc(where(e))}</td>
+      <td style="white-space:nowrap;text-align:right">${tag}</td>
+    </tr>`;
+  };
+
+  const CAP = 80;
+  const summary = cut
+    ? `${fresh ? `<b style="color:var(--good);font-weight:500">${fresh} new in the last run</b>`
+               : 'nothing new in the last run'} · ${evs.length - fresh} already on file`
+    : `${evs.length} on file — no earlier run to compare against yet`;
+
+  return `<p class="dl"><b>What it brought in</b><span>${summary}</span></p>
+    <div class="scrollbox"><table><thead><tr>
+      <th>When</th><th>Event</th><th>Where</th><th></th>
+    </tr></thead><tbody>${evs.slice(0, CAP).map(line).join('')}</tbody></table></div>
+    ${evs.length > CAP ? `<p class="dl"><b></b><span style="color:var(--ink3)">newest ${
+      CAP} shown — the Events tab has all ${evs.length}</span></p>` : ''}`;
+}
+
 function openSource(r){
   if (!r) return;
   const st = SRC_STATE[r.state] || {label:r.state, tag:''};
@@ -1341,6 +1404,7 @@ function openSource(r){
   $('#editor').innerHTML = `<div class="scrim"><div class="drawer">
     <header><div class="sub">${esc(r.kind)}</div><h2>${esc(r.name)}</h2></header>
     ${rows.map(([k,v]) => `<p class="dl"><b>${esc(k)}</b><span>${v}</span></p>`).join('')}
+    ${sourceEventList(r)}
     ${r.how  ? `<p class="dl"><b>How it works</b><span>${esc(r.how)}</span></p>` : ''}
     ${r.note ? `<p class="dl"><b>Worth knowing</b><span>${esc(r.note)}</span></p>` : ''}
     <p class="dl" id="proberow" hidden><b>Test result</b><span id="probeout"></span></p>
