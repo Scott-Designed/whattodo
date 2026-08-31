@@ -122,6 +122,19 @@ a.pill{text-decoration:none;line-height:1}
 .xlab{position:relative;height:14px;margin-top:-6px}
 .xlab span{position:absolute;transform:translateX(-50%);font-size:10px;
   color:var(--ink3);white-space:nowrap}
+/* The hitbox sits over the plot only — not the axis labels — so leaving the
+   chart downwards does not keep the tooltip alive. */
+.hitbox{position:absolute;inset:0 0 20px 0;cursor:crosshair}
+.guide{position:absolute;top:10px;bottom:42px;width:1px;background:var(--ink3);
+  opacity:.5;pointer-events:none}
+.tip{position:absolute;top:14px;pointer-events:none;z-index:5;
+  background:var(--ground);border:1px solid var(--rule2);border-radius:9px;
+  padding:9px 11px;font-size:12px;color:var(--ink2);white-space:nowrap;
+  box-shadow:0 8px 26px rgba(0,0,0,.3)}
+.tip b{color:var(--ink);font-weight:600}
+.tip span{display:flex;align-items:center;gap:7px;margin-top:5px}
+.tip i{width:8px;height:8px;border-radius:50%;flex:none}
+
 .chip{background:none;border:1px solid var(--rule2);border-radius:999px;
   padding:5px 11px;margin-right:5px;font-family:var(--util);font-size:11.5px;
   font-weight:600;color:var(--ink3);cursor:pointer}
@@ -2397,9 +2410,16 @@ const AUTO_BY = ['grlc', 'surfcoastevents', 'venue-feed'];
 let CHART = {on: {all: true, auto: true, hand: true}, days: 90};
 
 function chartData(){
+  // Both sides of today, because a listings site is judged on what it has
+  // ALREADY carried as much as on what is coming. `back` is capped at the
+  // oldest event there is, so the axis never runs off into empty space.
+  const first = DATA.events.map(e => e.starts_on).filter(Boolean).sort()[0] || TODAY;
+  const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
+  const back = Math.min(CHART.days, Math.max(0, daysBetween(first, TODAY)));
   const start = new Date(TODAY + 'T00:00:00Z');
+  start.setUTCDate(start.getUTCDate() - back);
   const days = [];
-  for (let i = 0; i < CHART.days; i++){
+  for (let i = 0; i < back + CHART.days; i++){
     const d = new Date(start); d.setUTCDate(d.getUTCDate() + i);
     days.push(d.toISOString().slice(0, 10));
   }
@@ -2425,11 +2445,11 @@ function chartData(){
       d = nx.toISOString().slice(0, 10);
     }
   }
-  return {days, out, seen};
+  return {days, out, seen, todayAt: days.indexOf(TODAY)};
 }
 
 function drawChart(){
-  const {days, out, seen} = chartData();
+  const {days, out, seen, todayAt} = chartData();
   const W = 1000, H = 630, PADL = 34, PADB = 22, PADT = 10;
   const shown = SERIES.filter(s => CHART.on[s.k]);
   const peak = Math.max(1, ...shown.flatMap(s => out[s.k]));
@@ -2470,14 +2490,45 @@ function drawChart(){
         ${shown.map(s => `<path d="${area(s.k)}" fill="${s.c}" opacity=".10"/>
              <path d="${line(s.k)}" fill="none" stroke="${s.c}" stroke-width="2"
                    stroke-linejoin="round" stroke-linecap="round"/>`).join('')}
+        ${todayAt >= 0 ? `<line x1="${x(todayAt)}" x2="${x(todayAt)}" y1="${PADT}"
+             y2="${y(0)}" stroke="var(--ink3)" stroke-width="1.5" stroke-dasharray="4 4"/>
+           <text x="${x(todayAt) + 6}" y="${PADT + 12}" fill="var(--ink3)"
+             font-size="11" font-family="system-ui">today</text>` : ''}
       </svg>
+      <div class="guide" hidden></div>
+      <div class="tip" hidden></div>
+      <div class="hitbox"></div>
       <div class="ylab">${gridAt.slice().reverse().map(v =>
         `<span>${v}</span>`).join('')}</div>
       <div class="xlab">${ticks.map(({d, i}) =>
         `<span style="left:${(x(i) / W * 100).toFixed(2)}%">${esc(dmy(d).replace(/ \d{4}$/, ''))}</span>`).join('')}</div>
     </div>
-    <p class="tiles2" style="margin:8px 0 0">Events by the day they happen, from today.
+    <p class="tiles2" style="margin:8px 0 0">Events by the day they happen —
+      ${CHART.days} days either side of today, as far back as the record goes.
       A listing spanning several days counts on each of them.</p>`;
+
+  // Reading a value off a 90-day line by eye is guesswork, so the chart says
+  // it. The hitbox is a plain div over the plot: the svg scales with
+  // preserveAspectRatio="none", so its own coordinates are not the page's, and
+  // mapping a mouse position through the viewBox is the only honest way back.
+  const box = $('#chart').querySelector('.chartbox');
+  const hit = box.querySelector('.hitbox');
+  const guide = box.querySelector('.guide'), tip = box.querySelector('.tip');
+  hit.onmousemove = e => {
+    const r = hit.getBoundingClientRect();
+    const vx = ((e.clientX - r.left) / r.width) * W;            // page px → viewBox
+    const frac = (vx - PADL) / (W - PADL - 8);
+    const i = Math.max(0, Math.min(days.length - 1, Math.round(frac * (days.length - 1))));
+    const left = (x(i) / W) * r.width;
+    guide.hidden = false; guide.style.left = left + 'px';
+    tip.hidden = false;
+    tip.innerHTML = `<b>${esc(dmy(days[i]))}</b>` + shown.map(s =>
+      `<span><i style="background:${s.c}"></i>${esc(s.t)} <b>${out[s.k][i]}</b></span>`).join('');
+    // Flip before it runs off the right edge rather than after.
+    const w = tip.offsetWidth;
+    tip.style.left = Math.min(Math.max(6, left + 12), r.width - w - 6) + 'px';
+  };
+  hit.onmouseleave = () => { guide.hidden = true; tip.hidden = true; };
 
   $('#chart').querySelectorAll('[data-series]').forEach(b => b.onclick = () => {
     const k = b.dataset.series;

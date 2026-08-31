@@ -1687,6 +1687,20 @@ the group counts that do not sum to the number of listings.
 **The last visible series cannot be switched off.** An empty chart is not a
 state worth having.
 
+**It reaches backwards too**, added minutes later on Scott's ask — a listings
+site is judged on what it has already carried as much as on what is coming. The
+window is now that many days **either side** of today, and the back edge is
+capped at the oldest event on file (22 Aug 2026), so the axis never runs off
+into empty space. A dashed line marks today.
+
+**Hover reads the values out**, because taking a number off a 90-day line by eye
+is guesswork. The hitbox is a plain div over the plot rather than an SVG
+handler: the chart is `preserveAspectRatio="none"`, so its internal coordinates
+are not the page's, and mapping the mouse back through the viewBox
+(`px → viewBox → index`) is the only honest route. The tooltip flips before the
+right edge rather than after, and the hitbox stops short of the axis labels so
+leaving downwards dismisses it.
+
 **Tripling the height meant changing the viewBox, not the CSS.** The svg is
 `preserveAspectRatio="none"`, so scaling by CSS alone stretches every 2px stroke
 to 6px vertically and leaves it 2px across. `H` and the CSS height move together,
