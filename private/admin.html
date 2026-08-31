@@ -70,15 +70,51 @@ a.pill{text-decoration:none;line-height:1}
 .pillicon{width:13px;height:13px;flex:none;margin-right:-2px}
 
 /* ── tabs ── */
-nav.tabs{display:flex;gap:0;border-bottom:1px solid var(--rule2);margin-bottom:26px;
-  overflow-x:auto}
-nav.tabs button{background:none;border:none;border-bottom:2px solid transparent;
-  font-family:var(--util);font-size:12.5px;font-weight:600;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--ink3);padding:12px 18px 10px;cursor:pointer;
-  margin-bottom:-1px;white-space:nowrap}
-nav.tabs button:hover{color:var(--ink)}
-nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
-nav.tabs .tally{font-size:11px;color:var(--ink3);font-weight:500;margin-left:6px}
+/* ── the bar ──────────────────────────────────────────────────────────────
+   The site's own bar, borrowed: wordmark left, controls right, --surface
+   against --ground so it reads as raised in both schemes. It names no colour
+   of its own, so it follows the theme pill without knowing about it. */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:20px;
+  background:var(--surface);border-bottom:1px solid var(--rule2);
+  padding:11px var(--pad);position:sticky;top:0;z-index:70;
+  /* full-bleed out of .page's own padding, whatever --pad is at this width */
+  margin:0 calc(-1 * var(--pad)) 26px}
+.bar .mark{font-family:var(--serif);font-size:21px;color:var(--ink);
+  text-decoration:none;letter-spacing:-.01em}
+.barright{display:flex;align-items:center;gap:9px}
+.menuwrap{position:relative}
+.barlink{display:inline-flex;align-items:center;gap:7px;background:none;border:0;
+  cursor:pointer;font-family:var(--util);font-size:13px;font-weight:600;
+  letter-spacing:.04em;color:var(--ink);padding:6px 10px}
+.barlink .caret{color:var(--ink3);font-size:10px}
+.barlink:hover{color:var(--accent)}
+.menu{position:absolute;right:0;top:calc(100% + 7px);min-width:210px;
+  background:var(--surface);border:1px solid var(--rule2);border-radius:10px;
+  padding:6px;z-index:80;box-shadow:0 12px 34px rgba(0,0,0,.22)}
+.menuitem{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:8px 11px;border-radius:7px;text-decoration:none;color:var(--ink2);
+  font-family:var(--util);font-size:13px;font-weight:600}
+.menuitem:hover{background:var(--ground);color:var(--ink)}
+.menuitem.on{color:var(--ink);box-shadow:inset 2px 0 0 var(--accent)}
+.menun{color:var(--ink3);font-weight:500;font-size:11.5px}
+
+.pagetitle{font-family:var(--serif);font-weight:500;font-size:30px;margin:0 0 4px;
+  letter-spacing:-.015em}
+
+/* ── dashboard tiles ─────────────────────────────────────────────────────
+   Every tile is a link into the section that holds its number: a dashboard you
+   cannot act from is a poster. */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:12px;margin:22px 0 8px}
+.tile{display:block;padding:17px 18px;border:1px solid var(--rule2);border-radius:12px;
+  text-decoration:none;background:var(--surface)}
+.tile:hover{border-color:var(--ink3)}
+.tilen{font-family:var(--serif);font-size:34px;line-height:1;color:var(--ink);
+  letter-spacing:-.02em}
+.tilen.warn{color:var(--accent)}
+.tilet{margin-top:9px;font-family:var(--util);font-size:12px;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.tiles2{margin-top:3px;font-size:12px;color:var(--ink3)}
 
 /* ── panels, cards, rules ── */
 section[hidden]{display:none}
@@ -299,12 +335,17 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
   </symbol>
 </svg>
 
-<header>
-  <div>
-    <h1><a href="/">Notice</a> — back of house</h1>
-    <div class="sub" id="sub">reading…</div>
-  </div>
-  <div class="hdrbtns">
+<nav class="bar">
+  <a class="mark" href="#home">Notice Admin</a>
+  <div class="barright">
+    <!-- Every section lives in here. Eight tabs across the top was a row of
+         words with no shape; a menu makes the list scannable and leaves the bar
+         for the two things you actually press from anywhere. -->
+    <div class="menuwrap">
+      <button class="barlink" id="menubtn" aria-expanded="false" aria-haspopup="true">
+        <span id="menuhere">Dashboard</span> <span class="caret">▾</span></button>
+      <div class="menu" id="menu" hidden></div>
+    </div>
     <a class="pill solid" id="iartifact"
        href="https://claude.ai/code/artifact/93362d84-79a0-43b9-89e5-65eff75d74e2"
        target="_blank" rel="noopener noreferrer"
@@ -313,20 +354,25 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
     <button class="pill" id="lock">Locked</button>
     <button class="pill" id="theme">Auto</button>
   </div>
-</header>
-
-<nav class="tabs" role="tablist">
-  <button role="tab" data-tab="autos"      aria-selected="true">Automations</button>
-  <button role="tab" data-tab="groups"     aria-selected="false">Groups <span class="tally" id="t-groups"></span></button>
-  <button role="tab" data-tab="inbox"      aria-selected="false">Inbox <span class="tally" id="t-inbox"></span></button>
-  <button role="tab" data-tab="review"     aria-selected="false">Review <span class="tally" id="t-review"></span></button>
-  <button role="tab" data-tab="events"     aria-selected="false">Events <span class="tally" id="t-events"></span></button>
-  <button role="tab" data-tab="activities" aria-selected="false">Activities <span class="tally" id="t-activities"></span></button>
-  <button role="tab" data-tab="places"     aria-selected="false">Places <span class="tally" id="t-places"></span></button>
 </nav>
 
-<section id="tab-autos">
+<!-- The section counts. These used to live in the tab strip; the menu reads
+     them from here, so the six functions that set them did not have to change
+     and a count still has one home. -->
+<div id="tallies" hidden>
+  <span id="t-groups"></span><span id="t-inbox"></span><span id="t-review"></span>
+  <span id="t-events"></span><span id="t-activities"></span><span id="t-places"></span>
+</div>
+
+<section id="tab-home">
+  <h2 class="pagetitle">Dashboard</h2>
+  <div class="sub" id="sub">reading…</div>
   <div id="overview"></div>
+  <div id="home"></div>
+</section>
+
+<section id="tab-autos" hidden>
+  <h2 class="pagetitle">Automations</h2>
   <div id="alarm"></div>
 
   <div class="controls">
@@ -348,6 +394,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 </section>
 
 <section id="tab-inbox" hidden>
+  <h2 class="pagetitle">Inbox</h2>
   <div class="controls">
     <select id="istatus">
       <option value="new">Waiting</option>
@@ -375,6 +422,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 </section>
 
 <section id="tab-review" hidden>
+  <h2 class="pagetitle">Review</h2>
   <div class="controls">
     <select id="rsrc"><option value="">Everything waiting</option></select>
     <div class="msg" id="rmsg" style="margin-left:0"></div>
@@ -383,6 +431,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 </section>
 
 <section id="tab-events" hidden>
+  <h2 class="pagetitle">Events</h2>
   <h2>Events</h2>
   <div class="controls">
     <input type="search" id="eq" placeholder="Search names, venues, descriptions…">
@@ -416,6 +465,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 </section>
 
 <section id="tab-activities" hidden>
+  <h2 class="pagetitle">Activities</h2>
   <h2>Activities</h2>
   <div class="controls">
     <input type="search" id="aq" placeholder="Search names, suburbs, descriptions…">
@@ -432,12 +482,12 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 </section>
 
 <section id="tab-groups" hidden>
-  <h2>Groups</h2>
+  <h2 class="pagetitle">Groups</h2>
   <div id="glist"></div>
 </section>
 
 <section id="tab-places" hidden>
-  <h2>Places</h2>
+  <h2 class="pagetitle">Places</h2>
   <div class="controls">
     <input type="search" id="pq" placeholder="Search places, suburbs, aliases…">
     <select id="pkind"><option value="">Any kind</option></select>
@@ -2293,20 +2343,99 @@ $('#theme').onclick = () => {
   drawTheme();
 };
 
+/* ── the dashboard ───────────────────────────────────────────────────────────
+   Scott, 31 Aug 2026: a homepage with summary tiles. The four run stats above
+   answer "is the machinery working"; these answer "what is in the database and
+   what wants me". Every number is a link into the section that holds it — a
+   dashboard you cannot act from is a poster. */
+function drawHome(){
+  const ev = DATA.events;
+  const upcoming = ev.filter(e => (e.ends_on || e.starts_on) >= TODAY).length;
+  const onToday  = ev.filter(e => e.starts_on <= TODAY && (e.ends_on || e.starts_on) >= TODAY).length;
+  const past     = ev.length - upcoming;
+  const waiting  = [...DATA.activities, ...ev].filter(r => !r.verified).length;
+  const unsorted = [...DATA.activities, ...ev].filter(r => !(r.types || []).length).length;
+  const groups   = DATA.places.filter(isGroup).length;
+  const venues   = DATA.places.length - groups;
+  const pinned   = DATA.places.filter(p => p.lat != null).length;
+  const noPin    = venues - DATA.places.filter(p => p.lat != null && !isGroup(p)).length;
+  const inbox    = Object.keys(EMAILED).length;
+
+  // to: which section this number lives in, so pressing it gets you there.
+  const tiles = [
+    {to:'events',     n: upcoming,  t:'Upcoming events',  s: `${onToday} on today · ${past} past`},
+    {to:'activities', n: DATA.activities.length, t:'Places & activities',
+     s: 'the evergreen half of the board'},
+    {to:'places',     n: venues,    t:'Venues',           s: `${pinned} pinned · ${noPin} without`},
+    {to:'groups',     n: groups,    t:'Groups',           s:'organisations, not rooms'},
+    {to:'review',     n: waiting,   t:'In the review queue', s:'unverified, waiting to be approved',
+     warn: waiting > 0},
+    {to:'events',     n: unsorted,  t:'Unsorted',         s:'no type yet, so on no type page',
+     warn: unsorted > 0},
+  ];
+  $('#home').innerHTML = `<div class="tiles">${tiles.map(x => `
+    <a class="tile" href="#${x.to}">
+      <div class="tilen${x.warn ? ' warn' : ''}">${x.n.toLocaleString()}</div>
+      <div class="tilet">${esc(x.t)}</div>
+      <div class="tiles2">${esc(x.s)}</div>
+    </a>`).join('')}</div>`;
+}
+
 /* ── tabs ──────────────────────────────────────────────────────────────────*/
-const TABS = ['autos','groups','inbox','review','events','activities','places'];
+const TABS = ['home','autos','groups','inbox','review','events','activities','places'];
+/* The menu is built from this, so a section is named in exactly one place. */
+const TAB_NAME = {home:'Dashboard', autos:'Automations', groups:'Groups', inbox:'Inbox',
+                  review:'Review', events:'Events', activities:'Activities', places:'Places'};
 const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces(); drawGroups();
-                          drawSources(); drawOverview(); drawReview(); };
+                          drawSources(); drawOverview(); drawReview(); drawHome(); };
 
 function show(tab){
-  for (const b of document.querySelectorAll('nav.tabs button'))
-    b.setAttribute('aria-selected', String(b.dataset.tab === tab));
-  for (const id of TABS)
-    $('#tab-' + id).hidden = id !== tab;
+  if (!TABS.includes(tab)) tab = 'home';
+  for (const id of TABS) $('#tab-' + id).hidden = id !== tab;
+  $('#menuhere').textContent = TAB_NAME[tab];
+  closeMenu();
   location.hash = tab;
   if (tab === 'inbox') loadInbox();
 }
-document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => show(b.dataset.tab));
+
+/* The menu is drawn from TABS, so adding a section is one line in TAB_NAME and
+   nothing else. Counts come off the same tallies the tabs carried. */
+const TALLY_OF = {groups:'#t-groups', inbox:'#t-inbox', review:'#t-review',
+                  events:'#t-events', activities:'#t-activities', places:'#t-places'};
+
+function drawMenu(){
+  const here = (location.hash || '#home').slice(1);
+  $('#menu').innerHTML = TABS.map(id => {
+    const tallyEl = TALLY_OF[id] && $(TALLY_OF[id]);
+    const n = tallyEl ? tallyEl.textContent.trim() : '';
+    return `<a href="#${id}" class="menuitem${id === here ? ' on' : ''}" data-go="${id}"
+      >${esc(TAB_NAME[id])}${n ? `<span class="menun">${esc(n)}</span>` : ''}</a>`;
+  }).join('');
+  $('#menu').querySelectorAll('[data-go]').forEach(a =>
+    a.onclick = e => { e.preventDefault(); show(a.dataset.go); });
+}
+
+function openMenu(){
+  drawMenu();
+  $('#menu').hidden = false;
+  $('#menubtn').setAttribute('aria-expanded', 'true');
+}
+function closeMenu(){
+  $('#menu').hidden = true;
+  $('#menubtn').setAttribute('aria-expanded', 'false');
+}
+$('#menubtn').onclick = e => {
+  e.stopPropagation();
+  $('#menu').hidden ? openMenu() : closeMenu();
+};
+// Anywhere else, and Escape. Without these the menu is a trap on a page whose
+// tables are the thing you actually came to read.
+document.addEventListener('click', e => {
+  if (!e.target.closest('.menuwrap')) closeMenu();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+$('.mark').onclick = e => { e.preventDefault(); show('home'); };
+
 $('#lock').onclick = unlock;
 $('#runnow').onclick = runNow;
 
@@ -2372,7 +2501,8 @@ async function load(){
 
   const last = DATA.log[0];
   $('#sub').innerHTML = `${DATA.activities.length} places &amp; activities ·
-    ${DATA.events.length} events · ${DATA.places.length} venues ·
+    ${DATA.events.length} events · ${DATA.places.filter(p => !isGroup(p)).length} venues ·
+    ${DATA.places.filter(isGroup).length} groups ·
     last run ${last ? esc(ago(last.recorded_at)) : DATA.runs[0] ? esc(ago(DATA.runs[0].run_started_at)) : 'unknown'}`;
 
   drawAutos(); drawSources(); drawOverview(); redrawAll();

@@ -1627,6 +1627,59 @@ out of `private/`, and the copy line above now does. There is no function under
 a static server anyway, so the gate itself has never been testable locally —
 test it on the deploy.
 
+### Notice Admin — a bar, a menu and a dashboard, 31 Aug 2026
+
+Scott: *"put a menu in the backend app, and move the 'tabs' into the menu. Call
+it Notice Admin. And we can have a dashboard homepage with summary tiles."*
+
+**Eight tabs across the top had stopped being a tab strip.** It was five when
+built; Groups and Inbox took it to eight, which is a row of words with no shape.
+They are one menu on the bar now, which leaves the bar for the two things worth
+pressing from anywhere — **Add an event** and the theme.
+
+**The bar is the site's own**, borrowed deliberately so the back office reads as
+the same product: wordmark left, controls right, `--surface` against `--ground`
+so it sits raised in both schemes, `z-index:70` and sticky. It **names no colour
+of its own**, so it follows the theme pill without knowing the pill exists —
+the same rule `notice-nav.css` keeps. Full-bleed with
+`margin:0 calc(-1 * var(--pad))`, not a hardcoded 28px, or it breaks at the
+700px width where `--pad` drops to 18.
+
+**The menu is built from `TABS` + `TAB_NAME`**, so a new section is one line and
+nothing else. Counts come from the same `#t-…` spans the tabs carried — those
+moved into a hidden `#tallies` holder rather than being rewritten, so the six
+functions that set them did not change and a count still has exactly one home.
+
+**The dashboard's four run stats are the old overview, moved not rebuilt.** They
+answer *is the machinery working*; the six new tiles answer *what is in the
+database and what wants me*. **Every tile is a link into the section that holds
+its number** — a dashboard you cannot act from is a poster.
+
+**Two names for two different things was the bug the tiles found.** The stat
+strip already had *Waiting on you* (drift, and sources needing a person) and the
+new tile used the same words for the review queue. Renamed to *In the review
+queue*. Same pass caught the sub-line saying 139 venues where the tile said 133,
+because it counted groups; it now says both.
+
+### Three mistakes in one restructure, all the same shape
+
+Worth writing down together, because they are one habit:
+
+- **A function was inserted into the `<style>` block.** The anchor was
+  `/* ── tabs ──`, which matched a CSS comment hundreds of lines before the
+  JavaScript one. It parsed clean, shipped nothing, and only surfaced as
+  *"drawHome is not defined"* at runtime. **Anchor on something that exists in
+  one place** — `const TABS = [` would have been unambiguous.
+- **A slice cut mid-statement.** Replacing from `function show(tab){` to a
+  string *inside* that function left the tail of the old body orphaned. The
+  syntax check caught it; nothing else would have.
+- **Deleting markup deleted state.** The tab strip carried the six tally spans,
+  so removing it left six functions writing to `null`.
+
+The check that catches all three is the same: **assert on what a replacement
+REMOVES, not only that it found something** — a rule this file already records
+from 30 Aug, broken again the next day.
+
 ### The Automations tab — rebuilt 28 Aug 2026 after a UX audit
 
 Scott said he was confused by the layout and the amount of body copy. Measured
@@ -4013,7 +4066,13 @@ caught it before it shipped; clicking around the page would not have.
 - `Barwon Heads Community Park Playground` (89) is pinned at the park polygon's
   centre, which reverse-geocodes to the pony club inside the same park. Right
   precinct, possibly not the playground — worth a better point if it matters.
-- **The moderation queue is NOT empty any more — 785 rows** (30 Aug 2026): 248
+- **The moderation queue is empty again as of 31 Aug 2026 — 0 unverified**,
+  checked against the **service key**, not the page: `activities` 524 total / 0
+  unverified, `events` 706 / 0. The 785 below was true on 30 Aug and is not now.
+  Do not trust this line without re-counting; it has been wrong in both
+  directions within two days.
+
+  The 30 Aug state, kept because the reasoning still applies — **785 rows**: 248
   activities and 537 events, 500 of them the library import. It was emptied in
   bulk on 25 Aug and has refilled since. `sync.py pending` was answering 400 for
   most of that time (see the paging section above), so nothing was visible.
