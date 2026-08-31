@@ -69,68 +69,6 @@ a.pill{text-decoration:none;line-height:1}
 .pill.solid:hover{background:var(--ink2);border-color:var(--ink2);color:var(--ground)}
 .pillicon{width:13px;height:13px;flex:none;margin-right:-2px}
 
-/* ── every listing, by kind ──────────────────────────────────────────────────
-   Scott, 31 Aug 2026: roll the kind totals up across the site and put them on
-   the dashboard. The seven kinds are what the type pages are built from —
-   /beach draws a bucket per kind — but until now the only place you could see
-   them added up was a comment in supabase/KINDS.sql, which goes stale the day
-   it is written. Derived here, so it cannot.
-
-   The wording is that comment's, kept word for word: two copies of a definition
-   drift, and this one at least says where it came from. */
-const KIND_DEF = {
-  spot:      ['place',  'no door, no hours, nobody owns it'],
-  venue:     ['place',  'a door, hours, a price'],
-  shop:      ['place',  'somewhere to buy the gear a type page is about'],
-  group:     ['people', 'you join in'],
-  maker:     ['people', 'you buy from them'],
-  happening: ['time',   'it has a date'],
-  idea:      ['idea',   'no anchor of any kind'],
-};
-// Three kinds are deliberately kept off the Notice Board — you look them up,
-// the board does not suggest them. Worth saying here, or the numbers look like
-// a discrepancy against the board's own tally.
-const OFF_BOARD_KINDS = ['shop', 'maker', 'group'];
-
-function drawKindRoll(){
-  const n = {};
-  for (const k of Object.keys(KIND_DEF)) n[k] = 0;
-  for (const a of DATA.activities) if (a.kind in n) n[a.kind]++;
-  n.happening = DATA.events.length;          // an event is always a happening
-  const unset = DATA.activities.filter(a => !a.kind || !(a.kind in n)).length;
-  const total = Object.values(n).reduce((a, b) => a + b, 0) + unset;
-  const most  = Math.max(1, ...Object.values(n));
-
-  const row = k => {
-    const [fam, def] = KIND_DEF[k];
-    const off = OFF_BOARD_KINDS.includes(k);
-    return `<tr>
-      <td class="fam">${esc(fam)}</td>
-      <td class="kindname">${esc(k)}</td>
-      <td class="num">${n[k].toLocaleString()}</td>
-      <td class="barcell"><i style="width:${(n[k] / most * 100).toFixed(1)}%"></i></td>
-      <td class="def">${esc(def)}${off ? ' <span class="offb">off the board</span>' : ''}</td>
-    </tr>`;
-  };
-
-  $('#kindroll').innerHTML = `
-    <h3 class="rollhead">Every listing, by kind</h3>
-    <div style="overflow-x:auto"><table class="roll">
-      <thead><tr><th>Family</th><th>Kind</th><th class="num">Count</th><th></th>
-        <th>What it is</th></tr></thead>
-      <tbody>
-        ${Object.keys(KIND_DEF).map(row).join('')}
-        ${unset ? `<tr><td class="fam">—</td><td class="kindname">unset</td>
-          <td class="num">${unset}</td><td class="barcell"><i style="width:${
-          (unset / most * 100).toFixed(1)}%"></i></td>
-          <td class="def">no kind yet — the classifier has never seen these</td></tr>` : ''}
-        <tr class="tot"><td></td><td class="kindname">total</td>
-          <td class="num">${total.toLocaleString()}</td><td></td>
-          <td class="def">listings across the whole site</td></tr>
-      </tbody>
-    </table></div>`;
-}
-
 /* ── tabs ── */
 /* ── the bar ──────────────────────────────────────────────────────────────
    The site's own bar, borrowed: wordmark left, controls right, --surface
@@ -2799,6 +2737,68 @@ function drawHome(){
 }
 
 /* ── tabs ──────────────────────────────────────────────────────────────────*/
+/* ── every listing, by kind ──────────────────────────────────────────────────
+   Scott, 31 Aug 2026: roll the kind totals up across the site and put them on
+   the dashboard. The seven kinds are what the type pages are built from —
+   /beach draws a bucket per kind — but until now the only place you could see
+   them added up was a comment in supabase/KINDS.sql, which goes stale the day
+   it is written. Derived here, so it cannot.
+
+   The wording is that comment's, kept word for word: two copies of a definition
+   drift, and this one at least says where it came from. */
+const KIND_DEF = {
+  spot:      ['place',  'no door, no hours, nobody owns it'],
+  venue:     ['place',  'a door, hours, a price'],
+  shop:      ['place',  'somewhere to buy the gear a type page is about'],
+  group:     ['people', 'you join in'],
+  maker:     ['people', 'you buy from them'],
+  happening: ['time',   'it has a date'],
+  idea:      ['idea',   'no anchor of any kind'],
+};
+// Three kinds are deliberately kept off the Notice Board — you look them up,
+// the board does not suggest them. Worth saying here, or the numbers look like
+// a discrepancy against the board's own tally.
+const OFF_BOARD_KINDS = ['shop', 'maker', 'group'];
+
+function drawKindRoll(){
+  const n = {};
+  for (const k of Object.keys(KIND_DEF)) n[k] = 0;
+  for (const a of DATA.activities) if (a.kind in n) n[a.kind]++;
+  n.happening = DATA.events.length;          // an event is always a happening
+  const unset = DATA.activities.filter(a => !a.kind || !(a.kind in n)).length;
+  const total = Object.values(n).reduce((a, b) => a + b, 0) + unset;
+  const most  = Math.max(1, ...Object.values(n));
+
+  const row = k => {
+    const [fam, def] = KIND_DEF[k];
+    const off = OFF_BOARD_KINDS.includes(k);
+    return `<tr>
+      <td class="fam">${esc(fam)}</td>
+      <td class="kindname">${esc(k)}</td>
+      <td class="num">${n[k].toLocaleString()}</td>
+      <td class="barcell"><i style="width:${(n[k] / most * 100).toFixed(1)}%"></i></td>
+      <td class="def">${esc(def)}${off ? ' <span class="offb">off the board</span>' : ''}</td>
+    </tr>`;
+  };
+
+  $('#kindroll').innerHTML = `
+    <h3 class="rollhead">Every listing, by kind</h3>
+    <div style="overflow-x:auto"><table class="roll">
+      <thead><tr><th>Family</th><th>Kind</th><th class="num">Count</th><th></th>
+        <th>What it is</th></tr></thead>
+      <tbody>
+        ${Object.keys(KIND_DEF).map(row).join('')}
+        ${unset ? `<tr><td class="fam">—</td><td class="kindname">unset</td>
+          <td class="num">${unset}</td><td class="barcell"><i style="width:${
+          (unset / most * 100).toFixed(1)}%"></i></td>
+          <td class="def">no kind yet — the classifier has never seen these</td></tr>` : ''}
+        <tr class="tot"><td></td><td class="kindname">total</td>
+          <td class="num">${total.toLocaleString()}</td><td></td>
+          <td class="def">listings across the whole site</td></tr>
+      </tbody>
+    </table></div>`;
+}
+
 const TABS = ['home','autos','groups','inbox','review','events','activities','places'];
 /* The menu is built from this, so a section is named in exactly one place. */
 const TAB_NAME = {home:'Dashboard', autos:'Automations', groups:'Groups', inbox:'Inbox',

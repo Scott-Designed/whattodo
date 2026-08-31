@@ -1921,6 +1921,54 @@ said `peak`, which threw at runtime and rendered no cards at all. A rename
 inside one function is exactly as silent as a type rename across five files;
 grep the old name before believing it is done.
 
+### Every listing by kind, on the dashboard
+
+Scott, 31 Aug 2026: *"roll up the totals across the site for these categories
+and display on dashboard."* The categories are the seven kinds the type pages
+are built from — `/beach` draws a bucket per kind — and until now the only place
+they were added up was a comment in `supabase/KINDS.sql`, which is right on the
+day it is written and quietly wrong afterwards. **Derived on the dashboard, so
+it cannot go stale.**
+
+    place   spot        178   no door, no hours, nobody owns it
+    place   venue       287   a door, hours, a price
+    place   shop         15   somewhere to buy the gear      off the board
+    people  group        22   you join in                    off the board
+    people  maker         6   you buy from them              off the board
+    time    happening   504   it has a date
+    idea    idea         57   no anchor of any kind
+                      -----
+                       1069
+
+**The wording is KINDS.sql's, word for word**, and the comment says so. Two
+copies of a definition drift; one that names its source can at least be checked.
+
+**A bar beside each count, because seven numbers spanning 6 to 504 do not
+compare by eye.** A column of digits hides that one kind is half the database.
+
+**`off the board` is marked**, or the numbers read as a discrepancy against the
+board's own tally. Shop, maker and group are things you look up; the board does
+not suggest them.
+
+**The total is asserted, not just printed** — it must equal
+`activities + events`, and the check ran before shipping.
+
+### A function landed in the `<style>` block for the SECOND time today
+
+Same anchor mistake, hours apart: `/* ── tabs ──` appears twice in this file,
+once in the CSS and once in the JavaScript, and a `replace(…, 1)` takes the
+first. It parses clean, ships nothing, and surfaces as *"drawKindRoll is not
+defined"* at runtime — or, worse, not at all until something is clicked.
+
+The check that catches it is now written down and was run this time:
+
+    css = t[t.index('<style>'):t.index('</style>')]
+    assert not re.findall(r'function \w+\(', css)
+
+**No function may live in the stylesheet.** Anchor on something that cannot
+appear in both — `const TABS = ['home',` — and assert the slice landed after
+`</style>`.
+
 ### Three mistakes in one restructure, all the same shape
 
 Worth writing down together, because they are one habit:
