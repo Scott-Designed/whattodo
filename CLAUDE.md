@@ -1902,6 +1902,32 @@ failure for a public URL: an open one is a spam target within a day. It answers
 `501 no_secret` when unconfigured and `401` to a wrong one, compared
 timing-safely on digests like `ADMIN_PASSWORD`.
 
+### Confirmation links, and why the readable body is not enough
+
+**Signing up to a venue's mailing list as `events@notice.place` is a normal use
+of the address** — for the 63 places with no website at all it may be the only
+route there will ever be. Every one of those sends a *click to confirm*, and
+`plain()` throws the link away: it strips tags for the readable body, so
+`<a href="…">Confirm</a>` becomes the word *Confirm* and nothing else.
+
+The href survives in `raw`, so `linksIn()` in admin.html digs it back out and
+the open row lists every URL in the message.
+
+**It decodes quoted-printable BEFORE matching, and that order is the whole
+trick.** `raw` is the full MIME message, so a long confirmation URL is split
+across a soft line break (a trailing `=`) and every `=` in the query string is
+written `=3D`. Matching first and decoding after finds two broken halves of a
+link that then cannot be clicked. Tested against a Mailchimp-shaped message
+with the URL split mid-parameter.
+
+**Two CSS tokens in this page were invented and had rendered as nothing** —
+`--surface2` and `--line`, where the real names are `--surface` and `--rule2`.
+An unknown custom property is not an error; the declaration is simply dropped,
+so the paste box shipped with no border and nobody could see it was wrong.
+`.lbl` was the same shape: used twice, defined nowhere, rendering as body text.
+**Grep the token list before using one** — the page has 13 and they are in
+`sunset.css`.
+
 ### The address does not exist yet, and the reason is DNS
 
 **`notice.place` is on Vercel's nameservers** (`ns1/ns2.vercel-dns.com`, checked

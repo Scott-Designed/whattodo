@@ -210,6 +210,7 @@ td .rowname{max-width:26ch;overflow:hidden;text-overflow:ellipsis;white-space:no
    word that is already in a column of its own; the colour is the signal and
    the box is decoration. The filter buttons above a table keep their shape,
    because those are controls rather than data. */
+.lbl{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
 .ifield{display:block;width:100%;margin-bottom:8px}
 td .tag{border:none;padding:0;border-radius:0;text-transform:none;
   letter-spacing:0;font-size:12.5px;font-weight:500;background:none}
@@ -331,7 +332,7 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
     <div class="msg" id="imsg" style="margin-left:0"></div>
   </div>
 
-  <div id="ipastebox" hidden style="border:1px solid var(--line);border-radius:10px;
+  <div id="ipastebox" hidden style="border:1px solid var(--rule2);border-radius:10px;
        padding:14px;margin-bottom:18px;max-width:720px">
     <input id="ifrom" placeholder="Who sent it (optional)" class="ifield">
     <input id="isubj" placeholder="Subject" class="ifield">
@@ -1283,7 +1284,8 @@ function drawInbox(){
       <tr data-i="${i}">
         <td style="white-space:nowrap">${esc(ago(m.received_at))}</td>
         <td class="cap" title="${esc(m.from_addr || '')}">${esc(m.from_addr || '—')}</td>
-        <td class="cap wide" title="${esc(m.subject || '')}"><div class="rowname">${esc(m.subject || '(no subject)')}</div></td>
+        <td class="cap wide" title="${esc(m.subject || '')}"><a href="#" class="rowname" data-open="1"
+             style="color:var(--ink)">${esc(m.subject || '(no subject)')}</a></td>
         <td class="cap wide" title="${esc(m.body || '')}" style="color:var(--ink3)">${esc(m.body || '')}</td>
         <td>${m.status === 'new' ? '<span class="tag warn">waiting</span>'
              : m.status === 'filed' ? '<span class="tag live">filed</span>'
@@ -1295,9 +1297,53 @@ function drawInbox(){
 
   $('#inbox').querySelectorAll('tr[data-i]').forEach(tr => {
     const m = INBOX[+tr.dataset.i];
+    tr.querySelector('[data-open]').onclick = e => { e.preventDefault(); openMail(+tr.dataset.i); };
     tr.querySelector('[data-filed]').onclick   = () => markInbox(m.id, 'filed');
     tr.querySelector('[data-ignored]').onclick = () => markInbox(m.id, 'ignored');
   });
+}
+
+/* Confirmation links are the reason this exists. Signing up to a venue's
+   mailing list is a normal use of the address, and every one of those sends a
+   "click to confirm" — which `plain()` throws away, because it strips tags for
+   the readable body. The href survives in `raw`, so dig it back out here.
+
+   `raw` is the full MIME message, so it is usually quoted-printable: a soft
+   line break is a trailing `=`, and every `=` is written `=3D`. A URL split
+   across two lines is broken until both are undone, which is why this decodes
+   before it matches rather than after. */
+function linksIn(raw){
+  const s = String(raw || '')
+    .replace(/=\r?\n/g, '')                                    // soft breaks
+    .replace(/=([0-9A-F]{2})/gi, (_, h) => String.fromCharCode(parseInt(h, 16)));
+  const out = [];
+  for (const m of s.matchAll(/https?:\/\/[^\s"'<>()\]]+/g)){
+    let u = m[0].replace(/[.,;:]+$/, '');
+    if (!out.includes(u)) out.push(u);
+  }
+  return out;
+}
+
+/* One row opens at a time, the same gesture as the board. */
+function openMail(i){
+  const m = INBOX[i], tr = $('#inbox').querySelector(`tr[data-i="${i}"]`);
+  const next = tr.nextElementSibling;
+  if (next && next.classList.contains('maildetail')){ next.remove(); return; }
+  $('#inbox').querySelectorAll('.maildetail').forEach(e => e.remove());
+  const links = linksIn(m.raw || m.body);
+  const row = document.createElement('tr');
+  row.className = 'maildetail';
+  row.innerHTML = `<td colspan="6" style="background:var(--surface);padding:14px 12px">
+    ${links.length ? `<div style="margin-bottom:12px">
+        <div class="lbl" style="margin-bottom:6px">Links in this message</div>
+        ${links.map(u => `<div style="margin-bottom:3px"><a href="${esc(u)}" target="_blank"
+           rel="noopener noreferrer" style="font-size:12px;word-break:break-all">${esc(u)}</a></div>`).join('')}
+      </div>` : ''}
+    <div class="lbl" style="margin-bottom:6px">What it says</div>
+    <div style="font-size:12.5px;line-height:1.55;white-space:pre-wrap;color:var(--ink2);
+                max-height:340px;overflow:auto">${esc(m.body || '(nothing readable)')}</div>
+  </td>`;
+  tr.after(row);
 }
 
 async function pasteInbox(){
