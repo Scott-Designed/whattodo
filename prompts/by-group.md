@@ -122,10 +122,16 @@ somebody suggests. It is public, so this needs no key and no token:
     cd whattodo
 
 Then `python3 scripts/nearby.py --refresh` once. Never run --refresh again mid-pass.
-You need a .env in the repo root with SUPABASE_URL and SUPABASE_SERVICE_KEY before
-sync.py will run — Scott supplies it. Without it sync.py exits before it parses anything,
-so --dry-run is blocked too, not just the write. Do not push; writes go to Supabase and
-the worklog comes back as a file.
+
+**Half one needs no credentials.** `have.py` and `nearby.py` read with the public anon key
+out of public/notice-data.js, and half one writes nothing — it hands back a table, because
+sync.py can only insert and these are existing rows. Start without asking for anything.
+
+You only need a .env with SUPABASE_URL and SUPABASE_SERVICE_KEY for `sync.py add` in half
+two. Ask when you get there. Without it sync.py exits before it parses anything, so
+--dry-run is blocked too, not just the write.
+
+Do not push; writes go to Supabase and the worklog comes back as a file.
 
 Read prompts/RESEARCH_RULES.md and CLAUDE.md, then work The landscape group.
 
