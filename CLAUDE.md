@@ -2599,6 +2599,19 @@ The label is derived from `ALL_TAGS` now, so a new tag key cannot go missing.
 sentence, which the produce pass wrote first: *a search tool that returns
 nothing looks identical to a region that contains nothing.*
 
+**`cultural` is heading toward being explicitly about Indigenous Australia** —
+Scott, 31 Aug 2026, choosing the shell icon for it. Its label is already
+*Wadawurrung Country* rather than the raw column value, so the page has been
+reading that way for a while; what is new is that this is the stated direction
+rather than a side effect of what happened to land there.
+
+**That makes the rule below stricter, not looser.** A row belongs on this type
+only where a first-party source supports it — Wadawurrung Traditional Owners
+Aboriginal Corporation, Parks Victoria, or a council page written with
+Traditional Owners. Being about landscape, or old, or Australian, is not the
+test. The Bunjil Geoglyph decision immediately below is the worked example, and
+it stands.
+
 **`cultural` gained zero rows and that is the correct answer, not a gap.**
 Worked strictly to the brief — Wadawurrung Traditional Owners Aboriginal
 Corporation, Parks Victoria, or a council page written with Traditional Owners,
@@ -3527,7 +3540,9 @@ may wait on a CDN to draw, which is the same rule the map already follows.
   `running` is `sport-shoe` (was medal — Lucide has no runner, but it does have
   a shoe) and `cultural` is `shell` (was sparkles). The shell reads properly on
   `/cultural`, whose subject is Wadawurrung Country and whose rows are coastal.
-  **`cycling` and `mountain biking` still share the bike** and that one is open.
+  **`cycling` and `mountain biking` share the bike, and that is settled** —
+  Scott, 31 Aug 2026, having been offered five alternatives. Both are cycling;
+  one icon is the honest answer, not a gap waiting to be filled.
   The sprite carries no unused symbols now.
 
 ## Light, dark, or follow the system
