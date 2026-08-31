@@ -2206,11 +2206,17 @@ side read as numbers or not at all. The drawer keeps the names.
 The venue rows on the Places tab still say *TryBooking* / *own listing* in their
 Automation cell — that is genuinely how, and `via` still means how there.
 
-**EVENTBRITE IS 401ing AND HAS BEEN READING AS GREEN.** Three of its four
-organisers — Creative Geelong Makers Hub, Mt Rothwell, Torquay Bowls Club —
-answer `401` every run, so nothing has ever been imported through the API.
-`EVENTBRITE_TOKEN` in the GitHub Action is missing or expired. Set it with
-`gh secret set EVENTBRITE_TOKEN` from a terminal, never the web form.
+**EVENTBRITE WAS 401ing AND READING AS GREEN — FIXED 30 Aug 2026.** Kept
+because the *reason nobody saw it* is the lasting part, and because this note
+itself was stale for a day and read as an emergency. The timeline is in
+`run_log.json`: run 5 (30 Aug 11:55) 401'd and logged green, run 6 (12:49)
+401'd and correctly logged `failed`, and runs 7 and 8 read clean —
+*Eventbrite API (12) / (6) / (1)*. The token was replaced with the private one
+between 6 and 7.
+
+**So a red note in this file outlived the thing it described**, which is the
+same hazard as the `AGGREGATORS` prose the Runs column caught. Re-read
+`run_log.json` before believing any status sentence here.
 
 **Why nobody saw it: `source_state()` in `run_log.py` DEFAULTS TO SUCCESS.**
 Anything a scraper printed that was not one of five known failure phrases came
@@ -4752,6 +4758,186 @@ exist when the prompt promised it** — `check()` was internal to `add`, and the
 credential guard at module scope killed every invocation before argv was read.
 Both are fixed now (`check` is a real subcommand and falls back to the anon key),
 so `checkfile.py` is redundant. It is harmless; delete it when convenient.
+
+## Four faults found in one sitting, 31 Aug 2026
+
+All four were invisible, all four were found by putting a number on screen
+beside a thing that already knew better, and two of them had been quietly
+wrong since the day the code was written.
+
+### The venue scraper typed EVERY row `music`
+
+`build()` in `scrape_venues.py` carried the literal `'types': ['music']`. Not a
+default with a fallback — the only value it could ever write, on all 83 rows it
+has ever produced. Defensible while the registry WAS a music-venue spreadsheet
+and the type was called `gig`; wrong the day an Eventbrite organiser page for a
+makers' hub and a wildlife sanctuary went in.
+
+**Nine of the thirteen Eventbrite rows were wrong**: four life-drawing classes,
+an eco-resin workshop and a Saturday market, all filed as live music. The
+function's own docstring warns against *"attributing a wildflower show to a
+live music promoter"* — and then typed the wildflower show that way.
+
+54 of the 83 still say `music`. The rest were corrected by hand, one at a time,
+by somebody who never asked why they kept needing it.
+
+**The evidence was there and was being thrown away.** `jsonld_events` reads
+`@type` to decide an object is an Event at all, and `from_jsonld` dropped it —
+so the row builder genuinely had nothing to type from. Three sources now, in
+order, and `[]` means *unsorted* and asks a person:
+
+1. **schema.org's own subtype.** `MusicEvent` → music, `EducationEvent` →
+   workshop, `Festival` → festival. Checked live: Moshtix gives both
+   Queenscliff gigs as `MusicEvent` and **Spilt Milk as `Festival`**, which is
+   stored here as `music`.
+2. **Eventbrite's own category**, via `expand`. Asked for separately from
+   `venue` and dropped on a 400 — this runs unattended twice a week and a venue
+   must still import if a future API rejects a nice-to-have expansion. **Only a
+   400 retries**; 401/403/404 are about the token or the organiser and retrying
+   with fewer fields would hide them.
+3. **What the title says**, in the shape of `scrape_library.py`'s `TYPE_RULES`.
+
+An empty list in `EB_CATEGORY` is deliberate, not a gap: *"Sports & Fitness"*
+says something real that does not narrow to one of our 43 types, so the row
+falls through to its title rather than taking a word nobody meant.
+
+**Every type these three can emit is asserted against the live vocabulary.**
+`types_valid()` is a live check, so an unknown one fails the insert.
+
+**The 54 existing rows are NOT retyped.** That is a data pass, and several are
+genuinely music.
+
+### Opening a row in /admin rewrote its primary type
+
+`types[0]` is the primary — the word the row prints, the icon it draws, the
+colour it tints — and `readControl` returned the ticks in **DOM order**. So the
+order the checkboxes happened to sit in silently became the data.
+
+**Measured against the live database: 215 of the 315 multi-type rows would be
+re-ordered and 212 would print a DIFFERENT WORD**, from nothing more than
+opening them and saving an unrelated field. `Geelong Arts Centre`, corrected to
+`theatre · art gallery` earlier the same day, flipped straight back to
+`art gallery`. Nothing in the interface said so and no run would ever report it.
+
+The order lives in `PICKED` now: seeded from the row, a new tick goes on the
+**end**, an untick drops out, nothing moves on its own. Verified — opening
+Geelong Arts Centre gives an empty `diff()` where it used to send a reordered
+array.
+
+**Ticking is therefore also how the primary is changed, which it never was
+before.** To promote a type, untick the ones above it and tick them again. The
+hint names the current primary, because with the boxes alphabetical the tick
+order is no longer visible in the list.
+
+**This is why the boxes could not simply be alphabetised.** Scott asked for 42
+types in three columns; doing that alone would have re-ordered 138 rows on the
+next save instead of 215. A layout change to a control whose ORDER IS DATA is
+never only a layout change.
+
+### Every later night of a recurring gig was discarded
+
+Scott: *"this aggregator is only showing 4 events, but had 7 on the link."*
+
+`scrape_venues.py` line 673 had two dedupe maps. `by_slot` is keyed on
+`(place_id, starts_on)` and is right. Its fallback `by_name` was keyed on the
+name **alone** — so Mt Rothwell's *Into the Woodlands X Creatures of the Night*
+on **10 Oct** matched the **12 Sep** row and was dropped, and the run reported
+it as *"already there as 723"*. Every second and third night of every tour,
+gone, and **reported as a duplicate rather than as anything missing** — which
+is why it never looked like a fault.
+
+Keyed on name **and** date now. That does not weaken what the map is for: the
+case it was built for is the Holly Ringland event offered by 18 library sites on
+**one** date, so all 18 still collapse to one key. Both cases are tested, plus
+the same-night case that must still dedupe.
+
+**The trade is deliberate.** A name matching on a different date could also be a
+date that drifted, and we will now write a second row rather than silently
+skip. Two rows disagreeing is a better bug report than one row quietly missing —
+the same call this file already records for the Torquay Farmers Market.
+
+### A `limit=` above 1000 is a lie, one more time
+
+Not new — the third section of this file to say it. Worth noting only that the
+count that exposed the Mt Rothwell gap was one put on screen next to a URL, not
+one anybody went looking for. **Print the number beside the thing and the
+discrepancy finds you.**
+
+## What the back office grew, 31 Aug 2026
+
+### The aggregator drawer shows what it is watching, and takes a new one
+
+Scott, twice: clicking an aggregator should show the organiser URLs it monitors
+and let you add one. It said *"3 — Torquay Bowls Club, Creative Geelong Makers
+Hub, Mt Rothwell Safe Haven"* and nothing else — no URLs, no counts, no way in.
+
+**Two lists, because they are two states and only the second is a job.**
+*Monitoring* is a place row carrying this platform's URL, with the URL and what
+it has brought in. *Found, not registered* is a link a run noticed on a venue's
+own site with nothing on the row — **Bellarine Estate Winery** had sat there for
+days saying *"needs an organiser page, or a person"* and appeared nowhere.
+
+**Only a platform gets the form.** A site aggregator must never become a place
+row: `scrape_venues.py` sets `place_id` to the row it read from, so every event
+would be filed against the aggregator itself. That is the Creative Geelong trap
+this file already records for Coast & Bay, and it is enforced by `r.host`.
+
+### `create` on /api/admin, which never existed
+
+The endpoint could update and delete and not insert, so registering a source
+meant a terminal. Four guards, three of them rules already paid for:
+
+- **a `source_note` is REQUIRED.** Everywhere else it is only required to claim
+  `verified`; a row born in a browser with nothing saying where it came from is
+  that same meaningless-flag failure at the moment of creation. The form writes
+  it, so it costs the author nothing.
+- **a duplicate name is refused**, the way `sync.py add` refuses one.
+- **a SHARED `events_url` is refused.** `scrape_venues.py` sets `__shared_pin`
+  and then returns nothing for *either* row, so two places on one feed silently
+  breaks both — how 18 library branches came to report a TryBooking link none of
+  them owned.
+- **an Eventbrite `/e/` link is refused by name**, with the reason: it dies with
+  the event and carries no organiser id for the API.
+
+### The Listings tables get Location and Events columns
+
+Scott's ask: a spot, venue, shop, maker or organisation can have events at it.
+They can — but **only through `place_id`**, since an event points at a place and
+never at an activity. So Location came with it, or a blank Events cell is
+unexplained.
+
+**Measured before building, because a column that is mostly "no" is either a
+real crisis or the wrong question**: 47 of 679 listings are linked and 28 of
+those carry events — venue 34/19, spot 6/6, group 6/2, shop 1/1, maker 0/0.
+It is the wrong question on **Ideas**, the kind defined as having no anchor of
+any kind, so both columns are dropped there.
+
+`evState`/`eventsCell` are extracted so Places and Listings share one renderer —
+the `automationCell()` lesson, one table along. The **Kind** column now shows
+only on the unfiltered view: each Listings tab IS one kind, so it printed
+"venue" 315 times, which is the badge-that-repeats-its-own-row rule as a whole
+column.
+
+**Rows ran to 175px** because this table never got the one-row-is-one-line
+treatment the Events table has. Name, Type, Where and To fix are capped.
+
+**25 listings match a `places` row by name and are not linked** — Geelong Arts
+Centre, Lorne Theatre, the Esplanade — so the cheapest map and events coverage
+in the database is a linking pass nobody has run. None of those places carries
+events yet, which is why the Events column does not surface them.
+
+### Where "organiser" lives, since nothing on screen says the word
+
+Three different things wear the name and only one is the answer:
+
+- **An organiser page URL** is `events_url` on a **Location**. That field is the
+  entire registry, and its own form hint says so.
+- **Groups** — `places` rows whose kind is in the `people` band — is the closest
+  concept, and three of the six already hold a Humanitix `/host/` page, which is
+  the same shape as an Eventbrite `/o/`. **It has no link in the nav bar**: the
+  31 Aug restructure folded eight tabs into three menus and Groups got no slot,
+  so the only way in is the Dashboard tile. Worth fixing.
+- **Listings → Organisations** is unrelated: `activities` with `kind = group`.
 
 ## Research rules — this project has been burned before
 
