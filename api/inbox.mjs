@@ -42,6 +42,36 @@ function plain(s, limit = CAP) {
     .slice(0, limit);
 }
 
+// Which place did this come from? The sender's domain against the place's own
+// website, and **only when exactly one place matches**. 18 library branches
+// share grlc.vic.gov.au, so a domain is not an identity — an ambiguous one is
+// left null for a person to pick in the back of house rather than filed at
+// whichever branch sorted first.
+//
+// A miss is normal and costs nothing: plenty of venues send through Mailchimp
+// or a personal address, and those get linked by hand. This only saves the
+// easy ones.
+function domainOf(addr) {
+  const at = String(addr || '').lastIndexOf('@');
+  if (at < 0) return '';
+  return addr.slice(at + 1).trim().toLowerCase().replace(/[>\s]+$/, '').replace(/^www\./, '');
+}
+
+async function matchPlace(from, db) {
+  const d = domainOf(from);
+  if (!d) return null;
+  const places = await db(`/rest/v1/places?select=id,website&website=not.is.null`);
+  const hits = places.filter(p => {
+    try {
+      const h = new URL(p.website).hostname.toLowerCase().replace(/^www\./, '');
+      // A subdomain counts — mail.venue.com.au is still the venue — but only
+      // as a suffix, or "notvenue.com" would match "venue.com".
+      return h === d || d.endsWith('.' + h) || h.endsWith('.' + d);
+    } catch { return false; }
+  });
+  return hits.length === 1 ? hits[0].id : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({error: 'POST only'});
 
@@ -85,6 +115,15 @@ export default async function handler(req, res) {
     return res.status(400).json({error: 'empty', message: 'no subject and no body'});
 
   const key = process.env.SUPABASE_SERVICE_KEY;
+  const read = async path => {
+    const q = await fetch(process.env.SUPABASE_URL + path,
+      {headers: {apikey: key, Authorization: 'Bearer ' + key}});
+    return q.ok ? q.json() : [];
+  };
+  // Best effort, and never fatal: a message that cannot be matched is still a
+  // message, and losing it because a lookup failed would be the worse bug.
+  try { row.place_id = await matchPlace(row.from_addr, read); } catch { }
+
   const r = await fetch(process.env.SUPABASE_URL + '/rest/v1/inbox', {
     method: 'POST',
     headers: {apikey: key, Authorization: 'Bearer ' + key,

@@ -403,6 +403,44 @@ export default async function handler(req, res) {
     return res.status(200).json({ok: true, rows});
   }
 
+  // Which places have ever emailed us, and how many times. The Places tab draws
+  // its mail icon off this — evidence that a venue uses this route, not a flag
+  // anyone has to remember to set, the same bargain the sync and hand icons make.
+  if (action === 'inbox_places') {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY)
+      return res.status(501).json({error: 'not_configured'});
+    const rows = await db('GET',
+      '/rest/v1/inbox?select=place_id,received_at&place_id=not.is.null&limit=5000');
+    const by = {};
+    for (const r of rows) {
+      const k = r.place_id;
+      by[k] = by[k] || {n: 0, last: null};
+      by[k].n++;
+      if (!by[k].last || r.received_at > by[k].last) by[k].last = r.received_at;
+    }
+    return res.status(200).json({ok: true, places: by});
+  }
+
+  // Point a message at a place by hand. Needed because a domain is not an
+  // identity: 18 library branches share grlc.vic.gov.au, and plenty of venues
+  // send through Mailchimp or a personal address, so the automatic match
+  // deliberately gives up rather than guessing.
+  if (action === 'inbox_link') {
+    const n = Number(req.body?.id);
+    if (!Number.isInteger(n) || n <= 0) return res.status(400).json({error: 'bad_id'});
+    const pid = req.body?.place_id === null || req.body?.place_id === ''
+      ? null : Number(req.body?.place_id);
+    if (pid !== null && (!Number.isInteger(pid) || pid <= 0))
+      return res.status(400).json({error: 'bad_place'});
+    if (pid !== null) {
+      const [p] = await db('GET', `/rest/v1/places?select=id&id=eq.${pid}`);
+      if (!p) return res.status(400).json({error: 'no_such_place', message: `no place ${pid}`});
+    }
+    const [row] = await db('PATCH', `/rest/v1/inbox?id=eq.${n}`,
+      {place_id: pid}, {Prefer: 'return=representation'});
+    return res.status(200).json({ok: true, row});
+  }
+
   // Paste an email in by hand. The domain is on Vercel's nameservers, so the
   // forwarding address is a DNS decision nobody has made yet — and a venue's
   // "here is our September program" email is useful today. Same table, same

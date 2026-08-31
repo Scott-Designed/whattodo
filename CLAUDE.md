@@ -1928,6 +1928,44 @@ so the paste box shipped with no border and nobody could see it was wrong.
 **Grep the token list before using one** — the page has 13 and they are in
 `sunset.css`.
 
+### A venue that emails gets a mail icon, and it is derived
+
+Scott's ask, 31 Aug 2026: when a venue first emails, show it on the Places tab.
+It is the **third** icon in that Automation column — sync, hand, and now
+`i-mail`, all Lucide, all `<symbol>` + `<use>`.
+
+**It is evidence, not a label**, which is the same bargain the other two make. A
+place shows the mark because a message from it is in the inbox, so a venue that
+starts using the address shows it that day and nobody has a flag to remember.
+`inbox.place_id` is the link; `inbox_places` counts them.
+
+**A place can be scraped AND email.** The mail mark then rides along after the
+green pill rather than replacing it — what reads a venue automatically is the
+more important fact. On a place with no feed, email IS how it is kept up to
+date, so it takes the slot the hand would have had: a person is not chasing it.
+
+**The mark only appears unlocked.** The Places tab reads with the anon key; the
+inbox needs the password. A locked page shows places without their mail marks
+rather than failing, which is the right way round.
+
+### A domain is not an identity — 18 branches share one
+
+`api/inbox.mjs` matches the sender's domain against `places.website` and sets
+`place_id` **only when exactly one place matches**. Measured before building it:
+61 places have a website, 43 distinct hosts, and **`grlc.vic.gov.au` is shared
+by 18 library branches**. Matching loosely would file every library email at
+whichever branch sorted first.
+
+A subdomain counts — `mail.venue.com.au` is still the venue — but only as a
+suffix, or `notvenue.com` would match `venue.com`. Tested: the direct domain and
+the subdomain both resolved to Lorne Hotel, the library domain and a gmail
+address both correctly refused.
+
+**A miss is normal and costs nothing.** Plenty of venues send through Mailchimp
+or a personal address, so the open message in the Inbox tab carries a place
+picker and those get linked by hand. The automatic match only saves the easy
+ones, and giving up is cheaper than a wrong link nobody notices.
+
 ### The address does not exist yet, and the reason is DNS
 
 **`notice.place` is on Vercel's nameservers** (`ns1/ns2.vercel-dns.com`, checked

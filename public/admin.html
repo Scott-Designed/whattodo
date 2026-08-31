@@ -187,6 +187,7 @@ label.fieldlab{display:block;font-size:10.5px;font-weight:600;letter-spacing:.09
 .howicon{width:14px;height:14px;flex:none;vertical-align:-2px;margin-right:7px}
 .howicon.auto{color:var(--good)}
 .howicon.byhand{color:var(--ink3)}
+.howicon.mailed{color:var(--accent)}
 /* Automated and working, as one mark. A pill here specifically: it is the one
    positive state on this table and it should read at a glance, which is a
    different job from the plain words the other states use. */
@@ -274,6 +275,11 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
     <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
     <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
     <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+  </symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+    <rect x="2" y="4" width="20" height="16" rx="2"/>
   </symbol>
 </svg>
 
@@ -1256,7 +1262,17 @@ async function probeSource(url){
    whatever they wrote — so the table has no anon policy and this needs the
    password even to read. */
 let IFILTER = {status: 'new'};
+let EMAILED = {};
 let INBOX = [];
+
+/* The Places tab's mail icon comes from here. Loaded on unlock, because the
+   inbox needs the password and the Places tab does not — so a locked page shows
+   places without their mail marks rather than failing. */
+async function loadEmailed(){
+  if (!PASS) return;
+  const [code, out] = await post({action:'inbox_places'});
+  if (code === 200){ EMAILED = out.places || {}; drawPlaces(); }
+}
 
 async function loadInbox(){
   if (!PASS){ $('#inbox').innerHTML =
@@ -1333,7 +1349,16 @@ function openMail(i){
   const links = linksIn(m.raw || m.body);
   const row = document.createElement('tr');
   row.className = 'maildetail';
+  // Sorted by name so the list can be scanned; the automatic match only fires
+  // on an unambiguous domain, so most of these get set here by hand.
+  const opts = DATA.places.slice().sort((a, b) => a.name.localeCompare(b.name))
+    .map(p => `<option value="${p.id}"${p.id === m.place_id ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
   row.innerHTML = `<td colspan="6" style="background:var(--surface);padding:14px 12px">
+    <div style="margin-bottom:12px">
+      <div class="lbl" style="margin-bottom:6px">Which place is this</div>
+      <select data-place style="max-width:340px"><option value="">— not linked —</option>${opts}</select>
+      <span class="msg" data-linkmsg style="margin-left:8px"></span>
+    </div>
     ${links.length ? `<div style="margin-bottom:12px">
         <div class="lbl" style="margin-bottom:6px">Links in this message</div>
         ${links.map(u => `<div style="margin-bottom:3px"><a href="${esc(u)}" target="_blank"
@@ -1344,6 +1369,19 @@ function openMail(i){
                 max-height:340px;overflow:auto">${esc(m.body || '(nothing readable)')}</div>
   </td>`;
   tr.after(row);
+  const sel = row.querySelector('[data-place]'), note = row.querySelector('[data-linkmsg]');
+  sel.onchange = async () => {
+    note.className = 'msg'; note.textContent = 'Saving…';
+    const [code, out] = await post({action:'inbox_link', id: m.id,
+                                    place_id: sel.value === '' ? null : sel.value});
+    if (code !== 200){
+      note.className = 'msg bad'; note.textContent = out.message || out.error; return; }
+    m.place_id = out.row.place_id;
+    note.className = 'msg good'; note.textContent = 'Linked.';
+    // The Places tab draws its mail icon off these counts, so it has to be
+    // told — otherwise the icon appears only after a reload.
+    loadEmailed();
+  };
 }
 
 async function pasteInbox(){
@@ -1784,7 +1822,14 @@ function drawPlaces(){
         <td style="white-space:nowrap" title="${esc((SRC_STATE[s.state] || {}).label || 'no source on file')}">${(() => {
              // Automated and working is one green pill — tick, sync, and when it
              // last read. That is the whole answer for those rows.
-             const icon = k => `<svg class="howicon ${k === 'i-sync' ? 'auto' : 'byhand'}"><use href="#${k}"/></svg>`;
+             const icon = k => `<svg class="howicon ${
+                 k === 'i-sync' ? 'auto' : k === 'i-mail' ? 'mailed' : 'byhand'
+               }"><use href="#${k}"/></svg>`;
+             // Has this place ever emailed us? Derived from the inbox, so a
+             // venue that starts using the address shows it the same day and
+             // nobody sets a flag. Only visible unlocked — the inbox is the one
+             // thing here that is not public.
+             const mail = EMAILED[p.id];
              if (['read','skipped'].includes(s.state)){
                // The pill says what reads it — Oztix, Humanitix, its own gig
                // listing — because that is what you check when a venue goes
@@ -1793,8 +1838,18 @@ function drawPlaces(){
                const via = s.via && s.via !== '—' ? s.via : 'automated';
                return icon('i-sync')
                     + `<span class="autopill"><span>✓</span>${esc(via)}</span>`
-                    + (s.read ? ` <span style="color:var(--ink3)">${esc(ago(s.read))}</span>` : '');
+                    + (s.read ? ` <span style="color:var(--ink3)">${esc(ago(s.read))}</span>` : '')
+                    // A place can be scraped AND email — the mail mark rides
+                    // along rather than replacing the answer that matters more.
+                    + (mail ? ` ${icon('i-mail')}` : '');
              }
+             // Email is how this one is kept up to date. Not a scraper, but not
+             // a person chasing it either — so it gets its own mark rather than
+             // the hand.
+             if (mail)
+               return icon('i-mail')
+                    + `<span style="color:var(--accent)">${mail.n} email${mail.n === 1 ? '' : 's'}</span>`
+                    + ` <span style="color:var(--ink3)">${esc(ago(mail.last))}</span>`;
              // For everything else the useful fact is not WHY there is no feed —
              // "no website on file" and "not tried yet" both just mean no — but
              // how long since anyone added anything here. A venue changes slowly,
@@ -2021,7 +2076,7 @@ async function unlock(){
     body: JSON.stringify({password:p, action:'check'})});
   if (r.ok){
     PASS = p; try{ sessionStorage.setItem('notice.admin', p); }catch(e){}
-    drawLock(true); loadInbox();
+    drawLock(true); loadInbox(); loadEmailed();
   } else {
     const o = await r.json().catch(() => ({}));
     alert(o.message || (r.status === 401 ? 'That is not the password.' : 'Could not check: ' + r.status));
