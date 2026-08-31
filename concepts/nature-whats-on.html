@@ -329,13 +329,76 @@ body{padding-bottom:140px}
   .calls,.mirror,.sky,.breaks{grid-template-columns:1fr;gap:26px}
   .wf .r{grid-template-columns:1fr}
 }
+
+/* ── supply table: what a signal costs ────────────────────────────────── */
+.supply{margin-top:20px;border-top:1px solid var(--ink)}
+.supply .h,.supply .r2{display:grid;
+  grid-template-columns:minmax(0,1.5fr) minmax(0,1.1fr) 120px minmax(0,1.5fr);
+  gap:0 20px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--rule)}
+.supply .h{font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink3);border-bottom-color:var(--rule2)}
+.supply .r2 .n{font-size:17px;color:var(--ink)}
+.supply .r2 .w{font-family:var(--util);font-size:12px;color:var(--ink2)}
+.supply .r2 .c{font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase}
+.supply .r2 .note{font-family:var(--util);font-size:11.5px;color:var(--ink3);line-height:1.5}
+.c-free{color:var(--live)} .c-key{color:var(--accent)} .c-work{color:var(--flower)}
+.c-no{color:var(--fire)}
+
+/* ── licence face-off ─────────────────────────────────────────────────── */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin-top:18px}
+.two .lic{border:1px solid var(--rule2);border-radius:3px;padding:17px 18px 16px;
+  background:var(--surface)}
+.two .lic.no{border-color:var(--fire)}
+.two .lic.yes{border-color:var(--live)}
+.two .lic h4{margin:0 0 3px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:12px;color:var(--ink2);word-break:break-all}
+.two .lic .verdict{font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.11em;text-transform:uppercase;margin:10px 0 8px}
+.two .lic.no .verdict{color:var(--fire)}
+.two .lic.yes .verdict{color:var(--live)}
+.two .lic blockquote{margin:0;font-family:var(--serif);font-size:17px;line-height:1.45;
+  color:var(--ink);border-left:2px solid var(--rule2);padding-left:13px}
+.two .lic p{margin:11px 0 0;font-family:var(--util);font-size:12px;line-height:1.6;
+  color:var(--ink3)}
+
+/* ── species scorecard ────────────────────────────────────────────────── */
+.spec{display:grid;grid-template-columns:repeat(3,1fr);gap:26px 30px;margin-top:20px}
+.spec .sp2{border-top:2px solid var(--rule2);padding-top:12px}
+.spec .sp2.works{border-top-color:var(--live)}
+.spec .sp2.no{border-top-color:var(--fire)}
+.spec .sp2 .nm2{font-size:19px;color:var(--ink);line-height:1.2}
+.spec .sp2 .st2{font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;margin:5px 0 9px}
+.spec .sp2.works .st2{color:var(--live)}
+.spec .sp2.no .st2{color:var(--fire)}
+.spec .sp2 p{margin:9px 0 0;font-family:var(--util);font-size:12px;line-height:1.6;
+  color:var(--ink3)}
+.spec .mini{height:44px}
+.spec .mini span{background:var(--ink3);opacity:.45}
+.spec .sp2.works .mini span.pk{background:var(--live);opacity:1}
+.spec .sp2.no .mini span.pk{background:var(--fire);opacity:.9}
+
+/* ── bearing note ─────────────────────────────────────────────────────── */
+.bearing{display:grid;grid-template-columns:150px minmax(0,1fr);gap:0 26px;
+  align-items:center;margin-top:16px}
+.bearing .dial{width:150px;height:150px;display:block}
+.bearing p{margin:0;font-family:var(--util);font-size:12.5px;line-height:1.7;
+  color:var(--ink3)}
+.bearing p b{color:var(--ink2)}
+@media (max-width:980px){
+  .supply .h{display:none}
+  .supply .r2{grid-template-columns:1fr;gap:4px}
+  .two,.spec{grid-template-columns:1fr;gap:26px}
+  .bearing{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body data-nav="board">
 
 <div class="bar">
   <b>Concept</b>
-  <span>Nature as what&rsquo;s on &mdash; fourteen signals, checked</span>
+  <span>Nature as what&rsquo;s on &mdash; twenty-five signals, probed</span>
   <span class="key">
     <span><i class="swatch"></i>real, fetched 31 Aug 2026</span>
     <span><i class="swatch prop"></i>does not exist yet</span>
@@ -346,10 +409,11 @@ body{padding-bottom:140px}
 
 <div class="mast">
   <h1>Nature as what&rsquo;s on</h1>
-  <p class="stand">Fourteen nature signals, checked against real sources on
-  31 Aug 2026. <b>Most of them are free, and one of the two endpoints that answers
-  six at once is already being called on every page load.</b> Every number here says
-  where it came from; every interface is dashed, because none of it is built.</p>
+  <p class="stand">Twenty-five nature signals, probed against real sources on
+  31 Aug 2026. <b>Most are free and several need no key at all &mdash; one of the two
+  endpoints that answers six at once is already called on every page load.</b>
+  Every number here says where it came from; every interface is dashed, because
+  none of it is built.</p>
 </div>
 
 
@@ -430,6 +494,70 @@ body{padding-bottom:140px}
 </section>
 
 <section class="ch">
+  <h2>More of it is free than it looks <span class="n">a second round of probing</span></h2>
+  <p class="sig">Seven more signals, checked the same way. <b>Four cost nothing and
+  need no key</b>, two want a free registration, and one simply does not exist for
+  this hemisphere.</p>
+
+  <div class="supply">
+    <div class="h"><span>Signal</span><span>Source</span><span>Cost</span><span>What was found</span></div>
+    <div class="r2"><span class="n">Smoke &amp; air quality</span><span class="w">Open-Meteo Air Quality</span><span class="c c-free">free</span><span class="note">PM2.5 11.1, PM10 16.3 today. Works in Australia.</span></div><div class="r2"><span class="n">Planned burns</span><span class="w">VicEmergency OSOM GeoJSON</span><span class="c c-free">free</span><span class="note">Points with coordinates, hectares and status. 5 live now.</span></div><div class="r2"><span class="n">Offshore wind</span><span class="w">Open-Meteo &mdash; one extra field</span><span class="c c-free">free</span><span class="note">Needs a bearing per beach, which the database has never stored.</span></div><div class="r2"><span class="n">River level</span><span class="w">BOM Water Data Online</span><span class="c c-free">free</span><span class="note">CC-BY, but an OGC SOS service &mdash; XML, a scraper job.</span></div><div class="r2"><span class="n">Beach water quality</span><span class="w">EPA Victoria</span><span class="c c-key">key</span><span class="note">401 without a subscription key. Free to register. Summer only.</span></div><div class="r2"><span class="n">Bird records</span><span class="w">eBird</span><span class="c c-key">key</span><span class="note">403 without a key. Free to register. The waders at Swan Bay.</span></div><div class="r2"><span class="n">Pollen</span><span class="w">&mdash;</span><span class="c c-no">none</span><span class="note">Open-Meteo returns null here &mdash; its pollen model is Europe only.</span></div>
+  </div>
+
+  <p class="src">All probed 31 Aug 2026. <b>The pollen result is worth stating
+  plainly</b> because it is the one people assume: Open-Meteo&rsquo;s air-quality endpoint
+  answers for Australia and returns real PM2.5 and PM10, but every pollen field
+  comes back <code>null</code> &mdash; its pollen model is CAMS, which is Europe only.
+  Grass pollen on this coast is a Deakin University count, published as a page.</p>
+
+  <p class="sig" style="margin-top:34px"><b>Smoke is the pairing worth having.</b>
+  Planned burns arrive in the VicEmergency feed as points with real coordinates and
+  a size in hectares &mdash; so &ldquo;is there a burn near this walk&rdquo; is a distance
+  calculation on data already free and already geocoded. Put that beside PM2.5 and
+  the site can say <em>the Otways are smoky today</em>, which is a real reason not to
+  drive out there and is currently nowhere.</p>
+</section>
+
+<section class="ch">
+  <h2>One agency, two licences <span class="n">and the difference is total</span></h2>
+  <p class="sig">The sharpest thing found in two rounds of probing. The Bureau of
+  Meteorology publishes both of these, and they could not be further apart.</p>
+
+  <div class="two">
+    <div class="lic no">
+      <h4>api.weather.bom.gov.au</h4>
+      <div class="verdict">Refused &mdash; in its own response body</div>
+      <blockquote>&ldquo;This application programming interface (API) is owned by the
+      Bureau of Meteorology. You must not use, copy or share it.&rdquo;</blockquote>
+      <p>Carried in the <code>metadata.copyright</code> field of every payload. It has
+      fire danger, forecasts and observations per location, and it is the first
+      thing anybody reaches for. It is off the table.</p>
+    </div>
+    <div class="lic yes">
+      <h4>bom.gov.au/waterdata</h4>
+      <div class="verdict">Creative Commons Attribution</div>
+      <blockquote>&ldquo;Unless otherwise noted, all material on this page is licensed
+      under the Creative Commons Attribution Australia Licence&rdquo;</blockquote>
+      <p>River level and streamflow for the whole country, served through a standard
+      OGC <b>Sensor Observation Service</b> &mdash; KISTERS KiWIS, SOS 2.0, answering
+      <code>GetObservation</code> and <code>GetFeatureOfInterest</code>. Free,
+      attributed, no key.</p>
+    </div>
+  </div>
+
+  <p class="src"><b>A real river gauge beats 48 hours of rain</b> for every waterfall,
+  swimming hole and paddling row in the database &mdash; it measures the thing rather
+  than its cause. The cost is that SOS is XML and verbose, so this is a scheduled
+  scraper writing a number into the database, not something a page fetches. That is
+  a shape this project already has three of.
+  <br>Victoria runs its own system as well &mdash; <code>data.water.vic.gov.au</code>,
+  about 900 surface water sites, robots fully open, with a Kisters JSON web service
+  that is live and answered with a well-formed error. Its call format has not been
+  worked out yet. Between the two, <b>river level is available and nobody has taken
+  it.</b></p>
+</section>
+
+<section class="ch">
   <h2>The tide is in the marine call <span class="n">and it is a real lunar tide</span></h2>
   <p class="sig">This is the one everybody assumes needs a paid API. It does not &mdash;
   <code>sea_level_height_msl</code> comes back hourly in the same free call as the
@@ -477,6 +605,46 @@ body{padding-bottom:140px}
   11.8 seconds. <b>Period is the half nobody prints and the half that decides it</b>:
   2.6&nbsp;m at 11.8&nbsp;s is a groundswell worth driving for, 2.6&nbsp;m at 6&nbsp;s is a mess.
   It arrives in the same field list at no extra cost.</p>
+</section>
+
+<section class="ch">
+  <h2>Offshore <span class="n">one extra field, and one missing column</span></h2>
+  <p class="sig">On this coast the wind decides more than the swell does. It is one
+  extra parameter on a call the site already makes &mdash; and it exposes something the
+  database has never held.</p>
+
+  <div class="proposed" data-note="real forecast &middot; the column does not exist">
+    <div class="bearing">
+      <svg class="dial" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="38" fill="none" stroke="var(--rule2)" stroke-width="1"/>
+        <path d="M50 50 L50 12 A38 38 0 0 1 76 24 Z" fill="var(--live)" opacity=".3"/>
+        <path d="M50 50 L24 24 A38 38 0 0 1 50 12 Z" fill="var(--live)" opacity=".3"/>
+        <path d="M50 50 L30 82 A38 38 0 0 1 24 24 Z" fill="var(--fire)" opacity=".16"/>
+        <line x1="50" y1="50" x2="72" y2="27" stroke="var(--ink)" stroke-width="2.5"/>
+        <circle cx="50" cy="50" r="2.6" fill="var(--ink)"/>
+        <text x="50" y="8" text-anchor="middle" font-size="7" fill="var(--ink3)" font-family="system-ui">N</text>
+        <text x="50" y="97" text-anchor="middle" font-size="7" fill="var(--ink3)" font-family="system-ui">S</text>
+        <text x="50" y="70" text-anchor="middle" font-size="6.5" fill="var(--ink3)" font-family="system-ui">beach faces</text>
+      </svg>
+      <p><b>Bells Beach faces about 200&deg;.</b> Wind from the northern quarter blows
+      off the land and holds the wave face up; wind from the south-west flattens it.
+      Checked tonight: it turns offshore at <b>9pm</b> and stays there &mdash; 325&deg; to
+      329&deg; at 14&ndash;18 km/h through the small hours, which is the classic
+      Surf&nbsp;Coast dawn setup.
+      <br><br><b>The catch, and it is the interesting part.</b> Offshore is not a fact
+      about the weather, it is a fact about the <em>beach</em> &mdash; Ocean Grove faces
+      south, Point Roadknight faces west, and the same north-westerly is offshore at
+      one and cross-shore at another. The database stores a coordinate for every
+      pinned row and <b>has never stored which way anything faces</b>. That is one
+      number per surf and beach listing, and nothing else in this document needs a
+      new column.</p>
+    </div>
+  </div>
+  <p class="src">Hourly wind speed and direction at Bells Beach, fetched 31 Aug 2026.
+  <code>wind_speed_10m</code> is already in the call the page makes; adding
+  <code>wind_direction_10m</code> costs nothing. Note the site already has a
+  <code>low-wind</code> tag on 27 rows &mdash; which is the wrong question here. A 20 km/h
+  offshore is better than a 5 km/h onshore, and no tag can say that.</p>
 </section>
 
 <section class="ch">
@@ -775,6 +943,56 @@ body{padding-bottom:140px}
   permitted. <b>Every observation carries an observer and a licence and both would
   have to be shown.</b> Second source if wanted: the Atlas of Living Australia,
   37.8M Victorian records, no key.</p>
+</section>
+
+<section class="ch">
+  <h2>Which animals have a season you can measure <span class="n">five tested, two work</span></h2>
+  <p class="sig">Same iNaturalist method as the orchids, run over the Otways and
+  coast box. <b>The result splits cleanly, and not the way you would guess</b> &mdash;
+  the animal with the most records is the one with no signal at all.</p>
+
+  <div class="spec">
+    <div class="sp2 works">
+      <div class="nm2">Echidna</div>
+      <div class="st2">Works &mdash; 403 records &middot; 22&times; swing</div>
+      <div class="mini"><span class="pk" style="height:100%"></span><span class="" style="height:68%"></span><span class="" style="height:65%"></span><span class="" style="height:35%"></span><span class="" style="height:11%"></span><span class="" style="height:5%"></span><span class="" style="height:12%"></span><span class="" style="height:17%"></span><span class="" style="height:57%"></span><span class="" style="height:82%"></span><span class="" style="height:75%"></span><span class="" style="height:94%"></span></div>
+      <div class="miniax"><i>J</i><i>F</i><i>M</i><i>A</i><i>M</i><i>J</i><i>J</i><i>A</i><i>S</i><i>O</i><i>N</i><i>D</i></div>
+      <p>Jan 65, Jun 3. Torpid through winter, out through summer &mdash; a clean,
+      well-populated curve. <b>And the site already has the listing</b>:
+      <em>Anglesea Heath &mdash; Wildflower &amp; Echidna Spotting</em> names two seasons
+      in its own title and the page knows neither.</p>
+    </div>
+    <div class="sp2 works">
+      <div class="nm2">Short-tailed Shearwater</div>
+      <div class="st2">Works as a gate &mdash; 47 records</div>
+      <div class="mini"><span class="pk" style="height:100%"></span><span class="" style="height:73%"></span><span class="" style="height:9%"></span><span class="" style="height:2%"></span><span class="" style="height:2%"></span><span class="" style="height:2%"></span><span class="" style="height:2%"></span><span class="" style="height:2%"></span><span class="" style="height:2%"></span><span class="" style="height:91%"></span><span class="" style="height:55%"></span><span class="pk" style="height:100%"></span></div>
+      <div class="miniax"><i>J</i><i>F</i><i>M</i><i>A</i><i>M</i><i>J</i><i>J</i><i>A</i><i>S</i><i>O</i><i>N</i><i>D</i></div>
+      <p>Thin, and it does not matter: <b>zero records across six consecutive
+      months</b>, April to September, then present October to March. The absence is
+      the signal. They cross to the Aleutians and back, and the return is famously
+      near the same day each September.</p>
+    </div>
+    <div class="sp2 no">
+      <div class="nm2">Koala</div>
+      <div class="st2">No signal &mdash; 1,377 records &middot; 3&times;</div>
+      <div class="mini"><span class="pk" style="height:100%"></span><span class="" style="height:90%"></span><span class="" style="height:97%"></span><span class="" style="height:96%"></span><span class="" style="height:34%"></span><span class="" style="height:53%"></span><span class="" style="height:44%"></span><span class="" style="height:84%"></span><span class="" style="height:48%"></span><span class="" style="height:92%"></span><span class="" style="height:82%"></span><span class="" style="height:80%"></span></div>
+      <div class="miniax"><i>J</i><i>F</i><i>M</i><i>A</i><i>M</i><i>J</i><i>J</i><i>A</i><i>S</i><i>O</i><i>N</i><i>D</i></div>
+      <p>Nearly flat, on more records than the echidna and the shearwater combined.
+      <b>The most data and the least to say.</b> The koala season people mean is the
+      bellowing, September to February &mdash; and that is a sound. iNaturalist records
+      sightings, and a koala is equally visible in June.</p>
+    </div>
+  </div>
+
+  <p class="src">Platypus (91 records) and glow worms (52) were also tested and are
+  <b>too thin to draw</b> &mdash; their month-to-month counts jump around with no shape,
+  which is what noise looks like. Both are real Otways attractions with listings
+  behind them; neither has enough records for a curve, and inventing one would be
+  the failure this whole document is written against.
+  <br>The rule that keeps falling out: <b>a record is evidence of an observer and an
+  organism at the same place</b>. Where those two coincide only when the phenomenon
+  is happening &mdash; a flower open, a fungus fruiting, an echidna out of torpor &mdash;
+  the count is the season. Where they do not, it is a map of where people walk.</p>
 </section>
 
 <section class="ch">

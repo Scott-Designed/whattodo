@@ -4353,6 +4353,48 @@ pub whose gig list is a JPEG, the routes that can actually work are the email
 inbox — which is why it exists — and a person. Do not spend another pass
 hunting gig pages expecting feeds out of them.
 
+### The community pass — 36 rows, 31 Aug 2026
+
+volunteering 12→35, community 32→52. The pass did what the prompt asked and did
+not touch the library import, which is most of the group's bulk.
+
+**It got the hard call right: 25 of the 36 are `kind = group` and 26 carry no
+coordinate at all.** Every Friends-of group, every Landcare group, Rotary, U3A
+and the Deans Marsh Cottage were left unpinned with the reason on the row — the
+group is not the reserve, the club is not the hall it hires. Two Men's Sheds ARE
+pinned, and the note says why: they publish their own premises rather than
+hiring a room. That is the organiser-is-not-the-venue rule applied in both
+directions by a pass, without being told row by row.
+
+**No event rows were invented**, which was the standing risk. Fourteen of these
+groups publish a monthly working bee — "second Saturday at 10am" — and the pass
+recorded each pattern in `notes` and created no dated row from it. That is the
+Arts Trail rule holding under the exact pressure it was written for.
+
+**Two rows close gaps this file has recorded and left open.** `Surf Coast
+Environment Group` had been places row 81 with a live Humanitix feed and no
+listing since the places table was built — the same "a places row is not a
+listing" fault as the Surf Coast Mountain Bike Club. And `Geelong
+Sustainability`, which this file records as deliberately never registered
+because it holds its events in other people's rooms, now has a group row, which
+is the answer to that: the organisation is a thing you can list even when its
+events belong to the venue.
+
+**`any-weather` went on all 20 volunteering rows**, which is the second pass
+running to use it as filler after the ocean pass's 34 of 41. On a coastal
+working bee it is plainly wrong — they are cancelled in a storm. Left in place
+for the same reason as before (removing it flips `suits()` from `true` to
+`null`, a filtering change nobody has asked for), but it is now 54 rows across
+two passes and the convention in the table is against it. **The honest fix is
+to add it to `check()` as a refusal for rows that carry no other condition** —
+prose has now failed twice.
+
+**I introduced the only `toddlers` in the table** writing the Museum of Play row
+in the arts pass; the established value is `toddler`, 17 rows. Corrected. `ages`
+is NOT checked by `sync.py`, so a variant goes in silently and surfaces later as
+a filter that quietly misses rows — the same shape as every other unenforced
+rule here.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
