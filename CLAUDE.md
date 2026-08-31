@@ -2052,6 +2052,17 @@ is the opposite of `dmy()`, which splits the string precisely because a stored
 DATE is a day and `new Date('2026-08-31')` is UTC midnight — the `nextDate` bug.
 Knowing which of the two you have is the whole trick.
 
+**The queue runs down the page now**, like every other table here. It was in a
+520px `.scrollbox`, which put a second scrollbar inside a page that already
+scrolls — and this file's own note about that class had defended it on the
+strength of the 500-row library group. That group is gone; the tables Scott
+reads all the way down are the pattern.
+
+`.scrollbox` keeps exactly one user, the **source drawer's** event list, where a
+fixed height is right because a panel has a height and a page does not. Its
+comment says so rather than naming Review, which is what it said before and was
+about to go stale.
+
 ### Two assertions that now run on every edit to this file
 
 Both were written after being caught by the failure they describe, and both ran

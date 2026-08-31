@@ -232,6 +232,9 @@ pre.out{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px
    buckets, header row sticky so the columns stay readable. Written for the
    Automations venue list, which is gone; the Review queue's groups still use
    it, and a 500-row library group is exactly the case it was built for. */
+/* The source drawer's event list, and only that: a panel has a height, a
+   page does not. The Review queue used this until 31 Aug 2026 and now runs
+   down the page like every other table here. */
 .scrollbox{max-height:520px;overflow-y:auto;overscroll-behavior:contain;
   border:1px solid var(--rule2)}
 .scrollbox table{border-collapse:separate;border-spacing:0}
@@ -1679,7 +1682,7 @@ function drawReview(){
         <button class="btn" style="padding:4px 12px;font-size:11.5px"
           data-approve="${esc(src)}">Approve all ${rows.length}</button>
       </h3>
-      <div class="scrollbox"><table><thead><tr>
+      <div style="overflow-x:auto"><table><thead><tr>
         <th>Name</th><th>Type</th><th>When</th><th>Town</th><th>Submitted</th><th></th>
       </tr></thead><tbody>${rows.slice(0, 400).map(r => {
         const place = DATA.places.find(p => p.id === r.place_id);
