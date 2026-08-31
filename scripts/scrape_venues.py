@@ -439,6 +439,92 @@ def ensure_venue(g, src, registry, made, write, organisers=frozenset()):
     made.append(('added', name, row['suburb']))
     return vid, f'added venue {vid} "{name}"'
 
+# ── what a row is about ───────────────────────────────────────
+# `types` on every row this scraper has ever written was a hardcoded literal
+# naming one type. That was defensible while the registry WAS a music-venue
+# spreadsheet and the type was called `gig`; it stopped being true the day an
+# Eventbrite organiser page for a makers' hub and a wildlife sanctuary went in.
+# Measured 31 Aug 2026: 54 of the 83 rows still carry it, and on Eventbrite
+# nine of thirteen were wrong — four life-drawing classes, an eco-resin
+# workshop and a Saturday market, all filed as live music. The same function's
+# own docstring warns against "attributing a wildflower show to a live music
+# promoter"; it then typed the wildflower show that way.
+#
+# So: evidence, or nothing. Empty shows as *unsorted* and asks a person, which
+# is the choice scrape_events.py already makes for the feed's 'Sport' category
+# and scrape_library.py makes for 161 of its rows.
+
+# 1. schema.org's own subtype, published by the venue or the ticketer, and the
+#    strongest of the three — it is the publisher saying what the thing is.
+#    Deliberately partial: SportsEvent could be any of five types here, and
+#    SocialEvent / BusinessEvent say nothing, so those fall through.
+SCHEMA_TYPE = {
+    'MusicEvent':      ['music'],
+    'TheaterEvent':    ['theatre'],
+    'ComedyEvent':     ['comedy'],
+    'ScreeningEvent':  ['cinema'],
+    'DanceEvent':      ['arts'],
+    'LiteraryEvent':   ['reading'],
+    'ExhibitionEvent': ['art gallery'],
+    'ChildrensEvent':  ['kids'],
+    'EducationEvent':  ['workshop'],
+    'CourseInstance':  ['workshop'],
+    'FoodEvent':       ['produce'],
+    'Festival':        ['festival'],
+}
+
+# 2. Eventbrite's own category, which it applies to every event. An empty list
+#    is a deliberate "it says something, and that something does not narrow to
+#    one of our types" — which sport, which hobby — so the row falls through
+#    to its title rather than taking a word nobody meant.
+EB_CATEGORY = {
+    'music':                       ['music'],
+    'film, media & entertainment': ['cinema'],
+    'arts':                        ['arts'],
+    'food & drink':                ['produce'],
+    'community & culture':         ['community'],
+    'charity & causes':            ['community'],
+    'family & education':          ['workshop'],
+    'sports & fitness':            [],
+    'hobbies & special interest':  [],
+    'seasonal & holiday':          [],
+}
+
+# 3. What the title actually says. Same shape and same restraint as
+#    scrape_library.py's TYPE_RULES — first match wins, and the first type in
+#    the list is the word the row will print.
+TITLE_RULES = [
+    (r'life drawing|still life|drawing|painting|ceramic|pottery|print ?making',
+                                                          ['arts', 'workshop']),
+    (r'\bmarkets?\b',                                     ['market']),
+    (r'live music|open mic|\bgig\b|\bband\b|\bdj\b|acoustic', ['music']),
+    (r'comedy|stand.?up',                                 ['comedy']),
+    (r'\bfilm\b|screening|cinema|\bmovie',                ['cinema']),
+    (r'theatre|theater|pantomime',                        ['theatre']),
+    (r'workshop|masterclass|\bclass\b|\bcourse\b|induction', ['workshop']),
+    (r'festival',                                         ['festival']),
+    (r'quiz|trivia',                                      ['community']),
+    (r'book club|author talk|poetry|writers?\b',           ['reading']),
+    (r'birdwatch|wildlife|spotlight tour|nature|\bwalk\b',  ['nature']),
+    (r'\bkids\b|children|school holiday|toddler',          ['kids']),
+    (r'tasting|degustation|long lunch',                   ['produce']),
+]
+
+def types_for(g):
+    """What this row is about, from evidence only. [] means a person sorts it."""
+    for t in str(g.get('schema_type') or '').split():
+        if t in SCHEMA_TYPE:
+            return list(SCHEMA_TYPE[t])
+    for key in (g.get('subcategory'), g.get('category')):
+        hit = EB_CATEGORY.get((key or '').lower())
+        if hit:
+            return list(hit)
+    name = (g.get('name') or '').lower()
+    for pat, types in TITLE_RULES:
+        if re.search(pat, name):
+            return list(types)
+    return []
+
 def build(venue, g, registry):
     """One gig -> an events row.
 
@@ -481,7 +567,7 @@ def build(venue, g, registry):
     auto = bool(conf == 'high' and g.get('starts_on') and vid)
     return {
         'name'           : g['name'][:200],
-        'types'          : ['music'],
+        'types'          : types_for(g),
         'starts_on'      : g['starts_on'],
         'ends_on'        : g.get('ends_on'),
         'time_text'      : g.get('time_text'),

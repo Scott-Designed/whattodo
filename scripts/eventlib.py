@@ -202,7 +202,14 @@ def from_jsonld(o):
             vaddr = a
             m2 = re.search(r',\s*([A-Za-z \'-]+?)\s+(?:VIC|NSW|QLD|SA|WA|TAS|NT|ACT)\b', a)
             if m2: vsub = m2.group(1).strip()
+    # The publisher's own classification of what this IS. jsonld_events has
+    # already read it to decide the object is an Event at all, and it was being
+    # thrown away here — which left scrape_venues.py with nothing to type a row
+    # from, so it typed all 83 of them `music`.
+    st = o.get('@type')
+    st = ' '.join(st) if isinstance(st, list) else str(st or '')
     return {
+        'schema_type'  : st or None,
         'venue_name'   : html.unescape(str(vname)).strip() if vname else None,
         'venue_suburb' : html.unescape(str(vsub)).strip() if vsub else None,
         'venue_address': html.unescape(str(vaddr)).strip() if vaddr else None,
@@ -236,11 +243,19 @@ def eventbrite_events(org_id, token, horizon_days=400):
     Paged: the API caps a page at 50 and says so in `pagination`, and an
     organiser with more than that would otherwise be silently truncated.
     """
-    out, page = [], 1
+    # `venue` is what this reader exists for — the organiser is not the room.
+    # `category`/`subcategory` are what lets the caller type the row from the
+    # platform's own classification instead of guessing. They are asked for
+    # separately because this runs unattended twice a week: if a future API
+    # rejects the wider expand, the venue must still import rather than the
+    # whole organiser failing over a nice-to-have. A 400 is the only code that
+    # can mean "I do not know that expansion" — 401/403/404 are about the token
+    # or the organiser and retrying with fewer fields would only hide them.
+    out, page, expand = [], 1, 'venue,category,subcategory'
     while page <= 10:
         q = urllib.parse.urlencode({
             'status': 'live', 'order_by': 'start_asc',
-            'expand': 'venue', 'page': page})
+            'expand': expand, 'page': page})
         req = urllib.request.Request(f'{EB_API}/organizers/{org_id}/events/?{q}')
         # .strip(): a token set from a prompt or a copied line arrives with a
         # trailing newline often enough to be worth defending against, and it
@@ -251,6 +266,9 @@ def eventbrite_events(org_id, token, horizon_days=400):
             with urllib.request.urlopen(req, timeout=20) as r:
                 doc = json.loads(r.read().decode('utf-8', 'replace'))
         except urllib.error.HTTPError as e:
+            if e.code == 400 and expand != 'venue':
+                expand = 'venue'
+                continue
             # Say which failure it is. A 401 is about the token and no amount of
             # re-running fixes it; a 404 is about this organiser and the others
             # may still be fine.
@@ -290,7 +308,14 @@ def eventbrite_one(ev):
             tt += '–' + clock(me.group(2))
     v = ev.get('venue') or {}
     a = v.get('address') or {}
+    # Eventbrite classifies every event itself — "Music", "Arts", "Food & Drink".
+    # Needs expand=category on the request; without it this is simply None and
+    # the row falls through to its title, then to unsorted.
+    cat = ((ev.get('category') or {}).get('name') or '').strip() or None
+    sub = ((ev.get('subcategory') or {}).get('name') or '').strip() or None
     return {
+        'category'     : cat,
+        'subcategory'  : sub,
         'venue_name'   : (v.get('name') or '').strip() or None,
         'venue_suburb' : (a.get('city') or '').strip() or None,
         'venue_address': (a.get('address_1') or '').strip() or None,
