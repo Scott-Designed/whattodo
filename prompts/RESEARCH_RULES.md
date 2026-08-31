@@ -126,9 +126,15 @@ Do not rely on a road name to land it there by accident.
   No match you can trust? Leave `lat`/`lng` null. A null pin is honest.
   Record what Nominatim actually matched in `source_note` — building, street,
   or name-and-suburb are three different facts.
-- **Never write `km`.** Standing decision, 25 Aug 2026: distance stays null
-  until driving distance can be computed automatically. Hand-entering them is
-  how a hundred more guesses get in.
+- **Never write `km`** — with exactly one exception. Standing decision, 25 Aug
+  2026: distance stays null until driving distance can be computed
+  automatically. Hand-entering them is how a hundred more guesses get in.
+
+  **The exception is `at-home`, where `km` MUST be 0.** `sortFn` reads
+  `(a.km ?? 999)`, so a null sends the row below every real place in the region
+  on the default Closest-first sort — the group was rendering as two halves at
+  opposite ends of the list with nothing between them. `km = 0` means *here*,
+  which is exactly what an at-home listing is. Fixed on 23 rows, 31 Aug 2026.
 - **Never infer an accessibility claim.** A wrong one sends someone to a place
   that cannot take them.
 - `cost` on an activity is `Free`/`Cheap`/`Moderate`/`Splurge` or null.

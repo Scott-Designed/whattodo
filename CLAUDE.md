@@ -4464,6 +4464,49 @@ and the findings are in this file, but the "checked and not added, and here is
 why" lists are not — and those are the expensive thing to rediscover. It is why
 the log exists. Worth asking for them while the sessions are still open.
 
+### `atHomeHidden()` reads GROUPS, not the primary type — 31 Aug 2026
+
+The home pass audited the 43 at-home rows and found the group's real problem is
+not its size. **Twelve of them are not at-home activities at all** — they tell
+you to leave the house — and because `at-home` is somewhere in their `types`,
+`atHomeHidden()` held every one off the default board. Row 200's own description
+opens *"Not at home."* and it was invisible on the front page for being an
+at-home activity.
+
+The mechanism is the undocumented half: the function returns
+`(i.groups||[]).includes('home')`, so it reads the row's GROUPS. **A row that
+prints as *nature* is hidden because `at-home` sits fourth in its type list.**
+Nothing on screen explains that.
+
+**Seven were fixed and five were not, and the split is the useful part.** The
+seven kept a real type once `at-home` went — `nature`, `walk`, `arts`, `water`.
+The other five (176 Frisbee Golf, 177 Fly a Kite, 198 Read Outside, 199 Picnic
+Somewhere New, 200 BBQ Somewhere New) carry **`at-home` as their only type**, so
+removing it would leave them with none at all. Giving them one is choosing a
+type, which is a decision rather than a correction — Scott's call.
+
+**`km = 0` is now required on `at-home`, and it is the one exception to "never
+write km".** `sortFn` reads `(a.km ?? 999)`, so the 23 rows with a null km sorted
+below every real place at 90 km: the group rendered as two halves at opposite
+ends of the list, indistinguishable to a reader. All 39 are 0 now, and the
+carve-out is written into `RESEARCH_RULES.md` beside the rule it contradicts.
+
+Also from the audit: **`Outdoor Movie Night at Home` and `Sketch or Draw Outside`
+were `kind = venue`**, which puts a row in the `place` family — "can carry a
+coordinate and host a happening". Neither can. Both are `idea` now. And two urls
+were cleared: a **YouTube search-results page** on Karaoke Night, which is a url
+shaped like a citation that cites nothing — the same class as the Maps-search
+links `sync.py` now refuses — and a geocaching.com link pointing at a different
+activity from the one its row describes.
+
+**Still open, all named with reasons in `prompts/log/home.md`:** the five
+single-type rows above; nine rows with no `source_note`; and four the pass
+argues should go (174 Carpark Cricket as a subset of 173, 206 Digital Detox,
+180 Hacky Sack, 22 Scavenger Hunt). It also notes that **`kind = 'idea'` already
+says everything `at-home` is being asked to say**, on a column that cannot be a
+list — so when the four kind filters land, *At home = Idea* should replace
+`atHomeHidden()` and the type problem dissolves.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
