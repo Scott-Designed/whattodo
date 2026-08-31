@@ -648,7 +648,18 @@ def main(argv):
                   if (v.get('kind_legacy') or '').lower() == 'organiser'}
     made = []
     existing = E.db('GET', '/rest/v1/events?select=id,name,starts_on,place_id,verified,source_note')
-    by_name  = {E.norm(e['name']): e for e in existing}
+    # Name AND date. Name alone silently swallowed every later occurrence of a
+    # recurring thing: Mt Rothwell publishes "Into the Woodlands X Creatures of
+    # the Night" on 12 Sep and again on 10 Oct, and the October one matched the
+    # September row and was dropped as "already there". Its organiser page
+    # listed seven events and the database held four, with the run reporting
+    # the gap as duplicates rather than as anything missing.
+    #
+    # The date does not weaken what this map is FOR — the Holly Ringland case
+    # below is one event on one date offered by 18 library sites, so all 18
+    # still collapse to a single key. What it stops is two genuinely different
+    # nights collapsing into one.
+    by_name  = {(E.norm(e['name']), e.get('starts_on')): e for e in existing}
     by_slot  = {(e.get('place_id'), e.get('starts_on')): e for e in existing if e.get('place_id')}
     seen     = E.Seen(SEEN_FILE)
     horizon  = (E.today() + datetime.timedelta(days=HORIZON)).isoformat()
@@ -670,7 +681,7 @@ def main(argv):
             if key in seen:
                 continue
             hit = (by_slot.get((row['place_id'], g['starts_on'])) if row['place_id'] else None) \
-                  or by_name.get(E.norm(g['name']))
+                  or by_name.get((E.norm(g['name']), g['starts_on']))
             if hit:
                 dupe.append((hit, row))
                 where = hit['id'] if hit.get('id') else 'another venue in this run'
@@ -687,7 +698,7 @@ def main(argv):
             # one event.
             queued = {'id': None, 'name': row['name'], 'starts_on': g['starts_on'],
                       'place_id': row['place_id']}
-            by_name[E.norm(g['name'])] = queued
+            by_name[(E.norm(g['name']), g['starts_on'])] = queued
             if row['place_id']:
                 by_slot[(row['place_id'], g['starts_on'])] = queued
             print(f"     {g['starts_on']}  {g['name'][:44]:46} NEW  "

@@ -1220,10 +1220,28 @@ function sourceRows(){
     const mine = a.host
       ? [...seen.values()].filter(s => s.via?.some(v => v.toLowerCase() === a.name.toLowerCase()))
       : [...seen.values()].filter(s => s.name === a.src);
-    const byUrl = a.host
-      ? DATA.places.filter(p => [p.events_url, p.ticketing_url, p.website]
-          .some(u => (u || '').toLowerCase().includes(a.host))).map(p => p.name)
-      : [];
+    /* The rows themselves, with the URL that ties each to this platform and
+       what it has actually brought in. A name alone cannot answer "what is
+       being monitored" — Scott's ask, 31 Aug 2026 — and it cannot show that a
+       page listing seven events has produced four rows. */
+    const onFile = !a.host ? [] : DATA.places
+      .filter(p => [p.events_url, p.ticketing_url, p.website]
+        .some(u => (u || '').toLowerCase().includes(a.host)))
+      .map(p => {
+        const u = [p.events_url, p.ticketing_url, p.website]
+          .find(x => (x || '').toLowerCase().includes(a.host));
+        const ev = DATA.events.filter(e => e.place_id === p.id);
+        return {id: p.id, name: p.name, url: u,
+                // An events_url is a deliberate claim that this page belongs to
+                // this place. A website that merely mentions the platform is a
+                // link the scraper found, which is a weaker thing entirely.
+                registered: !!(p.events_url || p.ticketing_url),
+                events: ev.length,
+                live: ev.filter(e => !e.starts_on
+                  || (e.recurrence && e.recurrence !== 'none')
+                  || (e.ends_on || e.starts_on) >= TODAY).length};
+      }).sort((x, y) => y.events - x.events || x.name.localeCompare(y.name));
+    const byUrl = onFile.map(p => p.name);
     const places = [...new Set([...byUrl, ...mine.map(s => s.name)])];
     // Its venues' own results count, not just the ones whose `via` names the
     // platform. Moshtix is read through the own-listing path, so `via` never
@@ -1251,6 +1269,13 @@ function sourceRows(){
       newTotal: (own?.newTotal || 0) + h.reduce((n,x)=>n+(x.newTotal||0),0),
       auto:a.auto, how:a.how, note:a.note, what:a.what, url:null,
       places: a.host ? places : [],
+      host: a.host || null,
+      onFile,
+      /* Read by a run and NOT on any row — the scraper found a link to this
+         platform on a venue's own site. That is the actionable list: it is one
+         field away from being a registered source. Bellarine Estate Winery has
+         sat here for days saying "needs an organiser page, or a person". */
+      found: a.host ? mine.map(s => s.name).filter(n => !byUrl.includes(n)) : [],
       // The rows themselves, not just the count. The run log has only ever
       // carried numbers — it can say +13 and never say WHICH thirteen — and
       // the events are already loaded, so the drawer can simply show them.
@@ -1414,6 +1439,80 @@ function sourceEventList(r){
       CAP} shown — the Events tab has all ${evs.length}</span></p>` : ''}`;
 }
 
+/* ── what this platform is actually watching ───────────────────────────────
+   Scott, 31 Aug 2026: clicking an aggregator should show the organiser URLs it
+   monitors, and let you add one. Until now the drawer said "3 — Torquay Bowls
+   Club, Creative Geelong Makers Hub, Mt Rothwell Safe Haven" and nothing else:
+   no URLs, no counts, and no way in.
+
+   Two lists, because they are two different states and only the second is a job:
+   REGISTERED is a place row carrying this platform's URL, which is a deliberate
+   claim that the page belongs to that place. FOUND is a link a run noticed on a
+   venue's own site with nothing on the row — one field from being a source.
+
+   Only a platform gets the form. A SITE aggregator must never be registered as
+   a place: scrape_venues.py would file every event it brought in against the
+   aggregator itself, which is the Creative Geelong trap this file records for
+   Coast & Bay. */
+function monitoredList(r){
+  if (!r.host) return '';
+  const on = r.onFile || [], found = r.found || [];
+  const line = p => `<span style="display:inline-block;margin-bottom:5px">
+      <a href="#" class="srcplace" data-place="${p.id}"
+         style="color:var(--ink)">${esc(p.name)}</a>
+      ${p.registered ? '' : '<span class="tag warn">link only</span>'}
+      <span style="color:var(--ink3)">· ${p.live} upcoming of ${p.events}</span><br>
+      <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"
+         style="color:var(--ink3);font-size:11.5px">${esc(p.url)}</a></span>`;
+  return `<p class="dl"><b>Monitoring</b><span>${
+      on.length ? on.map(line).join('<br>')
+                : '<span style="color:var(--ink3)">nothing registered yet</span>'}</span></p>
+    ${found.length ? `<p class="dl"><b>Found, not registered</b><span
+        >${esc(found.join(', '))}<br><span style="color:var(--ink3);font-size:11.5px"
+        >a run saw a ${esc(r.name)} link on the venue\u2019s own site and the row
+         has no events_url \u2014 open the place and set it</span></span></p>` : ''}
+    <p class="dl"><b>Add one</b><span>
+      <input type="text" id="newsrcname" placeholder="the place or organiser name"
+             style="margin-bottom:5px">
+      <input type="text" id="newsrcurl" placeholder="https://\u2026 the organiser or venue page">
+      <div style="color:var(--ink3);font-size:11px;margin-top:4px">${esc(
+        r.name === 'Eventbrite'
+          ? 'the /o/ organiser page, never a single /e/ event \u2014 that one dies '
+            + 'with the event and carries no organiser id for the API'
+          : 'the page that lists this place\u2019s own events')}</div>
+      <div style="margin-top:7px"><button class="btn" id="addsrc">Register it</button>
+        <span id="addsrcmsg" style="margin-left:9px;font-size:12px"></span></div>
+    </span></p>`;
+}
+
+/* Creating the place row IS registering the source — the registry is the places
+   table and never a list in the code, so there is nothing else to update. */
+async function addSource(r){
+  const name = $('#newsrcname').value.trim();
+  const url  = $('#newsrcurl').value.trim();
+  const out  = $('#addsrcmsg');
+  const done = (msg, bad) => { out.style.color = `var(--${bad ? 'bad' : 'good'})`;
+                               out.textContent = msg; };
+  if (!PASS)  return done('Unlock first.', 1);
+  if (!name)  return done('It needs a name.', 1);
+  if (!/^https?:\/\//i.test(url)) return done('The URL needs http:// or https://', 1);
+  $('#addsrc').disabled = true; done('Registering\u2026');
+  const [code, o] = await post({action:'create', table:'places', row:{
+    name, events_url: url,
+    // Said by the thing that did it, because a row born in a browser with no
+    // provenance is the meaningless-flag failure at the moment of creation.
+    source_note: `registered as a ${r.name} source from /admin on `
+      + `${TODAY}; events_url pasted by hand`,
+  }});
+  $('#addsrc').disabled = false;
+  if (code !== 200) return done(o.message || o.error || ('error ' + code), 1);
+  DATA.places.push(o.row);
+  done(`Registered as place ${o.row.id}. It reads on the next run.`);
+  $('#newsrcname').value = ''; $('#newsrcurl').value = '';
+  redrawAll();
+  openSource(sourceRows().find(x => x.kind === 'aggregator' && x.name === r.name));
+}
+
 function openSource(r){
   if (!r) return;
   const st = SRC_STATE[r.state] || {label:r.state, tag:''};
@@ -1424,10 +1523,13 @@ function openSource(r){
     ...(todo ? [['What to do', `<b style="font-weight:500">${esc(todo)}</b>`]] : []),
     ['Kind',      r.kind === 'aggregator' ? 'Aggregator — one parser, many venues'
                                           : 'Venue or convenor — speaks for itself'],
-    ['Venues', (names => names.length
+    // A platform's monitored pages get the full list below, with their URLs.
+    // A site aggregator has no per-place URL to show — its branches come out of
+    // what it imported — so that one keeps the plain count.
+    ...(r.host ? [] : [['Venues', (names => names.length
         ? `${r.venues} — ${esc(names.join(', '))}`
         : (r.venues ? String(r.venues) : 'none registered yet')
-      )([...(r.places || []), ...(r.branches || [])])],
+      )([...(r.places || []), ...(r.branches || [])])]]),
     ['Last read', r.read ? `${esc(ago(r.read))} · ${r.newLast ? '+' + r.newLast + ' new' : 'nothing new'}${
                     r.seenCount ? ` · ${r.seenCount} on the page` : ''}` : 'never'],
     ['All time',  r.newTotal ? r.newTotal + ' new events' : 'none yet'],
@@ -1438,6 +1540,7 @@ function openSource(r){
   $('#editor').innerHTML = `<div class="scrim"><div class="drawer">
     <header><div class="sub">${esc(r.kind)}</div><h2>${esc(r.name)}</h2></header>
     ${rows.map(([k,v]) => `<p class="dl"><b>${esc(k)}</b><span>${v}</span></p>`).join('')}
+    ${monitoredList(r)}
     ${sourceEventList(r)}
     ${r.how  ? `<p class="dl"><b>How it works</b><span>${esc(r.how)}</span></p>` : ''}
     ${r.note ? `<p class="dl"><b>Worth knowing</b><span>${esc(r.note)}</span></p>` : ''}
@@ -1452,6 +1555,13 @@ function openSource(r){
   $('#close').onclick = closeEditor;
   $('.scrim').onclick = e => { if (e.target === $('.scrim')) closeEditor(); };
   if (place) $('#editplace').onclick = () => openEditor('places', place);
+  if ($('#addsrc')) $('#addsrc').onclick = () => addSource(r);
+  // A monitored place opens its own editor, so a wrong URL is one click from
+  // fixed rather than a note to come back with.
+  document.querySelectorAll('a.srcplace').forEach(a => a.onclick = e => {
+    e.preventDefault();
+    openEditor('places', DATA.places.find(x => x.id === +a.dataset.place));
+  });
   if (r.url && $('#probe')) $('#probe').onclick = () => probeSource(r.url);
   document.addEventListener('keydown', onEsc);
 }

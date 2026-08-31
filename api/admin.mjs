@@ -244,7 +244,8 @@ export default async function handler(req, res) {
     return res.status(501).json({error: 'no_password',
       message: 'Set ADMIN_PASSWORD in the Vercel project to enable editing.'});
 
-  const {password, action = 'check', table, id, ids, patch = {}, force = false} = req.body || {};
+  const {password, action = 'check', table, id, ids, patch = {}, row: payload,
+         force = false} = req.body || {};
   // Either proof is enough: the password in the body, or the signed cookie the
   // /admin gate set when it was given the password. One login should not have
   // to be performed twice, and the cookie is HttpOnly, so it is the stronger
@@ -533,6 +534,66 @@ export default async function handler(req, res) {
 
   if (!WRITABLE[table]) return res.status(400).json({error: 'bad_table',
     message: `table must be one of ${Object.keys(WRITABLE).join(', ')}`});
+
+  /* ── create ────────────────────────────────────────────────────────────────
+     Until now this endpoint could update and delete and not insert, so the only
+     way to register a new source was a terminal. That is the gap behind "how do
+     I add an organiser to the scraper list".
+
+     Four guards, and three of them are rules this project has already paid for:
+
+     * a source_note is REQUIRED. Everywhere else it is only required to claim
+       `verified`, but a row born in a browser with nothing saying where it came
+       from is the meaningless-flag failure at the moment of creation rather
+       than later. The form fills it in, so this costs the author nothing.
+     * a duplicate name is refused, the way scripts/sync.py add refuses one.
+     * a SHARED events_url is refused. scrape_venues.py sets __shared_pin and
+       then returns nothing for EITHER row, so two places pointing at one feed
+       silently breaks both — this is how 18 library branches came to report a
+       TryBooking link none of them owned.
+     * an Eventbrite /e/ link is refused by name. A single event page dies the
+       night the event does and carries no organiser id for the API; the /o/
+       page is the source. Same for a bare eventbrite.com with no id at all. */
+  if (action === 'create') {
+    const row = clean(payload || {});
+    if (!String(row.name || '').trim())
+      return res.status(400).json({error: 'no_name', message: 'a row needs a name'});
+    if (!String(row.source_note || '').trim())
+      return res.status(400).json({error: 'no_source_note',
+        message: 'a new row needs a source_note saying where it came from'});
+
+    const dupe = await db('GET', `/rest/v1/${table}?select=id,name&name=eq.`
+      + encodeURIComponent(row.name));
+    if (dupe.length && !force)
+      return res.status(409).json({error: 'duplicate',
+        message: `${table} already has "${row.name}" as id ${dupe[0].id}. `
+               + `Set its events_url instead, or resend with force if it is `
+               + `genuinely a different thing.`, id: dupe[0].id});
+
+    for (const f of ['events_url', 'ticketing_url']) {
+      const u = String(row[f] || '');
+      if (!u) continue;
+      const shared = await db('GET', `/rest/v1/places?select=id,name&${f}=eq.`
+        + encodeURIComponent(u));
+      if (shared.length) return res.status(409).json({error: 'shared_url',
+        message: `${shared[0].name} (place ${shared[0].id}) already has that `
+               + `${f}. Two places on one feed makes the scraper skip both.`});
+      if (/eventbrite\./i.test(u) && !/\/o\//.test(u))
+        return res.status(400).json({error: 'not_an_organiser',
+          message: /\/e\//.test(u)
+            ? 'that is a single Eventbrite event (/e/) — it dies with the event '
+              + 'and carries no organiser id. Register the /o/ organiser page.'
+            : 'an Eventbrite URL must be the /o/ organiser page'});
+    }
+
+    const bad = await complaints(table, row, undefined);
+    if (bad.length) return res.status(400).json({error: 'invalid', complaints: bad});
+
+    const [made] = await db('POST', `/rest/v1/${table}`, row,
+                            {Prefer: 'return=representation'});
+    return res.status(200).json({ok: true, row: made});
+  }
+
   const rowId = Number(id);
   if (!Number.isInteger(rowId) || rowId <= 0)
     return res.status(400).json({error: 'bad_id'});
@@ -566,7 +627,7 @@ export default async function handler(req, res) {
     }
 
     return res.status(400).json({error: 'bad_action',
-      message: 'action must be check, update or delete'});
+      message: 'action must be check, create, update or delete'});
   } catch (e) {
     return res.status(500).json({error: 'failed', detail: String(e).slice(0, 300)});
   }
