@@ -1705,6 +1705,38 @@ Things that are load-bearing:
   the standing item on the list. Flagging both put 73 rows on the worklist, half
   of them finished. `mapsSearch()` tells them apart.
 
+### The activities editor can set `kind` now — 31 Aug 2026
+
+Scott, on wanting Go Ride A Wave to be a shop: *"How do I change its status in
+backend"*. The answer was that you could not. **`kind` decides whether a row is
+on the board at all** — shop, maker and group are held off it by `OFF_BOARD` —
+and it was the one column with no control on the only screen that edits rows.
+`api/admin.mjs` has validated it since the day the column landed; nothing had
+ever sent one.
+
+**`happening` is filtered out of the menu rather than offered and refused.** It
+is what an event IS, so it is never a value an activity can take, and a row in
+a dropdown whose only outcome is a validation error is worse than an absent
+one. The endpoint still refuses it by name — the filter is a convenience, not
+the guard.
+
+The Activities table gained a **Kind** column beside the name, because it is
+now a field somebody sets and the list could not show what it was.
+
+**Changing a row to `shop` or `maker` in /admin is only half the job.** A shop
+can no longer be inferred — `KIND_OF` has nothing mapping to it since `shop`
+was retired as a type — so `classify_kinds.py --reclassify` would flatten it
+back. **Add the line to `BY_ID`, with the reason.** `Go Ride A Wave – Torquay`
+(576) is 576 in that map; it went venue → shop the same day, on the
+Chocolaterie rule — a hire and lesson counter is a stockist, so it earns
+`/surfing` and stays off the board.
+
+**Four siblings are sitting in the same disagreement and were left alone**:
+`Point Lonsdale School of Surfing` (577), `Apollo Bay Surf & Kayak` (559),
+`Southern Exposure – Kayaking Programs` (560) and `Swan Bay Paddlers` (557).
+Every one is a venue the rules want to make a spot, and at least two read like
+the same call Scott just made about Go Ride A Wave. Nobody has made it.
+
 ### The whole page is behind the password now — 31 Aug 2026
 
 Scott: *"make the whole backend hidden behind password, not just edit access."*
