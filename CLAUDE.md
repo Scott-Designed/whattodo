@@ -1661,6 +1661,37 @@ new tile used the same words for the review queue. Renamed to *In the review
 queue*. Same pass caught the sub-line saying 139 venues where the tile said 133,
 because it counted groups; it now says both.
 
+### The chart is `starts_on`, not `created_at`, and the data decided that
+
+Scott, 31 Aug 2026, off a Fathom screenshot: a chart of events by day with
+toggle cards over it.
+
+**`created_at` was the obvious x axis and it is useless.** It spans eight days —
+the database is a week old — so "added per day" is seven bars with one **527**
+spike where the library landed. `starts_on` gives **634 events across 93 future
+days** and answers the question actually worth asking: what does the board look
+like in the weeks ahead. Measure before choosing the axis.
+
+**The series are provenance**, on one axis because they share a unit and a
+meaning — how much of the calendar arrives without a person. Today that reads
+**561 from automations, 35 by hand** over 90 days, which is the single best
+number in the back office for whether any of this is working.
+
+**The card and the chart count different things, deliberately.** The chart is
+**event-days** — a festival is on every day it runs — while the card is
+**listings**, because that is what the tiles below and the Events tab mean by an
+event. The first version summed the chart for the card and printed 684 beside a
+tile saying 628, which reads as a bug rather than as two facts. Same family as
+the group counts that do not sum to the number of listings.
+
+**The last visible series cannot be switched off.** An empty chart is not a
+state worth having.
+
+**Tripling the height meant changing the viewBox, not the CSS.** The svg is
+`preserveAspectRatio="none"`, so scaling by CSS alone stretches every 2px stroke
+to 6px vertically and leaves it 2px across. `H` and the CSS height move together,
+and `.ylab` is `H - PADT - PADB` or the labels stop tracking the gridlines.
+
 ### Three mistakes in one restructure, all the same shape
 
 Worth writing down together, because they are one habit:

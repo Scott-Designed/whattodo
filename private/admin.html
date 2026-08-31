@@ -101,6 +101,33 @@ a.pill{text-decoration:none;line-height:1}
 .pagetitle{font-family:var(--serif);font-weight:500;font-size:30px;margin:0 0 4px;
   letter-spacing:-.015em}
 
+/* ── the chart, and the cards that switch its series ───────────────────────*/
+.cardrow{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0 14px}
+.scard{flex:1 1 190px;text-align:left;padding:15px 17px;border:1px solid var(--rule2);
+  border-radius:12px;background:var(--surface);cursor:pointer;font:inherit;color:inherit}
+.scard:hover{border-color:var(--ink3)}
+.scard.off{opacity:.45}
+.scard.plain{flex:0 0 auto;cursor:default}
+.scard.plain:hover{border-color:var(--rule2)}
+.scardn{display:flex;align-items:center;gap:9px;font-family:var(--serif);
+  font-size:30px;line-height:1;color:var(--ink);letter-spacing:-.02em}
+/* Outlined when off, filled when on — the same signal Fathom uses, and it
+   survives a colourblind reader because the card also dims. */
+.dot{width:9px;height:9px;border-radius:50%;border:2px solid;flex:none}
+.chartbox{position:relative;padding:0 0 20px 0;border:1px solid var(--rule2);
+  border-radius:12px;background:var(--surface)}
+.chartsvg{display:block;width:100%;height:630px}
+.ylab{position:absolute;left:6px;top:8px;height:598px;display:flex;
+  flex-direction:column;justify-content:space-between;font-size:10px;color:var(--ink3)}
+.xlab{position:relative;height:14px;margin-top:-6px}
+.xlab span{position:absolute;transform:translateX(-50%);font-size:10px;
+  color:var(--ink3);white-space:nowrap}
+.chip{background:none;border:1px solid var(--rule2);border-radius:999px;
+  padding:5px 11px;margin-right:5px;font-family:var(--util);font-size:11.5px;
+  font-weight:600;color:var(--ink3);cursor:pointer}
+.chip:hover{color:var(--ink);border-color:var(--ink3)}
+.chip.on{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+
 /* ── dashboard tiles ─────────────────────────────────────────────────────
    Every tile is a link into the section that holds its number: a dashboard you
    cannot act from is a poster. */
@@ -368,6 +395,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
   <h2 class="pagetitle">Dashboard</h2>
   <div class="sub" id="sub">reading…</div>
   <div id="overview"></div>
+  <div id="chart"></div>
   <div id="home"></div>
 </section>
 
@@ -2348,6 +2376,120 @@ $('#theme').onclick = () => {
    answer "is the machinery working"; these answer "what is in the database and
    what wants me". Every number is a link into the section that holds it — a
    dashboard you cannot act from is a poster. */
+/* ── the calendar, by the day things happen ──────────────────────────────────
+   Scott, 31 Aug 2026, off a Fathom screenshot: a chart of events by day with
+   toggle cards over it.
+
+   The x axis is `starts_on`, NOT `created_at`, and that was decided by the
+   data: created_at spans eight days — the database is a week old — so "added
+   per day" is seven bars with one 527 spike where the library landed. `starts_on`
+   gives 634 events across 93 future days, and answers the question actually
+   worth asking, which is what the board looks like in the weeks ahead.
+
+   The series are provenance, on one axis because they share a unit and a
+   meaning: how much of the calendar arrives without a person. */
+const SERIES = [
+  {k:'all',   t:'Events on',      c:'var(--accent)', s:'listings in this window'},
+  {k:'auto',  t:'From automations', c:'#6E8BD6',     s:'a scraper brought it in'},
+  {k:'hand',  t:'Added by hand',  c:'#C8776A',       s:'somebody typed it'},
+];
+const AUTO_BY = ['grlc', 'surfcoastevents', 'venue-feed'];
+let CHART = {on: {all: true, auto: true, hand: true}, days: 90};
+
+function chartData(){
+  const start = new Date(TODAY + 'T00:00:00Z');
+  const days = [];
+  for (let i = 0; i < CHART.days; i++){
+    const d = new Date(start); d.setUTCDate(d.getUTCDate() + i);
+    days.push(d.toISOString().slice(0, 10));
+  }
+  const idx = Object.fromEntries(days.map((d, i) => [d, i]));
+  const zero = () => new Array(days.length).fill(0);
+  const out = {all: zero(), auto: zero(), hand: zero()};
+  // Counted separately, because they are different facts and putting the wrong
+  // one on the card makes it look broken: the CHART is event-days (a festival
+  // is on every day it runs) while the CARD is listings, which is what the
+  // tiles below and the Events tab mean by an event.
+  const seen = {all: new Set(), auto: new Set(), hand: new Set()};
+  for (const e of DATA.events){
+    // A run of days for anything spanning them, so a festival is not one spike.
+    const from = e.starts_on, to = e.ends_on || e.starts_on;
+    if (!from || to < days[0] || from > days[days.length - 1]) continue;
+    const lane = AUTO_BY.includes(e.added_by) ? 'auto' : 'hand';
+    for (let d = from < days[0] ? days[0] : from; d <= to; ){
+      const i = idx[d];
+      if (i === undefined) break;
+      out.all[i]++; out[lane][i]++;
+      seen.all.add(e.id); seen[lane].add(e.id);
+      const nx = new Date(d + 'T00:00:00Z'); nx.setUTCDate(nx.getUTCDate() + 1);
+      d = nx.toISOString().slice(0, 10);
+    }
+  }
+  return {days, out, seen};
+}
+
+function drawChart(){
+  const {days, out, seen} = chartData();
+  const W = 1000, H = 630, PADL = 34, PADB = 22, PADT = 10;
+  const shown = SERIES.filter(s => CHART.on[s.k]);
+  const peak = Math.max(1, ...shown.flatMap(s => out[s.k]));
+  const x = i => PADL + (i / Math.max(1, days.length - 1)) * (W - PADL - 8);
+  const y = v => PADT + (1 - v / peak) * (H - PADT - PADB);
+
+  const line = k => out[k].map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
+  const area = k => line(k) + `L${x(days.length - 1).toFixed(1)},${y(0)}L${x(0).toFixed(1)},${y(0)}Z`;
+
+  // A tick a fortnight apart keeps the axis readable at 30, 90 or 180 days.
+  const every = Math.max(1, Math.round(days.length / 6));
+  const ticks = days.map((d, i) => ({d, i})).filter(({i}) => i % every === 0);
+  const gridAt = [0, .5, 1].map(f => Math.round(peak * f));
+
+  $('#chart').innerHTML = `
+    <div class="cardrow">${SERIES.map(s => {
+      const total = seen[s.k].size;
+      const on = CHART.on[s.k];
+      return `<button class="scard${on ? '' : ' off'}" data-series="${s.k}">
+        <div class="scardn">${total.toLocaleString()}
+          <span class="dot" style="background:${on ? s.c : 'transparent'};
+                border-color:${s.c}"></span></div>
+        <div class="tilet">${esc(s.t)}</div>
+        <div class="tiles2">${esc(s.s)}</div>
+      </button>`;
+    }).join('')}
+      <div class="scard plain">
+        <div class="tilet" style="margin:0 0 8px">Window</div>
+        ${[30, 90, 180].map(d => `<button class="chip${CHART.days === d ? ' on' : ''}"
+             data-days="${d}">${d}d</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="chartbox">
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="chartsvg">
+        ${gridAt.map(v => `<line x1="${PADL}" x2="${W - 8}" y1="${y(v)}" y2="${y(v)}"
+            stroke="var(--rule2)" stroke-width="1" stroke-dasharray="2 4"/>`).join('')}
+        ${shown.map(s => `<path d="${area(s.k)}" fill="${s.c}" opacity=".10"/>
+             <path d="${line(s.k)}" fill="none" stroke="${s.c}" stroke-width="2"
+                   stroke-linejoin="round" stroke-linecap="round"/>`).join('')}
+      </svg>
+      <div class="ylab">${gridAt.slice().reverse().map(v =>
+        `<span>${v}</span>`).join('')}</div>
+      <div class="xlab">${ticks.map(({d, i}) =>
+        `<span style="left:${(x(i) / W * 100).toFixed(2)}%">${esc(dmy(d).replace(/ \d{4}$/, ''))}</span>`).join('')}</div>
+    </div>
+    <p class="tiles2" style="margin:8px 0 0">Events by the day they happen, from today.
+      A listing spanning several days counts on each of them.</p>`;
+
+  $('#chart').querySelectorAll('[data-series]').forEach(b => b.onclick = () => {
+    const k = b.dataset.series;
+    // Never let the last one go out — an empty chart is not a state worth having.
+    if (CHART.on[k] && Object.values(CHART.on).filter(Boolean).length === 1) return;
+    CHART.on[k] = !CHART.on[k]; drawChart();
+  });
+  $('#chart').querySelectorAll('[data-days]').forEach(b => b.onclick = () => {
+    CHART.days = +b.dataset.days; drawChart();
+  });
+}
+
 function drawHome(){
   const ev = DATA.events;
   const upcoming = ev.filter(e => (e.ends_on || e.starts_on) >= TODAY).length;
@@ -2387,7 +2529,7 @@ const TABS = ['home','autos','groups','inbox','review','events','activities','pl
 const TAB_NAME = {home:'Dashboard', autos:'Automations', groups:'Groups', inbox:'Inbox',
                   review:'Review', events:'Events', activities:'Activities', places:'Places'};
 const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces(); drawGroups();
-                          drawSources(); drawOverview(); drawReview(); drawHome(); };
+                          drawSources(); drawOverview(); drawReview(); drawHome(); drawChart(); };
 
 function show(tab){
   if (!TABS.includes(tab)) tab = 'home';
