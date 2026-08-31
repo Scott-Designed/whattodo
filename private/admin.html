@@ -82,21 +82,13 @@ a.pill{text-decoration:none;line-height:1}
 .bar .mark{font-family:var(--serif);font-size:21px;color:var(--ink);
   text-decoration:none;letter-spacing:-.01em}
 .barright{display:flex;align-items:center;gap:9px}
-.menuwrap{position:relative}
-.barlink{display:inline-flex;align-items:center;gap:7px;background:none;border:0;
-  cursor:pointer;font-family:var(--util);font-size:13px;font-weight:600;
-  letter-spacing:.04em;color:var(--ink);padding:6px 10px}
-.barlink .caret{color:var(--ink3);font-size:10px}
-.barlink:hover{color:var(--accent)}
-.menu{position:absolute;right:0;top:calc(100% + 7px);min-width:210px;
-  background:var(--surface);border:1px solid var(--rule2);border-radius:10px;
-  padding:6px;z-index:80;box-shadow:0 12px 34px rgba(0,0,0,.22)}
-.menuitem{display:flex;align-items:center;justify-content:space-between;gap:14px;
-  padding:8px 11px;border-radius:7px;text-decoration:none;color:var(--ink2);
-  font-family:var(--util);font-size:13px;font-weight:600}
-.menuitem:hover{background:var(--ground);color:var(--ink)}
-.menuitem.on{color:var(--ink);box-shadow:inset 2px 0 0 var(--accent)}
-.menun{color:var(--ink3);font-weight:500;font-size:11.5px}
+.barnav{display:flex;align-items:center;gap:2px}
+.barlink{display:inline-flex;align-items:center;background:none;border:0;cursor:pointer;
+  font-family:var(--util);font-size:13px;font-weight:600;letter-spacing:.04em;
+  color:var(--ink3);padding:7px 12px;border-radius:7px;text-decoration:none}
+.barlink:hover{color:var(--ink);background:var(--ground)}
+/* The current page is stated, not implied — the whole reason the dropdown went. */
+.barlink.on{color:var(--ink);background:var(--ground);box-shadow:inset 0 -2px 0 var(--accent)}
 
 .pagetitle{font-family:var(--serif);font-weight:500;font-size:30px;margin:0 0 4px;
   letter-spacing:-.015em}
@@ -436,16 +428,15 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
     <!-- Every section lives in here. Eight tabs across the top was a row of
          words with no shape; a menu makes the list scannable and leaves the bar
          for the two things you actually press from anywhere. -->
-    <div class="menuwrap">
-      <button class="barlink" id="menubtn" aria-expanded="false" aria-haspopup="true">
-        <span id="menuhere">Dashboard</span> <span class="caret">▾</span></button>
-      <div class="menu" id="menu" hidden></div>
-    </div>
+    <!-- Flat links, no dropdown. Four destinations do not need to be hidden
+         behind a click, and a menu that has to be opened to see where you are
+         is a worse answer than showing it. -->
+    <nav class="barnav" id="barnav"></nav>
     <a class="pill solid" id="iartifact"
        href="https://claude.ai/code/artifact/93362d84-79a0-43b9-89e5-65eff75d74e2"
        target="_blank" rel="noopener noreferrer"
-       title="Opens the Event Inbox artifact on claude.ai — paste a link or photograph a poster on your phone. Costs no API credits.">
-      <svg class="pillicon"><use href="#i-plus"/></svg>Add an event</a>
+       title="Opens the capture artifact on claude.ai — paste a link or photograph a poster on your phone. Anything can go in: a venue, a shop, a gig. Costs no API credits.">
+      <svg class="pillicon"><use href="#i-plus"/></svg>Add</a>
   </div>
 </nav>
 
@@ -2808,31 +2799,42 @@ const TABS = ['home','autos','groups','inbox','review','events','activities','pl
 
    Both names are one constant. */
 const PAGES = [
-  {id:'home',     name:'Dashboard'},
-  {id:'incoming', name:'Incoming', tabs:[
-    {id:'autos',  name:'Automations'},
-    {id:'inbox',  name:'Inbox',  tally:'#t-inbox'},
-    {id:'review', name:'Review', tally:'#t-review'},
+  // Reached by the wordmark rather than a link — it is where the bar takes you
+  // when you press the name of the thing.
+  {id:'home', name:'Dashboard', hide:true},
+
+  // Everything arriving that needs a person: what the scrapers found, what a
+  // venue emailed, and what is waiting to be approved.
+  {id:'autos', name:'Automations', tabs:[
+    {id:'sources', name:'Sources'},
+    {id:'inbox',   name:'Inbox',  tally:'#t-inbox'},
+    {id:'review',  name:'Review', tally:'#t-review'},
   ]},
-  // Every tab here is the SAME two tables filtered by kind — no merge needed to
-  // read them this way. Happenings is `events`; the rest is `activities` with
-  // one kind picked. What the merge would buy is one table underneath, not a
-  // different menu.
+
+  // Dated things, and the rooms they happen in. Scott's call, 31 Aug 2026:
+  // a Happening and the place it is at are one subject, and splitting them
+  // across the menu made you hold two screens in your head to answer one
+  // question. `places` is called Locations here because that is what it is to
+  // a reader — the table name never belonged in the nav.
+  {id:'events', name:'Events', tabs:[
+    {id:'happenings', name:'Happenings'},
+    {id:'locations',  name:'Locations', tally:'#t-places'},
+  ]},
+
+  // The evergreen half. Every tab is `activities` with one kind picked.
   {id:'listings', name:'Listings', tabs:[
-    {id:'spots',      name:'Spots',         kind:'spot'},
-    {id:'venues',     name:'Venues',        kind:'venue'},
-    {id:'happenings', name:'Happenings',    kind:null},   // the events table
-    {id:'ideas',      name:'Ideas',         kind:'idea'},
-    {id:'shops',      name:'Shops',         kind:'shop',  off:true},
-    {id:'makers',     name:'Makers',        kind:'maker', off:true},
-    {id:'orgs',       name:'Organisations', kind:'group', off:true},
+    {id:'spots',  name:'Spots',         kind:'spot'},
+    {id:'venues', name:'Venues',        kind:'venue'},
+    {id:'ideas',  name:'Ideas',         kind:'idea'},
+    {id:'shops',  name:'Shops',         kind:'shop',  off:true},
+    {id:'makers', name:'Makers',        kind:'maker', off:true},
+    {id:'orgs',   name:'Organisations', kind:'group', off:true},
   ]},
-  {id:'places',   name:'Places'},
 ];
 const TAB_NAME = Object.fromEntries(PAGES.map(p => [p.id, p.name]));
 // Which real <section> each page and tab actually shows.
-const SECTION_OF = {home:'home', autos:'autos', inbox:'inbox', review:'review',
-                    places:'places', happenings:'events'};
+const SECTION_OF = {home:'home', sources:'autos', inbox:'inbox', review:'review',
+                    happenings:'events', locations:'places'};
 const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces(); drawGroups();
                           drawSources(); drawOverview(); drawReview(); drawHome(); drawChart(); drawKindRoll(); };
 
@@ -2854,14 +2856,14 @@ function show(page, tab){
   if (p.id === 'listings' && t && !t.kind) AFILTER.kind = '';
 
   for (const id of TABS) $('#tab-' + id).hidden = id !== section;
-  $('#menuhere').textContent = p.name + (t ? ' · ' + t.name : '');
   drawSubtabs(p);
   // The heading names the tab, not the table. On /listings/shops a title
-  // reading "Activities" is the storage layer showing through, which is the
-  // whole thing this restructure is trying to stop doing.
-  const h = section === 'events' ? $('#secheadE') : $('#secheadA');
-  if (h) h.textContent = (p.id === 'listings' && t) ? t.name : (section === 'events' ? 'Events' : 'Activities');
-  closeMenu();
+  // reading "Activities" is the storage layer showing through, and on
+  // /events/locations one reading "Places" is the same thing — which is the
+  // whole reason for this restructure. Generic, so a new tab needs nothing.
+  const h = document.querySelector('#tab-' + section + ' h2.pagetitle');
+  if (h && t) h.textContent = t.name;
+  drawBarNav();
   location.hash = p.id + (t ? '/' + t.id : '');
   if (t && t.id === 'inbox') loadInbox();
   if (p.id === 'listings') section === 'events' ? drawEvents() : drawActivities();
@@ -2886,35 +2888,18 @@ function drawSubtabs(p){
     b.onclick = () => show(p.id, b.dataset.tab));
 }
 
-function drawMenu(){
-  $('#menu').innerHTML = PAGES.map(p => {
-    const n = p.id === 'places' && $('#t-places') ? $('#t-places').textContent.trim() : '';
-    return `<a href="#${p.id}" class="menuitem${p.id === HERE.page ? ' on' : ''}"
-      data-go="${p.id}">${esc(p.name)}${n ? `<span class="menun">${esc(n)}</span>` : ''}</a>`;
-  }).join('');
-  $('#menu').querySelectorAll('[data-go]').forEach(a =>
+/* The bar draws itself from PAGES, so a new destination is one entry there and
+   nothing else. drawMenu/openMenu/closeMenu went with the dropdown — four
+   destinations do not need hiding behind a click, and a menu you must open to
+   see where you are is worse than a bar that says so. */
+function drawBarNav(){
+  $('#barnav').innerHTML = PAGES.filter(p => !p.hide).map(p =>
+    `<a href="#${p.id}" class="barlink${p.id === HERE.page ? ' on' : ''}"
+       data-go="${p.id}">${esc(p.name)}</a>`).join('');
+  $('#barnav').querySelectorAll('[data-go]').forEach(a =>
     a.onclick = e => { e.preventDefault(); show(a.dataset.go); });
 }
 
-function openMenu(){
-  drawMenu();
-  $('#menu').hidden = false;
-  $('#menubtn').setAttribute('aria-expanded', 'true');
-}
-function closeMenu(){
-  $('#menu').hidden = true;
-  $('#menubtn').setAttribute('aria-expanded', 'false');
-}
-$('#menubtn').onclick = e => {
-  e.stopPropagation();
-  $('#menu').hidden ? openMenu() : closeMenu();
-};
-// Anywhere else, and Escape. Without these the menu is a trap on a page whose
-// tables are the thing you actually came to read.
-document.addEventListener('click', e => {
-  if (!e.target.closest('.menuwrap')) closeMenu();
-});
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
 $('.mark').onclick = e => { e.preventDefault(); show('home'); };
 
 $('#runnow').onclick = runNow;
