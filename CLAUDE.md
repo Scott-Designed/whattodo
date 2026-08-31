@@ -2009,6 +2009,49 @@ the fault it was written to fix.
 `AFILTER.kind`; Happenings is `events`. The migration buys one table underneath,
 not a different menu.
 
+### The bar IS the site's bar — `/notice-nav.css`, linked
+
+Scott: *"kill the weird yellow underline. the nav doesnt match exactly the front
+end, doesnt go full width."* All three were the same fault — the back office had
+its own `.bar` rules **approximating** a stylesheet that already existed.
+
+`private/admin.html` links `/notice-nav.css` now and uses its markup: `.nav`,
+`.mark`, `.navlink`, and `aria-current="page"` for the current page, which is
+what that file styles and the right thing for a screen reader besides. Every
+`.bar`/`.barlink`/`.barright` rule is deleted. **Two stylesheets describing one
+nav is how they drift**, and this is the third time this project has paid for a
+second copy of one fact.
+
+**It had to move out of `.page`.** That column is `max-width:1640px` and centred,
+so a bar inside it stopped short of the window on a wide screen. The site's nav
+sits above that column; this one does now too. Measured after: 58px tall,
+spanning the full window, sticky, and the active link is a pill of `--ground`
+with **no underline** — the site never had one.
+
+The page keeps three rules of its own and no more: `.navlinks`, `.navlink.add`
+(the filled + Add), and `.navic`.
+
+### The review queue says when it arrived, and lets you edit first
+
+Scott: *"should I be able to edit before approving? remove date from column, but
+put in type and the time and date it was submitted."*
+
+**You always could, and nothing said so.** The row's name opened the full editor
+— documented here since the tab was built and invisible on screen. There is an
+**Edit** button beside Approve and Delete now. Note the handler had to become
+`querySelectorAll`: with two things opening the editor, the singular form wired
+the name and left the new button dead.
+
+**Columns are Name · Type · When · Town · Submitted.** Type was a grey sub-line
+under the name and is a column; *Date from* — the confidence — is gone from the
+table and lives on the When cell's tooltip, because it is about that date and
+nothing else.
+
+**`created_at` is a real instant, so `clock()` may hand it to `Date()`.** That
+is the opposite of `dmy()`, which splits the string precisely because a stored
+DATE is a day and `new Date('2026-08-31')` is UTC midnight — the `nextDate` bug.
+Knowing which of the two you have is the whole trick.
+
 ### Two assertions that now run on every edit to this file
 
 Both were written after being caught by the failure they describe, and both ran

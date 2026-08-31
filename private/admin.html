@@ -12,6 +12,10 @@ try{var t=localStorage.getItem('notice.theme');
     if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}
 </script>
 <link rel="stylesheet" href="/sunset.css">
+<!-- The site's own bar, not a copy of it. Two stylesheets describing one nav
+     is how they drift, and this page had already been caught approximating it —
+     wrong height, wrong border, and a yellow underline the site never had. -->
+<link rel="stylesheet" href="/notice-nav.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap">
 <style>
 /* The site's tokens, unchanged. Same three-state shape: bare :root is light,
@@ -70,25 +74,12 @@ a.pill{text-decoration:none;line-height:1}
 .pillicon{width:13px;height:13px;flex:none;margin-right:-2px}
 
 /* ── tabs ── */
-/* ── the bar ──────────────────────────────────────────────────────────────
-   The site's own bar, borrowed: wordmark left, controls right, --surface
-   against --ground so it reads as raised in both schemes. It names no colour
-   of its own, so it follows the theme pill without knowing about it. */
-.bar{display:flex;align-items:center;justify-content:space-between;gap:20px;
-  background:var(--surface);border-bottom:1px solid var(--rule2);
-  padding:11px var(--pad);position:sticky;top:0;z-index:70;
-  /* full-bleed out of .page's own padding, whatever --pad is at this width */
-  margin:0 calc(-1 * var(--pad)) 26px}
-.bar .mark{font-family:var(--serif);font-size:21px;color:var(--ink);
-  text-decoration:none;letter-spacing:-.01em}
-.barright{display:flex;align-items:center;gap:9px}
-.barnav{display:flex;align-items:center;gap:2px}
-.barlink{display:inline-flex;align-items:center;background:none;border:0;cursor:pointer;
-  font-family:var(--util);font-size:13px;font-weight:600;letter-spacing:.04em;
-  color:var(--ink3);padding:7px 12px;border-radius:7px;text-decoration:none}
-.barlink:hover{color:var(--ink);background:var(--ground)}
-/* The current page is stated, not implied — the whole reason the dropdown went. */
-.barlink.on{color:var(--ink);background:var(--ground);box-shadow:inset 0 -2px 0 var(--accent)}
+/* The bar itself is /notice-nav.css — the site's own file, linked above. Only
+   the two things this page adds to it live here. */
+.navlinks{display:flex;align-items:center;gap:4px}
+.navlink.add{background:var(--ink);color:var(--ground);gap:5px}
+.navlink.add:hover{background:var(--ink2);color:var(--ground)}
+.navic{width:13px;height:13px;flex:none}
 
 .pagetitle{font-family:var(--serif);font-weight:500;font-size:30px;margin:0 0 4px;
   letter-spacing:-.015em}
@@ -391,6 +382,16 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 </style>
 </head>
 <body>
+<nav class="nav">
+  <a class="mark" href="#home" title="Dashboard">Notice Admin</a>
+  <div class="navlinks" id="barnav"></div>
+  <a class="navlink add" id="iartifact"
+     href="https://claude.ai/code/artifact/93362d84-79a0-43b9-89e5-65eff75d74e2"
+     target="_blank" rel="noopener noreferrer"
+     title="Opens the capture artifact on claude.ai — paste a link or photograph a poster on your phone. Anything can go in: a venue, a shop, a gig. Costs no API credits.">
+    <svg class="navic"><use href="#i-plus"/></svg>Add</a>
+</nav>
+
 <div class="page">
 
 <!-- Lucide (ISC) — refresh-cw and hand, verbatim from lucide-static 1.37.0.
@@ -422,23 +423,6 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
   </symbol>
 </svg>
 
-<nav class="bar">
-  <a class="mark" href="#home" title="Dashboard">Notice Admin</a>
-  <div class="barright">
-    <!-- Every section lives in here. Eight tabs across the top was a row of
-         words with no shape; a menu makes the list scannable and leaves the bar
-         for the two things you actually press from anywhere. -->
-    <!-- Flat links, no dropdown. Four destinations do not need to be hidden
-         behind a click, and a menu that has to be opened to see where you are
-         is a worse answer than showing it. -->
-    <nav class="barnav" id="barnav"></nav>
-    <a class="pill solid" id="iartifact"
-       href="https://claude.ai/code/artifact/93362d84-79a0-43b9-89e5-65eff75d74e2"
-       target="_blank" rel="noopener noreferrer"
-       title="Opens the capture artifact on claude.ai — paste a link or photograph a poster on your phone. Anything can go in: a venue, a shop, a gig. Costs no API credits.">
-      <svg class="pillicon"><use href="#i-plus"/></svg>Add</a>
-  </div>
-</nav>
 
 <!-- Light/dark lives down here, out of the way. It is a preference you set once,
      not a control you reach for, so it does not earn a place beside the two
@@ -1656,6 +1640,12 @@ function reviewRows(){
   ];
 }
 
+/* The time of day something arrived, in Melbourne — the same clock the rest of
+   this page reads. `created_at` is a real instant (unlike starts_on, which is a
+   day), so it is correct to hand it to Date(). */
+const clock = ts => new Date(ts).toLocaleTimeString('en-AU',
+  {timeZone: 'Australia/Melbourne', hour: 'numeric', minute: '2-digit'}).toLowerCase();
+
 function drawReview(){
   const all = reviewRows();
   $('#t-review').textContent = all.length || '';
@@ -1690,7 +1680,7 @@ function drawReview(){
           data-approve="${esc(src)}">Approve all ${rows.length}</button>
       </h3>
       <div class="scrollbox"><table><thead><tr>
-        <th>Name &amp; type</th><th>When</th><th>Town</th><th>Date from</th><th></th>
+        <th>Name</th><th>Type</th><th>When</th><th>Town</th><th>Submitted</th><th></th>
       </tr></thead><tbody>${rows.slice(0, 400).map(r => {
         const place = DATA.places.find(p => p.id === r.place_id);
         const venue = place?.name || r.venue || '';
@@ -1704,22 +1694,25 @@ function drawReview(){
         const past  = r.starts_on && r.starts_on < TODAY &&
                       (!r.recurrence || r.recurrence === 'none');
         return `<tr data-t="${r.__t}" data-id="${r.id}">
-          <td class="clickable" data-open="1"><div class="rowname">${esc(r.name)}</div>
-              <span style="color:var(--ink3);font-size:11px">${
-                types ? esc(types) : '<i>unsorted</i>'}</span></td>
-          <td${past ? ' style="color:var(--bad)"' : ''} style="white-space:nowrap">${esc(dmy(r.starts_on) || '—')}
+          <td class="clickable" data-open="1"><div class="rowname">${esc(r.name)}</div></td>
+          <td class="cap" style="max-width:16ch" title="${esc(types)}">${
+                types ? esc(types) : '<span style="color:var(--ink3)"><i>unsorted</i></span>'}</td>
+          <td${past ? ' style="color:var(--bad)"' : ''} style="white-space:nowrap"
+              title="${r.date_confidence ? 'date read with ' + esc(r.date_confidence) + ' confidence' : 'no confidence recorded'}">${esc(dmy(r.starts_on) || '—')}
               ${r.time_text ? `<br><span style="color:var(--ink3);font-size:11px">${esc(r.time_text)}</span>` : ''}
               ${past ? '<br><span style="font-size:11px">in the past</span>' : ''}</td>
           <td><b style="font-weight:500">${esc(town || '—')}</b>
               ${venue && venue !== town ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(venue)}</span>` : ''}</td>
-          <td>${r.date_confidence
-                ? `<span class="tag ${r.date_confidence === 'high' ? 'live' : ''}">${esc(r.date_confidence)}</span>`
+          <td style="white-space:nowrap">${r.created_at
+                ? `${esc(dmy(r.created_at.slice(0, 10)))}<br><span style="color:var(--ink3);font-size:11px">${
+                    esc(clock(r.created_at))}</span>`
                 : '<span style="color:var(--ink3)">—</span>'}
               ${!r.place_id && r.__t === 'events' ? '<br><span style="color:var(--ink3);font-size:11px">no place</span>' : ''}</td>
           <td style="text-align:right;white-space:nowrap">
             ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener"
                  onclick="event.stopPropagation()"
                  style="color:var(--ink3);font-size:11.5px;margin-right:8px">source ↗</a>` : ''}
+            <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-open="1">Edit</button>
             <button class="btn" style="padding:3px 10px;font-size:11.5px" data-ok="1">Approve</button>
             <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-no="1">Delete</button>
           </td></tr>`;
@@ -1734,7 +1727,10 @@ function drawReview(){
   });
   $('#review').querySelectorAll('tr[data-id]').forEach(tr => {
     const t = tr.dataset.t, id = +tr.dataset.id;
-    tr.querySelector('[data-open]').onclick = () => openEditor(t, DATA[t].find(x => x.id === id));
+    // Both the name and the Edit button open it, so querySelectorAll — the
+    // singular form wired the name and left the new button dead.
+    tr.querySelectorAll('[data-open]').forEach(el =>
+      el.onclick = () => openEditor(t, DATA[t].find(x => x.id === id)));
     tr.querySelector('[data-ok]').onclick   = () => approve(t, [id]);
     tr.querySelector('[data-no]').onclick   = () => rejectRow(t, id);
   });
@@ -2894,7 +2890,9 @@ function drawSubtabs(p){
    see where you are is worse than a bar that says so. */
 function drawBarNav(){
   $('#barnav').innerHTML = PAGES.filter(p => !p.hide).map(p =>
-    `<a href="#${p.id}" class="barlink${p.id === HERE.page ? ' on' : ''}"
+    // aria-current is what notice-nav.css styles, and it is also the correct
+    // thing for a screen reader — the site was already doing both.
+    `<a href="#${p.id}" class="navlink"${p.id === HERE.page ? ' aria-current="page"' : ''}
        data-go="${p.id}">${esc(p.name)}</a>`).join('');
   $('#barnav').querySelectorAll('[data-go]').forEach(a =>
     a.onclick = e => { e.preventDefault(); show(a.dataset.go); });
