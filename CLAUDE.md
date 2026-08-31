@@ -4395,6 +4395,43 @@ is NOT checked by `sync.py`, so a variant goes in silently and surfaces later as
 a filter that quietly misses rows — the same shape as every other unenforced
 rule here.
 
+### The outdoors pass — 68 rows, 31 Aug 2026
+
+golf 2→17, rock climbing 2→6, cycling 13→25, running 16→23, camping 17→29,
+skatepark 19→28, parks & playgrounds 20→29, mountain biking 33→36. Every
+mechanical rule held: no `km`, no sub-four-decimal pin, no Maps-search url, 61
+of 65 activities pinned, all validated with `sync.py check` before writing.
+
+**It found two existing pins that were plainly wrong, and both are the kind
+nothing would ever surface on its own:**
+
+- **`Moriac Skatepark` (49) was pinned at Blackgate Road, MOUNT DUNEED** — about
+  12 km from Moriac, the town its own `location` names — on a three-decimal
+  coordinate `sync.py` would refuse today. Surf Coast Shire puts it at Newling
+  Reserve, 830 Hendy Main Road, Moriac. Repinned.
+- **`Geelong Waterfront Skatepark` (50) was 553 m inland in the Malop Street
+  mall.** The council puts it on the Poppy Kettle Playground site on The
+  Esplanade. Repinned to the Poppy Kettle fountain, the nearest named feature.
+- `Norlane Skatepark (North Shore)` (59) sits between two council skate parks
+  and could be either. **Deliberately not touched** — the pass said so rather
+  than picking one, which is right.
+
+**Several rows say plainly that the pin is the park, not the ramp.** OSM has no
+feature for most skate bowls, so the honest answer is the reserve they sit in,
+and each `source_note` says which. That is better than a false precision and it
+is what a later reader needs to know.
+
+**`The Happy Runner` (681) is `kind = shop` and is now a line in `BY_ID`.**
+A shop cannot be inferred since the type was retired, and `running` is a thing
+you go and DO, so the rules would make it a spot.
+
+**`classify_kinds.py` now reports 27 disagreements, up from 4.** That is not rot
+— it is the passes setting `kind` explicitly and correctly while `KIND_OF` maps
+an activity type to a spot. Aquatic centres, community houses, kayak operators
+and a movie club are all venues or groups that the rules would flatten.
+**`--reclassify` would now do real damage**, where in August it would have moved
+four rows. Read the list before ever running it.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

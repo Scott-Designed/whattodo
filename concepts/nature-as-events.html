@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Concept — nature signals as board rows</title>
+<script>
+try{var t=localStorage.getItem('notice.theme');
+    if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}
+</script>
+<link rel="stylesheet" href="/sunset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap">
+<style>
+/* ══ THE SITE'S OWN STYLESHEET, lifted from index.html ══════════════════
+   Not re-approximated. Two stylesheets describing one row is how they
+   drift, and this project has paid for that three times. The only thing
+   removed is the @font-face, which /sunset.css above already carries. */
+
+
+:root{
+  --ground:#EAEAEA; --surface:#E1E2DC; --ink:#1B2114; --ink2:#4A5142; --ink3:#787E6E;
+  --rule:#CFD0C9; --rule2:#B9BBB2;
+  --serif:'Sunset',Georgia,'Times New Roman',serif;
+  --util:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --pad:64px; --ctrl-invert:none;
+  /* where a row's two marks sit: the icon's ink in from the left edge, the pin's
+     out from the right. The list bleeds past the page margin, so these hang
+     inside it — one number moves both ends. */
+  --gut:60px;
+  --tint-l:.905; --tint-c:.115;
+  --accent:#FFBB02;
+  --live:#2C7A4B;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
+  --rule:#2C3126; --rule2:#3C4234; --ctrl-invert:invert(.92);
+  --tint-l:.355; --tint-c:.082;
+  --live:#3E9E63;
+}}
+:root[data-theme="dark"]{
+  --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
+  --rule:#2C3126; --rule2:#3C4234; --ctrl-invert:invert(.92);
+  --tint-l:.355; --tint-c:.082;
+  --live:#3E9E63;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.page{padding:0 var(--pad) 120px}
+
+/* the title takes the row, the pill takes its right-hand end, and the date
+   line runs the full width underneath rather than being squeezed by the pill */
+header{padding:44px 0 40px;display:grid;grid-template-columns:minmax(0,1fr) auto;
+  align-items:start;column-gap:18px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,6vw,76px);letter-spacing:-.025em;line-height:.95;margin:0}
+.srcbadge{font-family:var(--util);font-size:9.5px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink3);border:1px solid var(--rule2);padding:1px 6px;margin-left:10px}
+.sub{grid-column:1/-1;margin-top:14px;font-family:var(--util);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+
+/* ── what you have kept, counted, top right ──
+   An outline pill so it reads as a tally rather than a button to press first;
+   it fills in only while it is holding the list down to what you saved. */
+.hdrbtns{grid-column:2;grid-row:1;justify-self:end;margin-top:9px;
+  display:flex;align-items:center;gap:10px}
+.savedpill,.modepill{
+  display:inline-flex;align-items:center;gap:9px;white-space:nowrap;
+  font-family:var(--util);font-size:12.5px;font-weight:600;letter-spacing:.06em;
+  color:var(--ink2);background:transparent;border:1px solid var(--rule2);
+  border-radius:999px;padding:8px 15px;cursor:pointer;
+}
+.savedpill:hover,.modepill:hover{border-color:var(--ink);color:var(--ink)}
+/* The word rather than a sun-and-moon glyph. There are three states, which do
+   not reduce to two symbols, and a cycling icon button makes the reader guess
+   what the next press will do. */
+.modepill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.modepill b{font-weight:600;letter-spacing:.06em}
+.savedpill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+.savedpill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.savedpill b{font-weight:600;font-variant-numeric:tabular-nums}
+.savedpill.empty{color:var(--ink3)}
+/* grey until it is holding something, so the count and the colour say the same thing */
+.savedpill .ic{font-size:14px;line-height:1;filter:grayscale(1);opacity:.75}
+.savedpill:not(.empty) .ic{filter:none;opacity:1}
+
+/* ── controls: dropdowns only ── */
+.controls{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding-bottom:26px}
+.ctrl{display:flex;flex-direction:column;gap:6px;min-width:0}
+select,input[type=search]{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--rule2);padding:5px 26px 6px 0;min-width:150px;
+  border-radius:0;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:calc(100% - 9px) calc(50% + 1px),calc(100% - 4px) calc(50% + 1px);
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+}
+input[type=search]{background-image:none;padding-right:4px;cursor:text}
+input[type=search]::placeholder{color:var(--ink3)}
+select:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+select:hover,input[type=search]:hover{border-bottom-color:var(--ink)}
+option{background:var(--ground);color:var(--ink)}
+.clearbtn{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--ink);padding:5px 0 6px;cursor:pointer;white-space:nowrap;
+}
+.clearbtn:hover{color:var(--ink2);border-bottom-color:var(--ink2)}
+.clearbtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+/* ── multi-select: several answers to one question, which a native select can
+      only do as a listbox. The button reads as the other controls do. ── */
+.ms{position:relative}
+.ms-btn{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--rule2);padding:5px 26px 6px 0;min-width:132px;
+  text-align:left;cursor:pointer;white-space:nowrap;position:relative;border-radius:0;
+}
+.ms-btn::after{content:"";position:absolute;right:6px;bottom:11px;
+  border-left:4px solid transparent;border-right:4px solid transparent;
+  border-top:5px solid currentColor;opacity:.8}
+.ms-btn:hover,.ms-btn[aria-expanded="true"]{border-bottom-color:var(--ink)}
+.ms-btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.ms-btn.on{font-style:italic}
+.ms-pop{
+  position:absolute;top:calc(100% + 6px);left:0;z-index:60;min-width:212px;
+  max-height:min(58vh,420px);overflow-y:auto;padding:8px 0;
+  background:var(--ground);border:1px solid var(--rule2);
+  box-shadow:0 6px 26px rgba(0,0,0,.22);
+}
+.ms-pop[hidden]{display:none}
+.ms-pop label{
+  display:flex;align-items:center;gap:10px;padding:7px 15px;cursor:pointer;
+  font-family:var(--serif);font-size:16px;color:var(--ink);white-space:nowrap;
+}
+.ms-pop label .n{margin-left:auto;padding-left:14px;font-family:var(--util);font-size:11px;
+  color:var(--ink3);font-variant-numeric:tabular-nums}
+.ms-pop label:hover{background:var(--surface)}
+/* `.off` used to grey out an option that would return nothing. Those are left
+   out of the menu now, so there is nothing to grey. */
+.ms-none{margin:0;padding:9px 15px;font-family:var(--serif);font-size:14px;
+  font-style:italic;color:var(--ink3);white-space:normal;max-width:22em}
+.ms-pop input{accent-color:var(--ink);width:14px;height:14px;flex:none;margin:0}
+.ms-clear{
+  display:block;width:100%;text-align:left;padding:7px 15px;margin-top:4px;
+  border:0;border-top:1px solid var(--rule);background:transparent;cursor:pointer;
+  font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink3);
+}
+.ms-clear:hover{color:var(--ink)}
+
+/* ── the four secondary filters, folded away until asked for ── */
+.morebtn{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--rule2);padding:5px 0 6px;cursor:pointer;
+  white-space:nowrap;display:inline-flex;align-items:center;gap:7px;
+}
+.morebtn:hover,.morebtn[aria-expanded="true"]{border-bottom-color:var(--ink)}
+.morebtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.morebtn .dot{width:6px;height:6px;border-radius:50%;background:var(--ink);flex:none}
+.more{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding:0 0 26px}
+.more[hidden]{display:none}
+
+/* ── sort / view / search belong to the list, not to the filters ── */
+.toolbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;padding-bottom:12px}
+/* the listing area has a name, and its count belongs beside it rather than
+   floating loose at the end of a row of controls */
+.board{margin:0 auto 0 0;font-family:var(--serif);font-weight:400;font-size:17px;
+  line-height:1.3;letter-spacing:-.005em;color:var(--ink);white-space:nowrap}
+/* the count is grey, the name of the board is not — scoped to #tally
+   because the name is a span too since it started changing per page */
+.board #tally{color:var(--ink3);font-variant-numeric:tabular-nums}
+.toolbar input[type=search]{min-width:0;width:150px;transition:width .16s}
+.toolbar input[type=search]:focus{width:212px}
+
+/* ── what is currently on, and one click to take it off again ── */
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 0 22px}
+.chips:empty{display:none}
+.chip{
+  font-family:var(--util);font-size:12px;font-weight:500;letter-spacing:.02em;
+  color:var(--ground);background:var(--ink);border:1px solid var(--ink);
+  border-radius:999px;padding:5px 8px 5px 12px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.chip:hover{background:var(--ink2);border-color:var(--ink2)}
+.chip:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.chip .x{font-size:13px;line-height:1;opacity:.7}
+.chip:hover .x{opacity:1}
+
+/* ── Add is a standing offer, not a filter ── */
+.addpill{
+  position:fixed;right:24px;bottom:24px;z-index:40;
+  font-family:var(--util);font-size:13px;font-weight:600;letter-spacing:.06em;
+  color:var(--ground);background:var(--ink);border:0;border-radius:999px;
+  padding:13px 22px;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.28);
+}
+.addpill:hover,.addpill[aria-expanded="true"]{background:var(--ink2)}
+.addpill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+/* ── add panel ── */
+.addbtn{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--ink);padding:5px 0 6px;cursor:pointer;white-space:nowrap;
+}
+.addbtn:hover{color:var(--ink2);border-bottom-color:var(--ink2)}
+.addbtn:focus-visible,.clearbtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.panel{display:none;border-top:1px solid var(--ink);border-bottom:1px solid var(--rule2);
+  padding:30px 0 34px;margin-bottom:34px}
+.panel.open{display:block}
+.panel h2{font-family:var(--serif);font-weight:400;font-size:26px;margin:0 0 4px;letter-spacing:-.015em}
+.panel .lede{font-family:var(--util);font-size:12.5px;color:var(--ink3);margin:0 0 22px;max-width:70ch;line-height:1.7}
+.kind{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--rule2);width:max-content;max-width:100%}
+.kind button{font-family:var(--serif);font-size:16px;padding:9px 20px;border:0;border-right:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer}
+.kind button:last-child{border-right:0}
+.kind button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px 28px;max-width:1200px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fld label{font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3)}
+.fld input,.fld select,.fld textarea{
+  font-family:var(--serif);font-size:16px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--rule2);padding:5px 0 6px;width:100%;border-radius:0}
+.fld textarea{resize:vertical;min-height:52px;line-height:1.5}
+.fld input:focus-visible,.fld select:focus-visible,.fld textarea:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.fld input::placeholder,.fld textarea::placeholder{color:var(--ink3)}
+.fld.wide{grid-column:1/-1;max-width:74ch}
+.fld.lead{order:-1;grid-column:1/-1;max-width:74ch}
+.acts{display:flex;flex-wrap:wrap;gap:22px;align-items:center;margin-top:26px}
+.acts .msg{font-family:var(--util);font-size:12px;color:var(--ink3);flex:1 1 200px;line-height:1.6}
+.mine{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);
+  border:1px solid var(--rule2);padding:1px 5px;margin-left:8px;white-space:nowrap}
+/* ON NOW is the one badge on a row that is good news, so it is filled and
+   rounded where `unverified` is outlined and square — same size and setting,
+   opposite everything else, and the two read as a pair when a row carries both.
+   `--live` is a token in all three theme states rather than one green, because
+   a green dark enough to carry white text in the light scheme goes muddy
+   against #14170F. The white on it IS a literal: both greens are chosen to
+   take it, and var(--ink) would flip to near-white in one scheme and near-black
+   in the other. */
+.live{font-family:var(--util);font-size:9.5px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:#fff;background:var(--live);border-radius:999px;
+  padding:1.5px 7px;margin-left:8px;white-space:nowrap}
+
+
+.fld.sug input,.fld.sug select,.fld.sug textarea{border-bottom-style:dashed;border-bottom-color:var(--ink2)}
+.fld.sug label::after{content:" · drafted";color:var(--ink3);letter-spacing:.08em}
+.review{display:none;margin-top:22px;padding:16px 18px;background:var(--surface);border-left:2px solid var(--ink2)}
+.review.on{display:block}
+.review h3{font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink3);margin:0 0 8px}
+.review p{margin:0 0 10px;font-size:15px;line-height:1.6;color:var(--ink2);max-width:74ch}
+.review ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px 16px}
+.review li a{font-family:var(--util);font-size:12px;color:var(--ink2);text-decoration:none;
+  border-bottom:1px solid var(--rule2)}
+.review li a:hover{border-bottom-color:var(--ink)}
+.warn{font-family:var(--util);font-size:12px;color:var(--ink3);margin-top:8px}
+
+
+/* ── table ── */
+.tbl{border-top:1px solid var(--ink);margin:0 calc(var(--pad) * -1)}
+.rowline{
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) 92px 200px 132px 140px;
+  gap:0 24px;align-items:center;
+}
+
+/* ── the type icon, in the row's left gutter ──
+   The slot is always drawn, even when the type has no icon: an empty cell keeps
+   every name on the same left edge, which a collapsing column would not.
+   The artwork is a <use> of a <symbol> declared once at the top of the page. */
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+.c-icon{width:48px;display:grid;place-items:center end;color:var(--ink3)}
+/* ── colour only on hover ──
+   At rest every icon is one grey, whether its artwork is one colour or two, so
+   a list of 400 rows is not a field of yellow. Hovering a row brings the ink up
+   and lets the accent through.
+
+   The accent is an inline fill on the path (see below), which no rule here can
+   override — but it is a var() lookup, so swapping what the variable *means*
+   per state does the job without touching the path. At rest it resolves to
+   currentColor and the icon collapses to the single grey; on hover it resolves
+   to the brand colour. The yellow itself still lives in one place, --accent. */
+.c-icon{--icon-accent:currentColor}
+.rowhead:hover .c-icon,.rowhead.saved .c-icon{--icon-accent:var(--accent)}
+/* A fixed box, not a fixed width. The set is not one proportion — the skateboard
+   is 3:1 and the coffee cup is taller than it is wide — so sizing on width alone
+   would make an upright icon 60px tall and push the row open. Each <symbol>
+   carries its own viewBox and scales to fit inside 48x28, centred. */
+/* ── 24px means 24px of white, not 24px of box ──
+   The 48x28 box is a container, not the artwork: a narrow icon centred in it
+   left 7px of air on each side, so the gap the eye measured between a runner
+   and its name was ~33px while the skateboard's was 26. The box now sits at the
+   slot's inner edge (place-items:center end) and each <symbol> right-aligns its
+   own artwork inside it (preserveAspectRatio="xMaxYMid"), so every icon's ink
+   ends on one line, 24px from the name — the column gap and nothing else.
+   The slot stays 51px whether or not it holds anything, which is still what
+   keeps every name on the same left edge. */
+.c-icon svg{width:48px;height:28px;fill:currentColor;display:block}
+/* Some of the set is two-colour. The black in those files is the ink and follows
+   the row like the single-colour icons do; the brand yellow is the accent.
+
+   The accent is set inline on the path rather than by a rule here, and that is
+   not laziness: <use> clones the symbol into a shadow tree, which a selector in
+   this stylesheet cannot reach — `.c-icon .accent{}` matches nothing. An inline
+   style is part of what gets cloned, and `--icon-accent` still reaches it
+   because custom properties inherit across the boundary. So the colour is still
+   one token in one place, it just has to be spent through var(). */
+.rowhead:hover .c-icon,.rowhead.saved .c-icon{color:var(--ink)}
+
+.rec{border-bottom:1px solid var(--rule)}
+
+/* ── keep this one ──
+   The pin sits in the row's right-hand gutter, as a sibling of the row button
+   and never inside it: a button within a button is invalid markup and eats the
+   row's own click. Hidden until the row is hovered, and it stays once it is on.
+   A touch screen has no hover, so there it is always showing.
+
+   Both ends of a row leave the same white space. The mark is aligned to the end
+   of the button rather than centred in it, so what lands on the page margin is
+   the pin itself and not a box around it — an emoji's advance width is not the
+   same on every platform, and a fixed offset would only be true on this one. The
+   36px hit area then runs inwards, into the gutter the row's padding keeps clear. */
+.rowhead{position:relative}
+.savebtn{
+  position:absolute;top:0;bottom:0;right:var(--gut);
+  width:36px;padding:0;border:0;background:none;cursor:pointer;
+  display:grid;place-items:center end;font-size:15px;line-height:1;
+  opacity:0;filter:grayscale(1);transition:opacity .13s,filter .13s;
+}
+.rowhead:hover .savebtn,.savebtn:focus-visible{opacity:.5}
+.savebtn:hover{opacity:.85}
+.savebtn.on,.rowhead:hover .savebtn.on{opacity:1;filter:none}
+.savebtn:focus-visible{outline:2px solid var(--ink);outline-offset:-4px}
+@media (hover:none){.savebtn{opacity:.45}}
+/* ── the press ──
+   A pin goes into a board along its own needle, and the 📌 points down-left, so
+   that is the direction this one travels. It shrinks as it goes in — going away
+   from you, not getting smaller — and the board gives a little back on the way
+   out. The overshoot is what reads as "in": the travel itself is two pixels at
+   this size and would pass for a wobble on its own.
+   Pulling one out is the same move reversed and shorter. Taking something off a
+   list is not an occasion.
+   The animation is on a span inside the button, not the button: the button is
+   the 36px hit area and the thing that moves should be the mark. */
+.savebtn .glyph{display:block;transition:transform .12s}
+.savebtn:active .glyph{transform:translate(-1px,1px) scale(.84)}
+.savebtn.press .glyph{animation:pin-in .34s cubic-bezier(.2,.7,.3,1)}
+.savebtn.unpress .glyph{animation:pin-out .24s ease-out}
+@keyframes pin-in{
+  0%  {transform:translate(0,0) scale(1)   rotate(0)}
+  38% {transform:translate(-2px,2px) scale(.66) rotate(-12deg)}
+  68% {transform:translate(0,0) scale(1.14) rotate(4deg)}
+  100%{transform:translate(0,0) scale(1)   rotate(0)}
+}
+@keyframes pin-out{
+  0%  {transform:translate(0,0) scale(1) rotate(0)}
+  45% {transform:translate(2px,-2px) scale(1.1) rotate(9deg)}
+  100%{transform:translate(0,0) scale(1) rotate(0)}
+}
+/* the page-wide reduced-motion rule turns off transitions; these are animations */
+@media (prefers-reduced-motion:reduce){.savebtn .glyph{animation:none!important}}
+/* Unpinning inside the saved view takes the row with it, so the row fades while
+   the pin comes out and the list redraws after both. */
+.rec.leaving{opacity:.2;transition:opacity .26s}
+
+.rowline{width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;
+  cursor:pointer;min-height:57px;
+  /* the extra 40 on the right is the pin's lane: the mark itself sits on the
+     margin like the icon does, and the text stops ~24px short of it, which is
+     the same gap the icon keeps from the name at the other end */
+  padding:11px calc(var(--gut) + 40px) 11px var(--gut)}
+/* ── the hover colourway ──
+   A row lights up in its own theme's colour, so running the eye down the list
+   the colour says what kind of thing it is before the type column is read.
+
+   Two numbers set the whole set. oklch is here for a reason and not decoration:
+   its lightness is perceptual, so every hue lands at the same brightness. The
+   same twelve colours written in hsl would give a yellow that reads almost
+   white and a blue that reads nearly black at identical numbers, and the list
+   would look like some rows were shouting.
+
+   Light needs a pale wash under near-black ink, dark a deep one under near-
+   white, so the pair is redefined per scheme and the twelve hues are not. */
+.rowhead{--tint:var(--surface)}
+/* Nine groups, nine hues 40 degrees apart. oklch keeps them all the same
+   perceptual brightness, so no row shouts louder than its neighbour. */
+.rowhead[data-tint="hospitality"]{--tint:oklch(var(--tint-l) var(--tint-c)  30)}
+.rowhead[data-tint="produce"]    {--tint:oklch(var(--tint-l) var(--tint-c)  70)}
+.rowhead[data-tint="outdoors"]   {--tint:oklch(var(--tint-l) var(--tint-c) 110)}
+.rowhead[data-tint="landscape"]  {--tint:oklch(var(--tint-l) var(--tint-c) 150)}
+.rowhead[data-tint="ocean"]      {--tint:oklch(var(--tint-l) var(--tint-c) 190)}
+.rowhead[data-tint="home"]       {--tint:oklch(var(--tint-l) var(--tint-c) 230)}
+.rowhead[data-tint="arts"]       {--tint:oklch(var(--tint-l) var(--tint-c) 270)}
+.rowhead[data-tint="music"]      {--tint:oklch(var(--tint-l) var(--tint-c) 310)}
+.rowhead[data-tint="community"]  {--tint:oklch(var(--tint-l) var(--tint-c) 350)}
+/* An unsorted row has no theme, keeps no data-tint, and falls back to --surface
+   above — the grey it has always had. */
+/* A pinned row keeps the hover look for good — its theme colour and its icon in
+   colour — so what you have saved is picked out of the list without hovering
+   anything. This is also the one place the colour reaches a touch screen, where
+   there is no hover at all. */
+.rowline:hover,.rowhead:hover .rowline,.rowhead.saved .rowline{background:var(--tint)}
+.rowline:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.c-name{font-size:20px;letter-spacing:-.01em;line-height:1.2}
+.c-type,.c-where,.c-when,.c-cost,.c-extra,.tm,.c-name .nm{
+  min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+/* the name clips, the badges do not — ON NOW and unverified are the two things
+   on a row that cannot wait for the reader to widen the window.
+   The spacing is the badges' own margin and NOT a gap here, because below 700px
+   this turns into a plain block and a gap stops applying — which is where the
+   two ran into the name. One rule, both layouts. It was gap AND margin while
+   there was one badge, so the doubling went unnoticed; two badges cost the name
+   32px of a column it already clips in, which is what found it. */
+.c-name{display:flex;align-items:center;gap:0;min-width:0}
+.c-name .mine,.c-name .live{flex:none}
+.c-type,.c-where,.c-when,.c-cost{font-size:14px;color:var(--ink2);line-height:1.22}
+.c-extra{font-size:14px;color:var(--ink2);line-height:1.22;min-width:0}
+.est{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-top:3px}
+.tm{display:block;font-family:var(--serif);font-size:12px;color:var(--ink3);line-height:1.25;margin-top:1px}
+/* How often it repeats, beside the day — "Saturday" alone reads as one Saturday. */
+.rep{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink3);margin-left:7px;white-space:nowrap}
+.mob{display:none}
+
+.detail{display:none;padding:2px var(--pad) 30px}
+.rec.open .detail{display:block}
+.detail-in{display:grid;grid-template-columns:minmax(0,3.1fr) minmax(0,2.5fr);gap:28px 28px;max-width:1400px}
+.detail p{margin:0 0 14px;font-size:17px;line-height:1.62;color:var(--ink2);max-width:66ch}
+.dl{margin:0;font-family:var(--util);font-size:12px;line-height:1.75;color:var(--ink3)}
+.dl b{display:block;font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:10px;color:var(--ink3);margin-bottom:5px}
+.dl span{color:var(--ink2)}
+.links{display:flex;flex-wrap:wrap;gap:22px;margin-top:6px}
+/* One thing in several places: the branches, under the description in the open
+   row. Each keeps its own link and its own directions — collapsing the line
+   must not lose the fact that these are different buildings. */
+.branches{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.branches li{font-family:var(--serif);font-size:16px;color:var(--ink2);line-height:1.3}
+.branches a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule2);padding-bottom:1px}
+.branches a:hover{border-bottom-color:var(--ink)}
+.branches .tm{display:inline;margin-left:9px}
+.branches .dir{font-family:var(--util);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink3);margin-left:10px;border-bottom-color:transparent}
+.branches .dir:hover{border-bottom-color:var(--ink3)}
+.links a{font-family:var(--serif);font-size:16px;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule2);padding-bottom:1px}
+.links a:hover{border-bottom-color:var(--ink)}
+.none{padding:80px 0;text-align:center;color:var(--ink3);font-size:20px}
+footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--rule);font-family:var(--util);font-size:11.5px;line-height:1.8;color:var(--ink3);max-width:78ch}
+
+/* ── list / map switch ── */
+.seg{display:flex;border:1px solid var(--rule2);width:max-content;max-width:100%}
+.seg button{font-family:var(--serif);font-size:16px;line-height:1.2;padding:6px 17px 7px;border:0;
+  border-right:1px solid var(--rule2);background:transparent;color:var(--ink2);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+.seg button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* ── map ── */
+#mapwrap{display:none}
+body.mapview #mapwrap{display:block}
+body.mapview .tbl{display:none}
+#map{height:min(72vh,640px);width:100%;background:var(--surface);border-top:1px solid var(--ink)}
+.mapnote{font-family:var(--util);font-size:11.5px;line-height:1.75;color:var(--ink3);
+  margin:0;padding:11px 0 0;border-top:1px solid var(--rule)}
+.mapnote b{font-weight:600;color:var(--ink2)}
+.mapstate{display:grid;place-items:center;height:100%;text-align:center;padding:0 24px;
+  font-family:var(--serif);font-size:19px;color:var(--ink3);line-height:1.5}
+
+/* A pin is the page's own mark, not a map library's balloon. */
+/* No `position` here. MapLibre positions its own markers absolutely, this page's
+   stylesheet now loads first and would win — and a marker set to `relative` drops
+   out of the map and stacks down the page in document order. */
+.pin{width:13px;height:13px;border-radius:50%;background:var(--ground);
+  border:1.5px solid var(--ink);cursor:pointer;display:grid;place-items:center;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--ground) 65%,transparent)}
+/* the mark stays small; the thing you can hit with a thumb does not */
+.pin::before{content:'';position:absolute;inset:-10px}
+.pin:hover,.pin.on{background:var(--ink)}
+.pin b{font-family:var(--util);font-size:9px;font-weight:600;color:var(--ink);line-height:1}
+.pin:hover b,.pin.on b{color:var(--ground)}
+.pin.multi{width:20px;height:20px}
+.pin.home{width:9px;height:9px;background:var(--ink);border-color:var(--ink);cursor:default;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--ground) 65%,transparent)}
+
+.maplibregl-popup-content{background:var(--ground);color:var(--ink);border:1px solid var(--ink);
+  border-radius:0;box-shadow:none;padding:15px 17px 16px;font-family:var(--serif);max-width:290px}
+.maplibregl-popup-tip{display:none}
+.maplibregl-popup-close-button{font-family:var(--util);font-size:17px;line-height:1;color:var(--ink3);
+  background:none;padding:5px 8px 6px;right:0;top:0}
+.maplibregl-popup-close-button:hover{background:none;color:var(--ink)}
+.pop{max-height:270px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--rule2) transparent}
+.pop::-webkit-scrollbar{width:5px}
+.pop::-webkit-scrollbar-thumb{background:var(--rule2)}
+.pop::-webkit-scrollbar-track{background:transparent}
+.pop h4{font-family:var(--serif);font-weight:400;font-size:19px;letter-spacing:-.01em;line-height:1.2;
+  margin:0 0 4px;padding-right:16px}
+.pop h4~h4{margin-top:15px;padding-top:13px;border-top:1px solid var(--rule)}
+.pop .meta{font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);margin:0 0 7px}
+.pop p.txt{margin:0 0 9px;font-size:15px;line-height:1.5;color:var(--ink2)}
+.pop a{font-family:var(--util);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);
+  text-decoration:none;border-bottom:1px solid var(--rule2);margin-right:15px;white-space:nowrap}
+.pop a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.maplibregl-ctrl-group{border-radius:0!important;box-shadow:none!important;border:1px solid var(--rule2);
+  background:var(--ground)}
+.maplibregl-ctrl-group button{border-radius:0!important;background:var(--ground)}
+.maplibregl-ctrl-group button+button{border-top:1px solid var(--rule2)}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon{filter:var(--ctrl-invert)}
+.maplibregl-ctrl-attrib{font-family:var(--util);font-size:10px;
+  background:color-mix(in srgb,var(--ground) 82%,transparent)!important}
+.maplibregl-ctrl-attrib a,.maplibregl-ctrl-attrib{color:var(--ink3)}
+.maplibregl-ctrl-scale{font-family:var(--util);font-size:10px;border-radius:0;color:var(--ink3);
+  border-color:var(--rule2);background:color-mix(in srgb,var(--ground) 82%,transparent)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:1180px){
+  .rowline{grid-template-columns:51px minmax(0,1fr) 190px 128px 136px}
+  .c-type{display:none}
+}
+@media (max-width:940px){
+  .rowline{grid-template-columns:51px minmax(0,1fr) 180px 128px}
+  .c-extra{display:none}
+  .detail-in{grid-template-columns:1fr}
+}
+@media (max-width:700px){
+  :root{--pad:20px; --gut:20px}
+  /* stacked, so a fixed height and a clipped name both stop making sense */
+  .rowline{grid-template-columns:48px 1fr;gap:3px 12px;min-height:0;align-items:start;
+    padding:11px calc(var(--gut) + 40px) 11px var(--gut)}
+  .c-icon{grid-row:1;margin-top:3px}
+  .c-name{grid-column:2}
+  header{padding:26px 0 30px}
+  .c-name{display:block}
+  .c-name .nm{white-space:normal;overflow:visible;text-overflow:clip;display:inline}
+  .c-where,.c-when{display:none}
+  .mob{display:block;grid-column:2;font-family:var(--util);font-size:12px;color:var(--ink3)}
+  .controls{gap:12px 18px}
+  select,input[type=search]{min-width:0;width:100%;font-size:16px}
+  .ctrl{flex:1 1 42%}
+  #map{height:min(76vh,560px)}
+  .seg button{padding:6px 13px 7px;font-size:15px}
+}
+
+/* ══ concept scaffolding only — would not survive into the real page ═══ */
+.cbar{position:sticky;top:0;z-index:90;background:var(--surface);
+  border-bottom:1px solid var(--rule2);padding:11px var(--pad);
+  display:flex;gap:20px;align-items:baseline;flex-wrap:wrap;
+  font-family:var(--util);font-size:12px;color:var(--ink3)}
+.cbar b{font-weight:600;color:var(--ink);letter-spacing:.12em;
+  text-transform:uppercase;font-size:11px}
+.cbar .key{margin-left:auto}
+.cnote{margin:0 0 6px;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--accent)}
+.cintro{max-width:66ch;margin:0 0 34px;font-size:17px;line-height:1.55;color:var(--ink2)}
+.cintro b{font-weight:400;color:var(--ink)}
+.csplit{margin:34px 0 0;padding:11px 0 0;border-top:1px solid var(--rule2);
+  font-family:var(--util);font-size:11px;font-weight:600;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink3);
+  display:flex;justify-content:space-between;align-items:baseline}
+/* a row the conditions have closed: dimmed, never hidden */
+.rowhead.cshut .rowline{opacity:.46}
+.after{margin-top:52px;padding-top:22px;border-top:1px solid var(--rule2)}
+.after h3{margin:0 0 12px;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--ink3)}
+.after .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+.after p{margin:0 0 13px;font-family:var(--util);font-size:12.5px;line-height:1.65;
+  color:var(--ink3);max-width:62ch}
+.after p b{color:var(--ink2)}
+.after code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
+  color:var(--ink2)}
+@media (max-width:900px){.after .grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-nav="board">
+<script src="/notice-icons.js"></script>
+
+<div class="cbar">
+  <b>Concept</b>
+  <span>Every nature signal, drawn as a row on the real board</span>
+  <span class="key">Notice&rsquo;s own stylesheet &middot; invented rows &middot; 31 Aug 2026</span>
+</div>
+
+<div class="page">
+  <header>
+    <h1>Notice</h1>
+    <div class="hdrbtns">
+      <button id="themebtn" type="button" class="modepill"><b>Auto</b></button>
+      <button id="savedbtn" type="button" class="savedpill empty" aria-pressed="false"
+              aria-label="Saved listings"><span class="ic" aria-hidden="true">&#128204;</span><b>0</b></button>
+    </div>
+    <div class="sub"><span id="sub">Notice Board &middot; 14 things the weather decides</span></div>
+  </header>
+
+  <p class="cnote">None of these rows exist</p>
+  <p class="cintro">Fourteen nature signals as the board would actually carry them.
+  <b>The chrome, the columns, the icons, the tints and the open row are the site&rsquo;s
+  own</b> &mdash; this page links <code>index.html</code>&rsquo;s stylesheet rather than
+  imitating it. What is invented is the fourteen rows and the five types they need.
+  Sorted <b>soonest first</b>, which is the board&rsquo;s default, so the things waiting on
+  weather fall to the bottom by themselves.</p>
+
+  <div class="controls">
+    <div class="ctrl ms"><button type="button" class="ms-btn" aria-expanded="false" aria-haspopup="true">Any kind</button></div>
+    <div class="ctrl ms"><button type="button" class="ms-btn" aria-expanded="false" aria-haspopup="true">The landscape</button></div>
+    <div class="ctrl ms"><button type="button" class="ms-btn" aria-expanded="false" aria-haspopup="true">Any type</button></div>
+    <div class="ctrl ms"><button type="button" class="ms-btn" aria-expanded="false" aria-haspopup="true">Anywhere</button></div>
+    <div class="seg" role="group" aria-label="When">
+      <button type="button" aria-pressed="false">Today</button>
+      <button type="button" aria-pressed="false">Tomorrow</button>
+      <button type="button" aria-pressed="false">This week</button>
+      <button type="button" aria-pressed="true">Any time</button>
+    </div>
+    <button type="button" class="morebtn" aria-expanded="false">Filters</button>
+  </div>
+
+  <div class="tbl">
+<div class="rec">
+  <div class="rowhead" data-tint="ocean">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"></span>
+    <span class="c-name"><span class="nm">Whale season</span><span class="live">on now</span></span>
+    <span class="c-type">wildlife</span>
+    <span class="c-where">Great Ocean Road<span class="tm">Aireys Inlet to Apollo Bay</span></span>
+    <span class="c-when">On now<span class="tm">June – October</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">wildlife &middot; Great Ocean Road &middot; On now &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  <div class="detail"><div class="detail-in"><div><p>Southern Right and Humpback whales pass along this coast between June and October. There is no live sightings feed for Victoria &mdash; WhaleFace, run by DEECA, collects them and does not publish an API &mdash; so this row is a season written down by a person, not a reading.</p></div><div><div class="dl"><b>Best from</b><span>Point Addis &middot; Split Point &middot; Marengo</span></div><div class="dl"><b>Source</b><span>A fixed calendar &mdash; checked yearly</span></div><div class="dl"><b>Report a sighting</b><span>whaleface.swifft.net.au</span></div></div></div></div>
+</div>
+<div class="rec open">
+  <div class="rowhead" data-tint="landscape">
+  <button class="rowline" aria-expanded="true">
+    <span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span>
+    <span class="c-name"><span class="nm">Orchids in flower</span><span class="live">on now</span></span>
+    <span class="c-type">wildflower</span>
+    <span class="c-where">Anglesea Heath<span class="tm">Anglesea</span></span>
+    <span class="c-when">On now<span class="tm">peaks late Sept</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">wildflower &middot; Anglesea Heath &middot; On now &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  <div class="detail"><div class="detail-in"><div><p>147 species recorded here in the last four weeks &mdash; Mayfly Orchid, Leopard Orchid, tall greenhood, Nodding Greenhood, Common Heath. Over a hundred orchid species inside the one reserve, and the richest wildflower ground in the state.</p></div><div><div class="dl"><b>Recorded this month</b><span>147 species &middot; 857 records</span></div><div class="dl"><b>Source</b><span>iNaturalist, research grade</span></div><div class="dl"><b>Season</b><span>August – November, peaking late September</span></div></div></div></div>
+</div>
+<div class="rec">
+  <div class="rowhead" data-tint="ocean">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span>
+    <span class="c-name"><span class="nm">Low tide</span></span>
+    <span class="c-type">tide</span>
+    <span class="c-where">Jan Juc Rockpools<span class="tm">Jan Juc</span></span>
+    <span class="c-when">Tonight<span class="tm">around 7pm</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">tide &middot; Jan Juc Rockpools &middot; Tonight &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  
+</div>
+<div class="rec open">
+  <div class="rowhead" data-tint="ocean">
+  <button class="rowline" aria-expanded="true">
+    <span class="c-icon" aria-hidden="true"><svg><use href="#i-parasol"/></svg></span>
+    <span class="c-name"><span class="nm">Sheltered from the westerly</span><span class="live">on now</span></span>
+    <span class="c-type">beach</span>
+    <span class="c-where">Point Lonsdale Front Beach<span class="tm">Point Lonsdale</span></span>
+    <span class="c-when">Today<span class="tm">wind W 30 km/h</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">beach &middot; Point Lonsdale Front Beach &middot; Today &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  <div class="detail"><div class="detail-in"><div><p>The beach faces 96&deg;, almost due east, so a westerly blows off the land behind it. Thirteenth Beach faces due south today and is taking the same wind straight up the sand.</p></div><div><div class="dl"><b>Faces</b><span>96&deg; &middot; east</span></div><div class="dl"><b>Wind today</b><span>west, 30 km/h &mdash; offshore here</span></div><div class="dl"><b>Also sheltered</b><span>St Leonards &middot; Cosy Corner &middot; Point Roadknight</span></div></div></div></div>
+</div>
+<div class="rec">
+  <div class="rowhead" data-tint="outdoors">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"><svg><use href="#i-footprints"/></svg></span>
+    <span class="c-name"><span class="nm">Echidnas out of torpor</span></span>
+    <span class="c-type">wildlife</span>
+    <span class="c-where">Anglesea Heath<span class="tm">Anglesea</span></span>
+    <span class="c-when">From now<span class="tm">to March</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">wildlife &middot; Anglesea Heath &middot; From now &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  
+</div>
+<div class="rec">
+  <div class="rowhead" data-tint="ocean">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"><svg><use href="#i-flag-triangle-right"/></svg></span>
+    <span class="c-name"><span class="nm">Offshore at dawn</span></span>
+    <span class="c-type">surf</span>
+    <span class="c-where">Bells Beach<span class="tm">Bells Beach</span></span>
+    <span class="c-when">Tomorrow<span class="tm">6am – 9am</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">surf &middot; Bells Beach &middot; Tomorrow &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  <div class="detail"><div class="detail-in"><div><p>Bells faces 136&deg;, so a north-westerly blows off the land and holds the wave face up. Tomorrow it sits at 325&ndash;329&deg; through the small hours at 14&ndash;18 km/h, which is the classic dawn setup.</p></div><div><div class="dl"><b>Wind</b><span>NW 325&deg; &middot; 14&ndash;18 km/h</span></div><div class="dl"><b>Swell</b><span>1.16 m at 10.6 s</span></div><div class="dl"><b>Sea</b><span>13.7 &deg;C</span></div></div></div></div>
+</div>
+<div class="rec">
+  <div class="rowhead" data-tint="landscape">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"><svg><use href="#i-moon-star"/></svg></span>
+    <span class="c-name"><span class="nm">New moon — darkest sky</span></span>
+    <span class="c-type">sky</span>
+    <span class="c-where">Anywhere dark<span class="tm">Otways and the coast</span></span>
+    <span class="c-when">Fri 11 Sep<span class="tm">after 8pm</span><span class="rep">monthly</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">sky &middot; Anywhere dark &middot; Fri 11 Sep &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  
+</div>
+<div class="rec">
+  <div class="rowhead" data-tint="ocean">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"><svg><use href="#i-waves"/></svg></span>
+    <span class="c-name"><span class="nm">Swell builds to 2.6 m</span></span>
+    <span class="c-type">surf</span>
+    <span class="c-where">Bells Beach<span class="tm">Bells Beach</span></span>
+    <span class="c-when">Sat 5 Sep<span class="tm">all day</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">surf &middot; Bells Beach &middot; Sat 5 Sep &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  <div class="detail"><div class="detail-in"><div><p>Period is the half nobody prints and the half that decides it: 2.6 m at 11.8 seconds is a groundswell worth driving for, 2.6 m at 6 seconds is a mess.</p></div><div><div class="dl"><b>Swell</b><span>2.58 m at 11.8 s</span></div><div class="dl"><b>Wind</b><span>west 37 km/h &mdash; onshore, so it will be messy</span></div><div class="dl"><b>Source</b><span>Open-Meteo marine, free</span></div></div></div></div>
+</div>
+<div class="rec">
+  <div class="rowhead" data-tint="outdoors">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"></span>
+    <span class="c-name"><span class="nm">Shearwaters return</span></span>
+    <span class="c-type">wildlife</span>
+    <span class="c-where">Cape Otway<span class="tm">Cape Otway</span></span>
+    <span class="c-when">Late Sept<span class="tm">at dusk</span><span class="rep">annual</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">wildlife &middot; Cape Otway &middot; Late Sept &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  
+</div>
+<div class="rec">
+  <div class="rowhead cshut" data-tint="landscape">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"><svg><use href="#i-droplet"/></svg></span>
+    <span class="c-name"><span class="nm">Waterfalls running</span></span>
+    <span class="c-type">waterfall</span>
+    <span class="c-where">Erskine Falls<span class="tm">Lorne</span></span>
+    <span class="c-when">Needs rain<span class="tm">0 mm in 48 h</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">waterfall &middot; Erskine Falls &middot; Needs rain &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  
+</div>
+<div class="rec">
+  <div class="rowhead cshut" data-tint="outdoors">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"><svg><use href="#i-flag-triangle-right"/></svg></span>
+    <span class="c-name"><span class="nm">Paragliders flying</span></span>
+    <span class="c-type">paragliding</span>
+    <span class="c-where">Spion Kop<span class="tm">Moggs Creek</span></span>
+    <span class="c-when">Needs a southerly<span class="tm">westerly all week</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">paragliding &middot; Spion Kop &middot; Needs a southerly &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  
+</div>
+<div class="rec">
+  <div class="rowhead cshut" data-tint="landscape">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"><svg><use href="#i-moon-star"/></svg></span>
+    <span class="c-name"><span class="nm">Aurora australis</span></span>
+    <span class="c-type">sky</span>
+    <span class="c-where">South-facing beaches<span class="tm">Surf Coast</span></span>
+    <span class="c-when">Needs Kp 6+<span class="tm">Kp is 3 now</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">sky &middot; South-facing beaches &middot; Needs Kp 6+ &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  
+</div>
+<div class="rec">
+  <div class="rowhead cshut" data-tint="landscape">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"><svg><use href="#i-leaf"/></svg></span>
+    <span class="c-name"><span class="nm">Fungi season</span></span>
+    <span class="c-type">fungi</span>
+    <span class="c-where">The Otways<span class="tm">Beech Forest to Forrest</span></span>
+    <span class="c-when">From May<span class="tm">May – July</span></span>
+    <span class="c-extra">Free</span>
+    <span class="mob">fungi &middot; The Otways &middot; From May &middot; Free</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  
+</div>
+<div class="rec">
+  <div class="rowhead cshut" data-tint="landscape">
+  <button class="rowline" aria-expanded="false">
+    <span class="c-icon" aria-hidden="true"></span>
+    <span class="c-name"><span class="nm">Fire danger period</span></span>
+    <span class="c-type">fire</span>
+    <span class="c-where">Surf Coast Shire<span class="tm">Central fire district</span></span>
+    <span class="c-when">From Nov<span class="tm">about five months</span></span>
+    <span class="c-extra"></span>
+    <span class="mob">fire &middot; Surf Coast Shire &middot; From Nov</span>
+  </button>
+  <button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button>
+  </div>
+  
+</div>
+  </div>
+
+  <div class="after">
+    <h3>What this mock-up needs that does not exist</h3>
+    <div class="grid2">
+      <div>
+        <p><b>Five new types.</b> <code>tide</code>, <code>wildflower</code>,
+        <code>wildlife</code>, <code>surf</code>, <code>sky</code> &mdash; plus
+        <code>waterfall</code>, <code>fungi</code>, <code>paragliding</code> and
+        <code>fire</code> on the rows below the fold. Adding one is five places, and
+        this asks for nine.</p>
+        <p><b>Three rows have no icon</b> &mdash; whale season, shearwaters and the fire
+        danger period. That is the real behaviour, not a gap in the mock: the slot is
+        always drawn so every name stays on the same left edge, and Lucide has no
+        whale and no flame. Look at the left gutter on those three.</p>
+        <p><b>A row that is off is dimmed, never hidden.</b> The five at the bottom are
+        real listings waiting on weather &mdash; no rain, no southerly, Kp only 3. A
+        reader wants to know the waterfall is low, not to find it missing.</p>
+      </div>
+      <div>
+        <p><b>The When column is doing something new.</b> &ldquo;Needs a southerly&rdquo; and
+        &ldquo;Needs Kp 6+&rdquo; are not dates. Today the column holds a date or a recurrence,
+        and half of these rows have neither &mdash; they have a <em>condition</em>. That
+        is the schema question this whole exploration keeps arriving at.</p>
+        <p><b>The ON NOW badge already works for this.</b> It is on three rows here and
+        it needed no new mechanism &mdash; it reads a start and an end. A season has
+        both, so the badge that says a gig is playing can say the orchids are out.</p>
+        <p><b>Everything else is the board as built.</b> The tint down the left is the
+        group colour, the pin saves, the open row carries the description and the
+        detail list. Nothing here is a new component.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

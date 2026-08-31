@@ -126,6 +126,12 @@ BY_ID = {
   # change here would be fitted to one row.
   289: ('group', 'Nippers is run by the surf clubs and you enrol in it'),
 
+  # The outdoors pass, 31 Aug 2026. `running` is a thing you go and DO, so the
+  # rules make this a spot; it is Torquay's second running shop and belongs on
+  # /running as a stockist, off the board. A shop cannot be inferred since the
+  # type was retired, so this line is the only thing keeping it one.
+  681: ('shop', 'The Happy Runner is a running shop, not a place you run'),
+
   # The three rows added by hand on 27 Aug 2026, all of which the rules would
   # make spots — a maker, a shop and a group whose types are all activity types
   # that outrank their kind on PRECEDENCE. `types` says what a row is ABOUT and

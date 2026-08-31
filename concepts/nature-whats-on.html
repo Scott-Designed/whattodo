@@ -392,13 +392,88 @@ body{padding-bottom:140px}
   .two,.spec{grid-template-columns:1fr;gap:26px}
   .bearing{grid-template-columns:1fr}
 }
+
+/* ── launch sites ─────────────────────────────────────────────────────── */
+.launch{margin-top:18px;border-top:1px solid var(--ink)}
+.launch .lh,.launch .lr{display:grid;
+  grid-template-columns:minmax(0,1.4fr) 92px 78px minmax(0,1.6fr);
+  gap:0 18px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--rule)}
+.launch .lh{font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink3);border-bottom-color:var(--rule2)}
+.launch .lr .n{font-size:17px;color:var(--ink)}
+.launch .lr .w{font-family:var(--util);font-size:13px;font-weight:600;color:var(--ink2);
+  letter-spacing:.04em}
+.launch .lr .w b{color:var(--live);font-weight:600}
+.launch .lr .a{font-family:var(--util);font-size:12px;color:var(--ink3)}
+.launch .lr .note{font-family:var(--util);font-size:11.5px;color:var(--ink3);line-height:1.5}
+.launch .lr.hg .n{color:var(--ink3)}
+
+/* ── the one wind, three readings ─────────────────────────────────────── */
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:0 26px;margin-top:20px}
+.three .w3{border:1px solid var(--rule2);border-radius:3px;padding:16px 17px 15px;
+  background:var(--surface);text-align:center}
+.three .w3 .who{font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.three .w3 svg{width:88px;height:88px;display:block;margin:11px auto 9px}
+.three .w3 .want{font-family:var(--serif);font-size:21px;letter-spacing:-.01em;
+  color:var(--ink)}
+.three .w3 p{margin:7px 0 0;font-family:var(--util);font-size:11.5px;line-height:1.55;
+  color:var(--ink3)}
+
+/* ── facing scale ─────────────────────────────────────────────────────── */
+.facing{margin-top:18px}
+.facing .fr{display:grid;grid-template-columns:minmax(0,1fr) 54px minmax(0,2.2fr) 62px;
+  gap:0 14px;align-items:center;padding:5px 0;border-bottom:1px solid var(--rule)}
+.facing .fr .n{font-size:15.5px;color:var(--ink2);min-width:0;overflow:hidden;
+  white-space:nowrap;text-overflow:ellipsis}
+.facing .fr .d{font-family:var(--util);font-size:11.5px;color:var(--ink3);
+  font-variant-numeric:tabular-nums;text-align:right}
+.facing .fr .s{font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.07em;color:var(--ink2)}
+.facing .fr .track{height:8px;background:var(--rule);border-radius:1px;position:relative}
+.facing .fr .track i{position:absolute;top:-3px;width:3px;height:14px;
+  background:var(--flower);border-radius:1px}
+.facing .fr.east .track i{background:var(--live)}
+.facing .fr.south .track i{background:var(--fire)}
+.facing .scaleax{display:grid;grid-template-columns:minmax(0,1fr) 54px minmax(0,2.2fr) 62px;
+  gap:0 14px;margin-top:6px;font-family:var(--util);font-size:10px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.facing .scaleax .marks{display:flex;justify-content:space-between}
+
+/* ── this week ────────────────────────────────────────────────────────── */
+.week{margin-top:18px;border-top:1px solid var(--ink)}
+.week .wr{display:grid;grid-template-columns:120px 118px minmax(0,1fr);gap:0 20px;
+  align-items:baseline;padding:9px 0;border-bottom:1px solid var(--rule)}
+.week .wr .dy{font-family:var(--util);font-size:12.5px;font-weight:600;color:var(--ink)}
+.week .wr .wd{font-family:var(--util);font-size:12.5px;color:var(--ink2);
+  font-variant-numeric:tabular-nums}
+.week .wr .pick{font-size:15.5px;color:var(--ink)}
+.week .wh{display:grid;grid-template-columns:120px 118px minmax(0,1fr);gap:0 20px;
+  font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink3);padding-bottom:9px;
+  border-bottom:1px solid var(--rule2)}
+.nofly{margin-top:16px;border:1px dashed var(--fire);border-radius:3px;
+  padding:16px 18px;position:relative}
+.nofly::before{content:"this week";position:absolute;top:-9px;left:14px;
+  background:var(--ground);padding:0 8px;font-family:var(--util);font-size:10px;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fire)}
+.nofly .big{font-family:var(--serif);font-size:26px;letter-spacing:-.02em;color:var(--ink)}
+.nofly p{margin:9px 0 0;font-family:var(--util);font-size:12.5px;line-height:1.6;
+  color:var(--ink3)}
+@media (max-width:980px){
+  .launch .lh{display:none}
+  .launch .lr{grid-template-columns:1fr;gap:3px}
+  .three{grid-template-columns:1fr;gap:22px}
+  .facing .fr,.facing .scaleax,.week .wr,.week .wh{grid-template-columns:1fr 60px;gap:0 10px}
+  .facing .fr .track,.facing .scaleax .marks,.week .wr .pick{display:none}
+}
 </style>
 </head>
 <body data-nav="board">
 
 <div class="bar">
   <b>Concept</b>
-  <span>Nature as what&rsquo;s on &mdash; twenty-five signals, probed</span>
+  <span>Nature as what&rsquo;s on &mdash; twenty-eight signals, probed</span>
   <span class="key">
     <span><i class="swatch"></i>real, fetched 31 Aug 2026</span>
     <span><i class="swatch prop"></i>does not exist yet</span>
@@ -409,7 +484,7 @@ body{padding-bottom:140px}
 
 <div class="mast">
   <h1>Nature as what&rsquo;s on</h1>
-  <p class="stand">Twenty-five nature signals, probed against real sources on
+  <p class="stand">Twenty-eight nature signals, probed against real sources on
   31 Aug 2026. <b>Most are free and several need no key at all &mdash; one of the two
   endpoints that answers six at once is already called on every page load.</b>
   Every number here says where it came from; every interface is dashed, because
@@ -626,8 +701,10 @@ body{padding-bottom:140px}
         <text x="50" y="97" text-anchor="middle" font-size="7" fill="var(--ink3)" font-family="system-ui">S</text>
         <text x="50" y="70" text-anchor="middle" font-size="6.5" fill="var(--ink3)" font-family="system-ui">beach faces</text>
       </svg>
-      <p><b>Bells Beach faces about 200&deg;.</b> Wind from the northern quarter blows
-      off the land and holds the wave face up; wind from the south-west flattens it.
+      <p><b>Bells Beach faces 136&deg;, south-east.</b> Wind from the north-west blows off
+      the land and holds the wave face up; wind from the south-east flattens it.
+      <b>That figure is measured, and it replaces a wrong one</b> &mdash; this paragraph
+      first said 200&deg;, asserted from memory. See the chapter below.
       Checked tonight: it turns offshore at <b>9pm</b> and stays there &mdash; 325&deg; to
       329&deg; at 14&ndash;18 km/h through the small hours, which is the classic
       Surf&nbsp;Coast dawn setup.
@@ -646,6 +723,144 @@ body{padding-bottom:140px}
   <code>low-wind</code> tag on 27 rows &mdash; which is the wrong question here. A 20 km/h
   offshore is better than a 5 km/h onshore, and no tag can say that.</p>
 </section>
+
+
+<!-- == paragliding =================================================== -->
+<section class="ch">
+  <h2>Paragliders <span class="n">eight launches &middot; and they want the opposite wind</span></h2>
+  <p class="sig">Where you see them is not a guess &mdash; the launch sites are published,
+  with the wind directions each one works in. <b>And the answer inverts the chapter
+  above</b>: a coastal soaring pilot needs the wind coming <em>off the sea and up the
+  cliff</em>, which is precisely the wind that ruins the surf.</p>
+
+  <div class="launch">
+    <div class="lh"><span>Launch</span><span>Wind from</span><span>Height</span><span>Notes</span></div>
+    <div class="lr "><span class="n">Southside</span><span class="w"><b>S</b> best<br>E &middot; SE &middot; SW</span><span class="a">35 m</span><span class="note">Torquay end of Bells. The paraglider launch &mdash; PGs are not allowed on Winkipop.</span></div><div class="lr "><span class="n">Spion Kop / Fairhaven</span><span class="w"><b>S &middot; SW</b> best<br>SE</span><span class="a">53 m</span><span class="note">Above Moggs Creek. Soaring and thermals. Pilots must hold a Spion endorsement from the Dynasoarers.</span></div><div class="lr hg"><span class="n">Bells Beach (Winkipop)</span><span class="w">E &ndash; SE</span><span class="a">36 m</span><span class="note"><b>Hang gliders only</b> &mdash; the foreshore committee does not permit paragliders to launch or land. Rated advanced.</span></div><div class="lr "><span class="n">Ocean Grove</span><span class="w">dune run</span><span class="a">15 m</span><span class="note">Collendina to Point Lonsdale. Note in the record: turbulence around 20 knots.</span></div><div class="lr "><span class="n">Thirteenth Beach</span><span class="w">SSE &ndash; SW</span><span class="a">7 m</span><span class="note">Beach launch.</span></div><div class="lr "><span class="n">Whites Beach</span><span class="w">SSE</span><span class="a">12 m</span><span class="note">Beach launch.</span></div><div class="lr "><span class="n">Teddy&rsquo;s Lookout</span><span class="w">&mdash;</span><span class="a">111 m</span><span class="note">Lorne. The highest of the eight.</span></div><div class="lr "><span class="n">Marriners Lookout</span><span class="w">&mdash;</span><span class="a">123 m</span><span class="note">Apollo Bay.</span></div>
+  </div>
+
+  <p class="src">Eight sites inside the region, from ParaglidingEarth&rsquo;s open API,
+  read 31 Aug 2026. <b>Bold is the direction each site flies best in</b>; the rest are
+  usable. The two you are most likely to see from the road are <b>Spion Kop above
+  Moggs Creek</b> and <b>Southside at the Torquay end of Bells</b> &mdash; both want a
+  <b>southerly</b>, straight off Bass Strait.
+  <br><b>Speed is the one number the sources do not give per site.</b> The Ocean Grove
+  record flags turbulence around 20 knots (about 37 km/h) as its upper concern.
+  Below roughly 15 km/h a 35&ndash;50 m dune will not hold a wing up. That lower figure
+  is a rule of thumb and is <b>not</b> sourced &mdash; it is the number to get from the
+  club rather than from a document like this one.</p>
+
+  <div class="nofly">
+    <div class="big">No flying this week &mdash; 0 of 63 daylight hours</div>
+    <p>Checked hour by hour at Spion Kop against its own wind window. Six of the
+    seven days blow from the <b>west and north-west</b> at 14&ndash;40 km/h &mdash; the wrong
+    side of the hill entirely. Sunday swings round to the south-east at last and
+    then only manages 3&ndash;10 km/h, which is too light to soar.
+    <br><br><b>That is a useful thing for a listings site to be able to say</b>, and it
+    is the same sentence in reverse for everyone else: a week of solid westerlies is
+    a week of no paragliding and, as it happens, a good week for the surf.</p>
+  </div>
+</section>
+
+
+<!-- == sheltered beaches ============================================= -->
+<section class="ch">
+  <h2>Which beach is sheltered today <span class="n">29 bearings, measured not guessed</span></h2>
+  <p class="sig">This is the same missing column doing its third job. A beach is
+  pleasant when the wind comes off the land behind it &mdash; no sand in your face, no
+  chop. Which beaches those are <b>changes every day and is completely determined by
+  one number per beach</b>.</p>
+
+  <p class="sig" style="margin-top:26px">So the bearings were measured. OpenStreetMap
+  draws its coastline with the land on the left and the water on the right of
+  travel, which makes the seaward direction a right angle off the line. Averaging
+  every coastline segment within 400 m of each pin gives this:</p>
+
+  <div class="facing">
+    <div class="fr east"><span class="n">Portarlington Beach & Pier</span><span class="d">12&deg;</span><span class="track"><i style="left:3.3%"></i></span><span class="s">NNE</span></div><div class="fr east"><span class="n">Lorne Beach & Pier</span><span class="d">74&deg;</span><span class="track"><i style="left:20.6%"></i></span><span class="s">ENE</span></div><div class="fr east"><span class="n">Marengo Beach</span><span class="d">81&deg;</span><span class="track"><i style="left:22.5%"></i></span><span class="s">E</span></div><div class="fr east"><span class="n">Point Roadknight Beach</span><span class="d">85&deg;</span><span class="track"><i style="left:23.6%"></i></span><span class="s">E</span></div><div class="fr east"><span class="n">St Leonards Pier & Beach</span><span class="d">86&deg;</span><span class="track"><i style="left:23.9%"></i></span><span class="s">E</span></div><div class="fr east"><span class="n">Point Lonsdale Front Beach & Rock Pool</span><span class="d">96&deg;</span><span class="track"><i style="left:26.7%"></i></span><span class="s">E</span></div><div class="fr "><span class="n">Cosy Corner Beach</span><span class="d">108&deg;</span><span class="track"><i style="left:30.0%"></i></span><span class="s">ESE</span></div><div class="fr "><span class="n">Point Impossible Beach</span><span class="d">110&deg;</span><span class="track"><i style="left:30.6%"></i></span><span class="s">ESE</span></div><div class="fr "><span class="n">Torquay Beach – Front Beach</span><span class="d">112&deg;</span><span class="track"><i style="left:31.1%"></i></span><span class="s">ESE</span></div><div class="fr "><span class="n">Fishermans Beach</span><span class="d">114&deg;</span><span class="track"><i style="left:31.7%"></i></span><span class="s">ESE</span></div><div class="fr "><span class="n">Addiscot Beach – Point Addis</span><span class="d">120&deg;</span><span class="track"><i style="left:33.3%"></i></span><span class="s">ESE</span></div><div class="fr "><span class="n">Urquhart Bluff</span><span class="d">121&deg;</span><span class="track"><i style="left:33.6%"></i></span><span class="s">ESE</span></div><div class="fr "><span class="n">Wye River Beach</span><span class="d">124&deg;</span><span class="track"><i style="left:34.4%"></i></span><span class="s">SE</span></div><div class="fr "><span class="n">Torquay Back Beach</span><span class="d">125&deg;</span><span class="track"><i style="left:34.7%"></i></span><span class="s">SE</span></div><div class="fr "><span class="n">Point Addis Marine Park</span><span class="d">128&deg;</span><span class="track"><i style="left:35.6%"></i></span><span class="s">SE</span></div><div class="fr "><span class="n">Queenscliff Pier Beach</span><span class="d">133&deg;</span><span class="track"><i style="left:36.9%"></i></span><span class="s">SE</span></div><div class="fr "><span class="n">Bells Beach</span><span class="d">136&deg;</span><span class="track"><i style="left:37.8%"></i></span><span class="s">SE</span></div><div class="fr "><span class="n">Bancoora Beach – Breamlea</span><span class="d">137&deg;</span><span class="track"><i style="left:38.1%"></i></span><span class="s">SE</span></div><div class="fr "><span class="n">Anglesea Main Beach</span><span class="d">147&deg;</span><span class="track"><i style="left:40.8%"></i></span><span class="s">SSE</span></div><div class="fr "><span class="n">Full Moon Bonfire</span><span class="d">147&deg;</span><span class="track"><i style="left:40.8%"></i></span><span class="s">SSE</span></div><div class="fr "><span class="n">Jan Juc Rockpools</span><span class="d">147&deg;</span><span class="track"><i style="left:40.8%"></i></span><span class="s">SSE</span></div><div class="fr "><span class="n">Cumberland River Beach</span><span class="d">149&deg;</span><span class="track"><i style="left:41.4%"></i></span><span class="s">SSE</span></div><div class="fr south"><span class="n">Fairhaven Beach</span><span class="d">153&deg;</span><span class="track"><i style="left:42.5%"></i></span><span class="s">SSE</span></div><div class="fr south"><span class="n">Ocean Grove Main Beach</span><span class="d">163&deg;</span><span class="track"><i style="left:45.3%"></i></span><span class="s">SSE</span></div><div class="fr south"><span class="n">Jan Juc Beach</span><span class="d">167&deg;</span><span class="track"><i style="left:46.4%"></i></span><span class="s">SSE</span></div><div class="fr south"><span class="n">Queenscliff Ocean View Beach</span><span class="d">174&deg;</span><span class="track"><i style="left:48.3%"></i></span><span class="s">S</span></div><div class="fr south"><span class="n">13th Beach</span><span class="d">184&deg;</span><span class="track"><i style="left:51.1%"></i></span><span class="s">S</span></div><div class="fr south"><span class="n">Point Lonsdale Back Beach</span><span class="d">212&deg;</span><span class="track"><i style="left:58.9%"></i></span><span class="s">SSW</span></div><div class="fr east"><span class="n">Clifton Springs Foreshore – The Dell</span><span class="d">329&deg;</span><span class="track"><i style="left:91.4%"></i></span><span class="s">NNW</span></div>
+    <div class="scaleax"><span></span><span></span>
+      <span class="marks"><i>N</i><i>E</i><i>S</i><i>W</i><i>N</i></span><span></span></div>
+  </div>
+
+  <p class="src"><b>The measurement was checked against something already known.</b>
+  Bells Beach comes out facing 136&deg;, so the offshore wind there is 316&deg; &mdash;
+  north-west. The classic Bells offshore <em>is</em> a north-westerly, which nobody
+  needed a computer to tell them, and that is the point: the method reproduces a
+  fact it was not given.
+  <br><b>It also caught me out.</b> The offshore chapter above originally said Bells
+  faces &ldquo;about 200&deg;&rdquo;, which I asserted from memory and which is wrong by 64
+  degrees. It is corrected there now. A number worth printing is a number worth
+  measuring &mdash; which is this project&rsquo;s oldest rule, arriving from a new direction.
+  <br>Note the spread is real and local: <b>Lorne faces east</b> at 74&deg;, which is
+  exactly why everybody goes there in a westerly, and Portarlington faces north into
+  the bay at 12&deg;. Thirteenth Beach faces due south and is exposed to everything.</p>
+
+  <div class="proposed" data-note="does not exist yet">
+    <div class="week">
+      <div class="wh"><span>Day</span><span>Wind</span><span>Sheltered &mdash; most offshore first</span></div>
+      <div class="wr"><span class="dy">Mon 31 Aug</span><span class="wd">4 km/h NNE</span><span class="pick">13th Beach &middot; Point Lonsdale Back</span></div><div class="wr"><span class="dy">Tue 1 Sep</span><span class="wd">26 km/h NNW</span><span class="pick">Cumberland River &middot; Fairhaven &middot; Anglesea</span></div><div class="wr"><span class="dy">Wed 2 Sep</span><span class="wd">20 km/h WNW</span><span class="pick">Point Impossible &middot; Cosy Corner &middot; Torquay Front</span></div><div class="wr"><span class="dy">Thu 3 Sep</span><span class="wd">30 km/h W</span><span class="pick">Point Lonsdale Front &middot; St Leonards &middot; Point Roadknight</span></div><div class="wr"><span class="dy">Fri 4 Sep</span><span class="wd">20 km/h NW</span><span class="pick">Anglesea Main &middot; Jan Juc &middot; Jan Juc Rockpools</span></div><div class="wr"><span class="dy">Sat 5 Sep</span><span class="wd">37 km/h W</span><span class="pick">Point Lonsdale Front &middot; Cosy Corner &middot; Point Impossible</span></div><div class="wr"><span class="dy">Sun 6 Sep</span><span class="wd">6 km/h WSW</span><span class="pick">Lorne &middot; Marengo &middot; Point Roadknight</span></div>
+    </div>
+  </div>
+  <p class="src">Real forecast, run against the 29 measured bearings, 31 Aug 2026.
+  Thursday and Saturday blow 30&ndash;37 km/h from the west, and the answer both days is
+  the east-facing Bellarine corner &mdash; Point Lonsdale Front, St Leonards, Cosy
+  Corner. Sunday drops light from the west-south-west and Lorne comes top, which is
+  the local answer anybody would have given you.</p>
+</section>
+
+
+<!-- == one wind, three readings ====================================== -->
+<section class="ch">
+  <h2>One wind reading, three opposite answers <span class="n">and one column serves all of them</span></h2>
+  <p class="sig">This is the argument for the bearing column, and it is stronger than
+  any of the three cases alone. <b>The same two numbers &mdash; where the wind is from,
+  and which way the beach faces &mdash; answer three questions that want opposite
+  things.</b></p>
+
+  <div class="three">
+    <div class="w3">
+      <div class="who">Surfer</div>
+      <svg viewBox="0 0 60 60">
+        <path d="M4 40 Q30 22 56 40" fill="none" stroke="var(--rule2)" stroke-width="2"/>
+        <line x1="30" y1="10" x2="30" y2="30" stroke="var(--live)" stroke-width="3"/>
+        <path d="M25 25 L30 31 L35 25" fill="none" stroke="var(--live)" stroke-width="3"/>
+        <text x="30" y="54" text-anchor="middle" font-size="8" fill="var(--ink3)" font-family="system-ui">sea below</text>
+      </svg>
+      <div class="want">Offshore</div>
+      <p>Wind off the land holds the wave face up. Bells wants a north-westerly.</p>
+    </div>
+    <div class="w3">
+      <div class="who">Paraglider</div>
+      <svg viewBox="0 0 60 60">
+        <path d="M4 44 L26 20 L56 20" fill="none" stroke="var(--rule2)" stroke-width="2"/>
+        <line x1="30" y1="46" x2="30" y2="26" stroke="var(--flower)" stroke-width="3"/>
+        <path d="M25 31 L30 25 L35 31" fill="none" stroke="var(--flower)" stroke-width="3"/>
+        <text x="30" y="56" text-anchor="middle" font-size="8" fill="var(--ink3)" font-family="system-ui">up the cliff</text>
+      </svg>
+      <div class="want">Onshore</div>
+      <p>Wind off the sea lifts up the face of the dune. Spion Kop wants a southerly.</p>
+    </div>
+    <div class="w3">
+      <div class="who">Anyone on the sand</div>
+      <svg viewBox="0 0 60 60">
+        <line x1="4" y1="44" x2="56" y2="44" stroke="var(--rule2)" stroke-width="2"/>
+        <line x1="30" y1="12" x2="30" y2="32" stroke="var(--live)" stroke-width="3"/>
+        <path d="M25 27 L30 33 L35 27" fill="none" stroke="var(--live)" stroke-width="3"/>
+        <circle cx="30" cy="40" r="3" fill="none" stroke="var(--ink3)" stroke-width="1.6"/>
+        <text x="30" y="56" text-anchor="middle" font-size="8" fill="var(--ink3)" font-family="system-ui">sheltered</text>
+      </svg>
+      <div class="want">Offshore</div>
+      <p>Same as the surfer, for a different reason: no sand in your face, flat water.</p>
+    </div>
+  </div>
+
+  <p class="src">The site already knows where every pinned row is. It does not know
+  which way any of them <b>face</b> &mdash; and that single number, once per beach and
+  once per launch, turns a wind forecast into three different useful sentences.
+  Twenty-nine of them are measured above; the rest is a morning&rsquo;s work.
+  <br><b>Nothing else in this whole document needs a new column.</b> Everything else is
+  a feed to read, a sum to compute, or a calendar to write down.</p>
+</section>
+
 
 <section class="ch">
   <h2>The same number, opposite sign <span class="n">already fetched, never read</span></h2>
@@ -1095,6 +1310,13 @@ body{padding-bottom:140px}
       <p>Shark sightings. Available nowhere public in Victoria, and it would be the
       wrong thing to carry even if it were: hours-old safety information on a
       listings page is worse than none.</p>
+    </div>
+    <div class="g" style="margin-top:30px">
+      <b>6 &middot; One column, three uses</b>
+      <p>Which way a beach or a launch <em>faces</em>. The database has a coordinate for
+      every pinned row and this for none of them &mdash; and it is what turns one wind
+      forecast into offshore for a surfer, onshore for a paraglider and sheltered
+      for everyone else. 29 measured; the rest is a morning.</p>
     </div>
     <div class="g" style="margin-top:30px">
       <b>And the hole under all of it</b>
