@@ -4432,6 +4432,38 @@ and a movie club are all venues or groups that the rules would flatten.
 **`--reclassify` would now do real damage**, where in August it would have moved
 four rows. Read the list before ever running it.
 
+### The home pass — 3 rows, 31 Aug 2026. Nine groups done.
+
+`at-home` 43 → 46, and **three is the right answer, not a thin one.** The prompt
+said "if half two turns up three things worth adding, add three and say so", and
+that is what came back. All three are genuinely of this coast rather than
+generic craft ideas, which is the whole test for this group:
+
+- **Geelong Regional Libraries' Seed Library** — borrow three packets, grow
+  them, donate seed back. Torquay is one of seven permanent branches. The
+  returning half is the point: the collection is built from what local gardens
+  actually managed to grow.
+- **The Library of Things** — a projector, a bird kit, a podcasting rig, film
+  scanners, free on the same card. GRLC publishes no landing page for it, so the
+  url is the announcement and the row says so.
+- **ANGAIR's Knowledge Bank** — district-scoped lists for flowers, orchids,
+  birds, fungi and weeds, so a photo from a walk gets a name. A list scoped to
+  Anglesea and Aireys Inlet beats a national field guide, and the row says where
+  it thins out.
+
+All three are `kind: idea`, `km: 0`, `location: Home`, no coordinate — the
+shape this type requires, and the one place in the database where `km = 0` is
+correct and null would be wrong.
+
+**No `home.md` worklog arrived, so half one — the audit of the existing 43 —
+was not handed back.** That was the larger half of the brief and the reason for
+running this group at all. The same is true of `community.md`, `outdoors.md` and
+`landscape.md`: those passes handed back JSON and no log, so **the rejected
+candidates from four passes are lost.** The rows carry their own `source_note`,
+and the findings are in this file, but the "checked and not added, and here is
+why" lists are not — and those are the expensive thing to rediscover. It is why
+the log exists. Worth asking for them while the sessions are still open.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

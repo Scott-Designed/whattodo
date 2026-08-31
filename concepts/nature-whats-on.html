@@ -14,10 +14,14 @@ try{var t=localStorage.getItem('notice.theme');
 <style>
 /* ══ concept scaffolding — would not survive into the real page ═══════ */
 body{padding-bottom:140px}
-:root{--fire:#C0562B;--flower:#7A5EA8}
-:root[data-theme="dark"]{--fire:#E08050;--flower:#A78BD8}
+/* --live is index.html's token and this page never carried it, so five
+   greens rendered as nothing. Same values, and all three theme states,
+   because a colour defined only inside a media query never applies in the
+   un-stamped default state. */
+:root{--fire:#C0562B;--flower:#7A5EA8;--live:#2C7A4B}
+:root[data-theme="dark"]{--fire:#E08050;--flower:#A78BD8;--live:#3E9E63}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --fire:#E08050;--flower:#A78BD8}}
+  --fire:#E08050;--flower:#A78BD8;--live:#3E9E63}}
 
 .bar{position:sticky;top:0;z-index:90;background:var(--surface);
   border-bottom:1px solid var(--rule2);padding:11px var(--pad);
@@ -467,6 +471,23 @@ body{padding-bottom:140px}
   .facing .fr,.facing .scaleax,.week .wr,.week .wh{grid-template-columns:1fr 60px;gap:0 10px}
   .facing .fr .track,.facing .scaleax .marks,.week .wr .pick{display:none}
 }
+
+/* ── sea sparkle: the sparse case ─────────────────────────────────────── */
+.sparse{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
+  gap:0 40px;margin-top:18px;align-items:start}
+.tally2{display:grid;grid-template-columns:130px minmax(0,1fr) 62px;gap:0 14px;
+  align-items:center}
+.tally2 .lb{font-family:var(--util);font-size:12.5px;color:var(--ink2)}
+.tally2 .bar{height:11px;border-radius:1px}
+.tally2 .vv{font-family:var(--util);font-size:12px;color:var(--ink3);text-align:right;
+  font-variant-numeric:tabular-nums}
+.tally2 > div{padding:7px 0;border-bottom:1px solid var(--rule);display:contents}
+.sightings{border-top:1px solid var(--rule2);margin-top:4px}
+.sightings .sg{display:grid;grid-template-columns:104px minmax(0,1fr);gap:0 16px;
+  padding:8px 0;border-bottom:1px solid var(--rule);font-family:var(--util);font-size:12.5px}
+.sightings .sg .dt{color:var(--ink);font-variant-numeric:tabular-nums}
+.sightings .sg .pl{color:var(--ink3)}
+@media (max-width:980px){.sparse{grid-template-columns:1fr;gap:26px}}
 </style>
 </head>
 <body data-nav="board">
@@ -1209,6 +1230,61 @@ body{padding-bottom:140px}
   is happening &mdash; a flower open, a fungus fruiting, an echidna out of torpor &mdash;
   the count is the season. Where they do not, it is a map of where people walk.</p>
 </section>
+
+
+<section class="ch">
+  <h2>Sea sparkle <span class="n">five records, ever</span></h2>
+  <p class="sig">Asked directly, and the answer is a clean no. <b>Bioluminescence is
+  the one thing on this list with effectively no data behind it</b> &mdash; and the
+  reason is more interesting than the count.</p>
+
+  <div class="sparse">
+    <div>
+      <div class="tally2">
+        <span class="lb">Orchids, this box</span><span class="bar" style="background:var(--flower);width:100%"></span><span class="vv">8,085</span>
+        <span class="lb">Fungi, this box</span><span class="bar" style="background:var(--fire);width:100%"></span><span class="vv">9,478</span>
+        <span class="lb">Hooded Plover</span><span class="bar" style="background:var(--ink3);width:7%"></span><span class="vv">642</span>
+        <span class="lb">Cetaceans</span><span class="bar" style="background:var(--ink3);width:1%"></span><span class="vv">59</span>
+        <span class="lb"><b>Sea sparkle</b></span><span class="bar" style="background:var(--fire);width:1px"></span><span class="vv">5</span>
+      </div>
+      <p class="src" style="margin-top:14px"><em>Noctiluca scintillans</em> in the
+      Surf Coast and Otways box: <b>five records across all years</b>. Twenty-four in
+      the whole of Victoria, 87 in Australia, 557 on Earth. The Victorian month-by-
+      month counts run 0 to 6 &mdash; that is not a season, it is noise with twelve
+      buckets.</p>
+    </div>
+    <div>
+      <div class="sightings">
+        <div class="sg"><span class="dt">11 Feb 2023</span><span class="pl">Surf Coast &mdash; west</span></div>
+        <div class="sg"><span class="dt">11 Feb 2023</span><span class="pl">Moggs Creek</span></div>
+        <div class="sg"><span class="dt">11 Feb 2023</span><span class="pl">Surf Coast &mdash; west</span></div>
+        <div class="sg"><span class="dt">21 Oct 2022</span><span class="pl">Surf Coast &mdash; east</span></div>
+        <div class="sg"><span class="dt">19 Oct 2022</span><span class="pl">Surf Coast &mdash; west</span></div>
+      </div>
+      <p class="src" style="margin-top:14px"><b>Look at the dates.</b> Three of the
+      five are the same night. That is the entire shape of the phenomenon: it
+      happens, several people log it within hours, and then there is nothing for a
+      year. <b>A bloom is not a season and it cannot be forecast</b> &mdash; not from five
+      records, and not from five thousand.</p>
+    </div>
+  </div>
+
+  <p class="src" style="margin-top:26px">There is no tracker either.
+  <code>bioluminescence.com.au</code> is a Tasmanian &ldquo;coming soon&rdquo; page pointing at
+  a Facebook group, which is the same shape as the mountain bike clubs this project
+  already files as <em>check Facebook weekly</em>. Nothing machine-readable exists.
+  <br><b>What the site could honestly say is the conditions, never the event.</b> Sea
+  sparkle wants a dark night, a calm sea and warm water &mdash; new moon, low wind wave,
+  sea temperature &mdash; and all three are already in the two free calls on this page.
+  So a row could read <em>&ldquo;dark, calm and warm tonight &mdash; if it is going to
+  happen, it is a night like this&rdquo;</em>, which is true, and never
+  <em>&ldquo;bioluminescence tonight&rdquo;</em>, which nobody can know.
+  <br><b>And it is the clearest case for the inbox.</b> Three people saw it on one
+  February night and told a website in California. This is the one signal where the
+  community <em>is</em> the sensor, and the site already has an email address and a
+  capture artifact pointed at exactly that problem.</p>
+</section>
+
 
 <section class="ch">
   <h2>Where the method breaks <span class="n">and why that is worth drawing</span></h2>
