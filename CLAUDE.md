@@ -2119,10 +2119,23 @@ it runs.
 is worth not re-litigating: its CSP blocks every external request, so it cannot
 reach Supabase to write. It can draft; it cannot save.
 
-**`.btn` was written for `<button>`**, so an `<a>` wearing it came out
-underlined, top-aligned wrong and 5.5px taller — a flex line box rather than a
-button's. `a.btn` sets `display:inline-flex`, `text-decoration:none` and
-`line-height:1`, measured against its sibling until both were 0 apart.
+**It moved to the header the same day** — Scott: *"move the 'add event' button
+into top right and make black."* It is the only **filled** control up there, and
+that is the rule the header now keeps: `Add an event` MAKES something, while
+Sign out and the theme pill only change how the page behaves. `.pill.solid`
+takes `var(--ink)`, so it is black in the light scheme and near-white in the
+dark one, the same way `.pill.on` already worked.
+
+**And the lock says `Sign out`, not `Unlocked`.** Behind the gate there is no
+locked state to report — without the cookie the page is not served at all — so
+naming a state that is always the same said nothing. It stays outlined:
+signing out is not what anyone came here to do.
+
+**An `<a>` wearing a class written for `<button>` needs help twice**, once for
+`.btn` and again for `.pill`: neither sets `display` or `text-decoration`, so
+the anchor came out underlined and 5.5px taller from its flex line box. Both now
+set `text-decoration:none` and `line-height:1`, measured against a sibling until
+the two were 0 apart.
 
 ### Confirmation links, and why the readable body is not enough
 

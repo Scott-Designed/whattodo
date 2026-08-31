@@ -62,6 +62,12 @@ h1 a{text-decoration:none}
 .pill:hover{border-color:var(--ink3);color:var(--ink)}
 .pill.on{background:var(--ink);color:var(--ground);border-color:var(--ink)}
 .pill.locked{border-color:var(--bad);color:var(--bad)}
+a.pill{text-decoration:none;line-height:1}
+/* The one filled control in the header: it is the only thing up there that
+   makes something, rather than changing how the page looks. */
+.pill.solid{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.pill.solid:hover{background:var(--ink2);border-color:var(--ink2);color:var(--ground)}
+.pillicon{width:13px;height:13px;flex:none;margin-right:-2px}
 
 /* ── tabs ── */
 nav.tabs{display:flex;gap:0;border-bottom:1px solid var(--rule2);margin-bottom:26px;
@@ -299,6 +305,11 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
     <div class="sub" id="sub">reading…</div>
   </div>
   <div class="hdrbtns">
+    <a class="pill solid" id="iartifact"
+       href="https://claude.ai/code/artifact/93362d84-79a0-43b9-89e5-65eff75d74e2"
+       target="_blank" rel="noopener noreferrer"
+       title="Opens the Event Inbox artifact on claude.ai — paste a link or photograph a poster on your phone. Costs no API credits.">
+      <svg class="pillicon"><use href="#i-plus"/></svg>Add an event</a>
     <button class="pill" id="lock">Locked</button>
     <button class="pill" id="theme">Auto</button>
   </div>
@@ -346,10 +357,6 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
     </select>
     <button class="btn ghost" id="ireload">Refresh</button>
     <button class="btn ghost" id="ipaste">Paste an email</button>
-    <a class="btn ghost" id="iartifact" href="https://claude.ai/code/artifact/93362d84-79a0-43b9-89e5-65eff75d74e2"
-       target="_blank" rel="noopener noreferrer"
-       title="Opens the Event Inbox artifact on claude.ai — paste links or photograph a poster on your phone, then it gets researched and written from a Claude session. Costs no API credits.">
-      <svg class="howicon" style="margin-right:5px"><use href="#i-plus"/></svg>Capture an event</a>
     <div class="msg" id="imsg" style="margin-left:0"></div>
   </div>
 
@@ -2239,9 +2246,13 @@ if (!COOKIE_AUTH) try { PASS = sessionStorage.getItem('notice.admin') || ''; } c
 
 function drawLock(ok){
   const b = $('#lock');
-  b.textContent = ok ? 'Unlocked' : 'Locked';
-  b.classList.toggle('on', !!ok);
-  b.classList.toggle('locked', !ok);
+  // Behind the gate there is no locked state to report — you cannot see the
+  // page at all without the cookie — so the button says what pressing it does
+  // rather than naming a state that is always the same. It stays outlined:
+  // signing out is not the thing anyone came here to do.
+  b.textContent = COOKIE_AUTH ? 'Sign out' : ok ? 'Unlocked' : 'Locked';
+  b.classList.toggle('on', !COOKIE_AUTH && !!ok);
+  b.classList.toggle('locked', !COOKIE_AUTH && !ok);
 }
 async function unlock(){
   if (COOKIE_AUTH){                // signing out means dropping the gate cookie

@@ -125,6 +125,10 @@ export default async function handler(req, res) {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  // Injected INSIDE <head>, not between </head> and <body>: a script placed
+  // between them is reparented by the HTML parser, which works but is a
+  // needless question to leave open. Either way it runs before the page's own
+  // script, which is what COOKIE_AUTH depends on.
   return res.status(200).send(
-    page().replace('<body', '<script>window.ADMIN_COOKIE=1</script><body'));
+    page().replace('</head>', '<script>window.ADMIN_COOKIE=1</script></head>'));
 }
