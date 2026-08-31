@@ -3497,10 +3497,12 @@ may wait on a CDN to draw, which is the same rule the map already follows.
 - **Colour only appears on hover, and stays on a pinned row.** `--icon-accent`
   is a *state*, not a colour: `currentColor` at rest, `var(--accent)` on
   `.rowhead:hover` and `.rowhead.saved`. Do not put a literal in it.
-- **Three mappings are compromises worth revisiting.** `running` → medal
-  (Lucide has no runner), `cultural` → sparkles (nothing specific fits), and
-  `cycling` and `mountain biking` share the bike. `i-shopping-bag` is in the
-  sprite and unused, left from when `shop` was a type.
+- **Two of the three compromise mappings were settled by Scott, 31 Aug 2026.**
+  `running` is `sport-shoe` (was medal — Lucide has no runner, but it does have
+  a shoe) and `cultural` is `shell` (was sparkles). The shell reads properly on
+  `/cultural`, whose subject is Wadawurrung Country and whose rows are coastal.
+  **`cycling` and `mountain biking` still share the bike** and that one is open.
+  The sprite carries no unused symbols now.
 
 ## Light, dark, or follow the system
 
