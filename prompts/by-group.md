@@ -509,47 +509,110 @@ correcting, and anything the 42-type vocabulary had no word for.
 
 ## 7 · The music
 
-> gig 57 · festival 21 · party 4 · comedy 3
+> music 73 · festival 22 · comedy 4 · party 4 — 109 rows, **106 of them events**
+
+Rewritten 31 Aug 2026 after a survey of the places registry. **Do not research
+gigs.** 106 of the 109 rows are events and they arrive by themselves twice a
+week from the scrapers; a hand-entered gig goes stale the day after it happens
+and the feed will import it again anyway. The work in this group is the
+plumbing, and the survey found exactly where it is.
+
+**A listing is not a places row, and 57 venues are proof.** CLAUDE.md already
+records the fault in one direction — a `places` row is not a listing, so a
+venue can be fully researched and invisible to readers. This is the mirror:
+**86 listings could host live music and 57 of them have no `places` row and no
+`place_id`, so nothing can ever be attached to them.** Klein's Anglesea Hotel,
+Lorne Theatre (whose own site carries a dated live programme), Geelong Arts
+Centre, Forrest Brewing, Great Ocean Road Brewing, the Inverleigh and Lara
+hotels — all real rooms, all unable to hold an event.
+
+The registry as it stands: **140 places, 32 with an `events_url` a machine can
+read, 38 with a website and no feed, and 70 with nothing on file at all.**
 
 ```text
-Read prompts/RESEARCH_RULES.md and CLAUDE.md, then work on The music group.
+Clone the repo — do not go looking for a folder on the Mac and do not accept one
+somebody suggests. It is public, so this needs no key and no token:
 
-Read this part before you plan anything. `gig` already has 57 listings and they arrive by
-themselves: scrape_events.py reads the Surf Coast Events feed and scrape_venues.py reads the
-venues' own pages, both twice a week. **Hand-entering gigs is the wrong job** — each one goes
-stale the day after it happens, and the same gig will arrive from the feed anyway and have to be
-deduplicated. So this pass is mostly about the plumbing, and the loop is in two halves.
+    git clone https://github.com/Scott-Designed/whattodo.git
+    cd whattodo
 
-Half one — the actual bottleneck. CLAUDE.md's audit found 63 of the places have no website on
-file at all, and that number, not the parsers, is what caps coverage at 15%.
-  1. `python3 scripts/have.py places` — the rows with `·` have neither a site nor a feed.
-  2. Loop through them, oldest towns first. For each, find the venue's real website, and its
-     gig or ticketing page if it has one. Register the **organiser** page, never a single event
-     link — an Eventbrite `/e/` URL dies when that night is over, the `/o/` page does not.
-  3. You cannot write `places` from a script, so collect them in prompts/log/music.md as a table:
-     name, place id, website, events_url, and which platform it is (Oztix, Humanitix, TryBooking,
-     Eventbrite, the venue's own). Scott adds them through /admin.
-  4. Do not fetch humanitix.com. Their robots.txt permits `whattodo-janjuc` but disallows
-     ClaudeBot, so that path is the scheduled Action's to run, not yours.
+Then `python3 scripts/nearby.py --refresh` once. Never run --refresh again mid-pass.
+You need a .env with SUPABASE_URL and SUPABASE_SERVICE_KEY before sync.py will run —
+Scott supplies it. Do not push; the worklog comes back as a file.
 
-Half two — the three thin types the scrapers do not cover: comedy (3), party (4), festival (21).
-For each, in order:
-  1. `python3 scripts/have.py <type>`.
-  2. Search: the region's festival calendars, council event pages, venue what's-on pages,
-     Visit Great Ocean Road, individual festival sites.
-  3. A festival is `annual`, and annual is **never rolled forward**, so every one needs a real
-     published date for its next run. No published date means no row — put it in the log
-     instead. That is the Arts Trail rule and this project has already paid for breaking it.
-  4. Batch to scratch, `--dry-run`, fix, write. Append to the log.
-  5. Next type, without asking.
+Read prompts/RESEARCH_RULES.md and CLAUDE.md, then work The music group.
 
-Do not stop until both halves are done — every website-less place looked at, and all three types
-through the loop. Post one summary: the places table you built for /admin, rows added per type,
-festivals that had no published next date, and any duplicate you spotted between the feed's
-listings and the venues' own.
+**DO NOT ADD GIGS.** 106 of this group's 109 rows are events and the scrapers bring them
+in twice a week. A gig you type today is stale tomorrow and the feed will import it again
+as a duplicate. Everything below is about the registry that makes the scrapers work.
+
+You cannot write `places` from a script. Every half produces a TABLE in the worklog for
+Scott to apply through /admin: name, suburb, address, website, events_url, and one line
+saying what you found and why it is worth watching.
+
+── HALF ONE: the venues already carrying gigs that nothing reads ──
+
+These earn the most, because the events are demonstrably there.
+
+  1. `python3 scripts/have.py places` — the `feed` / `site` / `·` column says what is on
+     file for each.
+  2. For every place that already carries music events but has no `events_url`, find its
+     gig page. The survey found these carrying the most:
+       Barwon Club Hotel   11 events, website only
+       Anglesea Memorial Hall 4 events, NOTHING on file
+       The Sands Torquay    3 events, NOTHING on file
+       Oneday Estate        3 events, website only
+     Work the whole list, not just those four.
+  3. Register the ORGANISER or venue page, never a single event link. An Eventbrite `/e/`
+     url dies when that night is over; the `/o/` page does not.
+  4. Note which platform it is — Oztix, Humanitix, TryBooking, Eventbrite, Moshtix, or the
+     venue's own listing. **Do not fetch humanitix.com**: its robots.txt permits
+     `whattodo-janjuc` and disallows ClaudeBot, so that path is the scheduled Action's to
+     run, not yours. Record the URL without fetching it.
+
+── HALF TWO: the 57 listings that can never hold an event ──
+
+86 listings carry a type that could host live music — pub, bar, brewery, winery, theatre,
+music — and 57 have no `places` row and no `place_id`. A gig at any of them has nowhere
+to attach, so it cannot be on the map and cannot be scraped.
+
+  1. Get the list: pull `activities` where types include any of those and `place_id` is
+     null, and check each name against `places` and its `aliases`.
+  2. For each, decide honestly: **does this room actually put music on?** A winery cellar
+     door that hosts two concerts a summer does; a wine bar that plays records does not.
+     Read the venue's own site for a gigs, events or what's-on page.
+  3. For the ones that do, produce the `places` row: name, suburb, address, website,
+     events_url if it has one, and the `kind` from the place_kinds vocabulary.
+  4. Where a place row already exists under a different spelling, say so — the fix is an
+     alias on the existing row, not a new one. `scrape_venues.py` matches on name plus
+     aliases, and that is how duplicates get recreated on the next run.
+
+Lorne Theatre is the standing example: its masthead reads "THE OLDEST & LARGEST LIVE VENUE
+ON THE SURFCOAST", the arts pass found a dated live programme on its own site, and it has
+no place row at all.
+
+── HALF THREE: venues in neither ──
+
+  1. `python3 scripts/nearby.py "<town>" --kinds food` returns the region's pubs, bars and
+     breweries. Compare against `places` rather than against listings.
+  2. **71 OSM pubs have no place row.** Not all are music venues and many are outside the
+     region — the cache bbox reaches Altona and Tarneit, which are not the Surf Coast.
+     Judge by town first, then by whether the venue's own site shows live music.
+  3. A venue with no evidence of music is not a finding. Log it and move on.
+
+Things that are decided already and should not be re-litigated:
+  - **Do not register an aggregator as a place.** `scrape_venues.py` sets `place_id` to the
+    row it read from, so every event from a Coast & Bay or Fever row would be filed with the
+    aggregator as its venue. That is why surfcoastevents lives in a different scraper.
+  - **The organiser is not the venue.** Creative Geelong's events happen at the Makers Hub;
+    Geelong Sustainability's happen in other people's rooms. Read the venue off the event.
+  - A festival is `annual`, and annual never rolls forward, so any festival row needs a real
+    published next date or no date at all.
+
+Post one summary: the three tables, how many venues each half found, which platforms they
+sit on, and any venue where the room and the organiser are genuinely different things —
+that last one is a gap this schema still has no answer for.
 ```
-
----
 
 ## 8 · The community
 
