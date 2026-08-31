@@ -1670,6 +1670,53 @@ Coast & Bay still said the feed was "unconfirmed" after the Test button
 confirmed it. A column that cross-checks hand-written prose against live data is
 worth having for that alone.
 
+### 18 places shared one website, and the scraper read it 18 times
+
+Scott, 31 Aug 2026: *"Library is still showing as trybooking even though it's an
+RSS feed."* He was right, and the label was the smaller half of it.
+
+**All 18 library branches carry `https://www.grlc.vic.gov.au/` as their
+`website`.** `scrape_venues.py` falls back to the website when there is no
+`events_url` and tries the usual gig paths — so it fetched the same GRLC
+homepage 18 times, found the one TryBooking link on it, and reported
+*"TryBooking (1 gigs from 1 of 1 links)"* against every branch. Meanwhile all
+**500** of those events had come from the iCal feed, `added_by = 'grlc'`.
+
+That is organiser-is-not-the-venue in a new hat: **a website several places
+share cannot say which of them a gig belongs to.** `source_page()` now refuses
+to guess from one, and says so. An `events_url` is exempt, because setting one
+is a deliberate claim that this page belongs to this place; a shared homepage is
+not. Measured: 41 websites belong to exactly one place, `grlc.vic.gov.au` to 18,
+and `thesewingcollectivestudio.com.au` to 2.
+
+**`run_log.py` gained the matching `shared` state in the same commit**, which is
+the rule this file already records — the classifier defaults to success, so a
+new failure phrase not taught to it comes out green.
+
+### What feeds a place comes from its events, not from what a run poked at
+
+`feedOf()` reads the `added_by` of a place's own events, and that beats the run
+log. An importer writing down its own work cannot be wrong about it, whereas the
+venue scraper reports whatever it happened to find on a page.
+
+**`venue-feed` is deliberately NOT translated.** It covers Oztix, Humanitix,
+TryBooking and Moshtix at once, so the run log's own `via` stays the more
+specific answer for those rows.
+
+### A hand says what to do, and the Link column is what to press
+
+Scott's other half of the same message: *"next to the hand it should say 'check
+website' or something with the URL in a column so I can easily check."*
+
+A place nothing reads now says **check website** rather than *last added 7 days
+ago*. The staleness was the honest signal but not an instruction, and it moved
+to the tooltip. A place with **no** website keeps *last added* — there is
+nothing to check, so silence is all there is to say.
+
+The **Link** column uses `urlStub()`, the same helper the Events tab already
+had. Third invented identifier caught by grepping before shipping: `hostBit`
+did not exist.
+
 ### A site-based aggregator has venues too — they are in its events
 
 Scott: *"geelong regional libraries should be considered an aggregator, it's an

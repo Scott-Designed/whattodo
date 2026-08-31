@@ -995,6 +995,11 @@ const SRC_STATE = {
   fbweekly:{label:'Facebook — check weekly', tag:'warn'},
   untried: {label:'not tried yet',           tag:''},
   nourl:   {label:'no website on file',      tag:''},
+  // A website several places share cannot say which of them a gig belongs to.
+  // 18 library branches carry grlc.vic.gov.au, so the scraper read one homepage
+  // 18 times and filed its single TryBooking link at every branch — while all
+  // 500 of their events had actually come from the iCal feed.
+  shared:  {label:'shared website — needs its own events_url', tag:'warn'},
 };
 let SRC_LIST = [];
 
@@ -1730,6 +1735,30 @@ function agoLong(iso){
 /* ── places ────────────────────────────────────────────────────────────────*/
 let PFILTER = {q:'', kind:'', sort:'name', flag:'', state:'', showQuiet:false};
 
+/* What actually keeps a place up to date, taken from where its events came
+   from rather than from what the last run poked at. The two disagreed loudly:
+   every library said "TryBooking", because scrape_venues found one such link on
+   the shared GRLC homepage, while all 500 of their events came from the iCal
+   feed. `added_by` is what the importer wrote down, so it cannot be wrong about
+   its own work.
+
+   `venue-feed` is deliberately NOT translated — it covers Oztix, Humanitix,
+   TryBooking and Moshtix at once, so the run log's own `via` is the more
+   specific answer and keeps the cell. */
+const FEED_NAME = {
+  grlc:            'library calendar feed',
+  surfcoastevents: 'Surf Coast Events',
+};
+
+function feedOf(placeId){
+  const by = {};
+  for (const e of DATA.events)
+    if (e.place_id === placeId && FEED_NAME[e.added_by])
+      by[e.added_by] = (by[e.added_by] || 0) + 1;
+  const best = Object.keys(by).sort((a, b) => by[b] - by[a])[0];
+  return best ? {label: FEED_NAME[best], n: by[best]} : null;
+}
+
 function drawPlaces(){
   // How many events lean on each place — a place with none is either a
   // duplicate the scraper made or a row still waiting for work.
@@ -1791,7 +1820,7 @@ function drawPlaces(){
   if (!list.length){ $('#plist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
   $('#plist').innerHTML = `<table><thead><tr>
       <th>Venue</th><th>Kind</th><th>Town</th><th>Automation</th>
-      <th>Events</th><th>Pinned</th><th></th>
+      <th>Link</th><th>Events</th><th>Pinned</th><th></th>
     </tr></thead><tbody>${list.map(p => {
       const s  = srcByName[p.name] || {};
       const st = SRC_STATE[s.state] || null;
@@ -1830,6 +1859,13 @@ function drawPlaces(){
              // nobody sets a flag. Only visible unlocked — the inbox is the one
              // thing here that is not public.
              const mail = EMAILED[p.id];
+             // A real importer beats whatever the venue scraper found on the
+             // page. This is what stopped every library claiming TryBooking.
+             const feed = feedOf(p.id);
+             if (feed)
+               return icon('i-sync')
+                    + `<span class="autopill"><span>✓</span>${esc(feed.label)}</span>`
+                    + (mail ? ` ${icon('i-mail')}` : '');
              if (['read','skipped'].includes(s.state)){
                // The pill says what reads it — Oztix, Humanitix, its own gig
                // listing — because that is what you check when a venue goes
@@ -1856,6 +1892,13 @@ function drawPlaces(){
              // so silence is the signal. The reason is on the tooltip and in the
              // drawer for when it is wanted.
              const when = agoLong(lastAdded);
+             // Nothing reads this one, so the useful thing is not how stale it
+             // is but what to DO — go and look. The staleness stays on the
+             // tooltip, and the page it wants is in the Link column.
+             if (p.website)
+               return icon('i-hand')
+                    + `<span title="${when ? 'last added ' + esc(when) : 'nothing added yet'}"
+                        >check website</span>`;
              if (!when) return '<span style="color:var(--ink3)">nothing added yet</span>';
              const cold = (Date.now() - new Date(lastAdded)) > 180 * 86400000;
              // A hand means a person is keeping this one up: it has listings and
@@ -1864,6 +1907,10 @@ function drawPlaces(){
                   + `<span class="${cold ? 'stale' : ''}"${cold ? '' : ' style="color:var(--ink3)"'}>`
                   + `last added ${esc(when)}</span>`;
            })()}</td>
+        <td class="cap" style="max-width:15ch">${p.website
+             ? `<a href="${esc(p.website)}" target="_blank" rel="noopener noreferrer"
+                  title="${esc(p.website)}">${esc(urlStub(p.website, 18))}</a>`
+             : '<span style="color:var(--ink3)">—</span>'}</td>
         <td>${ev.length ? `<span class="evs"
               ><span class="ev-up${up ? '' : ' zero'}" title="${up} upcoming">${up}</span
               ><span class="ev-now${now ? '' : ' zero'}" title="${now} on today">${now}</span

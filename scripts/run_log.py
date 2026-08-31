@@ -102,6 +102,10 @@ def source_state(how):
     if 'robots.txt' in low:                return 'refused'
     if 'left for a human' in low:          return 'manual'
     if 'nothing machine-readable' in low:  return 'nothing'
+    # A website several places share cannot say which one a gig belongs to, so
+    # the scraper refuses to guess from it. That is a source needing a decision
+    # (an events_url), not a source that is broken and not one that read.
+    if 'shared with other places' in low:  return 'shared'
     return 'read'
 
 

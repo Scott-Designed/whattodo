@@ -202,6 +202,18 @@ def source_page(venue):
         return (u, E.fetch(u), '') if u else (None, None, 'events_url is not a url')
     site = venue.get('website')
     if not site: return None, None, 'no website on file'
+    # A website shared by several places cannot say which one a gig belongs to.
+    # 18 library branches all carry grlc.vic.gov.au, so this read the same
+    # homepage 18 times, found the one TryBooking link on it, and attributed it
+    # to every branch — the organiser-is-not-the-venue trap wearing a new hat,
+    # and the reason the back of house said "TryBooking" for a source whose 500
+    # events all came from the iCal feed.
+    #
+    # An events_url is exempt above, because setting one is a deliberate claim
+    # that THIS page belongs to THIS place. Guessing from a shared homepage is
+    # not.
+    if venue.get('__shared_site'):
+        return None, None, 'website is shared with other places — set events_url to read it'
     site = E.clean_url(site if site.startswith('http') else 'https://' + site)
     if not site: return None, None, 'website is not a url'
     if site.startswith('http://'): site = 'https://' + site[7:]
@@ -500,6 +512,17 @@ def main(argv):
     E.load_env()
     venues = E.db('GET', '/rest/v1/places?select=id,name,aliases,suburb,kind_legacy,website,events_url,ticketing_url'
                          '&order=name')
+    # Mark the websites more than one place claims, so source_page can refuse
+    # to guess from them.
+    seen = {}
+    for v in venues:
+        w = (v.get('website') or '').strip().lower().rstrip('/')
+        if w: seen[w] = seen.get(w, 0) + 1
+    for v in venues:
+        w = (v.get('website') or '').strip().lower().rstrip('/')
+        v['__shared_site'] = bool(w and seen[w] > 1 and not
+                                  (v.get('events_url') or v.get('ticketing_url')))
+
     live = [v for v in venues if (v.get('events_url') or v.get('ticketing_url')
                                   or v.get('website'))]
     if only:
