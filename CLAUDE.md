@@ -2094,6 +2094,36 @@ failure for a public URL: an open one is a spam target within a day. It answers
 `501 no_secret` when unconfigured and `401` to a wrong one, compared
 timing-safely on digests like `ADMIN_PASSWORD`.
 
+### Capture an event — a link out, not a form
+
+Scott, 31 Aug 2026: *"to start just have a CTA that links to artefact."* The
+Inbox tab's controls carry **Capture an event**, which opens the Event Inbox
+artifact. That is the whole of it, deliberately — the alternative was building
+a URL-prefill form, and a link costs nothing and works today.
+
+**Why an artifact and not a form on this page.** The capture happens on a phone,
+standing in front of a poster, which is what the artifact was built for. And it
+costs **no API credits**: the artifact is a notebook, the research happens in a
+Claude Code session on the subscription, and `sync.py add` writes the row. The
+paid path is Autofill, which is dead anyway.
+
+**What a URL-prefill form would add, when it is wanted.** Most event pages
+publish schema.org JSON-LD, so a pasted link can be read with no model at all —
+tested 31 Aug 2026 against Moshtix (6 events, with venue and both dates) and
+surfcoastevents (1 event). `api/admin.mjs` already fetches pages server-side for
+the Test-this-source button, so the plumbing exists. **A screenshot cannot go
+that way** — reading an image needs a vision model, which bills credits wherever
+it runs.
+
+**An artifact can never be the uploader**, which this file already records and
+is worth not re-litigating: its CSP blocks every external request, so it cannot
+reach Supabase to write. It can draft; it cannot save.
+
+**`.btn` was written for `<button>`**, so an `<a>` wearing it came out
+underlined, top-aligned wrong and 5.5px taller — a flex line box rather than a
+button's. `a.btn` sets `display:inline-flex`, `text-decoration:none` and
+`line-height:1`, measured against its sibling until both were 0 apart.
+
 ### Confirmation links, and why the readable body is not enough
 
 **Signing up to a venue's mailing list as `events@notice.place` is a normal use

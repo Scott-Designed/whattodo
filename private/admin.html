@@ -246,6 +246,11 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
   padding:14px 0 0;margin-top:24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .btn{font-family:var(--util);font-size:13px;font-weight:600;padding:9px 18px;
   border:1px solid var(--ink);background:var(--ink);color:var(--ground);cursor:pointer}
+/* .btn was written for <button>, which is inline-block and never underlined.
+   An <a> wearing it is neither, so it sat low and underlined beside its
+   siblings until this. */
+a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align:top;
+  line-height:1}   /* or the flex line box makes it 5px taller than a <button> */
 .btn.ghost{background:none;color:var(--ink2);border-color:var(--rule2)}
 .btn.ghost:hover{color:var(--ink);border-color:var(--ink3)}
 .btn.danger{background:none;color:var(--bad);border-color:var(--bad)}
@@ -275,6 +280,11 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
     <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
     <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
     <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+  </symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 12h14"/>
+    <path d="M12 5v14"/>
   </symbol>
   <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -336,6 +346,10 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
     </select>
     <button class="btn ghost" id="ireload">Refresh</button>
     <button class="btn ghost" id="ipaste">Paste an email</button>
+    <a class="btn ghost" id="iartifact" href="https://claude.ai/code/artifact/93362d84-79a0-43b9-89e5-65eff75d74e2"
+       target="_blank" rel="noopener noreferrer"
+       title="Opens the Event Inbox artifact on claude.ai — paste links or photograph a poster on your phone, then it gets researched and written from a Claude session. Costs no API credits.">
+      <svg class="howicon" style="margin-right:5px"><use href="#i-plus"/></svg>Capture an event</a>
     <div class="msg" id="imsg" style="margin-left:0"></div>
   </div>
 
