@@ -117,6 +117,19 @@ the existing data, and anything you found that the 43-type vocabulary had no wor
 
 > nature 59 · walk 34 · night 23   — 101 rows and only **42 pinned**
 
+**HALF ONE IS DONE — 31 Aug 2026, 23 rows pinned, group 45% → 65%.** Erskine,
+Triplet, Hopetoun, Beauchamp, Kalimna and Sheoak Falls all resolved as
+`waterway=waterfall`, Teddy's Lookout and Cape Otway as named features, and
+seven were refused rather than guessed (see below). Run HALF TWO only.
+
+**Seven stay unpinned and three of those were refused on reading the match**,
+which is the part worth keeping: Frog ID matched a `waterway=river`, a LINE
+feature; Swan Bay Birdwatching matched `railway=halt`, the Bellarine Railway's
+Swan Bay *station* rather than the wetland — a name collision, not a location;
+and You Yangs Rock Climbing matched the whole regional park polygon, which
+CLAUDE.md already flags as reading like a placeholder on two other rows. A
+returned coordinate is not the same as a found place.
+
 **This pass is different from the other eight: it is a PINNING job first and a
 research job second.** The landscape group is not short of rows, it is short of
 coordinates — 42% pinned, by far the worst of any group (produce, the next
@@ -225,49 +238,81 @@ you could not place and why, and anything the 43-type vocabulary had no word for
 
 ## 3 · The outdoors
 
-> parks & playgrounds 20 · skatepark 19 · camping ground 17 · mountain biking 11 · running 9 · cycling 4 · golf 2 · rock climbing 1
+> mountain biking 33 · parks & playgrounds 20 · skatepark 19 · camping ground 17
+> · running 16 · cycling 13 · golf 2 · rock climbing 2
+
+Never run. 110 rows, 74% pinned. Two of its eight types are already well covered
+and should not be re-walked: **`mountain biking` was worked by the bike pass**
+(four clubs, eight shops, the EntryBoss fixtures), and `camping ground` and
+`skatepark` are council assets seeded early. The real gaps are `golf` and
+`rock climbing` at two rows each, and `cycling` and `running` at the thin end.
+
+**OSM is only half a net here.** `nearby.py --kinds bike` covers the cycling
+types and nothing else in this group is mapped usefully — a skatepark, a
+parkrun start and a golf course come off council and club pages, not the map.
 
 ```text
-Read prompts/RESEARCH_RULES.md and CLAUDE.md, then research listings for The outdoors group.
+Clone the repo — public, no key, no token:
 
-Work its eight types thinnest first: rock climbing (1), golf (2), cycling (4), running (9),
-mountain biking (11), camping ground (17), skatepark (19), parks & playgrounds (20).
-Target 12 rows per type, or every honest candidate if that is fewer. The first four are genuinely
-thin and are where this pass earns its keep.
+    git clone https://github.com/Scott-Designed/whattodo.git
+    cd whattodo
+
+Then `python3 scripts/nearby.py --refresh` once. Never run --refresh again mid-pass.
+You need no credentials and you will not write to the database. Scott applies the results.
+Validate every batch with `python3 scripts/sync.py check <file>` — no credentials needed,
+same checks the real write does. Do not push.
+
+Read prompts/RESEARCH_RULES.md and CLAUDE.md, then research The outdoors group.
+
+Work the eight types thinnest first: golf (2), rock climbing (2), cycling (13), running (16),
+camping ground (17), skatepark (19), parks & playgrounds (20), mountain biking (33).
+Run `python3 scripts/have.py outdoors` for today's real counts.
+
+Do not re-walk mountain biking, camping ground or skatepark without reading what is there
+first — the first two were worked in August and the third was seeded early.
 
 This is a loop. For each type, in order:
   1. `python3 scripts/have.py <type>`.
-  2. Search for what is missing. Good sources: Surf Coast Shire and City of Greater Geelong
-     recreation and facility pages, Parks Victoria, parkrun Australia, AusCycling and the
-     Forrest and You Yangs trail networks, Skate Victoria, golf club sites, Bellarine Rail Trail
-     and Barwon River loop pages, camping and caravan park operators, the Great Ocean Road
-     hike-in campsites.
-  3. First-party source, geocode, build the row. km stays null.
-  4. Batch to scratch, `--dry-run`, fix, write.
-  5. Append to prompts/log/outdoors.md.
-  6. Next type, without asking.
+  2. `python3 scripts/nearby.py "<town>" --kinds bike` for the cycling types. For everything
+     else the map is not your source — go to the land managers.
+  3. Sources that beat OSM here: Surf Coast Shire and City of Greater Geelong recreation and
+     facility pages, Parks Victoria, parkrun Australia, AusCycling, the Forrest and You Yangs
+     trail networks, Skate Victoria, golf club sites, the Bellarine Rail Trail and Barwon
+     River loop pages, caravan park operators, Parks Victoria hike-in campsites.
+  4. Before writing, search existing names for the candidate's distinctive word.
+  5. Build the row, `python3 scripts/sync.py check <file>`, fix what it names, leave the
+     batch as a file. Append to prompts/log/outdoors.md.
+  6. Straight to the next type. Do not ask me between types.
 
 Specific to this group:
-  - A council facility has an address. Geocode the facility, not the town — a skatepark pinned
-    at a town centre is the placeholder problem wearing a different hat.
-  - `running` and `cycling` want a start line, not a region. A parkrun has a fixed start; a rail
-    trail has two ends and you should pin the one with the car park and say so in notes.
-  - `mountain biking` is the trail network, and the pin is the trailhead car park. `dry-trails`
-    is the condition for unsealed tracks — no rain for 48h — and `dry-ground` is the one for a
-    skatepark. They are deliberately different; do not use them interchangeably.
-  - `rock climbing` in this region is essentially the You Yangs and whatever the Otways offer.
-    If the honest answer is that there are three, add three and log that the type is small,
-    rather than stretching it to indoor gyms unless the gym is genuinely in the region.
-  - A camping ground needs booking information in `notes` and a real booking or park URL in
-    `url` — Parks Victoria bookings, or the operator's own site. Never a fabricated one.
-  - `parks & playgrounds` is the most likely place for duplicates, because a park often already
-    exists in `places`. Run `python3 scripts/have.py places` before you write this type.
+  - A council facility has a street address. Geocode the FACILITY, not the town. Ask for the
+    feature by name before its street: a named reserve resolves, an address resolves to a
+    road centreline that is a coin toss between segments. Refuse `type=administrative`.
+  - `running` and `cycling` want a START LINE, not a region. A parkrun has a fixed start; a
+    rail trail has two ends, so pin the one with the car park and say which in source_note.
+  - `dry-trails` is no rain for 48 hours, for unsealed tracks. `dry-ground` is not raining
+    now, for a skatepark. Deliberately different, and the two conditions that earn their
+    place here.
+  - Do NOT write `any-weather` to fill the field. The ocean pass put it on 34 of 41 rows
+    against a convention of 2 in 44, and met() returns TRUE for it — it claims the listing
+    suits any weather, which a mountain bike trail in a storm does not.
+  - `golf` and `rock climbing` have two rows each. If the region honestly holds four golf
+    courses, add four and log that the type is small. Do not stretch rock climbing to indoor
+    gyms outside the region.
+  - A camping ground needs booking information in `notes` and a real operator or Parks
+    Victoria URL. Never a fabricated one.
+  - `parks & playgrounds` is where duplicates live — a park often already exists in `places`.
+    Run `python3 scripts/have.py places` before writing this type.
+  - The line between outdoors and landscape is doing something in it versus being in it. If a
+    row sits badly, log the argument rather than filing it in the other group quietly.
+  - Any dated thing — a race, a ride, a working bee — needs a `place_id` or it cannot be on
+    the map. `have.py places` first; log the address if there is no row.
 
-Do not stop until all eight types have been through the loop. Post one summary: rows added per
-type, which types the region genuinely cannot fill, and any park or reserve worth a `places` row.
+Do not stop until all eight types have been through the loop.
+
+Post one summary: rows added per type, which types the region genuinely cannot fill, existing
+rows needing correction, and anything the 43-type vocabulary had no word for.
 ```
-
----
 
 ## 4 · The hospitality
 
@@ -640,94 +685,128 @@ that last one is a gap this schema still has no answer for.
 
 ## 8 · The community
 
-> community 25 · reading 9 · volunteering 7 · workshop 3
+> reading 104 · kids 88 · workshop 65 · community 32 · volunteering 12
+
+**The group looks like 222 rows and is not what that suggests.** `reading`,
+`kids` and most of `workshop` are the Geelong Regional Libraries import — one
+automated feed that arrives twice a week on its own. It is handled. The real gap
+is **`volunteering` at 12** and the non-library half of `community` at 32, on a
+coast whose community life is Landcare, surf clubs, neighbourhood houses and
+men's sheds.
+
+**The trap here is inventing dates.** A group that meets "third Saturday" has no
+published date, and working one out is the failure this project is named after.
+CLAUDE.md settled it: a group earns its place as reference on its type page, not
+by having a date.
 
 ```text
-Read prompts/RESEARCH_RULES.md and CLAUDE.md, then research listings for The community group.
+Clone the repo — public, no key, no token:
 
-Work its four types thinnest first: workshop (3), volunteering (7), reading (9), community (25).
-Target 12 rows per type, or every honest candidate if fewer.
+    git clone https://github.com/Scott-Designed/whattodo.git
+    cd whattodo
 
-This is a loop. For each type, in order:
-  1. `python3 scripts/have.py <type>`.
-  2. Search. Good sources: the Surf Coast Shire community directory, neighbourhood houses and
-     community hubs town by town, Geelong Regional Libraries programmes, Landcare and Coastcare
-     groups, ANGAIR, Bellarine Catchment Network, men's sheds, CFA and SES brigades, Repair Café
-     Surf Coast, U3A, toy libraries, playgroups, book clubs, Rotary and Lions.
-  3. First-party source, geocode the venue, build the row. km stays null.
-  4. Batch to scratch, `--dry-run`, fix, write.
-  5. Append to prompts/log/community.md.
-  6. Next type, without asking.
+Then `python3 scripts/nearby.py --refresh` once. You need no credentials and you will not
+write to the database — validate with `python3 scripts/sync.py check <file>` and hand the
+batches back. Do not push.
 
-Specific to this group:
-  - Nearly everything here recurs, so get the recurrence right. `weekly` and `fortnightly` roll
-    forward safely — the weekday is preserved. `monthly` and `annual` do not roll, so a monthly
-    group needs a real next date from the organiser and will need a person again after that.
-    Say so in `notes` when you write one.
-  - The day of the week has nowhere to live except the name and `time_text`. CLAUDE.md already
-    lists four events carrying "– every Saturday" for this reason. Put it in `time_text`
-    ("Saturdays, 8:30am–1pm") and keep it out of the name.
-  - A group that meets at a hall is worth linking to that hall — check `python3 scripts/have.py places`
-    and note the match in the log so the event can get a pin.
+Read prompts/RESEARCH_RULES.md and CLAUDE.md, then work The community group.
+
+READ THIS BEFORE PLANNING. Of this group's rows, `reading` (104), `kids` (88) and most of
+`workshop` (65) are the Geelong Regional Libraries feed. They are automated, they are
+handled, and they are NOT this pass. Do not add library story times.
+
+Work `volunteering` (12) first, then the non-library half of `community` (32).
+
+For each:
+  1. `python3 scripts/have.py <type>` — read carefully, the library rows will dominate. What
+     you are looking for is what ISN'T a library.
+  2. Sources: the Surf Coast Shire community directory, neighbourhood houses and community
+     hubs town by town, Landcare and Coastcare groups, ANGAIR, Bellarine Catchment Network,
+     men's sheds, CFA and SES brigades, Repair Café Surf Coast, U3A, toy libraries,
+     playgroups, Rotary and Lions. OSM will not help with this group.
+  3. Before writing, search existing names for the candidate's distinctive word.
+  4. Build the row, `sync.py check`, hand back the batch. Append to prompts/log/community.md.
+
+Specific to this group, first point first:
+  - A GROUP IS NOT A ROOM AND NOT AN EVENT. Do not invent event rows for a group's working
+    bee. If a group's happening goes in it must come off a first-party page with a real
+    published date — never inferred from "third Saturday".
+  - Set `kind: "group"` explicitly on anything you join rather than visit. Groups are held
+    OFF the board by design — they are things you look up, not things the board suggests —
+    and KIND_OF will classify a `volunteering · nature` row as a spot if you leave kind out.
+  - A group usually has NO coordinate and that is correct. The four mountain bike clubs carry
+    none: not one publishes premises. Do not pin a group at a hall it merely hires — that is
+    the organiser-is-not-the-venue trap. `km` stays null always.
   - `volunteering` needs a real contact route in `url` — the group's own page or its council
     listing. Never a personal email, never an invented form.
-  - A standing programme with no fixed date (a library's school-holiday programme, a
-    neighbourhood house term timetable) is better as an activity with the timetable in `notes`
-    than as an event with a date that expires.
+  - `weekly` and `fortnightly` roll forward safely; `monthly` and `annual` never roll, so
+    those need a real next date and will need a person again after it. Say so in notes.
+  - The day of the week lives in `time_text` — "Saturdays, 8:30am–1pm" — not in the name.
+  - A standing programme with no fixed date is better as an activity with the timetable in
+    `notes` than an event with a date that expires.
 
-Do not stop until all four types have been through the loop. Post one summary: rows added per
-type, which towns have nothing in this group, and any group that meets somewhere already in `places`.
+Do not stop until both types have been through the loop.
+
+Post one summary: rows added per type, which towns have nothing in this group, groups whose
+hall is already a `places` row, and any group running real dated events worth registering
+as a source.
 ```
-
----
 
 ## 9 · The home
 
-> at-home 43
+> at-home 43, none pinned and none should be
+
+**Mostly not an adding job.** These are things to do at home, not places to go —
+all `km = 0`, no coordinates, and the board deliberately holds them out of the
+unfiltered list because six of them once led the page ahead of anywhere you
+would leave the house for. 43 is already a lot for a listings site about a
+coastline, so this pass audits first and adds second, if at all.
 
 ```text
-Read prompts/RESEARCH_RULES.md and CLAUDE.md, then work on The home group — the single type
-`at-home`, which has 43 listings.
+Clone the repo — public, no key, no token:
 
-Read this first, because the shape of this group is different from the other eight. These
-entries are things to do at home, not places to go. They are all `km = 0`, they have no
-coordinate, and the board deliberately holds them out of the unfiltered list — six of them once
-led the page ahead of anywhere you would leave the house for. So more is not automatically
-better here, and 43 is already a lot.
+    git clone https://github.com/Scott-Designed/whattodo.git
+    cd whattodo
 
-This is a loop in two halves.
+You need no credentials and you will not write to the database. Do not push.
 
-Half one — audit what is there. Volume is not the problem; quality might be.
+Read prompts/RESEARCH_RULES.md and CLAUDE.md, then work The home group — the single type
+`at-home`, 43 listings.
+
+READ THIS FIRST. This group is a different job from the other eight and mostly is not an
+adding job. More is not better here: the board holds these out of the default list on
+purpose, so every weak one dilutes the group without earning a place on the page.
+
+── HALF ONE: audit what is there. This is the real work. ──
+
   1. `python3 scripts/have.py at-home` and read all 43.
-  2. Pull the full rows and check each one against the standard the rest of the site holds:
-     does it have a real description, a source, a url that goes somewhere real? Is `location`
-     one the page recognises as home — it must match "home", "backyard" or "neighbourhood", or
-     the listing lands in no place at all. Is `km` actually 0 and not null?
-  3. Write the findings to prompts/log/home.md as a list: the rows that are fine, the rows that
-     need work and what is wrong with each, and any you think should be deleted and why.
-     Do not delete anything yourself — that is Scott's call.
+  2. Pull the full rows and hold each to the standard the rest of the site keeps: a real
+     description, a source_note, a url that goes somewhere real. Is `location` one the page
+     recognises as home — it must match "home", "backyard" or "neighbourhood", or the
+     listing lands in no place at all. Is `km` actually 0 rather than null?
+  3. Write the findings to prompts/log/home.md as three lists: rows that are fine, rows that
+     need work and exactly what is wrong, rows you think should go and why.
+  4. DO NOT propose deletions as a batch. Name them with reasons; Scott decides.
 
-Half two — add only what is genuinely worth adding, and stop early if the answer is "not much".
-  1. Look for at-home things that are specifically of this place rather than generic: a
-     citizen-science project that wants Surf Coast observations, a Landcare planting you do in
-     your own yard, a local library's borrow-at-home programme, a regional recipe or a beach
-     find you identify at the kitchen table.
-  2. Each one still needs a real source and a real url or none at all. A generic craft idea with
-     no source behind it is not a listing, it is filler — and filler is what makes a reader stop
-     trusting the whole list.
-  3. Batch to scratch, `--dry-run`, fix, write. `location` must be a home phrase, `km` is 0
-     (this is the one type where 0 is correct and null is wrong), `lat`/`lng` stay null.
-  4. Append to the log.
+── HALF TWO: add only what is genuinely of this place, and stop early if that is little ──
 
-Do not stop until both halves are done. If half two turns up only three things worth adding,
-add three and say so — "the region does not have more of these" is a real answer and I would
-rather have it than forty invented ones.
+  1. Look for at-home things specific to this coast rather than generic: a citizen-science
+     project wanting Surf Coast observations, a Landcare planting you do in your own yard, a
+     library borrow-at-home programme, something you identify at the kitchen table after a
+     beach walk.
+  2. Each still needs a real source and a real url or none at all. A generic craft idea with
+     nothing behind it is not a listing, it is filler — and filler is what makes a reader
+     stop trusting the whole list.
+  3. `location` must be a home phrase, `km` is 0 (the one type where 0 is correct and null is
+     wrong), `lat`/`lng` stay null.
+  4. `python3 scripts/sync.py check <file>`, hand back the batch.
 
-Post one summary: the audit findings, rows added, and your recommendation on whether this group
-needs any more attention at all.
+If half two turns up three things worth adding, add three and say so. "The region does not
+have more of these" is a real answer and I would rather have it than forty invented ones.
+
+Post one summary: the audit findings, rows added, and your recommendation on whether this
+group needs any more attention at all.
 ```
-
----
 
 ## 4b · The hospitality, round two — depth
 

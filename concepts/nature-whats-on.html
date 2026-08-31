@@ -208,13 +208,134 @@ body{padding-bottom:140px}
   .c-type,.c-where,.c-when{display:none}
   .detail,.why{padding-left:24px}
 }
+
+/* ── the instrument panel ─────────────────────────────────────────────── */
+.panel{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--rule2);border:1px solid var(--rule2);border-radius:3px;
+  margin-top:16px;overflow:hidden}
+.panel .cell{background:var(--surface);padding:15px 16px 14px}
+.panel .cell .k{font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.panel .cell .v{font-family:var(--serif);font-size:29px;letter-spacing:-.02em;
+  color:var(--ink);line-height:1.05;margin-top:7px}
+.panel .cell .v small{font-size:15px;color:var(--ink3);letter-spacing:0}
+.panel .cell .s{font-family:var(--util);font-size:11px;color:var(--ink3);
+  margin-top:5px;line-height:1.4}
+.panel .cell.tagged{box-shadow:inset 3px 0 0 var(--flower)}
+.panel .cell.newf{box-shadow:inset 3px 0 0 var(--accent)}
+.calls{display:grid;grid-template-columns:1fr 1fr;gap:0 34px;margin-top:20px}
+.calls .c{border-top:2px solid var(--ink3);padding-top:11px}
+.calls .c.have{border-top-color:var(--live)}
+.calls .c h4{margin:0 0 5px;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
+.calls .c .u{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
+  color:var(--ink3);word-break:break-all;line-height:1.5}
+.calls .c p{margin:8px 0 0;font-family:var(--util);font-size:12px;color:var(--ink3);
+  line-height:1.6}
+
+/* ── opposite sign ────────────────────────────────────────────────────── */
+.mirror{display:grid;grid-template-columns:1fr 1fr;gap:0 34px;margin-top:18px}
+.mirror .m{border:1px solid var(--rule2);border-radius:3px;background:var(--surface);
+  padding:16px 18px 15px}
+.mirror .m .k{font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.mirror .m .st{font-family:var(--serif);font-size:24px;letter-spacing:-.02em;
+  margin-top:8px;line-height:1.15}
+.mirror .m.shut .st{color:var(--ink3)}
+.mirror .m.open .st{color:var(--ink)}
+.mirror .m ul{margin:11px 0 0;padding:0;list-style:none}
+.mirror .m li{font-family:var(--util);font-size:12.5px;color:var(--ink2);
+  padding:5px 0;border-top:1px solid var(--rule)}
+.mirror .arrow{font-family:var(--util);font-size:11px;color:var(--ink3);
+  letter-spacing:.1em;text-transform:uppercase;margin-top:9px}
+
+/* the eleven waterfalls and their tags */
+.wf{margin-top:20px;border-top:1px solid var(--rule2)}
+.wf .r{display:grid;grid-template-columns:minmax(0,1fr) 190px 128px;gap:0 20px;
+  align-items:baseline;padding:9px 0;border-bottom:1px solid var(--rule)}
+.wf .r .n{font-size:16.5px;color:var(--ink);min-width:0;overflow:hidden;
+  white-space:nowrap;text-overflow:ellipsis}
+.wf .r .tg{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
+  color:var(--ink3)}
+.wf .r .vd{font-family:var(--util);font-size:11.5px;text-align:right}
+.wf .r.bad .vd{color:var(--fire)}
+.wf .r.ok  .vd{color:var(--ink3)}
+.wf .r.bad .tg{color:var(--fire)}
+
+/* ── charts ───────────────────────────────────────────────────────────── */
+.chart{margin-top:16px}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.axis{display:grid;margin-top:7px;font-family:var(--util);font-size:10.5px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.axis i{font-style:normal;text-align:center}
+.axis i.now{color:var(--ink);font-weight:600}
+.legend{display:flex;gap:22px;margin-top:12px;font-family:var(--util);
+  font-size:11.5px;color:var(--ink3);flex-wrap:wrap}
+.legend b{font-weight:500;color:var(--ink2)}
+.legend i{display:inline-block;width:18px;height:0;border-top:3px solid;
+  vertical-align:middle;margin-right:7px}
+
+/* swell bars */
+.swell{display:grid;grid-template-columns:repeat(7,1fr);gap:0 8px;
+  align-items:end;margin-top:16px;height:150px}
+.swell .d{display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.swell .d .b{background:var(--ocean,#3E7A9E);border-radius:2px 2px 0 0;opacity:.8}
+.swell .d .h{font-family:var(--util);font-size:12px;color:var(--ink);
+  text-align:center;margin-bottom:5px;font-variant-numeric:tabular-nums}
+.swell .d .p{font-family:var(--util);font-size:10.5px;color:var(--ink3);
+  text-align:center;margin-bottom:3px}
+.swellax{display:grid;grid-template-columns:repeat(7,1fr);gap:0 8px;margin-top:7px;
+  font-family:var(--util);font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink3);text-align:center}
+.swellax i{font-style:normal}
+.swellax i.now{color:var(--ink);font-weight:600}
+
+/* ── sky ──────────────────────────────────────────────────────────────── */
+.sky{display:grid;grid-template-columns:repeat(3,1fr);gap:0 34px;margin-top:18px}
+.sky .s{border-top:1px solid var(--rule2);padding-top:14px}
+.sky .s b{display:block;font-family:var(--serif);font-size:20px;font-weight:400;
+  letter-spacing:-.01em;color:var(--ink);margin-bottom:4px}
+.sky .s .how{font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.11em;text-transform:uppercase;margin-bottom:8px}
+.sky .s .how.calc{color:var(--flower)}
+.sky .s .how.feed{color:var(--live)}
+.sky .s .how.fixed{color:var(--accent)}
+.sky .s p{margin:0;font-family:var(--util);font-size:12.5px;line-height:1.65;
+  color:var(--ink3)}
+.sky .s p b{display:inline;font-family:var(--util);font-size:12.5px;color:var(--ink2)}
+
+/* ── where the method breaks ──────────────────────────────────────────── */
+.breaks{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin-top:18px}
+.breaks .bk{border:1px dashed var(--fire);border-radius:3px;padding:18px 18px 16px;
+  position:relative}
+.breaks .bk::before{content:attr(data-note);position:absolute;top:-9px;left:14px;
+  background:var(--ground);padding:0 8px;font-family:var(--util);font-size:10px;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fire)}
+.breaks .bk h4{margin:0 0 3px;font-family:var(--serif);font-weight:400;font-size:20px;
+  letter-spacing:-.01em}
+.breaks .bk .cnt{font-family:var(--util);font-size:11.5px;color:var(--ink3);
+  margin-bottom:11px}
+.breaks .bk p{margin:11px 0 0;font-family:var(--util);font-size:12.5px;
+  line-height:1.65;color:var(--ink3)}
+.mini{display:grid;grid-template-columns:repeat(12,1fr);gap:0 2px;align-items:end;
+  height:52px}
+.mini span{background:var(--ink3);opacity:.5;border-radius:1px 1px 0 0}
+.mini span.pk{background:var(--fire);opacity:.9}
+.miniax{display:grid;grid-template-columns:repeat(12,1fr);gap:0 2px;margin-top:5px;
+  font-family:var(--util);font-size:8.5px;color:var(--ink3);text-align:center}
+
+@media (max-width:980px){
+  .panel{grid-template-columns:repeat(2,1fr)}
+  .calls,.mirror,.sky,.breaks{grid-template-columns:1fr;gap:26px}
+  .wf .r{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body data-nav="board">
 
 <div class="bar">
   <b>Concept</b>
-  <span>Nature as what&rsquo;s on &mdash; fire, and wildflowers</span>
+  <span>Nature as what&rsquo;s on &mdash; fourteen signals, checked</span>
   <span class="key">
     <span><i class="swatch"></i>real, fetched 31 Aug 2026</span>
     <span><i class="swatch prop"></i>does not exist yet</span>
@@ -225,10 +346,10 @@ body{padding-bottom:140px}
 
 <div class="mast">
   <h1>Nature as what&rsquo;s on</h1>
-  <p class="stand">Two of the coast&rsquo;s real seasons, drawn as they would look on the
-  board. <b>Fire is a season that closes things. Wildflowers are a season that
-  opens them.</b> Every number here was fetched on 31 Aug 2026 and says where it
-  came from; every interface is dashed, because none of it is built.</p>
+  <p class="stand">Fourteen nature signals, checked against real sources on
+  31 Aug 2026. <b>Most of them are free, and one of the two endpoints that answers
+  six at once is already being called on every page load.</b> Every number here says
+  where it came from; every interface is dashed, because none of it is built.</p>
 </div>
 
 
@@ -268,10 +389,166 @@ body{padding-bottom:140px}
   <code>full-moon</code> &mdash; two inert tags on one row, and it filters on neither.</p>
 </section>
 
-
-<!-- ══ 1 ══════════════════════════════════════════════════════════════ -->
 <section class="ch">
-  <h2>The year, as the coast actually has it <span class="n">two seasons nothing on the site names</span></h2>
+  <h2>Two calls answer most of it <span class="n">one of them the site already makes</span></h2>
+  <p class="sig">Before any of this is a design question it is a supply question.
+  <b>Open-Meteo answers swell, tide, wind, rain, sea temperature and UV from two
+  free endpoints with no key</b> &mdash; and the site has been calling one of them for
+  weather since the beginning. These are today&rsquo;s real readings at Bells Beach and
+  Jan Juc, 31 Aug 2026.</p>
+
+  <div class="panel">
+    <div class="cell newf"><div class="k">Swell</div><div class="v">1.12<small> m</small></div><div class="s">9.7s from 213&deg; SW<br>wave height 1.24m</div></div>
+    <div class="cell newf"><div class="k">Sea temperature</div><div class="v">13.9<small> &deg;C</small></div><div class="s">the swim decision, and<br>nothing on the site says it</div></div>
+    <div class="cell tagged"><div class="k">Next low tide</div><div class="v">7<small>pm &nbsp;&minus;0.90 m</small></div><div class="s">wires <code>low-tide</code> &middot; 18 rows</div></div>
+    <div class="cell tagged"><div class="k">Sea state</div><div class="v">0.02<small> m</small></div><div class="s">wind wave &mdash; glassy<br>wires <code>calm-sea</code> &middot; 40 rows</div></div>
+    <div class="cell newf"><div class="k">UV index</div><div class="v">5.2</div><div class="s">moderate &middot; today&rsquo;s peak</div></div>
+    <div class="cell newf"><div class="k">Rain, last 48h</div><div class="v">0.0<small> mm</small></div><div class="s">Otways &middot; 7.0mm over the week</div></div>
+    <div class="cell tagged"><div class="k">Geomagnetic Kp</div><div class="v">3</div><div class="s">quiet &middot; aurora needs 6+<br>wires <code>geomagnetic-storm</code></div></div>
+    <div class="cell tagged"><div class="k">Moon</div><div class="v">Waxing</div><div class="s">computed, no API<br>wires <code>full-moon</code>, <code>new-moon</code></div></div>
+  </div>
+
+  <div class="calls">
+    <div class="c have">
+      <h4>Already called, every page load</h4>
+      <div class="u">api.open-meteo.com/v1/forecast<br>&nbsp;&nbsp;?current=temperature_2m,precipitation,wind_speed_10m,cloud_cover<br>&nbsp;&nbsp;&amp;daily=precipitation_sum&amp;past_days=2</div>
+      <p>Add <code>uv_index_max</code> and the UV cell is free. The
+      <code>precipitation_sum</code> it already fetches is the waterfall answer,
+      sitting there unused.</p>
+    </div>
+    <div class="c">
+      <h4>One new call</h4>
+      <div class="u">marine-api.open-meteo.com/v1/marine<br>&nbsp;&nbsp;?current=wave_height,wave_period,swell_wave_height,swell_wave_period,<br>&nbsp;&nbsp;&nbsp;&nbsp;wind_wave_height,sea_surface_temperature<br>&nbsp;&nbsp;&amp;hourly=sea_level_height_msl</div>
+      <p>Swell, sea state, sea temperature <b>and the tide</b>, from the provider
+      already trusted for the weather. No key, CORS open, and it fails the same
+      way the existing call does.</p>
+    </div>
+  </div>
+  <p class="src">Every figure above is a live response, 31 Aug 2026. The four cells
+  marked yellow are facts the site has never carried; the four marked purple wire
+  up tags it has carried for months and never evaluated.</p>
+</section>
+
+<section class="ch">
+  <h2>The tide is in the marine call <span class="n">and it is a real lunar tide</span></h2>
+  <p class="sig">This is the one everybody assumes needs a paid API. It does not &mdash;
+  <code>sea_level_height_msl</code> comes back hourly in the same free call as the
+  swell. <b>But it had to be checked before it could be believed</b>, because a
+  sea-level field could as easily be storm surge as tide.</p>
+
+  <div class="proposed" data-note="real data, drawn for the first time">
+    <div class="chart">
+      <svg viewBox="0 0 1200 60" preserveAspectRatio="none" style="height:118px">
+        <line x1="0" y1="30" x2="1200" y2="30" stroke="var(--rule2)" stroke-width="1"/>
+        <polyline fill="none" stroke="var(--flower)" stroke-width="2.5" points="0.0,14.0 25.5,11.4 51.1,16.3 76.6,25.8 102.1,36.8 127.7,48.3 153.2,56.7 178.7,59.0 204.3,54.5 229.8,46.6 255.3,36.5 280.9,24.5 306.4,13.4 331.9,7.5 357.4,10.1 383.0,18.9 408.5,31.0 434.0,44.0 459.6,55.1 485.1,60.0 510.6,57.4 536.2,49.9 561.7,39.8 587.2,27.7 612.8,15.0 638.3,6.2 663.8,5.2 689.4,11.7 714.9,22.8 740.4,35.5 766.0,47.3 791.5,54.8 817.0,54.5 842.6,47.6 868.1,37.5 893.6,25.8 919.1,13.7 944.7,3.3 970.2,0.0 995.7,5.9 1021.3,17.3 1046.8,31.0 1072.3,44.0 1097.9,54.1 1123.4,56.7 1148.9,50.9 1174.5,39.8 1200.0,27.1"/>
+        <line x1="388" y1="0" x2="388" y2="60" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"/>
+      </svg>
+      <div class="axis" style="grid-template-columns:repeat(8,1fr)">
+        <i>midnight</i><i>6am</i><i>noon</i><i class="now">now</i><i>midnight</i><i>6am</i><i>noon</i><i>6pm</i>
+      </div>
+    </div>
+  </div>
+
+  <p class="src"><b>The check:</b> 23 high waters across a twelve-day window, mean
+  interval between them <b>12.32 hours</b>. The lunar semidiurnal M2 constituent is
+  12.42&nbsp;h; a solar cycle or a model artefact would sit at 12.00. Hourly sampling
+  accounts for the difference. The range also grows from 1.5&nbsp;m to 2.37&nbsp;m across
+  the window, which is the spring&ndash;neap cycle turning up on its own. It is a tide.
+  <br><b>What it is not:</b> a gauge, and not a BOM tide table. It is an hourly model
+  field, so the <em>time</em> of high water is good to about half an hour. That is
+  fine for &ldquo;low tide around 7pm&rdquo; on a rockpool listing and <b>not</b> fine for
+  printing a tide time to the minute. The site should say the first and never
+  the second.</p>
+</section>
+
+<section class="ch">
+  <h2>Swell <span class="n">Bells Beach &middot; the next seven days</span></h2>
+  <p class="sig">Every surf forecast site already does this better. The thing Notice
+  can say that they cannot is <b>which of its own listings the swell changes</b> &mdash;
+  18 surfing rows, 33 beaches, 15 paddling, and the rockpools that only work when
+  it is small.</p>
+
+  <div class="proposed" data-note="real forecast, does not exist yet">
+    <div class="swell"><div class="d"><div class="h">1.34m</div><div class="p">10.7s</div><div class="b" style="height:48%"></div></div><div class="d"><div class="h">1.16m</div><div class="p">10.65s</div><div class="b" style="height:41%"></div></div><div class="d"><div class="h">1.48m</div><div class="p">10.45s</div><div class="b" style="height:53%"></div></div><div class="d"><div class="h">2.36m</div><div class="p">10.9s</div><div class="b" style="height:84%"></div></div><div class="d"><div class="h">2.22m</div><div class="p">11.75s</div><div class="b" style="height:79%"></div></div><div class="d"><div class="h">2.58m</div><div class="p">11.75s</div><div class="b" style="height:92%"></div></div><div class="d"><div class="h">2.32m</div><div class="p">9.4s</div><div class="b" style="height:83%"></div></div></div>
+    <div class="swellax"><i class="now">Mon 31</i><i>Tue 1</i><i>Wed 2</i><i>Thu 3</i><i>Fri 4</i><i>Sat 5</i><i>Sun 6</i></div>
+  </div>
+  <p class="src">Maximum swell height and period per day at Bells Beach, fetched
+  31 Aug 2026. Thursday onward is a genuine building swell &mdash; 1.5&nbsp;m to 2.6&nbsp;m at
+  11.8 seconds. <b>Period is the half nobody prints and the half that decides it</b>:
+  2.6&nbsp;m at 11.8&nbsp;s is a groundswell worth driving for, 2.6&nbsp;m at 6&nbsp;s is a mess.
+  It arrives in the same field list at no extra cost.</p>
+</section>
+
+<section class="ch">
+  <h2>The same number, opposite sign <span class="n">already fetched, never read</span></h2>
+  <p class="sig">Rain over the last 48 hours closes the mountain bike trails and
+  <b>opens the waterfalls</b>. It is one number, the site already has it, and it
+  reads it in one direction only.</p>
+
+  <div class="mirror">
+    <div class="m shut">
+      <div class="k">Rain 48h &mdash; low</div>
+      <div class="st">Trails dry &middot; falls low</div>
+      <div class="arrow">Today &mdash; 0.0 mm in the Otways</div>
+      <ul><li>Forrest MTB &mdash; good</li><li>Erskine Falls &mdash; a trickle</li></ul>
+    </div>
+    <div class="m open">
+      <div class="k">Rain 48h &mdash; high</div>
+      <div class="st">Trails claggy &middot; falls running</div>
+      <div class="arrow">The trip worth making</div>
+      <ul><li>Forrest MTB &mdash; leave it</li><li>Erskine Falls &mdash; go now</li></ul>
+    </div>
+  </div>
+
+  <p class="sig" style="margin-top:34px"><b>All eleven waterfall listings are typed
+  <code>walk</code></b> &mdash; there is no waterfall type &mdash; and their condition tags
+  pull in three different directions.</p>
+  <div class="wf"><div class="r ok"><span class="n">Erskine Falls Walk</span><span class="tg">good-in-rain</span><span class="vd">boost only</span></div><div class="r ok"><span class="n">Hopetoun Falls Walk</span><span class="tg">good-in-rain</span><span class="vd">boost only</span></div><div class="r ok"><span class="n">Triplet Falls Walk</span><span class="tg">good-in-rain</span><span class="vd">boost only</span></div><div class="r ok"><span class="n">Sheoak Falls &amp; Swallow Cave Walk</span><span class="tg">good-in-rain</span><span class="vd">boost only</span></div><div class="r ok"><span class="n">Kalimna Falls Walk</span><span class="tg">good-in-rain</span><span class="vd">boost only</span></div><div class="r ok"><span class="n">Currawong Falls Circuit</span><span class="tg">good-in-rain</span><span class="vd">boost only</span></div><div class="r ok"><span class="n">Station Beach &amp; Rainbow Falls Walk</span><span class="tg">low-tide</span><span class="vd">tag is inert</span></div><div class="r bad"><span class="n">Beauchamp Falls Walk</span><span class="tg">good-in-rain &middot; dry-trails</span><span class="vd">contradicts itself</span></div><div class="r bad"><span class="n">Lorne Cascades Walk</span><span class="tg">dry-trails &middot; warm</span><span class="vd">hidden after rain</span></div><div class="r bad"><span class="n">The Canyon &ndash; Lorne Waterfalls Circuit</span><span class="tg">dry-trails</span><span class="vd">hidden after rain</span></div><div class="r bad"><span class="n">Buckley Falls Reserve Loop</span><span class="tg">dry-trails</span><span class="vd">hidden after rain</span></div></div>
+  <p class="src">Read from the live database, 31 Aug 2026. <code>good-in-rain</code> is
+  a <b>boost</b> meaning &ldquo;pleasant while it is raining&rdquo;. It has been pressed into
+  service to mean &ldquo;runs after rain&rdquo;, which is a different fact and wants its own
+  tag. <code>dry-trails</code> is a <b>gate</b>: three waterfall walks are set to appear
+  only when it has NOT rained for 48 hours, which is backwards, and Beauchamp
+  Falls carries both at once.</p>
+</section>
+
+<section class="ch">
+  <h2>The sky <span class="n">three sources, three different kinds</span></h2>
+  <p class="sig">Worth separating, because they cost completely different things.
+  One is arithmetic, one is a live feed, one is a table somebody writes once a year.</p>
+
+  <div class="sky">
+    <div class="s">
+      <b>Moon</b>
+      <div class="how calc">Computed &mdash; no API at all</div>
+      <p>Phase, rise and set are deterministic astronomy, the same class of maths as
+      the sunset this page <b>already computes in-house</b>. About twenty lines, no
+      network, no third party, nothing that can go down. It wires
+      <code>full-moon</code> and <code>new-moon</code> &mdash; and a new moon is the gate on
+      every dark-sky listing, which is a better use of it than the bonfire.</p>
+    </div>
+    <div class="s">
+      <b>Aurora</b>
+      <div class="how feed">Live feed &mdash; free, no key</div>
+      <p>NOAA&rsquo;s Space Weather Prediction Center publishes the planetary K index as
+      JSON on a one-minute cadence. <b>Kp is 3 right now</b>; the aurora australis
+      needs roughly 6 or more to be worth a drive to a south-facing beach. That is
+      the whole of <code>geomagnetic-storm</code>, a tag currently on one row.</p>
+    </div>
+    <div class="s">
+      <b>Meteor showers</b>
+      <div class="how fixed">A fixed calendar &mdash; written once</div>
+      <p>Peak dates barely move: the Geminids are mid-December every year, the Eta
+      Aquariids early May. It is a table of about a dozen rows from the
+      International Meteor Organization, <b>not a feed</b>. And it is the clearest
+      case of the shape this whole page keeps running into &mdash; <b>a dated event with
+      no organiser, no venue and no ticket.</b></p>
+    </div>
+  </div>
+</section>
+
+<section class="ch">
+  <h2>Fire is a season, not a day <span class="n">five months the site cannot name</span></h2>
   <p class="sig">The board knows about dates and it knows nothing about the year.
   These two bands are the answer to <b>redefining what&rsquo;s on</b>: neither has an
   organiser, a venue or a ticket, and both change what the place is for, for
@@ -288,19 +565,6 @@ body{padding-bottom:140px}
           <rect x="0" y="10" width="400" height="14" fill="var(--fire)" opacity=".85"/>
           <rect x="1082" y="10" width="118" height="14" fill="var(--fire)" opacity=".85"/>
           <line x1="800" y1="0" x2="800" y2="34" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"/>
-        </svg>
-      </div>
-
-      <div class="yr-row">
-        <div class="lbl">Orchids in flower<span>8,085 records &middot; Anglesea heath</span></div>
-        <svg viewBox="0 0 1200 78" preserveAspectRatio="none" style="height:78px">
-          <!-- real monthly counts, scaled to 2563 max -->
-          <polyline fill="var(--flower)" fill-opacity=".2" stroke="none"
-            points="0,78 50,73 150,75 250,74 350,66 450,72 550,71 650,68 750,50 850,7 950,0 1050,64 1150,71 1200,73 1200,78"/>
-          <polyline fill="none" stroke="var(--flower)" stroke-width="2"
-            points="50,73 150,75 250,74 350,66 450,72 550,71 650,68 750,50 850,7 950,0 1050,64 1150,71"/>
-          <line x1="800" y1="0" x2="800" y2="78" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"/>
-          <circle cx="750" cy="50" r="4" fill="var(--flower)"/>
         </svg>
       </div>
 
@@ -326,8 +590,6 @@ body{padding-bottom:140px}
   the <em>start date</em> is not readable. The live <em>state</em> is.</p>
 </section>
 
-
-<!-- ══ 2 ══════════════════════════════════════════════════════════════ -->
 <section class="ch">
   <h2>The day <span class="n">a fact, not a filter</span></h2>
   <p class="sig">A Total Fire Ban is the single most legitimate &ldquo;what&rsquo;s on today&rdquo;
@@ -391,8 +653,6 @@ body{padding-bottom:140px}
   find it missing.</p>
 </section>
 
-
-<!-- ══ 3 ══════════════════════════════════════════════════════════════ -->
 <section class="ch">
   <h2>One region, two districts <span class="n">the thing that decides the build</span></h2>
   <p class="sig">A ban is declared per fire weather district, never per town. This
@@ -432,8 +692,38 @@ body{padding-bottom:140px}
   nothing else.</p>
 </section>
 
+<section class="ch">
+  <h2>Two seasons at opposite ends of the year <span class="n">both measured the same way</span></h2>
+  <p class="sig">The wildflower spring is the famous one. <b>The Otways also have a
+  fungi autumn</b>, and it is the sharper signal of the two &mdash; 34&times; between trough
+  and peak against the orchids&rsquo; 25&times;. Same method, same API, opposite half of
+  the year.</p>
 
-<!-- ══ 4 ══════════════════════════════════════════════════════════════ -->
+  <div class="proposed" data-note="does not exist yet">
+    <div class="chart">
+      <svg viewBox="0 0 1200 92" preserveAspectRatio="none" style="height:154px">
+        <polyline fill="var(--fire)" fill-opacity=".16" stroke="none" points="0,92 0.0,89.3 109.1,87.4 218.2,75.7 327.3,60.1 436.4,1.4 545.5,8.4 654.5,55.2 763.6,79.8 872.7,84.6 981.8,83.8 1090.9,88.4 1200.0,89.3 1200,92"/>
+        <polyline fill="var(--flower)" fill-opacity=".16" stroke="none" points="0,92 0.0,86.8 109.1,88.8 218.2,88.2 327.3,79.9 436.4,85.4 545.5,84.6 654.5,81.8 763.6,61.9 872.7,17.8 981.8,10.7 1090.9,77.1 1200.0,84.5 1200,92"/>
+        <polyline fill="none" stroke="var(--fire)" stroke-width="2.5" points="0.0,89.3 109.1,87.4 218.2,75.7 327.3,60.1 436.4,1.4 545.5,8.4 654.5,55.2 763.6,79.8 872.7,84.6 981.8,83.8 1090.9,88.4 1200.0,89.3"/>
+        <polyline fill="none" stroke="var(--flower)" stroke-width="2.5" points="0.0,86.8 109.1,88.8 218.2,88.2 327.3,79.9 436.4,85.4 545.5,84.6 654.5,81.8 763.6,61.9 872.7,17.8 981.8,10.7 1090.9,77.1 1200.0,84.5"/>
+        <line x1="763" y1="0" x2="763" y2="92" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"/>
+      </svg>
+      <div class="axis" style="grid-template-columns:repeat(12,1fr)">
+        <i>Jan</i><i>Feb</i><i>Mar</i><i>Apr</i><i>May</i><i>Jun</i><i>Jul</i><i class="now">Aug</i><i>Sep</i><i>Oct</i><i>Nov</i><i>Dec</i>
+      </div>
+      <div class="legend">
+        <span><i style="border-color:var(--flower)"></i><b>Orchids</b> &nbsp;8,085 records &middot; peak Oct 2,563</span>
+        <span><i style="border-color:var(--fire)"></i><b>Fungi</b> &nbsp;9,478 records &middot; peak May 2,857</span>
+      </div>
+    </div>
+  </div>
+  <p class="src">Research-grade iNaturalist records by month of year, Otways and
+  coast box, fetched 31 Aug 2026. Fungi run Jan&nbsp;84 &rarr; <b>May&nbsp;2,857</b> &rarr;
+  Dec&nbsp;86. <b>The two curves barely overlap</b>, which is the useful part: there is
+  no month in the Otways with nothing going on, and the site currently says so for
+  neither of them.</p>
+</section>
+
 <section class="ch">
   <h2>What is out right now <span class="n">147 species &middot; 857 records &middot; 28 days</span></h2>
   <p class="sig">The heath is the best wildflower ground in Victoria and five rows
@@ -487,40 +777,123 @@ body{padding-bottom:140px}
   37.8M Victorian records, no key.</p>
 </section>
 
-
-<!-- ══ 5 ══════════════════════════════════════════════════════════════ -->
 <section class="ch">
-  <h2>What this leaves open <span class="n">decide before building</span></h2>
-  <p class="sig">Both halves came out the same way. <b>The interesting nature data is
-  not a filter &mdash; it is a season and a day.</b> Seven tags have sat inert for months
-  and nobody missed them, because hiding things is not what anyone opens a
-  listings site to get.</p>
+  <h2>Where the method breaks <span class="n">and why that is worth drawing</span></h2>
+  <p class="sig">The wildflower and fungi curves work because <b>the organism&rsquo;s
+  visibility IS the phenomenon</b> &mdash; a flower is only recorded when it is out.
+  Animals decouple the two, and the same query then returns a confident,
+  well-shaped, wrong answer.</p>
+
+  <div class="breaks">
+    <div class="bk" data-note="would mislead">
+      <h4>Hooded Plover</h4>
+      <div class="cnt">642 records &middot; iNaturalist &middot; peaks February</div>
+      <div class="mini"><span class="" style="height:63%"></span><span class="pk" style="height:100%"></span><span class="" style="height:76%"></span><span class="" style="height:40%"></span><span class="" style="height:55%"></span><span class="" style="height:27%"></span><span class="" style="height:28%"></span><span class="" style="height:18%"></span><span class="" style="height:26%"></span><span class="" style="height:47%"></span><span class="" style="height:41%"></span><span class="" style="height:26%"></span></div>
+      <div class="miniax"><i>J</i><i>F</i><i>M</i><i>A</i><i>M</i><i>J</i><i>J</i><i>A</i><i>S</i><i>O</i><i>N</i><i>D</i></div>
+      <p>The curve peaks in <b>February</b> and the nesting season starts in
+      <b>August</b>. February is when people are on the beach. The fact that
+      actually matters &mdash; chicks on the sand, dogs on leads &mdash; is
+      <b>invisible in this data and would be contradicted by it</b>. It comes from
+      BirdLife&rsquo;s beach-nesting birds program, written down by a person. Point
+      Roadknight already carries the dog restriction in prose.</p>
+    </div>
+    <div class="bk" data-note="too thin to draw">
+      <h4>Whales</h4>
+      <div class="cnt">59 records across twelve months of the year</div>
+      <p>Southern Right and Humpback pass this coast June to October and every local
+      knows it. iNaturalist holds <b>59 cetacean records</b> for the whole region &mdash;
+      four a month. A curve off that is decoration.</p>
+      <p><b>The authoritative Victorian source exists and says no.</b> WhaleFace, run
+      by DEECA with SWIFFT and Federation University, collects exactly these
+      sightings &mdash; and its robots.txt carries <code>Disallow: /api/</code>. So the
+      whale season is a fact a person writes down, and the site links WhaleFace
+      rather than reading it.</p>
+    </div>
+  </div>
+
+  <p class="sig" style="margin-top:40px">Two more land in the same place, for
+  completely different reasons.</p>
+  <div class="breaks">
+    <div class="bk" data-note="probably should not be built">
+      <h4>Shark sightings</h4>
+      <div class="cnt">Victoria publishes no feed</div>
+      <p>NSW has SharkSmart with a real API; it is the wrong state and it sits behind
+      Cloudflare. In Victoria a sighting closes a beach through Life Saving Victoria,
+      whose site returns 403 to anything that is not a browser.</p>
+      <p><b>And the honest answer is that this one should not be automated even if it
+      could be.</b> A shark sighting is an emergency-services message with a lifespan
+      measured in hours. A listings site republishing a stale one is worse than a
+      listings site carrying none &mdash; the same reasoning that keeps invented dates
+      out of this database.</p>
+    </div>
+    <div class="bk" data-note="a calendar, not a feed">
+      <h4>Fishing</h4>
+      <div class="cnt">VFA behind Cloudflare &middot; data.vic has one habitat dataset</div>
+      <p>Closed seasons, bag limits and the runs that actually matter &mdash; snapper into
+      the bay from October, whiting, salmon, calamari &mdash; are published by the
+      Victorian Fisheries Authority as prose and PDF, with nothing machine-readable
+      behind them.</p>
+      <p>Which puts fishing in the <b>same box as meteor showers and the whale
+      season</b>: a fixed annual calendar somebody writes once and checks each year.
+      That is not a failure. Three of the best things on this page are that shape.</p>
+    </div>
+  </div>
+</section>
+
+<section class="ch">
+  <h2>Five kinds of thing, not one <span class="n">and the cost is completely different</span></h2>
+  <p class="sig">The useful result of the whole exercise is that &ldquo;nature data&rdquo; is not
+  one category. It is five, they need five different builds, and <b>only the first
+  is a scraping problem</b> &mdash; which is where all the effort would have gone by
+  default.</p>
 
   <div class="gap">
     <div class="g">
-      <b>The licensed feed cannot say no</b>
-      <p>The RSS is readable and CFA licenses it &ldquo;personal, non-commercial use
-      only&rdquo;, pointing websites at EMV&rsquo;s developer feeds instead. Those return a
-      single newline byte &mdash; <code>0a</code> &mdash; not <code>[]</code>. It cannot tell
-      &ldquo;no bans in Victoria&rdquo; from &ldquo;endpoint moved&rdquo;. Nobody has seen it populated;
-      November is the first honest chance. An email to EMV settles it.</p>
+      <b>1 &middot; A live feed</b>
+      <p>Swell, tide, wind, rain, sea temperature, UV, Kp, fire ban. <b>Two Open-Meteo
+      calls plus two free government feeds</b>, no keys anywhere. This is nearly
+      everything and it is nearly free.</p>
     </div>
     <div class="g">
-      <b>ANGAIR is a listing and not a source</b>
-      <p>No <code>places</code> row, robots fully open, a live calendar of walks and
-      working bees nobody reads. But it runs Modern Events Calendar, and both
-      halves of the GMBC trap were re-confirmed against it: <code>mec/v1/events</code>
-      returns <code>[]</code>, and <code>wp/v2/mec-events</code> gives the post date &mdash; all
-      three events read back 29 Aug, the day somebody typed them in.</p>
+      <b>2 &middot; Arithmetic</b>
+      <p>Moon phase, moonrise, dark-sky windows. No network at all, and the site
+      already does this class of maths for sunset. Cannot break, cannot rate-limit,
+      cannot change its licence.</p>
     </div>
     <div class="g">
-      <b>There is nowhere to put a season</b>
-      <p><em>It is fire danger period.</em> <em>The orchids are out.</em> No organiser,
-      no venue, no ticket, and no row shape that holds them. The same gap already
-      recorded for &ldquo;an organiser worth watching that is not a room&rdquo;. That is the
-      thing to decide, and it is a schema question, not a design one.</p>
+      <b>3 &middot; Measured from records</b>
+      <p>Wildflowers and fungi, from iNaturalist. Works where the organism&rsquo;s
+      visibility <em>is</em> the phenomenon. Two seasons, opposite ends of the year,
+      both with real curves behind them.</p>
+    </div>
+    <div class="g" style="margin-top:30px">
+      <b>4 &middot; A calendar somebody writes</b>
+      <p>Meteor showers, whale season, fishing runs, hooded plover nesting, the fire
+      danger period&rsquo;s dates. <b>Not a failure of automation</b> &mdash; a dozen rows,
+      checked once a year, and three of the best things on this page.</p>
+    </div>
+    <div class="g" style="margin-top:30px">
+      <b>5 &middot; Deliberately not carried</b>
+      <p>Shark sightings. Available nowhere public in Victoria, and it would be the
+      wrong thing to carry even if it were: hours-old safety information on a
+      listings page is worse than none.</p>
+    </div>
+    <div class="g" style="margin-top:30px">
+      <b>And the hole under all of it</b>
+      <p><em>It is fire danger period. The orchids are out. The falls are running.
+      Low tide is at seven.</em> No organiser, no venue, no ticket &mdash; and no row shape
+      that holds any of them. <b>That is a schema question, and it is the one to
+      answer first.</b></p>
     </div>
   </div>
+
+  <p class="src" style="margin-top:30px">Three things found along the way that are
+  bugs in the database rather than ideas for it, and can be fixed today:
+  <b>three waterfall walks are gated on <code>dry-trails</code></b>, so they are hidden
+  in exactly the weather that makes them worth visiting; <b>Beauchamp Falls carries
+  <code>good-in-rain</code> and <code>dry-trails</code> at once</b>; and
+  <b><code>good-in-rain</code> is doing two jobs</b> &mdash; &ldquo;pleasant in the wet&rdquo; and &ldquo;runs
+  after rain&rdquo; &mdash; which is why it ended up on six waterfalls and 217 other things.</p>
 </section>
 
 </div>
