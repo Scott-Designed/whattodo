@@ -1693,6 +1693,22 @@ and `thesewingcollectivestudio.com.au` to 2.
 the rule this file already records — the classifier defaults to success, so a
 new failure phrase not taught to it comes out green.
 
+**The same guard covers `events_url`, added minutes later when Scott sent
+`https://events.grlc.vic.gov.au/events?n=12&r=months`.** All 18 branches now
+carry it, which is right for a person — it is the calendar rather than the
+library service's front door, and the Link column prefers it. But 18 rows
+carrying the identical URL is **not** 18 deliberate claims, so `source_page()`
+refuses that too: *"events_url is shared with other places — the feed importer
+covers these."* Without it, setting the URL Scott sent would have re-created the
+exact bug he had just reported.
+
+**A per-branch feed was tested and is not available.** The iCal payload takes a
+`location` list, but `["Torquay Library"]` returns 1 event against 500 for
+`["all"]`, so it wants an identifier the site does not publish in its HTML — no
+branch options appear in the page at all. `scrape_library.py` does not need one:
+the iCal carries LOCATION and GEO per event, so branches are assigned from the
+feed's own data.
+
 ### What feeds a place comes from its events, not from what a run poked at
 
 `feedOf()` reads the `added_by` of a place's own events, and that beats the run
@@ -1709,9 +1725,14 @@ Scott's other half of the same message: *"next to the hand it should say 'check
 website' or something with the URL in a column so I can easily check."*
 
 A place nothing reads now says **check website** rather than *last added 7 days
-ago*. The staleness was the honest signal but not an instruction, and it moved
-to the tooltip. A place with **no** website keeps *last added* — there is
-nothing to check, so silence is all there is to say.
+ago*. The staleness was the honest signal but not an instruction.
+
+**It did NOT go on a tooltip, which is what shipped first and was wrong.**
+Scott, immediately: *"I still want when an event was last added, why did you
+remove, make the data a new column."* It is a **Last added** column of its own
+now, beside Automation — a fact and an instruction are two different things and
+neither should have to give way to the other. Cold (over six months) still
+draws in the stale colour, and the exact date is on the tooltip.
 
 The **Link** column uses `urlStub()`, the same helper the Events tab already
 had. Third invented identifier caught by grepping before shipping: `hostBit`

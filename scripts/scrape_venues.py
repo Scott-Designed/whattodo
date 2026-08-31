@@ -197,6 +197,12 @@ def source_page(venue):
     answer; falling back to the website and trying the usual paths is a
     convenience that reports what worked, so you can pin it down properly."""
     pinned = venue.get('events_url') or venue.get('ticketing_url')
+    # An events_url is normally a deliberate claim that THIS page belongs to
+    # THIS place — but 18 library branches carrying the identical URL is not 18
+    # claims, it is one page that cannot say which branch a gig is at. Same
+    # refusal as a shared website, one field along.
+    if pinned and venue.get('__shared_pin'):
+        return None, None, 'events_url is shared with other places — the feed importer covers these'
     if pinned:
         u = E.clean_url(pinned if pinned.startswith('http') else 'https://' + pinned)
         return (u, E.fetch(u), '') if u else (None, None, 'events_url is not a url')
@@ -522,6 +528,13 @@ def main(argv):
         w = (v.get('website') or '').strip().lower().rstrip('/')
         v['__shared_site'] = bool(w and seen[w] > 1 and not
                                   (v.get('events_url') or v.get('ticketing_url')))
+    pins = {}
+    for v in venues:
+        u = (v.get('events_url') or v.get('ticketing_url') or '').strip().lower().rstrip('/')
+        if u: pins[u] = pins.get(u, 0) + 1
+    for v in venues:
+        u = (v.get('events_url') or v.get('ticketing_url') or '').strip().lower().rstrip('/')
+        v['__shared_pin'] = bool(u and pins[u] > 1)
 
     live = [v for v in venues if (v.get('events_url') or v.get('ticketing_url')
                                   or v.get('website'))]

@@ -1820,7 +1820,7 @@ function drawPlaces(){
   if (!list.length){ $('#plist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
   $('#plist').innerHTML = `<table><thead><tr>
       <th>Venue</th><th>Kind</th><th>Town</th><th>Automation</th>
-      <th>Link</th><th>Events</th><th>Pinned</th><th></th>
+      <th>Last added</th><th>Link</th><th>Events</th><th>Pinned</th><th></th>
     </tr></thead><tbody>${list.map(p => {
       const s  = srcByName[p.name] || {};
       const st = SRC_STATE[s.state] || null;
@@ -1895,22 +1895,35 @@ function drawPlaces(){
              // Nothing reads this one, so the useful thing is not how stale it
              // is but what to DO — go and look. The staleness stays on the
              // tooltip, and the page it wants is in the Link column.
-             if (p.website)
-               return icon('i-hand')
-                    + `<span title="${when ? 'last added ' + esc(when) : 'nothing added yet'}"
-                        >check website</span>`;
-             if (!when) return '<span style="color:var(--ink3)">nothing added yet</span>';
+             if (p.website) return icon('i-hand') + 'check website';
+             if (!when) return '<span style="color:var(--ink3)">nothing to read</span>';
              const cold = (Date.now() - new Date(lastAdded)) > 180 * 86400000;
              // A hand means a person is keeping this one up: it has listings and
              // nothing reads it. Evidence again, not a label to remember to set.
              return icon('i-hand')
-                  + `<span class="${cold ? 'stale' : ''}"${cold ? '' : ' style="color:var(--ink3)"'}>`
-                  + `last added ${esc(when)}</span>`;
+                  + `<span style="color:var(--ink3)">no website to check</span>`;
            })()}</td>
-        <td class="cap" style="max-width:15ch">${p.website
-             ? `<a href="${esc(p.website)}" target="_blank" rel="noopener noreferrer"
-                  title="${esc(p.website)}">${esc(urlStub(p.website, 18))}</a>`
-             : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td style="white-space:nowrap">${(() => {
+             // Its own column now: how long since anything was attached here.
+             // A venue changes slowly, so silence is the signal — but it is a
+             // fact, not an instruction, which is why it sits beside the
+             // Automation cell rather than inside it.
+             const w = agoLong(lastAdded);
+             if (!w) return '<span style="color:var(--ink3)">—</span>';
+             const cold = (Date.now() - new Date(lastAdded)) > 180 * 86400000;
+             return `<span class="${cold ? 'stale' : ''}"${cold ? '' : ' style="color:var(--ink3)"'}
+                      title="${esc(lastAdded.slice(0, 10))}">${esc(w)}</span>`;
+           })()}</td>
+        <td class="cap" style="max-width:15ch">${(() => {
+             // The events page beats the homepage: this column exists to be
+             // pressed when you want to see what is on, and grlc.vic.gov.au is
+             // a library service's front door while events.grlc.vic.gov.au is
+             // the calendar.
+             const u = p.events_url || p.ticketing_url || p.website;
+             return u ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer"
+                  title="${esc(u)}">${esc(urlStub(u, 18))}</a>`
+                : '<span style="color:var(--ink3)">—</span>';
+           })()}</td>
         <td>${ev.length ? `<span class="evs"
               ><span class="ev-up${up ? '' : ' zero'}" title="${up} upcoming">${up}</span
               ><span class="ev-now${now ? '' : ' zero'}" title="${now} on today">${now}</span

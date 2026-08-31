@@ -105,7 +105,7 @@ def source_state(how):
     # A website several places share cannot say which one a gig belongs to, so
     # the scraper refuses to guess from it. That is a source needing a decision
     # (an events_url), not a source that is broken and not one that read.
-    if 'shared with other places' in low:  return 'shared'
+    if 'shared with other places' in low:  return 'shared'  # website or events_url
     return 'read'
 
 
