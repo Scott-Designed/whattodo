@@ -4223,6 +4223,59 @@ it cannot be filtered. Also no word for a marine sanctuary — Barwon Bluff, Poi
 Danger, Marengo Reefs, Eagle Rock and Point Addis are one kind of thing split
 across four types today.
 
+### The music pass — a registry pass, 31 Aug 2026
+
+**No gigs were added, deliberately.** 106 of the group's 109 rows are events and
+the scrapers bring them in twice a week; the work here is `places`, which no
+script can write. The pass produced tables and found four faults in the registry
+itself, all now applied.
+
+- **`The Sound Doctor` (place 32) was not marked as an organiser**, and
+  `scrape_venues.py` has the mechanism and a comment naming this exact row. It is
+  a promoter with a Humanitix feed whose own site lists Anglesea Memorial Hall
+  under every gig — and the four events we hold that link `thesounddoctor.info`
+  all sit on the hall. Left as a room, every gig that feed imports is filed with
+  the promoter as its venue. One field. **This is the gap this file has recorded
+  twice and declined to fill; it turns out the fix already existed.**
+- **Grand Hotel Portarlington had its gig page in `website`** with `events_url`
+  null, so `source_page()` took the website branch and appended `GIG_PATHS` to a
+  URL that was *already* the what's-on page — `/whats-on//events` — 404ing every
+  run against a page sitting right there on the row.
+- **A bare town name was in an alias list.** Place 49 carried
+  `aliases = ["Blackman's Brewery", "Torquay"]`, and `scrape_venues.py` checks the
+  alias registry **before** `worth_adding()`, so its "that is just the suburb"
+  guard never fired: any scraped gig whose venue string normalised to `torquay`
+  was being filed at that brewery, silently.
+- **34 listings matched an existing `places` row exactly and had `place_id`
+  null.** Linking them needed no research at all and is the cheapest map coverage
+  in the database — activities carrying a `place_id` went 9 → 43.
+
+**A `natural=beach` polygon centroid is not a beach access**, and checking these
+links is what surfaced it. `Anglesea Main Beach` existed twice: place 43 pinned
+at -38.405047,144.189833, which its own `source_note` records as a retry match on
+*"Great Ocean Road, Anglesea"* — a road centreline, 1.2 km up the coast — and
+activity 208, pinned the same day from the OSM beach feature. The activity's pin
+turned out to be 69 m from place 45, the Anglesea Surf Life Saving Club, which is
+the real access; place 43 was the wrong one and now carries the same coordinate.
+
+**What the pass could not resolve, and it is the honest shape of the gap:**
+`places` has one row per thing and one `events_url` per row, so a room points at
+exactly one programme. Where the programme belongs to somebody else — The Blues
+Train's room is four moving carriages, Costa Hall is owned by Deakin and
+programmed by Geelong Arts Centre, Shoestring Playhouse is a room in The MAC run
+by a theatre company — the schema can hold the right pin or the right feed, not
+both. `kind_legacy = 'organiser'` picks the pin and accepts the loss.
+
+**Still to apply: 36 new `places` rows** the pass researched — 26 from listings
+that can never hold an event, 10 from venues in neither table. The two biggest
+are **The Sphinx Hotel** (a dedicated Geelong showroom ticketing across four
+platforms, in no table at all) and **Beav's Bar** (named acts five nights a week).
+
+**Three traps recorded for whoever applies them**: never give two places the same
+`events_url` — `scrape_venues.py` sets `__shared_pin` and then returns nothing
+for *either* row — which would happen to Blackmans Geelong, Costa Hall and the
+Great Ocean Road Brewing pair if their URLs were copied across carelessly.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
