@@ -69,6 +69,68 @@ a.pill{text-decoration:none;line-height:1}
 .pill.solid:hover{background:var(--ink2);border-color:var(--ink2);color:var(--ground)}
 .pillicon{width:13px;height:13px;flex:none;margin-right:-2px}
 
+/* ── every listing, by kind ──────────────────────────────────────────────────
+   Scott, 31 Aug 2026: roll the kind totals up across the site and put them on
+   the dashboard. The seven kinds are what the type pages are built from —
+   /beach draws a bucket per kind — but until now the only place you could see
+   them added up was a comment in supabase/KINDS.sql, which goes stale the day
+   it is written. Derived here, so it cannot.
+
+   The wording is that comment's, kept word for word: two copies of a definition
+   drift, and this one at least says where it came from. */
+const KIND_DEF = {
+  spot:      ['place',  'no door, no hours, nobody owns it'],
+  venue:     ['place',  'a door, hours, a price'],
+  shop:      ['place',  'somewhere to buy the gear a type page is about'],
+  group:     ['people', 'you join in'],
+  maker:     ['people', 'you buy from them'],
+  happening: ['time',   'it has a date'],
+  idea:      ['idea',   'no anchor of any kind'],
+};
+// Three kinds are deliberately kept off the Notice Board — you look them up,
+// the board does not suggest them. Worth saying here, or the numbers look like
+// a discrepancy against the board's own tally.
+const OFF_BOARD_KINDS = ['shop', 'maker', 'group'];
+
+function drawKindRoll(){
+  const n = {};
+  for (const k of Object.keys(KIND_DEF)) n[k] = 0;
+  for (const a of DATA.activities) if (a.kind in n) n[a.kind]++;
+  n.happening = DATA.events.length;          // an event is always a happening
+  const unset = DATA.activities.filter(a => !a.kind || !(a.kind in n)).length;
+  const total = Object.values(n).reduce((a, b) => a + b, 0) + unset;
+  const most  = Math.max(1, ...Object.values(n));
+
+  const row = k => {
+    const [fam, def] = KIND_DEF[k];
+    const off = OFF_BOARD_KINDS.includes(k);
+    return `<tr>
+      <td class="fam">${esc(fam)}</td>
+      <td class="kindname">${esc(k)}</td>
+      <td class="num">${n[k].toLocaleString()}</td>
+      <td class="barcell"><i style="width:${(n[k] / most * 100).toFixed(1)}%"></i></td>
+      <td class="def">${esc(def)}${off ? ' <span class="offb">off the board</span>' : ''}</td>
+    </tr>`;
+  };
+
+  $('#kindroll').innerHTML = `
+    <h3 class="rollhead">Every listing, by kind</h3>
+    <div style="overflow-x:auto"><table class="roll">
+      <thead><tr><th>Family</th><th>Kind</th><th class="num">Count</th><th></th>
+        <th>What it is</th></tr></thead>
+      <tbody>
+        ${Object.keys(KIND_DEF).map(row).join('')}
+        ${unset ? `<tr><td class="fam">—</td><td class="kindname">unset</td>
+          <td class="num">${unset}</td><td class="barcell"><i style="width:${
+          (unset / most * 100).toFixed(1)}%"></i></td>
+          <td class="def">no kind yet — the classifier has never seen these</td></tr>` : ''}
+        <tr class="tot"><td></td><td class="kindname">total</td>
+          <td class="num">${total.toLocaleString()}</td><td></td>
+          <td class="def">listings across the whole site</td></tr>
+      </tbody>
+    </table></div>`;
+}
+
 /* ── tabs ── */
 /* ── the bar ──────────────────────────────────────────────────────────────
    The site's own bar, borrowed: wordmark left, controls right, --surface
@@ -141,6 +203,32 @@ a.pill{text-decoration:none;line-height:1}
   font-weight:600;color:var(--ink3);cursor:pointer}
 .chip:hover{color:var(--ink);border-color:var(--ink3)}
 .chip.on{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+
+/* ── the kind roll-up ─────────────────────────────────────────────────────*/
+.rollhead{font-family:var(--serif);font-weight:500;font-size:21px;margin:34px 0 12px;
+  letter-spacing:-.01em}
+table.roll{width:100%;border-collapse:collapse;font-family:var(--util);font-size:13px}
+table.roll th{font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink3);text-align:left;font-weight:600;padding:0 12px 9px 0}
+table.roll td{padding:9px 12px 9px 0;border-top:1px solid var(--rule2);vertical-align:middle}
+table.roll .fam{color:var(--ink3);font-size:11.5px;letter-spacing:.06em;
+  text-transform:uppercase;width:82px}
+table.roll .kindname{color:var(--ink);font-weight:600;width:104px}
+table.roll .num,table.roll th.num{text-align:right;font-variant-numeric:tabular-nums;
+  width:74px;padding-right:14px}
+table.roll .num{color:var(--ink);font-size:15px}
+/* The bar is the only thing here that is not a number: seven counts spanning
+   6 to 491 do not compare by eye, and a row of digits hides that one kind is
+   most of the database. */
+table.roll .barcell{width:34%;padding-right:18px}
+table.roll .barcell i{display:block;height:5px;border-radius:3px;background:var(--accent);
+  min-width:2px;opacity:.75}
+table.roll .def{color:var(--ink3)}
+table.roll tr.tot td{border-top:2px solid var(--rule2);color:var(--ink)}
+table.roll tr.tot .num{font-size:17px}
+.offb{color:var(--ink3);font-size:11px;letter-spacing:.05em;text-transform:uppercase;
+  border:1px solid var(--rule2);border-radius:999px;padding:1px 7px;margin-left:7px;
+  white-space:nowrap}
 
 /* ── dashboard tiles ─────────────────────────────────────────────────────
    Every tile is a link into the section that holds its number: a dashboard you
@@ -423,6 +511,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
   <div id="overview"></div>
   <div id="chart"></div>
   <div id="home"></div>
+  <div id="kindroll"></div>
 </section>
 
 <section id="tab-autos" hidden>
@@ -2715,7 +2804,7 @@ const TABS = ['home','autos','groups','inbox','review','events','activities','pl
 const TAB_NAME = {home:'Dashboard', autos:'Automations', groups:'Groups', inbox:'Inbox',
                   review:'Review', events:'Events', activities:'Activities', places:'Places'};
 const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces(); drawGroups();
-                          drawSources(); drawOverview(); drawReview(); drawHome(); drawChart(); };
+                          drawSources(); drawOverview(); drawReview(); drawHome(); drawChart(); drawKindRoll(); };
 
 function show(tab){
   if (!TABS.includes(tab)) tab = 'home';

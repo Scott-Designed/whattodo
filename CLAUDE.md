@@ -4046,9 +4046,19 @@ Existing rows this pass found wrong, all needing /admin:
   nothing was lost. Worth noting this row predates the season check and would be
   refused if it were written today: **the guards only protect new writes, and
   the table still holds rows that would fail them.**
-- 209 Point Roadknight should gain `swimming`, 208 Anglesea Main Beach should
-  gain `surfing`, 283 Eastern Beach should gain `swimming` — without which the
-  region's best-known enclosed swimming beach is absent from `/swimming`.
+- ~~209 Point Roadknight should gain `swimming`, 208 Anglesea Main Beach should
+  gain `surfing`, 283 Eastern Beach should gain `swimming`~~ **ALL THREE DONE
+  31 Aug 2026.** `/swimming` went 20 → 23 and now carries the region's
+  best-known enclosed swimming beach, which it had never shown. 283 is the one
+  whose primary changed — `swimming · parks & playgrounds`, because the sea
+  baths are what the place is known for; the other two keep `beach` first, since
+  they are beaches that happen to be good for the added thing.
+
+  **The patrol wording on all three is quoted, never inferred**, and where the
+  land manager gives no season the note gives none. Point Roadknight also
+  carries GORCC's own dog prohibition, which is about Hooded Plover nesting —
+  the sort of fact that matters more than anything else on the row if you turn
+  up with a dog.
 
 **Vocabulary: nothing describes patrol status**, which is the single most useful
 fact about a beach for a family, and it currently lives in prose in `notes` where
