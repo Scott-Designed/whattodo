@@ -1140,10 +1140,17 @@ function whenText(i){
     {day:'numeric',month:'short',...(dt.getFullYear()!==THISYEAR?{year:'numeric'}:{})});
   /* Inside the week, name the day the way a person would say it out loud. Day 7
      is the same weekday as today, so "This Monday" on a Monday would read as
-     today — it gets the date instead. Recurrence and date confidence have moved
-     into the open row; the list says when, not how often or how sure. */
+     today — it gets the date instead. Date confidence stays in the open row;
+     the list says when, not how sure.
+
+     A WEEKLY event says "Every Saturday", not "This Saturday", and its name no
+     longer carries the recurrence — one fact, one home. Today and Tomorrow
+     still win, because whether it is on now is the more urgent question and the
+     open row carries the recurrence either way. Fortnightly keeps "This", which
+     is exactly what it means: this one, not every one. */
   const lbl = d===0?'Today' : d===1?'Tomorrow'
-    : (d>1&&d<7) ? 'This '+dt.toLocaleDateString('en-AU',{weekday:'long'}) : dated;
+    : (d>1&&d<7) ? (i.recur==='weekly'?'Every ':'This ')+dt.toLocaleDateString('en-AU',{weekday:'long'})
+    : dated;
   /* The line above already says which day. A weekday inside the time text is
      the same fact twice — "12 Sept / Saturday, from early morning" — so it comes
      off either end. Three rows lead with one, none of them is only a weekday. */

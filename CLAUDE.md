@@ -4557,6 +4557,144 @@ says everything `at-home` is being asked to say**, on a column that cannot be a
 list — so when the four kind filters land, *At home = Idea* should replace
 `atHomeHidden()` and the type problem dissolves.
 
+## The nine worklogs are in `prompts/log/` — 31 Aug 2026
+
+All nine group passes are done and **every worklog is now saved**: `hospitality`,
+`produce`, `arts`, `ocean`, `music`, `home`, plus `community`, `outdoors` and
+`landscape`, which arrived last and had been recorded here as lost.
+
+**The rows were the cheap half.** Each log's real value is the two things nothing
+else in this project records: the **rejection list** — what was checked, found,
+and deliberately not written, with the reason — and the **audit of existing
+rows**, because a pass researching a type reads every row already in it. Do not
+re-research a type without reading its log first; the outdoors log alone names
+about forty candidates already enumerated with coordinates.
+
+### The skatepark audit found the placeholder still shipping — FIXED 31 Aug 2026
+
+The outdoors pass reverse-geocoded all seventeen pinned skateparks. Two rows had
+`lat`/`lng` **null and a coordinate hiding in their `url`**, and one of them was
+`-38.3657,144.2979` — **the Jan Juc placeholder this file says was cleared from
+48 rows in August.** It was cleared from the coordinate columns and nobody looked
+at the url field. Re-checked here: it still reverse-geocodes to bare *"Victoria,
+Australia"*, which is this file's own open-water signature, 2.3 km offshore.
+
+**The generalisable bit: a fact you delete from one column can survive in
+another.** The sweep that cleared 48 pins queried `lat`/`lng`. Nothing queried
+`url`, and a `maps?q=<lat>,<lng>` link is a coordinate wearing a different hat —
+which is also why it slips the Google-Maps-search check in `sync.py`, since that
+refuses the `/maps/search/` form and this is the pin form.
+
+### Surf Coast Shire publishes a page, an address AND a coordinate per reserve
+
+Found fixing the above, and it is reusable well beyond skateparks:
+
+    https://www.surfcoast.vic.gov.au/Experience/Parks-and-reserves-listing/<Reserve-Name>
+
+Each page carries `Location <street address>` followed by the council's **own
+published coordinate**, and it is readable by `eventlib.fetch` — the fetcher that
+will actually do the work, not curl. So a reserve does not need geocoding at all:
+the land manager has already done it. Confirmed for Jan Juc, Torquay, Lorne,
+Winchelsea, Moriac, Bob Pettitt and Newling; Anglesea, Aireys Inlet, Deans Marsh
+and Djila Tjarri answer the generic page under the slug tried and need their real
+one found.
+
+**A page that 404s here returns 200 with the site's generic body**, all of them
+the same byte length. So the test is whether the `Location … View Map` block
+parses, never the HTTP status.
+
+Applied, each from that page:
+
+    1   Jan Juc Skatepark    pinned -38.349689,144.295362   (was null + the offshore url)
+    5   Torquay Skatepark    pinned -38.32598,144.315489    (was null + a url 1.5km off)
+    49  Moriac Skatepark     url repointed  (its Maps link was 12km away at Freshwater Creek)
+    47  Lorne Skatepark      url repointed
+
+Torquay is the strongest pin of the four: the council's coordinate is **20 m**
+from OpenStreetMap's independently named `Torquay Skate Park` feature. Two
+published values agreeing is the bike-shop technique, and it costs one lookup.
+
+**14 skatepark rows still carry a `google.com/maps?q=` url**, and 61 Inverleigh
+carries the `/maps/search/` form that `check()` refuses today. Both councils
+publish a real page for every one of them, so this is a mechanical job with a
+known route now.
+
+### Also applied, and both were the log being plainly right
+
+- **Event 84 was named `Parkrun – every Saturday`** with no town, while every
+  other parkrun row carries one. Its own `info_url` says `torquay-parkrun`. Now
+  `Torquay Parkrun – every Saturday`.
+- **`Bellarine Rail Trail` (240) and `Old Beechy Rail Trail` (43) were typed
+  `mountain biking` alone.** Both are rail trails and the City of Greater Geelong
+  lists the Bellarine one under paths and trails. Both gained `cycling`.
+
+### Broken pins confirmed here and NOT touched — they need a person
+
+Each was reverse-geocoded in this session, so these are verified, not quoted:
+
+- **Listings 16 and 44 have effectively swapped.** `Surf Coast MTB Trails –
+  Ironbark Basin` (location *Anglesea*) pins to **Hurst Road, Bells Beach** —
+  which is listing 44's own network — and `Anglesea MTB – Hurst Rd / Eumeralla`
+  pins to **Point Roadknight**, a beach 6 km away. On top of that **Ironbark
+  Basin is at Point Addis**, not Anglesea: listing 233 describes it as a walking
+  circuit. Row 16 looks like *Ironbark **Spur*** renamed and mispinned. Whether
+  mountain biking is even sanctioned in Ironbark Basin has never been
+  established, so resolve that before repairing rather than retiring it.
+- **Three rows share `-38.5238,143.7259`** — 38 Forrest Southern, 39 Forrest
+  Yaugher, 42 Lorne & Otways. It reverse-geocodes to Kaanglang Road, Barramunga.
+  The two Forrest networks are on opposite sides of town and **Lorne is 35 km
+  east over the range**. The copy-paste signature again.
+- **51 `Djila Tjarri Skate Park` and 243 `Djilla Tjarri Play & Skate Zone` are
+  one place with two spellings** — one L against two. Surf Coast Shire spells it
+  both ways on two of its own pages, so the council made the ambiguity and
+  `sync.py`'s exact-name check could never catch it. 51 also pins to 10 Lune
+  Court, about 1 km from the council's corner of Merrijig Drive.
+- **124 `Torquay Coast Action` and 129 `Torquay Landcare` share
+  `-38.3364,144.3239`** (3 Price Street, Torquay). Landcare publishes only a PO
+  box and works across the hinterland.
+- Eight more skateparks sit 0.7–3.9 km from the council's published address —
+  45 Anglesea, 46 Aireys Inlet, 52 Waurn Ponds, 54 Ocean Grove (its pin is the
+  **bowls club**), 56 Leopold, 57 Lara, 58 Corio, 51 Djila Tjarri. The audit
+  table in `prompts/log/outdoors.md` has the target for each.
+- **59 `Norlane Skatepark (North Shore)` sits between Norlane's two council skate
+  parks** and could be either. Resolve it before adding the Fountain of
+  Friendship row the pass held back for exactly that reason.
+
+### The vocabulary gaps, now reported by three passes independently
+
+Two are worth acting on because more than one pass hit them without conferring:
+
+- **A monument or landmark.** The arts pass named the Great Ocean Road Memorial
+  Arch, the Cliff Young statue and ~40 war memorials; the landscape pass added
+  twelve more from its own sweeps — Former Beech Forest Hotel, the Goods Shed,
+  Fort Pearce, the Bark Hut, the historic tramway. **One type would take all of
+  them** and none has an honest home today.
+- **Accessibility.** The ocean pass reported patrol status and the outdoors pass
+  reported *"registered Changing Places facility"*, *"all access"*, *"accessible
+  toilet"* — the facts that decide a trip for some families, living in prose in
+  `notes` where nothing can filter them. Second pass in a row to say so.
+
+Also named, once each and not acted on: BMX / pump track / dirt jump line, disc
+golf, tennis, lawn bowls, athletics, horse riding, fishing, a marine sanctuary,
+and an organiser that is not a room — that last one for the fourth time.
+
+### Suburbs the passes could not file to
+
+`Wensleydale` is the one worth adding — it holds three mapped campgrounds and the
+database already fudges it once (*"Aireys Inlet (hinterland)"*). Also reported,
+each currently written as its nearest listed town: Glenaire, Hordern Vale,
+Johanna, Yuulong, Benwerrin, Barramunga, Gellibrand, Barwon Downs, Clifton
+Springs, Newtown, Rippleside, Moolap, Hamlyn Heights, Swan Island, Bambra,
+Modewarre, Marengo, Wongarra.
+
+### One tooling gap the landscape pass filled
+
+`scripts/checkfile.py` was added by that pass because **`sync.py check` did not
+exist when the prompt promised it** — `check()` was internal to `add`, and the
+credential guard at module scope killed every invocation before argv was read.
+Both are fixed now (`check` is a real subcommand and falls back to the anon key),
+so `checkfile.py` is redundant. It is harmless; delete it when convenient.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

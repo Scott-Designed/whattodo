@@ -38,6 +38,11 @@
     var ds = nextDate(i), d = daysAway(ds);
     if(d === 0) return 'Today';
     if(d === 1) return 'Tomorrow';
+    /* A weekly event says how often rather than which date. Its name no longer
+       carries the recurrence, so this is the only place it is written — the
+       board's whenText() says the same thing the same way. */
+    if(i.recur === 'weekly')
+      return 'Every ' + new Date(ds + 'T00:00:00').toLocaleDateString('en-AU', {weekday:'long'});
     var txt = new Date(ds + 'T00:00:00').toLocaleDateString('en-AU', FMT);
     return d > 0 && d < 7 ? txt : txt + (d > 300 ? ' ' + ds.slice(0,4) : '');
   }

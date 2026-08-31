@@ -4,6 +4,12 @@
     python3 scripts/name_rules.py           # what would change, writes nothing
     python3 scripts/name_rules.py --write   # rename, keeping the published title
     python3 scripts/name_rules.py --check   # exit 1 if anything needs renaming
+    python3 scripts/name_rules.py --only=recurrence --write    # one kind only
+
+Two things come out of a name. The PLACE, because the Where column says it. And
+the RECURRENCE, because the When column says "Every Saturday" for a weekly
+event — weekly only, since the page prints "Every <weekday>" for nothing else,
+so a monthly market keeps "first Sunday of Month" in its name.
 
 "Open Mic Night – Torquay Hotel" in a table whose next column says Torquay
 Hotel prints the venue twice and pushes the actual event off the edge on a
@@ -38,10 +44,16 @@ KEEP = {
   'Lorne Sculpture Biennale':      'the biennale is named for the town',
 }
 # Where the right answer is a rewrite rather than a subtraction.
+# A value is the new name, or (new name, the reason) where 'named by hand' does
+# not say enough.
 OVERRIDE = {
   'Torquay Library – School Holiday Program': 'Torquay Library Activities',
   'Dawn Service – Torquay RSL': 'Anzac Day Dawn Service',   # what it is, not who runs it
   'Repair Café Surf Coast': 'Repair Café',                  # it has one hall, in Aireys Inlet
+  # Subtraction alone leaves "Parkrun", which says nothing with five of them in
+  # the database. The town is this one's identity, not a venue borrowed from Where.
+  'Parkrun – every Saturday': ('Torquay Parkrun',
+      'recurrence dropped by hand — subtracting it alone leaves "Parkrun"'),
 }
 # Words that are part of a place name rather than a place: they may appear in a
 # chunk being tested without making it something other than the venue.
@@ -55,6 +67,13 @@ TYPE_WORD = {'workshop':'Workshop','market':'Market','festival':'Festival',
              'music':'Gig','comedy':'Comedy Night','party':'Party','reading':'Reading',
              'class':'Class','course':'Course'}
 DASH = r'[-–—]'
+# A recurrence the row's own `recurrence` column already holds, and the When
+# column now prints — "Every Saturday" — so a name saying it too is one fact
+# twice. WEEKLY ONLY, and that is the whole of the gate: the page prints
+# "Every <weekday>" for weekly and nothing else, so a monthly market keeps
+# "first Sunday of Month" in its name because there is nowhere else it is said.
+RECUR_TAIL = re.compile(rf'\s*(?:{DASH}|,)?\s*every\s+'
+                        r'(?:mon|tues|wednes|thurs|fri|satur|sun)day\s*$', re.I)
 
 def toks(s):
     return set(re.findall(r"[a-z0-9]+", (s or '').lower().replace("'", '')))
@@ -89,14 +108,38 @@ def umbrella(chunk, places):
     rest = [w for w in chunk.split() if not toks(w) <= (distinctive(places) | GEO)]
     return 2 <= len(rest) and len(chunk.split()) <= 4
 
-def tidy(name, *, venue=None, suburb=None, location=None, free_venue=None,
-         type_=None, linked=True):
-    """-> (new_name, why) or (name, None). See the module docstring."""
+def tidy(name, *, recur=None, **kw):
+    """-> (new_name, why) or (name, None). See the module docstring.
+
+    Two subtractions, in order: the recurrence, then the place. Both can fire on
+    one name — "Parkrun – every Saturday" loses the recurrence here and would
+    lose a venue below if it carried one — so the reasons are joined rather than
+    one winning."""
     name = (name or '').strip()
     if name in OVERRIDE:
         return OVERRIDE[name], 'named by hand'
     if name in KEEP:
         return name, None
+    why0 = None
+    if recur == 'weekly':
+        m = RECUR_TAIL.search(name)
+        if m:
+            rest = name[:m.start()].strip(' -–—:,')
+            # the same two guards the venue rules use: something left, and it
+            # starts a phrase rather than the middle of one.
+            if len(rest) >= 3 and re.match(r"[A-Z0-9'‘“]", rest):
+                name, why0 = rest, 'recurrence dropped — the When column says "Every …"'
+    out, why = tidy_place(name, **kw)
+    return out, '; '.join(w for w in (why0, why) if w) or None
+
+def tidy_place(name, *, venue=None, suburb=None, location=None, free_venue=None,
+               type_=None, linked=True):
+    """-> (new_name, why) or (name, None). The place half.
+
+    OVERRIDE and KEEP are tested by tidy() above, on the name as published —
+    testing them again here would be against a name this module has already
+    edited, which is not what those tables are keyed on."""
+    name = (name or '').strip()
     if not linked:
         return name, None
 
@@ -184,18 +227,22 @@ def view_shows_the_venue():
         return False
 
 def proposals():
-    events = req('GET', '/rest/v1/events?select=id,name,types,venue,place_id,location,source_note&order=id')
+    events = req('GET', '/rest/v1/events?select=id,name,types,venue,place_id,location,'
+                        'recurrence,source_note&order=id&limit=1000')
     places = {p['id']: p for p in req('GET', '/rest/v1/places?select=id,name,suburb')}
     out = []
     for e in events:
         v = places.get(e['place_id'])
-        new, why = tidy(e['name'], venue=v['name'] if v else None,
+        new, why = tidy(e['name'], recur=e['recurrence'],
+                        venue=v['name'] if v else None,
                         suburb=v['suburb'] if v else None,
                         location=e['location'], free_venue=e['venue'],
                         type_=(e['types'] or [None])[0], linked=e['place_id'] is not None)
         if new != e['name']:
             out.append((e, new, why, v))
     return out
+
+DATED = '31 Aug 2026'   # stamped into the source_note of anything renamed
 
 def main():
     args = set(sys.argv[1:])
@@ -207,6 +254,13 @@ def main():
         sys.exit("Set SUPABASE_URL and SUPABASE_SERVICE_KEY (in the environment or .env).")
 
     props = proposals()
+    # Proposals have been accumulating unapplied since August, so a run that
+    # wants one kind of rename has to be able to say so — otherwise applying the
+    # recurrence change means accepting every venue change too. Matches the reason.
+    only = next((a.split('=', 1)[1] for a in args if a.startswith('--only=')), None)
+    if only:
+        props = [p for p in props if only.lower() in (p[2] or '').lower()]
+        print(f"--only={only}: {len(props)} of the proposals match.\n")
     for e, new, why, v in props:
         where = f"{v['name']} · {v['suburb']}" if v else '—'
         print(f"{e['id']:>3}  {e['name']}\n     → {new}\n     {why}; where says {where}\n")
@@ -235,7 +289,8 @@ def main():
                  "Run supabase/VENUE_IN_LISTINGS.sql in the Supabase SQL editor first.")
     for e, new, why, v in props:
         note = (e['source_note'] or '').strip()
-        titled = f'Published as "{e["name"]}"; venue moved to the Where column, 24 Aug 2026.'
+        titled = (f'Published as "{e["name"]}"; ' + why +
+                  f', {DATED}.') if why else f'Published as "{e["name"]}".'
         req('PATCH', f"/rest/v1/events?id=eq.{e['id']}",
             {'name': new, 'source_note': (note+' — '+titled if note else titled)})
         print(f"renamed {e['id']}: {new}")
