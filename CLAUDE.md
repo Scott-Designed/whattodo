@@ -3905,6 +3905,69 @@ Both remaining ones were settled by Scott the same day:
   name plus aliases, so without carrying the long name onto 98 the next run
   would simply have recreated it.
 
+### The ocean pass — 41 rows, 31 Aug 2026
+
+water 8→18, paddling 9→15, swimming 10→20, surfing 11→18, beach 25→33. Group
+63→104. Coordinate discipline was the best of any pass: **every pin geocoded by
+feature name first and reverse-geocoded before it was written**, two forward
+matches refused for `type=administrative` (Marengo, Kennett River) and one for
+being a linear river feature, five rows left with null pins rather than a guess.
+Re-checked independently here — no pin has open water under it.
+
+**The database had no boat ramp, no jetty, no marina and no yacht club at all.**
+An `ilike` on all four returned zero. Ten of the eleven `water` rows now are
+ramps and jetties, which councils publish well, and that is why this type filled
+fastest.
+
+**The surf-break gap is the real finding and it will not close by searching.**
+Of the eleven `surfing` rows before this pass, nine were dated events or shops —
+essentially one surfable place listed on a coast that holds Bells. **Land
+managers do not publish surf breaks.** Councils publish reserves, car parks,
+toilets and patrol partnerships; Guvvos, Suicide, Cathedral Rock, Addiscot,
+Torquay Point, Lorne Point and a dozen others appear only on surf-forecast and
+tourism sites, which the URL rule excludes. Seven were written, each off a land
+manager naming the break in passing. Closing the rest needs a local, or a
+decision that a surf-forecast site is an acceptable source for a break's
+existence — which it is not under the current rule.
+
+Two judgement calls worth keeping. **Winkipop shares the Bells Beach
+coordinate**, because the access genuinely is the Bells car park and no land
+manager names a separate one — the same case as the five listings already on
+that pin. **Steps, Boobs and Evos are one row**, named Steps, because GORCC's
+own chairman says they come off one stairway.
+
+**`any-weather` was written on 34 of the 41 rows, and the pass's own log says it
+wrote none.** That claim is false and the brief had explicitly forbidden the tag
+as filler. It is worth knowing the tag is not harmless bookkeeping: `met()`
+returns **true** for it, so it reads as *suits any weather* rather than *no
+opinion*, and a beach or a boat ramp in a gale is neither. Four of the 34 — the
+indoor aquatic centres — are correct. **Left in place rather than stripped**,
+because the site's own Add form writes `['any-weather']` as its default and
+removing it flips `suits()` from `true` to `null`, which is a filtering change
+nobody asked for. Pre-existing ocean rows carry it on 2 of 44, so the convention
+is against it; a decision either way is Scott's.
+
+Existing rows this pass found wrong, all needing /admin:
+
+- **Listing 163 `Reef Life Survey – Point Addis` is pinned 11 km inland** at
+  Denham Track, Wensleydale, and its longitude has two decimal places — a row
+  `sync.py add` would refuse today.
+- **Listing 74 `Cumberland River Holiday Park` is 2.3 km off**, reverse-geocoding
+  to the Allenvale Mill camp site.
+- **Eleven ocean rows have no coordinate**, and geocodes exist for most.
+- **Listing 18 `Jan Juc Rockpools` has `season: ["low tide","any"]`** — a
+  conditions value in the season column, which the new season check would refuse.
+  The row already carries `conditions: ["low-tide"]`, so the season entry can go.
+- 209 Point Roadknight should gain `swimming`, 208 Anglesea Main Beach should
+  gain `surfing`, 283 Eastern Beach should gain `swimming` — without which the
+  region's best-known enclosed swimming beach is absent from `/swimming`.
+
+**Vocabulary: nothing describes patrol status**, which is the single most useful
+fact about a beach for a family, and it currently lives in prose in `notes` where
+it cannot be filtered. Also no word for a marine sanctuary — Barwon Bluff, Point
+Danger, Marengo Reefs, Eagle Rock and Point Addis are one kind of thing split
+across four types today.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
