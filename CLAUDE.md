@@ -1969,6 +1969,59 @@ The check that catches it is now written down and was run this time:
 appear in both — `const TABS = ['home',` — and assert the slice landed after
 `</style>`.
 
+### Four pages, not eight tabs — 31 Aug 2026
+
+Scott, after seeing the mock-up: the logo goes home, sign-out goes, the theme
+pill moves out of the bar, and the eight items group into pages with tabs.
+
+    Dashboard
+    Incoming   → Automations · Inbox · Review
+    Listings   → Spots 178 · Venues 287 · Happenings 504 · Ideas 57
+                 · Shops 15 · Makers 6 · Organisations 22   (last three off board)
+    Places 134
+
+**The two names, and why.** *Incoming* — all three are things arriving that need
+handling: a scraper brings rows in, a venue emails, a row waits to be approved.
+*Listings* — what the database calls them, and the only word honest about both
+halves, since Shop, Maker and Group are deliberately off the board. Both are one
+constant in `PAGES`.
+
+**Listings needs no merge to exist.** Every tab is the same two tables with a
+kind picked — Happenings is `events`, the rest is `activities` filtered on
+`AFILTER.kind`. What the merge would buy is one table underneath, not a
+different menu, which is worth knowing before treating the migration as a
+prerequisite.
+
+**The heading follows the tab, not the table.** On `/listings/shops` a title
+reading *Activities* is the storage layer showing through, which is the whole
+thing this restructure exists to stop.
+
+**Sign-out went entirely.** The `/admin` gate holds the door now, so there is no
+locked state to report and nothing to give up on a page one person opens.
+`drawLock` and `unlock` are deleted; `PASS` survives as the sentinel
+`/api/admin` checks.
+
+**The theme pill is `position:fixed` bottom-left.** A preference you set once
+does not earn a place beside the two things you press.
+
+**The hash carries both** — `#listings/venues` — so a link into a tab survives a
+reload and the back button.
+
+### Two assertions that now run on every edit to this file
+
+Both were written after being caught by the failure they describe, and both ran
+before this shipped:
+
+    ids referenced but not in markup   —  removing the lock button left
+                                          $('#lock') called against nothing
+    functions stranded in <style>      —  an anchor matching a CSS comment put
+                                          two whole functions in the stylesheet
+
+**And assert on the CALL, not the word.** The first attempt at removing the lock
+asserted `'drawLock' not in t` — which failed on the comment explaining that
+drawLock had been removed, so nothing was written and the check looked like a
+real problem. `re.search(r'\bdrawLock\s*\(', js)` is the honest test.
+
 ### Three mistakes in one restructure, all the same shape
 
 Worth writing down together, because they are one habit:

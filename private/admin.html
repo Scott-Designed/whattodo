@@ -143,6 +143,22 @@ a.pill{text-decoration:none;line-height:1}
 .chip.on{background:var(--ink);color:var(--ground);border-color:var(--ink)}
 
 /* ── the kind roll-up ─────────────────────────────────────────────────────*/
+/* ── sub-tabs, one page's sections ────────────────────────────────────────*/
+.subtabs{display:flex; flex-wrap:wrap; gap:4px; margin:0 0 24px;
+  border-bottom:1px solid var(--rule2); padding-bottom:0}
+.subtab{background:none; border:0; border-bottom:2px solid transparent; cursor:pointer;
+  font-family:var(--util); font-size:13px; font-weight:600; letter-spacing:.03em;
+  color:var(--ink3); padding:8px 13px 9px; display:inline-flex; align-items:center; gap:7px}
+.subtab:hover{color:var(--ink)}
+.subtab.on{color:var(--ink); border-bottom-color:var(--accent)}
+.subn{font-weight:500; font-size:11.5px; color:var(--ink3); font-variant-numeric:tabular-nums}
+.suboff{font-size:9.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink3); border:1px solid var(--rule2); border-radius:999px; padding:1px 6px}
+
+/* Pinned bottom-left: a preference you set once, not a control you reach for. */
+.themedock{position:fixed; left:18px; bottom:18px; z-index:90;
+  background:var(--surface); box-shadow:0 6px 20px rgba(0,0,0,.16)}
+
 .rollhead{font-family:var(--serif);font-weight:500;font-size:21px;margin:34px 0 12px;
   letter-spacing:-.01em}
 table.roll{width:100%;border-collapse:collapse;font-family:var(--util);font-size:13px}
@@ -415,7 +431,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 </svg>
 
 <nav class="bar">
-  <a class="mark" href="#home">Notice Admin</a>
+  <a class="mark" href="#home" title="Dashboard">Notice Admin</a>
   <div class="barright">
     <!-- Every section lives in here. Eight tabs across the top was a row of
          words with no shape; a menu makes the list scannable and leaves the bar
@@ -430,14 +446,20 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
        target="_blank" rel="noopener noreferrer"
        title="Opens the Event Inbox artifact on claude.ai — paste a link or photograph a poster on your phone. Costs no API credits.">
       <svg class="pillicon"><use href="#i-plus"/></svg>Add an event</a>
-    <button class="pill" id="lock">Locked</button>
-    <button class="pill" id="theme">Auto</button>
   </div>
 </nav>
+
+<!-- Light/dark lives down here, out of the way. It is a preference you set once,
+     not a control you reach for, so it does not earn a place beside the two
+     things you press. Sign-out went entirely: the /admin gate is what holds the
+     door, and a button to give up a session nobody shares is furniture. -->
+<button class="pill themedock" id="theme">Auto</button>
 
 <!-- The section counts. These used to live in the tab strip; the menu reads
      them from here, so the six functions that set them did not have to change
      and a count still has one home. -->
+<div class="subtabs" id="subtabs" hidden></div>
+
 <div id="tallies" hidden>
   <span id="t-groups"></span><span id="t-inbox"></span><span id="t-review"></span>
   <span id="t-events"></span><span id="t-activities"></span><span id="t-places"></span>
@@ -512,8 +534,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 </section>
 
 <section id="tab-events" hidden>
-  <h2 class="pagetitle">Events</h2>
-  <h2>Events</h2>
+  <h2 class="pagetitle" id="secheadE">Events</h2>
   <div class="controls">
     <input type="search" id="eq" placeholder="Search names, venues, descriptions…">
     <select id="etype"><option value="">Any type</option></select>
@@ -546,8 +567,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 </section>
 
 <section id="tab-activities" hidden>
-  <h2 class="pagetitle">Activities</h2>
-  <h2>Activities</h2>
+  <h2 class="pagetitle" id="secheadA">Activities</h2>
   <div class="controls">
     <input type="search" id="aq" placeholder="Search names, suburbs, descriptions…">
     <select id="atype"><option value="">Any type</option></select>
@@ -1879,7 +1899,7 @@ function drawEvents(){
 }
 
 /* ── activities: the evergreen half ────────────────────────────────────────*/
-let AFILTER = {q:'', type:'', sort:'name', flag:''};
+let AFILTER = {q:'', type:'', sort:'name', flag:'', kind:''};
 
 function drawActivities(){
   const list = DATA.activities.map(r => ({...r, __flags: flagsFor(r,'activities')}));
@@ -1887,6 +1907,9 @@ function drawActivities(){
 
   const q = AFILTER.q.toLowerCase().trim();
   let out = list.filter(r => {
+    // Set by the Listings tabs. Not a control on this screen — the tab IS the
+    // control, and a second one would let the two disagree.
+    if (AFILTER.kind && r.kind !== AFILTER.kind) return false;
     if (AFILTER.type && !(r.types || []).includes(AFILTER.type)) return false;
     if (AFILTER.flag && !r.__flags.includes(AFILTER.flag)) return false;
     return hit(r, q, [(r.tags || []).join(' ')]);
@@ -2436,40 +2459,10 @@ const COOKIE_AUTH = !!window.ADMIN_COOKIE;
 let PASS = COOKIE_AUTH ? '__cookie__' : '';
 if (!COOKIE_AUTH) try { PASS = sessionStorage.getItem('notice.admin') || ''; } catch(e){}
 
-function drawLock(ok){
-  const b = $('#lock');
-  // Behind the gate there is no locked state to report — you cannot see the
-  // page at all without the cookie — so the button says what pressing it does
-  // rather than naming a state that is always the same. It stays outlined:
-  // signing out is not the thing anyone came here to do.
-  b.textContent = COOKIE_AUTH ? 'Sign out' : ok ? 'Unlocked' : 'Locked';
-  b.classList.toggle('on', !COOKIE_AUTH && !!ok);
-  b.classList.toggle('locked', !COOKIE_AUTH && !ok);
-}
-async function unlock(){
-  if (COOKIE_AUTH){                // signing out means dropping the gate cookie
-    if (confirm('Sign out of the back of house?'))
-      location.href = '/admin?signout=1';
-    return;
-  }
-  if (PASS){                       // pressing it while unlocked locks it again
-    PASS = ''; try{ sessionStorage.removeItem('notice.admin'); }catch(e){}
-    return drawLock(false);
-  }
-  const p = prompt('Admin password (ADMIN_PASSWORD in the Vercel project)');
-  if (p === null) return;
-  const r = await fetch('/api/admin', {method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({password:p, action:'check'})});
-  if (r.ok){
-    PASS = p; try{ sessionStorage.setItem('notice.admin', p); }catch(e){}
-    drawLock(true); loadInbox(); loadEmailed();
-  } else {
-    const o = await r.json().catch(() => ({}));
-    alert(o.message || (r.status === 401 ? 'That is not the password.' : 'Could not check: ' + r.status));
-    drawLock(false);
-  }
-}
+/* The lock button and its handler lived here until 31 Aug 2026. Both went with
+   it: the /admin gate holds the door now, so there is no locked state to report
+   and nothing to sign out of on a page one person opens. PASS survives as the
+   sentinel /api/admin checks — see COOKIE_AUTH above. */
 
 /* ── theme, the site's own three states ────────────────────────────────────*/
 function drawTheme(){
@@ -2800,33 +2793,104 @@ function drawKindRoll(){
 }
 
 const TABS = ['home','autos','groups','inbox','review','events','activities','places'];
-/* The menu is built from this, so a section is named in exactly one place. */
-const TAB_NAME = {home:'Dashboard', autos:'Automations', groups:'Groups', inbox:'Inbox',
-                  review:'Review', events:'Events', activities:'Activities', places:'Places'};
+
+/* ── the menu is four pages now, not eight tabs ────────────────────────────
+   Scott, 31 Aug 2026. Eight items where three were arrivals and four were
+   table names. They group into two pages with tabs inside:
+
+   INCOMING — Automations, Inbox, Review. All three are things arriving that
+   need handling: a scraper brings rows in, a venue emails, a row waits to be
+   approved.
+
+   LISTINGS — the seven kinds. `listings` is what the database calls them and
+   the only word honest about both halves, since Shops, Makers and
+   Organisations are deliberately off the board.
+
+   Both names are one constant. */
+const PAGES = [
+  {id:'home',     name:'Dashboard'},
+  {id:'incoming', name:'Incoming', tabs:[
+    {id:'autos',  name:'Automations'},
+    {id:'inbox',  name:'Inbox',  tally:'#t-inbox'},
+    {id:'review', name:'Review', tally:'#t-review'},
+  ]},
+  // Every tab here is the SAME two tables filtered by kind — no merge needed to
+  // read them this way. Happenings is `events`; the rest is `activities` with
+  // one kind picked. What the merge would buy is one table underneath, not a
+  // different menu.
+  {id:'listings', name:'Listings', tabs:[
+    {id:'spots',      name:'Spots',         kind:'spot'},
+    {id:'venues',     name:'Venues',        kind:'venue'},
+    {id:'happenings', name:'Happenings',    kind:null},   // the events table
+    {id:'ideas',      name:'Ideas',         kind:'idea'},
+    {id:'shops',      name:'Shops',         kind:'shop',  off:true},
+    {id:'makers',     name:'Makers',        kind:'maker', off:true},
+    {id:'orgs',       name:'Organisations', kind:'group', off:true},
+  ]},
+  {id:'places',   name:'Places'},
+];
+const TAB_NAME = Object.fromEntries(PAGES.map(p => [p.id, p.name]));
+// Which real <section> each page and tab actually shows.
+const SECTION_OF = {home:'home', autos:'autos', inbox:'inbox', review:'review',
+                    places:'places', happenings:'events'};
 const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces(); drawGroups();
                           drawSources(); drawOverview(); drawReview(); drawHome(); drawChart(); drawKindRoll(); };
 
-function show(tab){
-  if (!TABS.includes(tab)) tab = 'home';
-  for (const id of TABS) $('#tab-' + id).hidden = id !== tab;
-  $('#menuhere').textContent = TAB_NAME[tab];
+/* A page, and which tab within it. The hash carries both — #listings/venues —
+   so a link into a tab survives a reload and the back button. */
+let HERE = {page: 'home', tab: null};
+
+function pageOf(id){ return PAGES.find(p => p.id === id); }
+
+function show(page, tab){
+  const p = pageOf(page) || PAGES[0];
+  const t = p.tabs ? (p.tabs.find(x => x.id === tab) || p.tabs[0]) : null;
+  HERE = {page: p.id, tab: t ? t.id : null};
+
+  // Listings is the two existing tables with a kind picked, so the section it
+  // shows depends on the tab rather than the page.
+  let section = SECTION_OF[t ? t.id : p.id] || (t ? 'activities' : p.id);
+  if (p.id === 'listings' && t && t.kind){ AFILTER.kind = t.kind; section = 'activities'; }
+  if (p.id === 'listings' && t && !t.kind) AFILTER.kind = '';
+
+  for (const id of TABS) $('#tab-' + id).hidden = id !== section;
+  $('#menuhere').textContent = p.name + (t ? ' · ' + t.name : '');
+  drawSubtabs(p);
+  // The heading names the tab, not the table. On /listings/shops a title
+  // reading "Activities" is the storage layer showing through, which is the
+  // whole thing this restructure is trying to stop doing.
+  const h = section === 'events' ? $('#secheadE') : $('#secheadA');
+  if (h) h.textContent = (p.id === 'listings' && t) ? t.name : (section === 'events' ? 'Events' : 'Activities');
   closeMenu();
-  location.hash = tab;
-  if (tab === 'inbox') loadInbox();
+  location.hash = p.id + (t ? '/' + t.id : '');
+  if (t && t.id === 'inbox') loadInbox();
+  if (p.id === 'listings') section === 'events' ? drawEvents() : drawActivities();
 }
 
-/* The menu is drawn from TABS, so adding a section is one line in TAB_NAME and
-   nothing else. Counts come off the same tallies the tabs carried. */
-const TALLY_OF = {groups:'#t-groups', inbox:'#t-inbox', review:'#t-review',
-                  events:'#t-events', activities:'#t-activities', places:'#t-places'};
+/* The tabs sit above the section they switch, drawn from PAGES so a new tab is
+   one line. Off-board kinds are marked, or their counts read as a shortfall
+   against the board's own tally. */
+function drawSubtabs(p){
+  const bar = $('#subtabs');
+  if (!p.tabs){ bar.hidden = true; bar.innerHTML = ''; return; }
+  bar.hidden = false;
+  bar.innerHTML = p.tabs.map(x => {
+    const n = x.kind ? DATA.activities.filter(a => a.kind === x.kind).length
+            : x.id === 'happenings' ? DATA.events.length
+            : x.tally && $(x.tally) ? $(x.tally).textContent.trim() : '';
+    return `<button class="subtab${x.id === HERE.tab ? ' on' : ''}" data-tab="${x.id}"
+      >${esc(x.name)}${n !== '' ? `<span class="subn">${n}</span>` : ''}${
+      x.off ? '<span class="suboff" title="Held off the Notice Board — you look these up, the board does not suggest them">off board</span>' : ''}</button>`;
+  }).join('');
+  bar.querySelectorAll('[data-tab]').forEach(b =>
+    b.onclick = () => show(p.id, b.dataset.tab));
+}
 
 function drawMenu(){
-  const here = (location.hash || '#home').slice(1);
-  $('#menu').innerHTML = TABS.map(id => {
-    const tallyEl = TALLY_OF[id] && $(TALLY_OF[id]);
-    const n = tallyEl ? tallyEl.textContent.trim() : '';
-    return `<a href="#${id}" class="menuitem${id === here ? ' on' : ''}" data-go="${id}"
-      >${esc(TAB_NAME[id])}${n ? `<span class="menun">${esc(n)}</span>` : ''}</a>`;
+  $('#menu').innerHTML = PAGES.map(p => {
+    const n = p.id === 'places' && $('#t-places') ? $('#t-places').textContent.trim() : '';
+    return `<a href="#${p.id}" class="menuitem${p.id === HERE.page ? ' on' : ''}"
+      data-go="${p.id}">${esc(p.name)}${n ? `<span class="menun">${esc(n)}</span>` : ''}</a>`;
   }).join('');
   $('#menu').querySelectorAll('[data-go]').forEach(a =>
     a.onclick = e => { e.preventDefault(); show(a.dataset.go); });
@@ -2853,7 +2917,6 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
 $('.mark').onclick = e => { e.preventDefault(); show('home'); };
 
-$('#lock').onclick = unlock;
 $('#runnow').onclick = runNow;
 
 // Each tab owns its own filters; nothing is shared but the flag-chip helper.
@@ -2881,7 +2944,7 @@ $('#isave').onclick   = pasteInbox;
    database views down with them — an outage at github.com should not stop you
    editing a listing. */
 async function load(){
-  drawTheme(); drawLock(!!PASS);
+  drawTheme();
   const ghRuns = fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=20`)
     .then(r => r.ok ? r.json() : {workflow_runs:[]}).then(d => d.workflow_runs || []).catch(() => []);
   // ?t= busts THIS browser's cache. It does not reliably bust raw's CDN, which
@@ -2923,8 +2986,8 @@ async function load(){
     last run ${last ? esc(ago(last.recorded_at)) : DATA.runs[0] ? esc(ago(DATA.runs[0].run_started_at)) : 'unknown'}`;
 
   drawAutos(); drawSources(); drawOverview(); redrawAll();
-  const tab = location.hash.slice(1);
-  if (TABS.includes(tab)) show(tab);
+  const [pg, tb] = location.hash.slice(1).split('/');
+  show(pg || 'home', tb);
 }
 load();
 </script>
