@@ -141,6 +141,13 @@ BY_ID = {
   460: ('shop',  'a shop that stocks gear for five activities, not five spots'),
   461: ('group', 'a running group — running·community, and you join it'),
 
+  # 31 Aug 2026, Scott's ask. `nature` maps to spot and outranks `volunteering`
+  # on PRECEDENCE, so the rules make the foundation into the reserve it runs —
+  # the organiser-is-not-the-venue confusion, arriving through the kind column.
+  # Odonata MANAGES Mt Rothwell (place 104) and is pinned there; the sanctuary
+  # is the place, the foundation is the group.
+  700: ('group', 'Odonata is the foundation that runs Mt Rothwell, not the sanctuary'),
+
   # `community` makes a group, which is right for a Landcare branch and wrong
   # for a building. A library is somewhere you walk into.
   288: ('venue', 'the Dome is a reading room, not a group you join'),
