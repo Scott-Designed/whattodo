@@ -296,6 +296,7 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
 
 <nav class="tabs" role="tablist">
   <button role="tab" data-tab="autos"      aria-selected="true">Automations</button>
+  <button role="tab" data-tab="groups"     aria-selected="false">Groups <span class="tally" id="t-groups"></span></button>
   <button role="tab" data-tab="inbox"      aria-selected="false">Inbox <span class="tally" id="t-inbox"></span></button>
   <button role="tab" data-tab="review"     aria-selected="false">Review <span class="tally" id="t-review"></span></button>
   <button role="tab" data-tab="events"     aria-selected="false">Events <span class="tally" id="t-events"></span></button>
@@ -407,6 +408,11 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
   </div>
   <div class="flags" id="aflags"></div>
   <div id="alist"></div>
+</section>
+
+<section id="tab-groups" hidden>
+  <h2>Groups</h2>
+  <div id="glist"></div>
 </section>
 
 <section id="tab-places" hidden>
@@ -1759,96 +1765,14 @@ function feedOf(placeId){
   return best ? {label: FEED_NAME[best], n: by[best]} : null;
 }
 
-function drawPlaces(){
-  // How many events lean on each place — a place with none is either a
-  // duplicate the scraper made or a row still waiting for work.
-  for (const p of DATA.places)
-    p.__events = DATA.events.filter(e => e.place_id === p.id).length
-               + DATA.activities.filter(a => a.place_id === p.id).length;
+/* The Automation cell, shared by the Places and Groups tabs. It was inline
+   in drawPlaces until Groups needed the identical answer; two copies of this
+   would drift the first time either was touched. */
+function automationCell(p, s){
+  const lastAdded = [...DATA.events.filter(e => e.place_id === p.id),
+                     ...DATA.activities.filter(a => a.place_id === p.id)]
+                    .map(r => r.created_at).filter(Boolean).sort().pop() || null;
 
-  const flagged = DATA.places.map(p => ({...p, __flags: placeFlags(p)}));
-  drawFlags($('#pflags'), flagged, PFILTER, drawPlaces);
-
-  // What actually reads each venue, and how much it is carrying right now.
-  // Built before the filter, not after, because the Automations tab hands this
-  // list a state to hold to and the filter has to be able to read it.
-  const srcByName = {};
-  for (const r of sourceRows()) if (r.kind === 'venue') srcByName[r.name] = r;
-
-  const q = PFILTER.q.toLowerCase().trim();
-  const quiet = flagged.filter(hostsNothing).length;
-  let list = flagged.filter(p => {
-    // Held back unless you ask — by searching, by picking a kind, or by
-    // pressing the tally. Never silently: the count is always on screen.
-    if (!PFILTER.showQuiet && !q && !PFILTER.kind && !PFILTER.flag && !PFILTER.state
-        && hostsNothing(p)) return false;
-    if (PFILTER.state && (srcByName[p.name]?.state || '') !== PFILTER.state) return false;
-    if (PFILTER.kind && p.kind !== PFILTER.kind) return false;
-    if (PFILTER.flag && !p.__flags.includes(PFILTER.flag)) return false;
-    if (!q) return true;
-    return [p.name, p.suburb, p.address, ...(p.aliases||[])]
-      .some(v => String(v ?? '').toLowerCase().includes(q));
-  });
-  list.sort({
-    name:   (a,b) => a.name.localeCompare(b.name),
-    events: (a,b) => b.__events - a.__events || a.name.localeCompare(b.name),
-    feed:   (a,b) => (b.events_url?2:b.website?1:0) - (a.events_url?2:a.website?1:0)
-                     || a.name.localeCompare(b.name),
-    flags:  (a,b) => b.__flags.length - a.__flags.length || a.name.localeCompare(b.name),
-  }[PFILTER.sort]);
-
-  $('#t-places').textContent = DATA.places.length;
-  /* A status that asks for a person and does not say what they should do is a
-     dead end — the same rule the source drawer follows. The line is per-state,
-     so it belongs above the set rather than repeated down every row. */
-  const stt = PFILTER.state ? (SRC_STATE[PFILTER.state] || {label:PFILTER.state, tag:''}) : null;
-  $('#pstate').innerHTML = stt
-    ? `<div class="flags"><button class="flagbtn on" id="clearstate">${
-         esc(stt.label)}<b>${list.length}</b> ✕</button></div>` +
-      (TODO[PFILTER.state] ? `<p class="note">${esc(TODO[PFILTER.state])}</p>` : '')
-    : '';
-  if ($('#clearstate')) $('#clearstate').onclick = () => {
-    PFILTER.state = ''; drawPlaces(); drawSources();
-  };
-  $('#quiet').innerHTML = quiet
-    ? `<button class="flagbtn ${PFILTER.showQuiet ? 'on' : ''}" id="quietbtn">${
-        PFILTER.showQuiet ? 'hide' : 'show'} ${quiet} that host nothing and have nothing to read</button>`
-    : '';
-  if ($('#quietbtn')) $('#quietbtn').onclick = () => {
-    PFILTER.showQuiet = !PFILTER.showQuiet; drawPlaces();
-  };
-  if (!list.length){ $('#plist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
-  $('#plist').innerHTML = `<table><thead><tr>
-      <th>Venue</th><th>Kind</th><th>Town</th><th>Automation</th>
-      <th>Last added</th><th>Link</th><th>Events</th><th>Pinned</th><th></th>
-    </tr></thead><tbody>${list.map(p => {
-      const s  = srcByName[p.name] || {};
-      const st = SRC_STATE[s.state] || null;
-      const ev = DATA.events.filter(e => e.place_id === p.id);
-      // An event that started before today but has not ended is on NOW; one
-      // that repeats is never past. Three states, counted once.
-      const state = e => {
-        if (!e.starts_on) return 'up';
-        const end = e.ends_on || e.starts_on;
-        if (e.recurrence && e.recurrence !== 'none') return 'up';
-        if (end < TODAY) return 'past';
-        if (e.starts_on <= TODAY) return 'now';
-        return 'up';
-      };
-      // When anything was last attached to this venue — an event or a listing.
-      // A venue changes slowly, so silence is the signal this table is for.
-      const stamps = [...ev, ...DATA.activities.filter(a => a.place_id === p.id)]
-        .map(x => x.created_at).filter(Boolean).sort();
-      const lastAdded = stamps[stamps.length - 1] || null;
-      const up   = ev.filter(e => state(e) === 'up').length;
-      const now  = ev.filter(e => state(e) === 'now').length;
-      const past = ev.filter(e => state(e) === 'past').length;
-      return `<tr class="clickable" data-id="${p.id}">
-        <td><div class="rowname">${esc(p.name)}</div>
-</td>
-        <td>${esc(p.kind || '—')}</td>
-        <td>${esc(p.suburb || '—')}</td>
-        <td style="white-space:nowrap" title="${esc((SRC_STATE[s.state] || {}).label || 'no source on file')}">${(() => {
              // Automated and working is one green pill — tick, sync, and when it
              // last read. That is the whole answer for those rows.
              const icon = k => `<svg class="howicon ${
@@ -1902,7 +1826,173 @@ function drawPlaces(){
              // nothing reads it. Evidence again, not a label to remember to set.
              return icon('i-hand')
                   + `<span style="color:var(--ink3)">no website to check</span>`;
-           })()}</td>
+}
+
+/* ── groups ──────────────────────────────────────────────────────────────────
+   A group is not a room. Scott, 31 Aug 2026, naming six rows that were sitting
+   in Places: Bellarine Catchment Network, Surf Coast Environment Group, The
+   Book Club Social and the three mountain bike clubs. They have a feed worth
+   reading and no address at all — and the database already said so, because
+   **not one of the six carries a pin**.
+
+   This is the gap this file has recorded twice before and declined to fill for
+   one row: The Sound Doctor is a promoter who hires Anglesea Memorial Hall, and
+   Geelong Sustainability holds its events in other people's rooms. Six rows is
+   enough to justify the kind that one row was not.
+
+   `place_kinds.band = 'people'` is the test, so the tab is derived from the
+   vocabulary rather than holding its own list of names — the failure this
+   project has paid for repeatedly. `bike-club` moved into that band rather than
+   being flattened to `group`, because "mountain bike club" is the more useful
+   word and nothing is gained by losing it. */
+const isGroup = p => DATA.place_kinds.some(k => k.name === p.kind && k.band === 'people');
+
+function drawGroups(){
+  const list = DATA.places.filter(isGroup)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  $('#t-groups').textContent = list.length || '';
+  if (!list.length){ $('#glist').innerHTML = '<p class="empty">No groups yet.</p>'; return; }
+
+  // sourceRows(), not SRC_LIST — that holds only the 8 aggregators since the
+  // venue list came off the Automations tab. Same call the Places tab makes, so
+  // a group and a venue cannot disagree about whether a source is reading.
+  const srcByName = {};
+  for (const r of sourceRows()) if (r.kind === 'venue') srcByName[r.name] = r;
+  $('#glist').innerHTML = `<div style="overflow-x:auto"><table><thead><tr>
+      <th>Group</th><th>Kind</th><th>Town</th><th>Automation</th>
+      <th>Last added</th><th>Link</th><th>Events</th><th></th>
+    </tr></thead><tbody>${list.map(p => {
+      const s  = srcByName[p.name] || {};
+      const ev = DATA.events.filter(e => e.place_id === p.id);
+      const acts = DATA.activities.filter(a => a.place_id === p.id);
+      const up = ev.filter(e => (e.ends_on || e.starts_on) >= TODAY).length;
+      const stamps = [...ev, ...acts].map(r => r.created_at).filter(Boolean).sort();
+      const last = stamps[stamps.length - 1] || null;
+      const when = agoLong(last);
+      const u = p.events_url || p.ticketing_url || p.website || p.facebook;
+      // The same automation renderer the Places tab uses, so the two can never
+      // disagree about whether a source is reading.
+      return `<tr>
+        <td class="cap wide"><a href="#" class="rowname" data-edit="${p.id}">${esc(p.name)}</a></td>
+        <td>${esc(p.kind || '—')}</td>
+        <td>${esc(p.suburb || '—')}</td>
+        <td style="white-space:nowrap">${automationCell(p, s)}</td>
+        <td style="white-space:nowrap">${when
+             ? `<span style="color:var(--ink3)" title="${esc(last.slice(0,10))}">${esc(when)}</span>`
+             : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td class="cap" style="max-width:15ch">${u
+             ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer"
+                  title="${esc(u)}">${esc(urlStub(u, 18))}</a>`
+             : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td>${ev.length ? `${up} upcoming · ${ev.length} all` : '<span style="color:var(--ink3)">none</span>'}</td>
+        <td style="text-align:right"><a href="#" class="rowname" data-edit="${p.id}">edit →</a></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>
+    <p class="empty" style="margin-top:14px">A group has a feed worth reading and
+      no address. None of these is on the map, and none should be — an event they
+      run points at whichever room they hired.</p>`;
+
+  $('#glist').querySelectorAll('[data-edit]').forEach(a => a.onclick = e => {
+    e.preventDefault();
+    openEditor('places', DATA.places.find(x => x.id === +a.dataset.edit));
+  });
+}
+
+function drawPlaces(){
+  // How many events lean on each place — a place with none is either a
+  // duplicate the scraper made or a row still waiting for work.
+  for (const p of DATA.places)
+    p.__events = DATA.events.filter(e => e.place_id === p.id).length
+               + DATA.activities.filter(a => a.place_id === p.id).length;
+
+  // Groups have their own tab. Leaving them here too would be the duplication
+  // that took the venue list off Automations — one fact, one screen.
+  const flagged = DATA.places.filter(p => !isGroup(p))
+                             .map(p => ({...p, __flags: placeFlags(p)}));
+  drawFlags($('#pflags'), flagged, PFILTER, drawPlaces);
+
+  // What actually reads each venue, and how much it is carrying right now.
+  // Built before the filter, not after, because the Automations tab hands this
+  // list a state to hold to and the filter has to be able to read it.
+  const srcByName = {};
+  for (const r of sourceRows()) if (r.kind === 'venue') srcByName[r.name] = r;
+
+  const q = PFILTER.q.toLowerCase().trim();
+  const quiet = flagged.filter(hostsNothing).length;
+  let list = flagged.filter(p => {
+    // Held back unless you ask — by searching, by picking a kind, or by
+    // pressing the tally. Never silently: the count is always on screen.
+    if (!PFILTER.showQuiet && !q && !PFILTER.kind && !PFILTER.flag && !PFILTER.state
+        && hostsNothing(p)) return false;
+    if (PFILTER.state && (srcByName[p.name]?.state || '') !== PFILTER.state) return false;
+    if (PFILTER.kind && p.kind !== PFILTER.kind) return false;
+    if (PFILTER.flag && !p.__flags.includes(PFILTER.flag)) return false;
+    if (!q) return true;
+    return [p.name, p.suburb, p.address, ...(p.aliases||[])]
+      .some(v => String(v ?? '').toLowerCase().includes(q));
+  });
+  list.sort({
+    name:   (a,b) => a.name.localeCompare(b.name),
+    events: (a,b) => b.__events - a.__events || a.name.localeCompare(b.name),
+    feed:   (a,b) => (b.events_url?2:b.website?1:0) - (a.events_url?2:a.website?1:0)
+                     || a.name.localeCompare(b.name),
+    flags:  (a,b) => b.__flags.length - a.__flags.length || a.name.localeCompare(b.name),
+  }[PFILTER.sort]);
+
+  // Not DATA.places.length — the groups have their own tab, and a tally that
+  // counted them here would promise six rows this table does not show.
+  $('#t-places').textContent = DATA.places.filter(p => !isGroup(p)).length;
+  /* A status that asks for a person and does not say what they should do is a
+     dead end — the same rule the source drawer follows. The line is per-state,
+     so it belongs above the set rather than repeated down every row. */
+  const stt = PFILTER.state ? (SRC_STATE[PFILTER.state] || {label:PFILTER.state, tag:''}) : null;
+  $('#pstate').innerHTML = stt
+    ? `<div class="flags"><button class="flagbtn on" id="clearstate">${
+         esc(stt.label)}<b>${list.length}</b> ✕</button></div>` +
+      (TODO[PFILTER.state] ? `<p class="note">${esc(TODO[PFILTER.state])}</p>` : '')
+    : '';
+  if ($('#clearstate')) $('#clearstate').onclick = () => {
+    PFILTER.state = ''; drawPlaces(); drawSources();
+  };
+  $('#quiet').innerHTML = quiet
+    ? `<button class="flagbtn ${PFILTER.showQuiet ? 'on' : ''}" id="quietbtn">${
+        PFILTER.showQuiet ? 'hide' : 'show'} ${quiet} that host nothing and have nothing to read</button>`
+    : '';
+  if ($('#quietbtn')) $('#quietbtn').onclick = () => {
+    PFILTER.showQuiet = !PFILTER.showQuiet; drawPlaces();
+  };
+  if (!list.length){ $('#plist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
+  $('#plist').innerHTML = `<table><thead><tr>
+      <th>Venue</th><th>Kind</th><th>Town</th><th>Automation</th>
+      <th>Last added</th><th>Link</th><th>Events</th><th>Pinned</th><th></th>
+    </tr></thead><tbody>${list.map(p => {
+      const s  = srcByName[p.name] || {};
+      const st = SRC_STATE[s.state] || null;
+      const ev = DATA.events.filter(e => e.place_id === p.id);
+      // An event that started before today but has not ended is on NOW; one
+      // that repeats is never past. Three states, counted once.
+      const state = e => {
+        if (!e.starts_on) return 'up';
+        const end = e.ends_on || e.starts_on;
+        if (e.recurrence && e.recurrence !== 'none') return 'up';
+        if (end < TODAY) return 'past';
+        if (e.starts_on <= TODAY) return 'now';
+        return 'up';
+      };
+      // When anything was last attached to this venue — an event or a listing.
+      // A venue changes slowly, so silence is the signal this table is for.
+      const stamps = [...ev, ...DATA.activities.filter(a => a.place_id === p.id)]
+        .map(x => x.created_at).filter(Boolean).sort();
+      const lastAdded = stamps[stamps.length - 1] || null;
+      const up   = ev.filter(e => state(e) === 'up').length;
+      const now  = ev.filter(e => state(e) === 'now').length;
+      const past = ev.filter(e => state(e) === 'past').length;
+      return `<tr class="clickable" data-id="${p.id}">
+        <td><div class="rowname">${esc(p.name)}</div>
+</td>
+        <td>${esc(p.kind || '—')}</td>
+        <td>${esc(p.suburb || '—')}</td>
+        <td style="white-space:nowrap" title="${esc((SRC_STATE[s.state] || {}).label || 'no source on file')}">${automationCell(p, s)}</td>
         <td style="white-space:nowrap">${(() => {
              // Its own column now: how long since anything was attached here.
              // A venue changes slowly, so silence is the signal — but it is a
@@ -2159,8 +2249,8 @@ $('#theme').onclick = () => {
 };
 
 /* ── tabs ──────────────────────────────────────────────────────────────────*/
-const TABS = ['autos','inbox','review','events','activities','places'];
-const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces();
+const TABS = ['autos','groups','inbox','review','events','activities','places'];
+const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces(); drawGroups();
                           drawSources(); drawOverview(); drawReview(); };
 
 function show(tab){

@@ -1480,6 +1480,61 @@ no `source_note`** — verifying those would record that somebody looked when
 nothing says what they checked, which is the exact failure this file already
 notes about the 25 Aug bulk accept.
 
+## A group is not a room — the Groups tab, 31 Aug 2026
+
+Scott, naming six rows sitting in Places: *"Bellarine Catchment Network is a
+group, not a location, same as Forrest mountain bike, surf coast environment
+group, surf coast mountain bike club, book club social and you yangs. Put them
+in a groups tab which still need to be monitored."*
+
+**The database already agreed, and had for months: not one of the six carries a
+pin.** Three had no `kind` at all and three were `bike-club`. A row with a feed
+worth reading, no address and no coordinate is an organisation, and filing it
+among the beaches and pubs is the organiser-is-not-the-venue trap sitting still
+instead of moving.
+
+    81   Surf Coast Environment Group            group       Humanitix
+    82   Bellarine Catchment Network             group       Humanitix
+    83   The Book Club Social                    group       Humanitix
+    105  Surf Coast Mountain Bike Club           bike-club   check website
+    115  You Yangs Mountain Bike Club            bike-club   check website
+    116  Forrest Mountain Bike and Cycling Club  bike-club   check website
+
+**`place_kinds` gained a `people` band**, which meant widening a CHECK
+constraint — the six bands were hardcoded in it, so the insert failed until the
+constraint was rewritten. `group` is a kind in that band, and **`bike-club`
+moved into it rather than being flattened to `group`**: "mountain bike club" is
+the more useful word and nothing is gained by losing it.
+
+**The tab is derived from the vocabulary, never from a list of names.**
+`isGroup()` asks whether a place's kind sits in the `people` band, so adding a
+kind there puts its rows on the tab with no second place to update — the failure
+this file has paid for repeatedly.
+
+**They come OUT of the Places tab, and its tally counts them out too.** Leaving
+them in both is the duplication that took the venue list off Automations: one
+fact, one screen. A tally still saying 139 would promise six rows the table no
+longer shows.
+
+**`automationCell()` was extracted so both tabs share one renderer.** It was
+inline in `drawPlaces` until Groups needed the identical answer, and two copies
+would have drifted the first time either was touched. Worth knowing: the Groups
+tab first read `SRC_LIST` and got nothing, because **that holds only the 8
+aggregators since the venue list came off Automations** — venue state comes from
+`sourceRows()`.
+
+**This is the gap this file recorded twice and declined to fill for one row.**
+`The Sound Doctor` (32) is a promoter who hires Anglesea Memorial Hall and is
+still filed `hall`, pinned to that hall; Geelong Sustainability holds its events
+in other people's rooms and was never registered at all. Six rows justify the
+kind that one row did not — and **The Sound Doctor should probably move now**,
+which is a decision for Scott because it has a real pin that would have to go.
+
+**None of the six has events attached, and that is correct.** An event a group
+runs points at whichever room it hired, so the group's own event count is zero
+and the Humanitix reads land at the venue. The tab says so under the table,
+because a column of *none* otherwise reads as a broken feed.
+
 ## Back of house — /admin
 
 `public/admin.html`, live at **https://notice.place/admin**. One page,
