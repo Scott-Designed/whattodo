@@ -1,6 +1,6 @@
 // POST /api/admin — the only way an edit reaches the database from a browser.
 //
-// The back-of-house page (public/admin.html) READS with the anon key, exactly
+// The back-of-house page (private/admin.html) READS with the anon key, exactly
 // like the public site does: everything it shows is already public. Writing is
 // different — anon may select and insert but never update or delete
 // (supabase/schema.sql), and the service key must never go in the page. So the
@@ -216,6 +216,24 @@ function clean(patch) {
   return out;
 }
 
+// The cookie api/adminpage.mjs issues: <expiry>.<hmac>, signed with
+// ADMIN_PASSWORD. It carries nothing secret — only "somebody knew the password,
+// until this date" — and cannot be forged without the password.
+const ADMIN_COOKIE = 'notice_admin';
+
+function cookieOk(req) {
+  const key = process.env.ADMIN_PASSWORD;
+  if (!key) return false;
+  const jar = Object.fromEntries(String(req.headers.cookie || '').split(';')
+    .map(c => c.trim().split('=').map(decodeURIComponent))
+    .filter(p => p.length === 2));
+  const [exp, mac] = String(jar[ADMIN_COOKIE] || '').split('.');
+  if (!exp || !mac || Number(exp) < Date.now()) return false;
+  const want = crypto.createHmac('sha256', key).update(String(exp)).digest('base64url');
+  const a = Buffer.from(mac), b = Buffer.from(want);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({error: 'POST only'});
 
@@ -227,7 +245,12 @@ export default async function handler(req, res) {
       message: 'Set ADMIN_PASSWORD in the Vercel project to enable editing.'});
 
   const {password, action = 'check', table, id, ids, patch = {}, force = false} = req.body || {};
-  if (!passwordOk(password)) return res.status(401).json({error: 'wrong_password'});
+  // Either proof is enough: the password in the body, or the signed cookie the
+  // /admin gate set when it was given the password. One login should not have
+  // to be performed twice, and the cookie is HttpOnly, so it is the stronger
+  // of the two — the password stops travelling after the first POST.
+  if (!passwordOk(password) && !cookieOk(req))
+    return res.status(401).json({error: 'wrong_password'});
   if (action === 'check') return res.status(200).json({ok: true});
 
   // ── run the scrapers now, as the Action ─────────────────────────────────

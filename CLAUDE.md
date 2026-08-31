@@ -23,7 +23,8 @@ public/nav.js         the bar across all four, and its two menus
 public/notice-nav.css  ·  notice-page.css  ·  notice-page.js   the shared chrome
 public/notice-vocab.js  suburbOf, typesOf, nextDate — lifted out of index.html
 public/notice-data.js   the Supabase keys and fromRow — configure.py writes here
-public/admin.html     back of house: the automations, every listing, and an editor
+private/admin.html    back of house — NOT served statically; api/adminpage.mjs
+                      reads it off disk behind the password
 public/sunset.css     the Sunset face, so admin.html can wear it too
 api/enrich.mjs        Vercel function: Claude drafts missing fields, user approves
                       Takes a name OR a url. Events lead with the url.
@@ -1537,7 +1538,7 @@ because a column of *none* otherwise reads as a broken feed.
 
 ## Back of house — /admin
 
-`public/admin.html`, live at **https://notice.place/admin**. One page,
+`private/admin.html`, live at **https://notice.place/admin**. One page,
 no build step, same as the site. Four tabs: **Automations**, **Events**,
 **Activities**, **Places**. Built 25 Aug 2026.
 
@@ -1586,6 +1587,45 @@ Things that are load-bearing:
   those are coordinates and are fine; the 37 `/maps/search/Some+Name` ones are
   the standing item on the list. Flagging both put 73 rows on the worklist, half
   of them finished. `mapsSearch()` tells them apart.
+
+### The whole page is behind the password now — 31 Aug 2026
+
+Scott: *"make the whole backend hidden behind password, not just edit access."*
+Until now the page was public and only WRITING was locked, on the reasoning that
+everything it showed was already public. That reasoning was about the data and
+the ask is about the interface — which names every source, every run and every
+venue's state, and has no business being readable by anyone who guesses a URL.
+
+**`admin.html` moved to `private/`**, so Vercel does not serve it as a static
+file at all. `api/adminpage.mjs` reads it off disk — the same trick as
+`api/subject.mjs` — and `vercel.json` carries both the `/admin` rewrite and the
+`includeFiles: "private/**"` that puts the page in the function's bundle. A
+rewrite alone would not have been enough: while the file sat in `public/`,
+`/admin.html` would still have served it straight past the gate.
+
+**Be honest about what this protects.** The listings, places and vocabularies
+are readable from Supabase with the anon key by anyone who wants them — that is
+what the public site runs on, and no page gate changes it. What is hidden is the
+interface. The one genuinely private thing, the email inbox, was never exposed
+to the anon key at all.
+
+**One login, not two.** A correct password sets an HttpOnly, Secure cookie of
+`<expiry>.<hmac>`, signed with `ADMIN_PASSWORD` — it carries nothing secret,
+only *somebody knew the password, until this date*, and cannot be forged without
+the password. `api/admin.mjs` accepts that cookie **or** a password in the body,
+so writing works immediately after the gate and **the password stops travelling
+after the first POST**. That makes the cookie the stronger of the two paths, not
+a convenience. 14 days, and the lock button signs out.
+
+Tested as refusals, which is the only kind of case that belongs in that harness:
+no cookie, wrong password, forged mac, and an expired-but-correctly-signed
+cookie are all 401 on both endpoints; a valid cookie and a body password are
+both 200.
+
+**The local preview cannot serve `/admin` any more** without copying the file
+out of `private/`, and the copy line above now does. There is no function under
+a static server anyway, so the gate itself has never been testable locally —
+test it on the deploy.
 
 ### The Automations tab — rebuilt 28 Aug 2026 after a UX audit
 
@@ -2002,7 +2042,7 @@ takes its port from `$PORT`, because 4173 is often held by another session.
 
 **It serves a copy, so re-copy after every edit:**
 
-    cp public/*.html public/*.css public/*.js ~/.cache/notice-preview/
+    cp public/*.html public/*.css public/*.js private/admin.html ~/.cache/notice-preview/
 
 The `*.js` half is new: since 26 Aug 2026 the page is not one file, and a
 preview that copies only HTML and CSS runs the previous session's JavaScript.
@@ -3959,7 +3999,7 @@ caught it before it shipped; clicking around the page would not have.
   **This was solved properly 25 Aug 2026** — `launch.json` serves
   `~/.cache/notice-preview`, a stable path outside iCloud, with `-I`,
   `"autoPort": true` and the port from `$PORT`. Re-copy after every edit with
-  `cp public/*.html public/*.css public/*.js ~/.cache/notice-preview/`. See "Serving it
+  `cp public/*.html public/*.css public/*.js private/admin.html ~/.cache/notice-preview/`. See "Serving it
   locally" under Back of house for the two distinct failures involved — the
   second one 404s instead of erroring, which is what makes it confusing.
   Verifying against the deployed site works too, once a push has built.
