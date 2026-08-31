@@ -1160,7 +1160,7 @@ exactly where it will break again. The correction is in that row's
 through the EntryBoss calendar rather than off Facebook. Worth knowing before
 the same race is filed twice from two sources.
 
-## The library calendar — 500 events, 19 branches, imported 27 Aug 2026
+## The library calendar — 19 branches, imported 27 Aug 2026, collapsed 31 Aug
 
 `scripts/scrape_library.py` reads Geelong Regional Libraries' **iCal** feed.
 Both RSS and iCal come off the same endpoint and differ only by `feedType` in a
@@ -1175,11 +1175,34 @@ base64 payload, and they are not equivalent — read the iCal:
   `nextDate` bug in a new hat, and nothing would have caught it.
 - **UID == the RSS guid**, so the ledger keys the same either way.
 
-**The `days` filter does nothing.** 1, 20 and 90 return the identical 500 items
-covering about 20 days; the server caps at 500. So the URL is a rolling window
-to poll, not a range to request — and because `days` is *relative* there is no
-date in it to expire. A Date-range tab in their UI does not reach the feed at
-all: setting one produces a byte-identical URL.
+**NO parameter reaches the server, and that is now measured rather than
+suspected.** Probed 31 Aug 2026: `days=1/20/90/365`, a `filters.startDate` /
+`endDate` pair, an `r=range`/`start`/`end` triple copied off the site's own UI,
+and `limit=2000` all return the **identical 500 items covering 21 days**.
+Unknown keys are ignored silently. So the URL is a rolling window to poll, not a
+range to request — and because `days` is *relative* there is no date in it to
+expire.
+
+**The page at `events.grlc.vic.gov.au/events?…` carries no events in its HTML at
+all.** It is **Communico** (`Server: Communico`, and
+`<meta name="apiserver" content="https://api.communico.co">` in its own head),
+drawing the list client-side. 70KB of nav chrome, no JSON-LD, no feed `<link>`.
+So the `r=range&start=&end=` in a URL Scott pastes is widget state that never
+reaches the feed, and there is no scraping route that does not use a browser.
+
+**robots.txt on that host allows this** — it disallows only `/results*` and
+names no AI crawler, so a Claude session may read it directly. Not Humanitix,
+not Coast & Bay.
+
+**The only route past 500 is Communico's own API at `api.communico.co`**, which
+needs OAuth client credentials the library's own Communico admin can issue. A
+draft email asking for them was written 31 Aug 2026. Until then the answer is
+cadence, not cleverness.
+
+**Careful parsing the feed's span.** A naive `DTSTART` regex over the whole file
+reports 4 Apr → 3 Oct, which looks like a six-month window and is not: those are
+the `VTIMEZONE` block's daylight-saving transition dates. Split on `BEGIN:VEVENT`
+first. The real answer is 21 days.
 
 **`kids` was added to the vocabulary first, deliberately.** 215 of the 500 are
 story times, and retyping them afterwards is more work than typing them right on
@@ -1203,8 +1226,102 @@ UIDs already in `events` (they are in each `source_note`), writes in batches of
 what a title actually says. That is the same choice `scrape_events.py` makes for
 the feed's 'Sport' category — a person sorts them, nothing is invented.
 
-It is **not on the schedule yet**. `.github/workflows/events.yml` runs the other
-two scrapers; adding this one is a step nobody has taken.
+### One weekly session is ONE row — 31 Aug 2026
+
+**The repeats were what spent the cap.** Measured on the live feed: 500
+occurrences are only **250 real series**, 119 weekly and 5 fortnightly, and 376
+of the occurrences belong to something that repeats. Collapsing them is what
+stops the cap being the constraint — and it is also just true, because "Toddler
+Time, Torquay, Tuesdays 10:30" is one thing, not seventy-two.
+
+`series_of()` groups on **title + branch + weekday + clock time**. The `skey` is
+a 12-char sha1 of those four, derived rather than stored twice; the UID cannot
+do this job because every occurrence has its own.
+
+**The classification is deliberately conservative:**
+
+    weekly       >= 3 occurrences, every gap exactly 7 days
+    fortnightly  >= 2 occurrences, every gap exactly 14
+    anything else -> separate dated one-offs, exactly as before
+
+Two occurrences seven days apart could be a coincidence, so weekly needs three;
+six series in the live window show exactly that and stay one-offs, and the run
+prints how many.
+
+**The 21-day window is exactly big enough to prove weekly and fortnightly and
+nothing more — which is exactly the two `nextDate()` will roll.** A monthly
+appears once and is indistinguishable from a one-off, so it stays a dated
+one-off. That alignment is luck, but it means the honest reading of the data and
+the safe one are the same reading.
+
+**It shipped without a migration, on purpose.** A feed series counts as already
+present if its `series <hex>` **or any member UID** is in the database, so the
+500 rows imported one-per-occurrence suppress the insert and nothing duplicates.
+`read_rows()` reads both keys because two generations of row exist.
+
+**`--collapse` folds the old rows, and it uses the FEED to decide.** The feed
+knows which UIDs belong together, so nothing has to be guessed back out of a
+name and a time string — which is what a migration reading only the rows would
+have to do. Dry run by default. **It refuses to delete a verified row without
+`--force`, and all 500 grlc rows are verified** (the queue was accepted in bulk
+on 25 Aug), so that refusal always fires. That is the point at which somebody
+reads the list. As at 31 Aug 2026 it plans **122 series folded, 215 rows
+deleted** — NOT YET RUN, it is Scott's call.
+
+**A series the feed stops carrying is REPORTED, never stood down
+automatically.** A weekly row rolls forward for ever, so a session that quietly
+ends — a school term finishing — would keep being promised. But telling that
+from a fortnight off over the holidays is a judgement, so the run lists the
+candidates and `--expire` acts. It sets `recurrence` to `none` and **leaves the
+date alone**, so the row ages out of the board by itself: reversible, and it
+deletes nothing. It refuses to run on a read of under 100 events, because a thin
+feed would stand down series that are running perfectly well. It is deliberately
+**not** on the schedule.
+
+**Each run repoints a standing row's `info_url` at its next occurrence** and
+restamps `Last seen`, because a series row's link is one occurrence's page and
+that occurrence passes. **ONLY those two fields, on rows `added_by='grlc'`.**
+The name, the date, the time, the types and the place are where a person's
+judgement lives, and a scraper overwriting those is what this project refuses to
+do to a verified row.
+
+**It does NOT cluster.** That is the front end's job and it already works: the
+board merges same name + same **effective** date + same time across places into
+one line saying *5 libraries*. Keying on the effective date rather than
+`starts_on` is exactly what makes a rolled weekly still cluster — the two
+mechanisms were built for each other. 22 series in the live window share a name,
+weekday and time across branches (Toddler Time, Mon 10:30, five branches).
+
+### On the Mon/Thu schedule since 31 Aug 2026
+
+`.github/workflows/events.yml` runs it third, so the **Run the scrapers now**
+button covers it too. `--write` only; never `--expire`.
+
+**Twice a week is the cadence and here is the arithmetic.** The horizon is
+always about today + 20, so with a run every N days nothing is missed while
+N < 21, and the **minimum lead time on any event is 21 − N days**. Mon + Thu is
+17–18 days' lead; weekly is 14; fortnightly is 7 and has no margin for the
+scheduled run GitHub has already dropped once. It is free either way — the
+importer is idempotent against the database, so a run with nothing new writes
+nothing.
+
+**Do not set the cadence at the edge of 21 days.** That number is
+500 ÷ events-per-day, not a constant. A school-holiday program doubles the daily
+count and halves the horizon with nothing announcing it.
+
+`run_log.py` gained `read_library`. **Its state is set in that function rather
+than through `source_state()`**, which defaults to success — the rule this file
+already records, kept this time. There is no drift branch, because nothing here
+rewrites a date.
+
+**The `AGGREGATORS` note said "NOT on the schedule yet"**, which the Runs column
+would have printed as a visible lie the moment the cron landed — the same stale
+prose that caught Eventbrite and Coast & Bay. Updated in the same commit.
+
+**`scrape_library.py` never called `E.load_env()`.** It only ever ran where
+`SUPABASE_*` was already exported, so a plain terminal run died on "Set
+SUPABASE_URL". `scrape_events.py` and `scrape_venues.py` both do it in their own
+`main()`. Fixed.
 
 ## Moshtix, and the Festival blind spot it exposed
 
