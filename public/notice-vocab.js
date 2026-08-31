@@ -168,7 +168,7 @@ const ICON_OF={
   'at-home':'house',
   bakery:'croissant',
   bar:'martini',
-  beach:'umbrella',
+  beach:'parasol',
   brewery:'hop',
   cafe:'coffee',
   'camping ground':'tent',
