@@ -7,14 +7,25 @@
 -- Anglesea Bakery, a surf school and Backyard Cricket. `kind` is the fact
 -- that was missing.
 --
---   place   spot       no door, no hours, nobody owns it
---           venue      a door, hours, a price
---           shop       a door, hours, and it is here so a type page has
---                      somewhere to buy the gear
---   people  group      you join in
---           maker      you buy from them
---   time    happening  it has a date
---   idea    idea       no anchor of any kind
+--   FAMILY  KIND         COUNT                 WHAT IT IS
+--   place   spot           178   no door, no hours, nobody owns it
+--           venue          287   a door, hours, a price
+--           shop            15   a door, hours, and it is here so a type page
+--                                has somewhere to buy the gear
+--   people  group           22   you join in
+--           maker            6   you buy from them
+--   time    happening      491   it has a date
+--   idea    idea            57   no anchor of any kind
+--                        -----
+--                         1056   listings in total
+--
+-- Counts read from the live database 31 Aug 2026, and they MOVE — shop and
+-- maker were both 0 when this file was written four days earlier, and the
+-- happening count halved the same morning as a session pruned library story
+-- times. Re-count before quoting; do not trust the numbers above as current.
+--
+--   select coalesce(kind,'unset') k, count(*) from activities group by 1
+--   union all select 'happening', count(*) from events;
 --
 -- SHOP IS ITS OWN KIND, decided 27 Aug 2026 after being tried as a flag on
 -- venue. It shares every property with venue — a door, hours, a pin, it can

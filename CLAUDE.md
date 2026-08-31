@@ -143,7 +143,16 @@ said yesterday — Scott asked for the recategorisation without the dropdown
 change. And `places` has not been merged into the listings tables, which is the
 destructive half and the one that fixes the 32 duplicates.
 
+    27 Aug 2026, at the migration:
     venue 215   spot 145   idea 57   group 21   happening 150   shop 0   maker 0
+
+    31 Aug 2026, read from the live database — 1056 listings:
+    venue 287   spot 178   idea 57   group 22   happening 491   shop 15  maker 6
+
+**Those numbers move, and the ones in this file go stale within days.** Shop and
+maker were 0 above and are 15 and 6 four days later; happening went 706 → 491 in
+one morning as a session pruned library story times. `supabase/KINDS.sql` now
+carries the query — re-count rather than quoting either row.
 
 Shop and maker being empty is correct, not a bug: they are what Scott is about
 to add, and the kinds exist so there is somewhere for them to go.
