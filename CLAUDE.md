@@ -1714,6 +1714,33 @@ including a new year.
 to 6px vertically and leaves it 2px across. `H` and the CSS height move together,
 and `.ylab` is `H - PADT - PADB` or the labels stop tracking the gridlines.
 
+### A second axis, and a switch for the library
+
+Two asks, 31 Aug 2026, and they turn out to be the same problem: **500 of the
+706 events are library story times**, so they set the shape of every line and
+everything else hides underneath.
+
+**The library switch is the more useful of the two.** With it excluded the
+window goes **662 → 162 listings** and the daily lines become readable. The
+number that survives the flip is the one worth knowing: *added by hand* stays
+at **55 either way**, which is the proof that the library import is entirely
+automated and that the hand-built calendar is a sixth of what is on the board.
+
+**Running total gets its own axis on the right**, because a cumulative line
+reaches the high hundreds while a day peaks around forty — on one scale the
+daily lines flatten into noise. It is drawn dashed and with no area fill, and
+its axis is labelled in its own colour, or the reader has no way to tell which
+line to read against which numbers. It is **off by default**: two scales is a
+thing you ask for, not something to be handed.
+
+`PADR` widens from 8 to 40 only when a right-axis series is showing, so the plot
+does not permanently reserve space for a line that is usually hidden.
+
+**`peak` became `peakL`/`peakR` and one reference was missed** — `gridAt` still
+said `peak`, which threw at runtime and rendered no cards at all. A rename
+inside one function is exactly as silent as a type rename across five files;
+grep the old name before believing it is done.
+
 ### Three mistakes in one restructure, all the same shape
 
 Worth writing down together, because they are one habit:

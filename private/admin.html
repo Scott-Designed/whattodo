@@ -117,6 +117,7 @@ a.pill{text-decoration:none;line-height:1}
 .chartbox{position:relative;padding:0 0 20px 0;border:1px solid var(--rule2);
   border-radius:12px;background:var(--surface)}
 .chartsvg{display:block;width:100%;height:504px}
+.ylab.right{left:auto;right:8px;text-align:right}
 .ylab{position:absolute;left:6px;top:8px;height:472px;display:flex;
   flex-direction:column;justify-content:space-between;font-size:10px;color:var(--ink3)}
 .xlab{position:relative;height:14px;margin-top:-6px}
@@ -2405,9 +2406,17 @@ const SERIES = [
   {k:'all',   t:'Events on',      c:'var(--accent)', s:'listings in this window'},
   {k:'auto',  t:'From automations', c:'#6E8BD6',     s:'a scraper brought it in'},
   {k:'hand',  t:'Added by hand',  c:'#C8776A',       s:'somebody typed it'},
+  // Its own axis on the right: a running total reaches the high hundreds while
+  // a day peaks around forty, so on one scale the daily lines flatten to noise.
+  {k:'total', t:'Running total',  c:'#7FB08A',       s:'adding up across the window',
+   axis:'right'},
 ];
 const AUTO_BY = ['grlc', 'surfcoastevents', 'venue-feed'];
-let CHART = {on: {all: true, auto: true, hand: true}, days: 90};
+const LIBRARY = 'grlc';
+// 500 of 706 events are library story times, so they set the shape of every
+// line and everything else hides under them. The switch is the only way to see
+// the rest of the calendar.
+let CHART = {on: {all: true, auto: true, hand: true, total: false}, days: 90, library: true};
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const dow = iso => {
@@ -2431,13 +2440,14 @@ function chartData(){
   }
   const idx = Object.fromEntries(days.map((d, i) => [d, i]));
   const zero = () => new Array(days.length).fill(0);
-  const out = {all: zero(), auto: zero(), hand: zero()};
+  const out = {all: zero(), auto: zero(), hand: zero(), total: zero()};
   // Counted separately, because they are different facts and putting the wrong
   // one on the card makes it look broken: the CHART is event-days (a festival
   // is on every day it runs) while the CARD is listings, which is what the
   // tiles below and the Events tab mean by an event.
-  const seen = {all: new Set(), auto: new Set(), hand: new Set()};
+  const seen = {all: new Set(), auto: new Set(), hand: new Set(), total: new Set()};
   for (const e of DATA.events){
+    if (!CHART.library && e.added_by === LIBRARY) continue;
     // A run of days for anything spanning them, so a festival is not one spike.
     const from = e.starts_on, to = e.ends_on || e.starts_on;
     if (!from || to < days[0] || from > days[days.length - 1]) continue;
@@ -2451,6 +2461,11 @@ function chartData(){
       d = nx.toISOString().slice(0, 10);
     }
   }
+  // The total is the daily count accumulating left to right, so the line
+  // answers "how much of the window have we covered by this date".
+  let run = 0;
+  out.total = out.all.map(v => (run += v));
+  seen.total = seen.all;
   return {days, out, seen, todayAt: days.indexOf(TODAY)};
 }
 
@@ -2458,17 +2473,28 @@ function drawChart(){
   const {days, out, seen, todayAt} = chartData();
   const W = 1000, H = 504, PADL = 34, PADB = 22, PADT = 10;
   const shown = SERIES.filter(s => CHART.on[s.k]);
-  const peak = Math.max(1, ...shown.flatMap(s => out[s.k]));
-  const x = i => PADL + (i / Math.max(1, days.length - 1)) * (W - PADL - 8);
-  const y = v => PADT + (1 - v / peak) * (H - PADT - PADB);
+  const PADR = shown.some(s => s.axis === 'right') ? 40 : 8;
+  // Two scales, because the two questions have different units: a day's count
+  // and a running total. Each is drawn against its own peak, and each axis is
+  // labelled in the colour of what it measures, or the reader has no way to
+  // know which line to read against which numbers.
+  const left  = shown.filter(s => s.axis !== 'right');
+  const right = shown.filter(s => s.axis === 'right');
+  const peakL = Math.max(1, ...left.flatMap(s => out[s.k]));
+  const peakR = Math.max(1, ...right.flatMap(s => out[s.k]));
+  const x = i => PADL + (i / Math.max(1, days.length - 1)) * (W - PADL - PADR);
+  const yOn = (v, p) => PADT + (1 - v / p) * (H - PADT - PADB);
+  const y  = v => yOn(v, peakL);
+  const yOf = s => v => yOn(v, s.axis === 'right' ? peakR : peakL);
 
-  const line = k => out[k].map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
-  const area = k => line(k) + `L${x(days.length - 1).toFixed(1)},${y(0)}L${x(0).toFixed(1)},${y(0)}Z`;
+  const line = s => out[s.k].map((v, i) =>
+    `${i ? 'L' : 'M'}${x(i).toFixed(1)},${yOf(s)(v).toFixed(1)}`).join('');
+  const area = s => line(s) + `L${x(days.length - 1).toFixed(1)},${yOf(s)(0)}L${x(0).toFixed(1)},${yOf(s)(0)}Z`;
 
   // A tick a fortnight apart keeps the axis readable at 30, 90 or 180 days.
   const every = Math.max(1, Math.round(days.length / 6));
   const ticks = days.map((d, i) => ({d, i})).filter(({i}) => i % every === 0);
-  const gridAt = [0, .5, 1].map(f => Math.round(peak * f));
+  const gridAt = [0, .5, 1].map(f => Math.round(peakL * f));
 
   $('#chart').innerHTML = `
     <div class="cardrow">${SERIES.map(s => {
@@ -2486,15 +2512,21 @@ function drawChart(){
         <div class="tilet" style="margin:0 0 8px">Window</div>
         ${[30, 90, 180].map(d => `<button class="chip${CHART.days === d ? ' on' : ''}"
              data-days="${d}">${d}d</button>`).join('')}
+        <div class="tilet" style="margin:12px 0 8px">Library</div>
+        <button class="chip${CHART.library ? ' on' : ''}" data-lib="1"
+          title="500 of the 706 events are library story times. With them in, they set the shape of every line and everything else hides underneath.">${
+          CHART.library ? 'included' : 'excluded'}</button>
       </div>
     </div>
 
     <div class="chartbox">
       <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="chartsvg">
-        ${gridAt.map(v => `<line x1="${PADL}" x2="${W - 8}" y1="${y(v)}" y2="${y(v)}"
+        ${gridAt.map(v => `<line x1="${PADL}" x2="${W - PADR}" y1="${y(v)}" y2="${y(v)}"
             stroke="var(--rule2)" stroke-width="1" stroke-dasharray="2 4"/>`).join('')}
-        ${shown.map(s => `<path d="${area(s.k)}" fill="${s.c}" opacity=".10"/>
-             <path d="${line(s.k)}" fill="none" stroke="${s.c}" stroke-width="2"
+        ${shown.map(s => `${s.axis === 'right' ? '' :
+               `<path d="${area(s)}" fill="${s.c}" opacity=".10"/>`}
+             <path d="${line(s)}" fill="none" stroke="${s.c}" stroke-width="2"
+                   ${s.axis === 'right' ? 'stroke-dasharray="5 3"' : ''}
                    stroke-linejoin="round" stroke-linecap="round"/>`).join('')}
         ${todayAt >= 0 ? `<line x1="${x(todayAt)}" x2="${x(todayAt)}" y1="${PADT}"
              y2="${y(0)}" stroke="var(--ink3)" stroke-width="1.5" stroke-dasharray="4 4"/>
@@ -2506,6 +2538,8 @@ function drawChart(){
       <div class="hitbox"></div>
       <div class="ylab">${gridAt.slice().reverse().map(v =>
         `<span>${v}</span>`).join('')}</div>
+      ${right.length ? `<div class="ylab right" style="color:${right[0].c}">${
+        [1, .5, 0].map(fr => `<span>${Math.round(peakR * fr)}</span>`).join('')}</div>` : ''}
       <div class="xlab">${ticks.map(({d, i}) =>
         `<span style="left:${(x(i) / W * 100).toFixed(2)}%">${esc(dmy(d).replace(/ \d{4}$/, ''))}</span>`).join('')}</div>
     </div>
@@ -2529,7 +2563,7 @@ function drawChart(){
     guide.hidden = false; guide.style.left = left + 'px';
     tip.hidden = false;
     tip.innerHTML = `<b>${esc(dow(days[i]))}, ${esc(dmy(days[i]))}</b>` + shown.map(s =>
-      `<span><i style="background:${s.c}"></i>${esc(s.t)} <b>${out[s.k][i]}</b></span>`).join('');
+      `<span><i style="background:${s.c}"></i>${esc(s.t)} <b>${out[s.k][i].toLocaleString()}</b></span>`).join('');
     // Flip before it runs off the right edge rather than after.
     const w = tip.offsetWidth;
     tip.style.left = Math.min(Math.max(6, left + 12), r.width - w - 6) + 'px';
@@ -2545,6 +2579,9 @@ function drawChart(){
   $('#chart').querySelectorAll('[data-days]').forEach(b => b.onclick = () => {
     CHART.days = +b.dataset.days; drawChart();
   });
+  $('#chart').querySelector('[data-lib]').onclick = () => {
+    CHART.library = !CHART.library; drawChart();
+  };
 }
 
 function drawHome(){
