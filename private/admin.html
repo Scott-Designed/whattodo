@@ -364,6 +364,13 @@ td .rowflags span{border:none;padding:0;text-transform:none;letter-spacing:0;
 .fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
 .f-wide{grid-column:1/-1}
 .checks{display:flex;flex-wrap:wrap;gap:3px 14px}
+/* 42 types in a flex wrap is a ragged block you read like prose. Three columns
+   filled DOWN then across is the phone-book shape — you land on the letter
+   instead of scanning every row. Not `.checks`, which is also worn by a single
+   inline label (the verified box) that columns would break. */
+.ticks{columns:3;column-gap:22px}
+.ticks label{break-inside:avoid;font-size:12.5px;color:var(--ink2);
+  display:flex;align-items:center;gap:5px;padding:1.5px 0}
 .checks label{font-size:12.5px;color:var(--ink2);display:flex;align-items:center;gap:5px}
 .drawerbar{position:sticky;bottom:0;background:var(--ground);border-top:1px solid var(--rule2);
   padding:14px 0 0;margin-top:24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -733,7 +740,7 @@ const FIELDS = {
     {f:'name', kind:'text', wide:1},
     {f:'kind', kind:'select', vocab:'kinds',
      hint:'what the row IS \u2014 shop, maker and group are off the board'},
-    {f:'types', kind:'multi', vocab:'types', wide:1, hint:'first one ticked is the primary \u2014 the word the row prints'},
+    {f:'types', kind:'multi', vocab:'types', wide:1, primary:1, hint:'primary is '},
     {f:'location', kind:'text'}, {f:'km', kind:'num', step:'0.1', hint:'driving km from Jan Juc · 0 means here · empty means nowhere to measure'},
     {f:'cost', kind:'select', opts:['Free','Cheap','Moderate','Splurge']},
     {f:'duration', kind:'text'}, {f:'daypart', kind:'select', opts:['day','night','both']},
@@ -750,7 +757,7 @@ const FIELDS = {
   ],
   events: [
     {f:'name', kind:'text', wide:1},
-    {f:'types', kind:'multi', vocab:'types', wide:1, hint:'first one ticked is the primary \u2014 the word the row prints'},
+    {f:'types', kind:'multi', vocab:'types', wide:1, primary:1, hint:'primary is '},
     {f:'starts_on', kind:'date'}, {f:'ends_on', kind:'date'},
     {f:'time_text', kind:'text'},
     {f:'recurrence', kind:'select', opts:['none','weekly','fortnightly','monthly','annual']},
@@ -1916,31 +1923,61 @@ function drawActivities(){
   $('#t-activities').textContent = DATA.activities.length;
   if (!out.length){ $('#alist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
 
+  /* The Listings tabs each pick one kind, so a Kind column on them says
+     "venue" 315 times — the badge-that-repeats-its-own-row rule, as a whole
+     column. It earns its place only on the unfiltered view the dashboard
+     tile lands you on. */
+  const showKind = !AFILTER.kind;
+  /* An Idea is the kind defined as having no anchor of any kind, so it can
+     never carry a place_id nor host a happening. On that tab these two are a
+     question with no possible answer, which is worse than a blank column. */
+  const showPlace = AFILTER.kind !== 'idea';
   $('#alist').innerHTML = `<table><thead><tr>
-      <th>Name</th><th>Kind</th><th>Type</th><th>Where</th><th>Km</th><th>Pinned</th><th>Cost</th><th>To fix</th><th></th>
+      <th>Name</th>${showKind ? '<th>Kind</th>' : ''}<th>Type</th><th>Where</th>
+${showPlace ? '<th>Location</th><th>Events</th>' : ''}<th>Km</th><th>Pinned</th><th>Cost</th><th>To fix</th><th></th>
     </tr></thead><tbody>${out.map(r => `
       <tr class="clickable" data-id="${r.id}">
-        <td><div class="rowname">${esc(r.name)}</div>
-            </td>
-        <td>${r.kind ? esc(r.kind) : '<span style="color:var(--ink3)">—</span>'}</td>
-        <td>${esc((r.types || []).join(' · ') || '—')}</td>
-        <td>${esc(r.location || '—')}</td>
+        <td class="cap wide" title="${esc(r.name)}"><div class="rowname">${esc(r.name)}</div></td>
+        ${showKind ? `<td>${r.kind ? esc(r.kind) : '<span style="color:var(--ink3)">—</span>'}</td>` : ''}
+        <td class="cap" title="${esc((r.types || []).join(' · '))}">${esc((r.types || []).join(' · ') || '—')}</td>
+        <td class="cap wide" title="${esc(r.location || '')}">${esc(r.location || '—')}</td>
+        ${!showPlace ? '' : `<td class="cap" style="max-width:16ch">${(() => {
+             /* Which `places` row this listing is linked to — the only route
+                by which a listing can have events at all, since an event
+                points at a place and never at an activity. A listing carrying
+                its own lat/lng instead is not wrong, but it can never show
+                what is on there. */
+             const pl = r.place_id ? DATA.places.find(x => x.id === r.place_id) : null;
+             return pl
+               ? `<a href="#" class="placelink" data-place="${pl.id}"
+                     title="${esc(pl.name)}">${esc(pl.name)}</a>`
+               : '<span style="color:var(--ink3)">—</span>';
+           })()}</td>
+        <td style="white-space:nowrap"${r.place_id ? '' :
+             ' title="not linked to a Location, so nothing can be attached to it"'
+           }>${eventsCell(r.place_id)}</td>`}
         <td>${r.km === null || r.km === undefined ? '<span style="color:var(--ink3)">—</span>' : esc(r.km)}</td>
         <td>${!r.lat || !r.lng ? '<span class="tag">no</span>'
              : (coarse(r.lat) || coarse(r.lng)) ? '<span class="tag warn">coarse</span>'
              : '<span class="tag live">yes</span>'}</td>
         <td>${esc(r.cost || '—')}</td>
-        <td style="color:var(--ink3);white-space:nowrap">${(() => {
+        <td class="cap" style="color:var(--ink3)">${(() => {
              // What is left to do with this row, as words in a column. The two
              // that repeat Pinned and Km are not among them.
              const show = r.__flags.filter(f =>
                !['no pin','coarse pin'].includes(f));
-             return show.length ? esc(show.join(', ')) : '';
+             return show.length ? `<span title="${esc(show.join(', '))}">${esc(show.join(', '))}</span>` : '';
            })()}</td>
         <td style="text-align:right;color:var(--ink3);white-space:nowrap">edit →</td>
       </tr>`).join('')}</tbody></table>`;
   $('#alist').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
     openEditor('activities', DATA.activities.find(x => x.id === +tr.dataset.id)));
+  // Inside a clickable row, so it has to stop the row's own handler or both
+  // editors would open, the activity's on top.
+  $('#alist').querySelectorAll('a.placelink').forEach(a => a.onclick = e => {
+    e.preventDefault(); e.stopPropagation();
+    openEditor('places', DATA.places.find(x => x.id === +a.dataset.place));
+  });
 }
 
 /* `ago` stops at days, which is right for a run and useless for a venue: the
@@ -1991,6 +2028,41 @@ function feedOf(placeId){
   const agg = sourceRows().find(r => r.kind === 'aggregator'
                                   && r.name === FEED_NAME[best].agg);
   return {label: FEED_NAME[best].label, n: by[best], read: agg?.read || null};
+}
+
+/* ── what is on at a place ─────────────────────────────────────────────────
+   An event that started before today but has not ended is on NOW; one that
+   repeats is never past. Three states, counted once.
+
+   This was inline in drawPlaces until the Listings tables needed the identical
+   answer. Two copies of a rule about dates drift the first time either is
+   touched — the automationCell() lesson, one table along. */
+const evState = e => {
+  if (!e.starts_on) return 'up';
+  const end = e.ends_on || e.starts_on;
+  if (e.recurrence && e.recurrence !== 'none') return 'up';
+  if (end < TODAY) return 'past';
+  if (e.starts_on <= TODAY) return 'now';
+  return 'up';
+};
+
+/* Upcoming · on today · past, for whatever is attached to this place.
+   `unlinked` is what to say when there is no place to ask about, and the two
+   tables mean different things by an empty cell: a place with no events HAS
+   none, while a listing with no place_id cannot be asked the question at all.
+   A dash in the second case would read as "no events", which is a different
+   statement and an untrue one. */
+function eventsCell(placeId, unlinked = '\u2014'){
+  if (!placeId) return `<span style="color:var(--ink3)">${esc(unlinked)}</span>`;
+  const ev = DATA.events.filter(e => e.place_id === placeId);
+  if (!ev.length) return '<span style="color:var(--ink3)">\u2014</span>';
+  const n = s => ev.filter(e => evState(e) === s).length;
+  const up = n('up'), now = n('now'), past = n('past');
+  return `<span class="evs"
+    ><span class="ev-up${up ? '' : ' zero'}" title="${up} upcoming">${up}</span
+    ><span class="ev-now${now ? '' : ' zero'}" title="${now} on today">${now}</span
+    ><span class="ev-past${past ? '' : ' zero'}" title="${past} past">${past}</span
+    ></span>`;
 }
 
 /* The Automation cell, shared by the Places and Groups tabs. It was inline
@@ -2211,24 +2283,11 @@ function drawPlaces(){
       const s  = srcByName[p.name] || {};
       const st = SRC_STATE[s.state] || null;
       const ev = DATA.events.filter(e => e.place_id === p.id);
-      // An event that started before today but has not ended is on NOW; one
-      // that repeats is never past. Three states, counted once.
-      const state = e => {
-        if (!e.starts_on) return 'up';
-        const end = e.ends_on || e.starts_on;
-        if (e.recurrence && e.recurrence !== 'none') return 'up';
-        if (end < TODAY) return 'past';
-        if (e.starts_on <= TODAY) return 'now';
-        return 'up';
-      };
       // When anything was last attached to this venue — an event or a listing.
       // A venue changes slowly, so silence is the signal this table is for.
       const stamps = [...ev, ...DATA.activities.filter(a => a.place_id === p.id)]
         .map(x => x.created_at).filter(Boolean).sort();
       const lastAdded = stamps[stamps.length - 1] || null;
-      const up   = ev.filter(e => state(e) === 'up').length;
-      const now  = ev.filter(e => state(e) === 'now').length;
-      const past = ev.filter(e => state(e) === 'past').length;
       return `<tr class="clickable" data-id="${p.id}">
         <td><div class="rowname">${esc(p.name)}</div>
 </td>
@@ -2256,11 +2315,7 @@ function drawPlaces(){
                   title="${esc(u)}">${esc(urlStub(u, 18))}</a>`
                 : '<span style="color:var(--ink3)">—</span>';
            })()}</td>
-        <td>${ev.length ? `<span class="evs"
-              ><span class="ev-up${up ? '' : ' zero'}" title="${up} upcoming">${up}</span
-              ><span class="ev-now${now ? '' : ' zero'}" title="${now} on today">${now}</span
-              ><span class="ev-past${past ? '' : ' zero'}" title="${past} past">${past}</span
-              ></span>` : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td>${eventsCell(p.id)}</td>
         <td>${!p.lat || !p.lng ? '<span class="tag">no</span>'
              : (coarse(p.lat) || coarse(p.lng)) ? '<span class="tag warn">coarse</span>'
              : '<span class="tag live">yes</span>'}</td>
@@ -2274,11 +2329,46 @@ function drawPlaces(){
 /* ── the editor ────────────────────────────────────────────────────────────*/
 let OPEN = null;
 
+/* ── the order of a multi is the data ──────────────────────────────────────
+   `types[0]` is the primary. Reading the ticks back in DOM order therefore
+   REWRITES the primary of any row whose stored order differs from the order the
+   boxes happen to sit in — measured 31 Aug 2026 against the live database:
+   215 of the 315 multi-type rows would be re-ordered and 212 would print a
+   different word, just from opening them and saving an unrelated field.
+   `Geelong Arts Centre`, corrected to `theatre · art gallery` that same day,
+   flipped straight back to `art gallery`.
+
+   So the order lives here instead: seeded from the row, a new tick goes on the
+   END, an untick drops out, and nothing moves on its own. Ticking is therefore
+   also how you change the primary — untick the ones above it and tick them
+   again, and they go behind. */
+let PICKED = {};
+
+function wireMulti(){
+  document.querySelectorAll('[data-multi]').forEach(box => {
+    const f = box.dataset.multi;
+    box.onchange = e => {
+      const t = e.target;
+      if (!t || t.type !== 'checkbox') return;
+      const list = PICKED[f] || (PICKED[f] = []);
+      const at = list.indexOf(t.value);
+      if (t.checked){ if (at < 0) list.push(t.value); }
+      else if (at >= 0) list.splice(at, 1);
+      const lab = box.parentElement.querySelector('.primary-now');
+      if (lab) lab.textContent = list[0] || 'nothing ticked';
+    };
+  });
+}
+
 function control(spec, row){
   const v = row[spec.f];
   const id = 'f-' + spec.f;
   const lab = `<label class="fieldlab" for="${id}">${esc(spec.f.replace(/_/g,' '))}</label>`;
-  const hint = spec.hint ? `<div style="color:var(--ink3);font-size:11px;margin-top:3px">${esc(spec.hint)}</div>` : '';
+  /* The boxes are alphabetical now, so the tick order is no longer visible in
+     the list — which makes NAMING the primary the only way to see it. */
+  const hint = spec.hint ? `<div style="color:var(--ink3);font-size:11px;margin-top:3px">${
+      esc(spec.hint)}${spec.primary ? `<b class="primary-now" style="color:var(--ink2);font-weight:500">${
+        esc((row[spec.f] || [])[0] || 'nothing ticked')}</b> — the word the row prints, and its icon` : ''}</div>` : '';
   let input;
   if (spec.kind === 'area')
     input = `<textarea id="${id}" rows="3">${esc(v ?? '')}</textarea>`;
@@ -2286,7 +2376,14 @@ function control(spec, row){
     input = `<label class="checks" style="gap:7px"><input type="checkbox" id="${id}" ${v?'checked':''}> marked verified</label>`;
   else if (spec.kind === 'multi'){
     const has = new Set(v || []);
-    input = `<div class="checks" id="${id}">${DATA[spec.vocab].map(o =>
+    /* The ORDER of a multi is data, not presentation — types[0] is the primary:
+       the word the row prints, the icon it draws, the colour it tints. So the
+       picked order is held in PICKED and seeded from the row, and the boxes are
+       free to sit in whatever order reads best. Alphabetical, because a
+       vocabulary ordered by band is only scannable if you know the bands. */
+    PICKED[spec.f] = [...(v || [])];
+    const opts = [...DATA[spec.vocab]].sort((a, b) => a.name.localeCompare(b.name));
+    input = `<div class="ticks" id="${id}" data-multi="${esc(spec.f)}">${opts.map(o =>
       `<label><input type="checkbox" value="${esc(o.name)}" ${has.has(o.name)?'checked':''}> ${esc(o.name)}</label>`).join('')}</div>`;
   }
   else if (spec.kind === 'list')
@@ -2316,7 +2413,7 @@ function control(spec, row){
 function readControl(spec){
   const el = document.getElementById('f-' + spec.f);
   if (spec.kind === 'bool')  return el.checked;
-  if (spec.kind === 'multi') return [...el.querySelectorAll('input:checked')].map(i => i.value);
+  if (spec.kind === 'multi') return [...(PICKED[spec.f] || [])];
   if (spec.kind === 'list')  return el.value.split(',').map(s => s.trim()).filter(Boolean);
   const v = el.value;
   if (v === '') return null;
@@ -2408,6 +2505,7 @@ function openEditor(table, row){
     const ev = DATA.events.find(x => x.id === +a.dataset.ev);
     if (ev) openEditor('events', ev);
   });
+  wireMulti();
   $('#save').onclick = save;
   $('#del').onclick  = remove;
   if ($('#probe')){
