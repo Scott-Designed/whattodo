@@ -2345,11 +2345,43 @@ function automationPanel(row){
         >Test this source</button></span></p>` : ''}`;
 }
 
+/* What is actually on at this place. The Places table counts them; opening a
+   venue is the moment you want to see WHICH — Scott's ask, 31 Aug 2026, and the
+   obvious follow-on from a row that says "3 upcoming" and then hides them.
+
+   Sorted soonest first with the past below, because the question is nearly
+   always "what is coming up here" and only sometimes "has anything ever run".
+   Each name opens that event's own editor, so a wrong venue or a stale date is
+   one click from being fixed rather than a note to come back with. */
+function placeEvents(row){
+  const ev = DATA.events.filter(e => e.place_id === row.id);
+  const acts = DATA.activities.filter(a => a.place_id === row.id);
+  if (!ev.length && !acts.length)
+    return `<p class="dl"><b>What is on</b><span style="color:var(--ink3)"
+      >Nothing points at this place yet.</span></p>`;
+  const when = e => e.ends_on || e.starts_on || '';
+  const up = ev.filter(e => when(e) >= TODAY).sort((a,b) => when(a) < when(b) ? -1 : 1);
+  const past = ev.filter(e => when(e) < TODAY).sort((a,b) => when(a) > when(b) ? -1 : 1);
+  const line = e => `<a href="#" class="evlink" data-ev="${e.id}"
+        >${esc(e.name)}</a> <span style="color:var(--ink3)">${
+        e.starts_on ? esc(dmy(e.starts_on)) : 'no date'}${
+        e.time_text ? ' · ' + esc(String(e.time_text).slice(0, 22)) : ''}</span>`;
+  return `<p class="dl"><b>What is on</b><span>${
+      up.length ? up.map(line).join('<br>') :
+      '<span style="color:var(--ink3)">nothing upcoming</span>'}${
+      past.length ? `<br><span style="color:var(--ink3)">— ${past.length} past —</span><br>`
+        + past.slice(0, 5).map(line).join('<br>')
+        + (past.length > 5 ? `<br><span style="color:var(--ink3)">and ${past.length - 5} older</span>` : '')
+        : ''}</span></p>${
+      acts.length ? `<p class="dl"><b>Listings here</b><span>${
+        acts.map(a => esc(a.name)).join('<br>')}</span></p>` : ''}`;
+}
+
 function openEditor(table, row){
   if (!row) return;
   OPEN = {table, row};
   const specs = FIELDS[table];
-  const auto = table === 'places' ? automationPanel(row) : '';
+  const auto = table === 'places' ? automationPanel(row) + placeEvents(row) : '';
   $('#editor').innerHTML = `<div class="scrim"><div class="drawer">
     <header>
       <div class="sub">${esc(table)} · id ${row.id}</div>
@@ -2367,6 +2399,15 @@ function openEditor(table, row){
 
   $('#close').onclick = closeEditor;
   $('.scrim').onclick = e => { if (e.target === $('.scrim')) closeEditor(); };
+  // An event named in the What-is-on list opens its own editor, so a wrong
+  // venue or a stale date is one click from fixed rather than a note to come
+  // back with. querySelectorAll because there is no $$ helper in this file —
+  // the first version of this assumed one and the handler silently did nothing.
+  document.querySelectorAll('.evlink').forEach(a => a.onclick = e => {
+    e.preventDefault();
+    const ev = DATA.events.find(x => x.id === +a.dataset.ev);
+    if (ev) openEditor('events', ev);
+  });
   $('#save').onclick = save;
   $('#del').onclick  = remove;
   if ($('#probe')){
