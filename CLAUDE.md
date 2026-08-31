@@ -4012,7 +4012,25 @@ Existing rows this pass found wrong, all needing /admin:
   31 Aug 2026**, onto Nominatim's own named `tourism=camp_site` node for the
   park. Note the reverse lookup reads "Cumberland Track, Separation Creek" —
   that is the track the park sits on, not a different place.
-- **Eleven ocean rows have no coordinate**, and geocodes exist for most.
+- ~~**Eleven ocean rows have no coordinate**~~ **EIGHT PINNED 31 Aug 2026**;
+  ocean listings on the map went 70 → 78. Every one matched a named OSM feature,
+  none a street, and each `source_note` records what was actually matched —
+  because on four of them **the pin is the access, not the thing**: Ocean Grove
+  Main Beach is the surf life saving club, Portarlington is the pier deck (mapped
+  as `highway=service`, which is normal), Wye River is the foreshore camping
+  reserve, and Eastern Beach is the swimming enclosure itself. A later reader
+  should not mistake a car park for a beach centroid.
+
+  **Three stay null and each is a different refusal.** `Eastern View Beach` only
+  resolves as `type=administrative` — a suburb boundary, rejected on the standing
+  rule. `Barwon Heads River Beach` and `Indented Head Beach & Ozone Wreck` have no
+  named feature at all under any spelling tried.
+
+  **This turned up a new fault: listings 75 `Wye River Foreshore Camping` and 76
+  `BIG4 Wye River Holiday Park` share a pin that reverse-geocodes to Separation
+  Creek**, a different township about 3 km north, and it disagrees with the
+  reserve Nominatim names for Wye River. Two rows on one wrong coordinate is the
+  copy-paste signature. Not touched — flagged.
 - ~~**Listing 18 `Jan Juc Rockpools` has `season: ["low tide","any"]`**~~
   **FIXED 31 Aug 2026** — season is `["any"]` now. It was a conditions value in
   the season column and the row already carried `conditions: ["low-tide"]`, so
