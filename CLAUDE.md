@@ -1793,6 +1793,35 @@ The **Link** column uses `urlStub()`, the same helper the Events tab already
 had. Third invented identifier caught by grepping before shipping: `hostBit`
 did not exist.
 
+### Two dates on one row, and only one of them was showing
+
+Scott, 31 Aug 2026: *"Date column is wrong. Did a surfcoast events sync go
+through not long ago? it says 7 days ago."*
+
+The column was right and the row was misleading, which is worse. A venue fed by
+an aggregator carries **two different dates** and they answer different
+questions:
+
+- **when the feed last ran** — Surf Coast Events, 49 minutes ago
+- **when this venue last gained an event** — Aireys Inlet Community Hall, 24 Aug
+
+Both true. The hall's feed runs twice a week and has simply had nothing new for
+it since the 24th. But `feedOf()` shipped without the read time, so that branch
+printed no clock at all while every other branch printed one — leaving *last
+added 7 days ago* as the only date on the line, where it read as the sync date.
+
+The read time is looked up on the **aggregator row** from `sourceRows()` rather
+than stored a second time, so Automations and Places cannot disagree about when
+a source read.
+
+**Geelong Regional Libraries still shows no time, and that is correct** — it is
+on no schedule, so there is no run to name. A missing clock there is the honest
+answer, not a gap.
+
+The generalisable bit: **a row that shows one of two dates teaches the reader
+that it is the only one.** Adding a column was the right call; dropping the
+other date from the cell beside it undid half of that.
+
 ### A site-based aggregator has venues too — they are in its events
 
 Scott: *"geelong regional libraries should be considered an aggregator, it's an

@@ -1752,8 +1752,8 @@ let PFILTER = {q:'', kind:'', sort:'name', flag:'', state:'', showQuiet:false};
    TryBooking and Moshtix at once, so the run log's own `via` is the more
    specific answer and keeps the cell. */
 const FEED_NAME = {
-  grlc:            'library calendar feed',
-  surfcoastevents: 'Surf Coast Events',
+  grlc:            {label: 'library calendar feed', agg: 'Geelong Regional Libraries'},
+  surfcoastevents: {label: 'Surf Coast Events',     agg: 'Surf Coast Events'},
 };
 
 function feedOf(placeId){
@@ -1762,7 +1762,15 @@ function feedOf(placeId){
     if (e.place_id === placeId && FEED_NAME[e.added_by])
       by[e.added_by] = (by[e.added_by] || 0) + 1;
   const best = Object.keys(by).sort((a, b) => by[b] - by[a])[0];
-  return best ? {label: FEED_NAME[best], n: by[best]} : null;
+  if (!best) return null;
+  // The feed's own last run, looked up on the aggregator row rather than kept
+  // here — Automations and Places must not disagree about when a source read.
+  // Without it these rows showed no time at all, so the only date on the line
+  // was Last added, and a venue whose feed ran an hour ago but which has gained
+  // nothing since the 24th read as an automation that had not run in a week.
+  const agg = sourceRows().find(r => r.kind === 'aggregator'
+                                  && r.name === FEED_NAME[best].agg);
+  return {label: FEED_NAME[best].label, n: by[best], read: agg?.read || null};
 }
 
 /* The Automation cell, shared by the Places and Groups tabs. It was inline
@@ -1789,6 +1797,7 @@ function automationCell(p, s){
              if (feed)
                return icon('i-sync')
                     + `<span class="autopill"><span>✓</span>${esc(feed.label)}</span>`
+                    + (feed.read ? ` <span style="color:var(--ink3)">${esc(ago(feed.read))}</span>` : '')
                     + (mail ? ` ${icon('i-mail')}` : '');
              if (['read','skipped'].includes(s.state)){
                // The pill says what reads it — Oztix, Humanitix, its own gig
