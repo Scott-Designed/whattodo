@@ -4266,10 +4266,35 @@ programmed by Geelong Arts Centre, Shoestring Playhouse is a room in The MAC run
 by a theatre company — the schema can hold the right pin or the right feed, not
 both. `kind_legacy = 'organiser'` picks the pin and accepts the loss.
 
-**Still to apply: 36 new `places` rows** the pass researched — 26 from listings
-that can never hold an event, 10 from venues in neither table. The two biggest
-are **The Sphinx Hotel** (a dedicated Geelong showroom ticketing across four
-platforms, in no table at all) and **Beav's Bar** (named acts five nights a week).
+**All 36 were written 31 Aug 2026** (places 145–180), plus six gig pages
+registered on existing rows and four aliases. **The registry went 140 → 176
+places, and feeds a machine can read went 32 → 60.** The two biggest finds were
+**The Sphinx Hotel** — a dedicated Geelong showroom ticketing across four
+platforms, in no table at all — and **Beav's Bar**, named acts five nights a week.
+
+**Verify a URL with the fetcher that will actually read it.** Three checks
+disagreed on the same URLs and only one was right. `curl` returns 200 for
+`esplanadequeenscliff.com.au`; a hand-rolled `urllib` returns 403 for
+`surfcoast.vic.gov.au`; **`eventlib.fetch` — the function the scrapers use —
+reads the council page at 103k characters and gets nothing at all from the
+Esplanade**, whose TLS it cannot negotiate. Checking with curl would have
+registered a feed that fails silently every run; checking with plain urllib
+would have thrown away two working pages. A URL is only worth registering if the
+thing that will read it can read it.
+
+**A `website` and an `events_url` fail differently, so they are treated
+differently.** A website the scraper cannot read is still what a person clicks in
+the back office, and plenty of real sites block a bot — keep it. An `events_url`
+is a promise to a machine, so if the machine cannot read it, it must not be set:
+the row would otherwise show as an automated source that happens to always be
+quiet. The Esplanade keeps its website and has no feed.
+
+**The music log had The Sands Torquay as place 95; it is 71.** Caught because
+the update ran against the live table and 95 does not exist. Ids in a pass log
+are a snapshot, not a key.
+
+**No new shared `events_url` was introduced** — the only one in the table is the
+18 library branches, which the feed importer covers and this file already records.
 
 **Three traps recorded for whoever applies them**: never give two places the same
 `events_url` — `scrape_venues.py` sets `__shared_pin` and then returns nothing
