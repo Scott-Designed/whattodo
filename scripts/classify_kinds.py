@@ -174,6 +174,10 @@ BY_ID = {
   # The Event Inbox pull of 30 Aug 2026. Same shape every time: `types` says
   # what a row is ABOUT and the kind says what it IS.
   539: ('shop',  'a collectibles and record shop — `arts` is a placeholder type'),
+
+  # Scott, 31 Aug 2026. `surfing` is the subject, so the rules make this a spot;
+  # it is a hire and lesson counter on Bell Street, which is a shop.
+  576: ('shop',  'a surf hire and lesson counter — surfing is what it sells'),
   541: ('maker', 'a flower grower who stands at markets; no farm gate'),
   542: ('maker', 'a market garden with an Instagram bio and nothing else'),
   # `volunteering` makes a group, `nature` makes a spot, spot wins on

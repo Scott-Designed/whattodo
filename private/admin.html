@@ -614,7 +614,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
 const TODAY = new Date().toISOString().slice(0,10);
 
 let DATA = {activities:[], events:[], places:[], types:[], conditions:[],
-            place_kinds:[], place_offers:[], runs:[], log:[]};
+            kinds:[], place_kinds:[], place_offers:[], runs:[], log:[]};
 
 /* ── flags: the worklist ────────────────────────────────────────────────────
    Each one is a known way a row is unfinished, drawn from the standing list in
@@ -706,6 +706,8 @@ function placeFlags(p){
 const FIELDS = {
   activities: [
     {f:'name', kind:'text', wide:1},
+    {f:'kind', kind:'select', vocab:'kinds',
+     hint:'what the row IS \u2014 shop, maker and group are off the board'},
     {f:'types', kind:'multi', vocab:'types', wide:1, hint:'first one ticked is the primary \u2014 the word the row prints'},
     {f:'location', kind:'text'}, {f:'km', kind:'num', step:'0.1', hint:'driving km from Jan Juc · 0 means here · empty means nowhere to measure'},
     {f:'cost', kind:'select', opts:['Free','Cheap','Moderate','Splurge']},
@@ -1875,11 +1877,12 @@ function drawActivities(){
   if (!out.length){ $('#alist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
 
   $('#alist').innerHTML = `<table><thead><tr>
-      <th>Name</th><th>Type</th><th>Where</th><th>Km</th><th>Pinned</th><th>Cost</th><th>To fix</th><th></th>
+      <th>Name</th><th>Kind</th><th>Type</th><th>Where</th><th>Km</th><th>Pinned</th><th>Cost</th><th>To fix</th><th></th>
     </tr></thead><tbody>${out.map(r => `
       <tr class="clickable" data-id="${r.id}">
         <td><div class="rowname">${esc(r.name)}</div>
             </td>
+        <td>${r.kind ? esc(r.kind) : '<span style="color:var(--ink3)">—</span>'}</td>
         <td>${esc((r.types || []).join(' · ') || '—')}</td>
         <td>${esc(r.location || '—')}</td>
         <td>${r.km === null || r.km === undefined ? '<span style="color:var(--ink3)">—</span>' : esc(r.km)}</td>
@@ -2240,8 +2243,14 @@ function control(spec, row){
     if (spec.vocab === 'places')
       opts = DATA.places.slice().sort((a,b)=>a.name.localeCompare(b.name))
         .map(p => `<option value="${p.id}" ${v===p.id?'selected':''}>${esc(p.name)}${p.suburb?', '+esc(p.suburb):''}</option>`);
-    else if (spec.vocab)
-      opts = DATA[spec.vocab].map(o => `<option ${v===o.name?'selected':''}>${esc(o.name)}</option>`);
+    else if (spec.vocab) {
+      // `happening` is what an event IS, so it is never a value an activity can
+      // take — api/admin.mjs refuses it by name. Offering it would be a row in
+      // the menu whose only outcome is a validation error.
+      const vocab = spec.vocab === 'kinds'
+        ? DATA.kinds.filter(o => o.name !== 'happening') : DATA[spec.vocab];
+      opts = vocab.map(o => `<option ${v===o.name?'selected':''}>${esc(o.name)}</option>`);
+    }
     else
       opts = spec.opts.map(o => `<option ${v===o?'selected':''}>${esc(o)}</option>`);
     input = `<select id="${id}"><option value="">— none —</option>${opts.join('')}</select>`;
@@ -2795,13 +2804,13 @@ async function load(){
     .then(r => r.ok ? r.json() : []).catch(() => []);
 
   try {
-    const [activities, events, places, types, conditions, place_kinds, place_offers, runs, log] =
+    const [activities, events, places, types, conditions, kinds, place_kinds, place_offers, runs, log] =
       await Promise.all([
         sb('activities?select=*&order=name'), sb('events?select=*&order=name'),
         sb('places?select=*&order=name'), sb('types?select=*'), sb('conditions?select=*'),
-        sb('place_kinds?select=*'), sb('place_offers?select=*'), ghRuns, ghLog,
+        sb('kinds?select=*'), sb('place_kinds?select=*'), sb('place_offers?select=*'), ghRuns, ghLog,
       ]);
-    DATA = {activities, events, places, types, conditions, place_kinds, place_offers,
+    DATA = {activities, events, places, types, conditions, kinds, place_kinds, place_offers,
             runs, log: Array.isArray(log) ? log : []};
   } catch (e) {
     $('#sub').textContent = 'could not read the database — ' + e.message;
