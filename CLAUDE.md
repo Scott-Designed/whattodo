@@ -4323,6 +4323,36 @@ registered feed read as manual work. The pattern: **when the log and the row
 disagree about whether something exists, the row wins.** A log only knows what
 happened; the row knows what was decided.
 
+### Registering 20 gig pages produced ONE working feed — 31 Aug 2026
+
+The run, read-only, `--skip humanitix`: **5 new events, 2 already held, 98
+venues with nothing readable.** Of the 20 pages the music pass registered,
+**nineteen returned "nothing machine-readable"**. The only one that worked was
+**The Sphinx Hotel** — Oztix, 2 gigs — and even that reported *needs an
+organiser page, or a person* for its Eventbrite half.
+
+**This is not a parser problem and it is worth not misdiagnosing.** Checked
+directly: Beav's Bar's what's-on, the Ocean Grove Hotel's and Geelong Arts
+Centre's all carry **zero `application/ld+json` blocks and zero ticketing
+links**. The gigs are on the page as words and pictures. The strategy ladder
+has nothing to climb.
+
+So the 24 Aug audit's number holds at a bigger sample: **what caps coverage is
+what venues publish, not what the scrapers can read.** Twelve of 78 were
+automatable then; twenty more pages later, one more feed.
+
+**Registering them was still right**, and the reason is worth keeping: the row
+now names the correct page, the back office shows it, every run re-checks it for
+free, and the day a venue adds ticketing or an events plugin it starts working
+with nobody watching. That is the Patagonia argument — register the source that
+reads nothing today, because a dead source that is visible beats one that is
+forgotten.
+
+**But the honest conclusion is that more registration is not the lever.** For a
+pub whose gig list is a JPEG, the routes that can actually work are the email
+inbox — which is why it exists — and a person. Do not spend another pass
+hunting gig pages expecting feeds out of them.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
