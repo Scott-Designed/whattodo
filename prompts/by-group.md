@@ -30,12 +30,28 @@ processes getting `PermissionError` on that path while the terminal reads it
 fine. A cloud VM has no route to the Mac's filesystem at all. And a clone is
 guaranteed to be at `origin/main`, which is where every pass's tooling lands.
 
-The one thing NOT in the repo is `.env`, which `sync.py` needs for
-`SUPABASE_URL` and `SUPABASE_SERVICE_KEY`. It is gitignored on purpose and Scott
-supplies it separately. `SUPABASE_ACCESS_TOKEN` is account-wide and is never
-needed for a research pass — leave it out.
+**A pass never writes to the database and never needs a credential.** Scott
+pastes the results back and applies them himself. So do not ask for `.env`, do
+not ask for `SUPABASE_SERVICE_KEY`, and do not try to write — hand back the
+batches and the worklog as files.
 
-Nothing gets pushed. Writes go to Supabase; the worklog comes back as a file.
+Validate them properly rather than by eye:
+
+```bash
+python3 scripts/sync.py check batch.json
+```
+
+`check` needs no credentials. It reads the live vocabularies with the public
+anon key out of `public/notice-data.js` and runs **the same `check()` `add`
+runs** — types, kinds, conditions, season, cost, daypart, the URL rules, the
+four-decimal coordinate rule, unknown fields — plus the same name-clash query
+against every existing listing. A batch that passes it will apply cleanly.
+
+This exists because it did not: the arts and ocean passes each hand-rolled
+their own copy of `check()` when no `.env` arrived, and two copies of a
+validator is the drift this project keeps paying for.
+
+Nothing gets pushed.
 
 Three commands the prompts lean on:
 
@@ -123,15 +139,12 @@ somebody suggests. It is public, so this needs no key and no token:
 
 Then `python3 scripts/nearby.py --refresh` once. Never run --refresh again mid-pass.
 
-**Half one needs no credentials.** `have.py` and `nearby.py` read with the public anon key
-out of public/notice-data.js, and half one writes nothing — it hands back a table, because
-sync.py can only insert and these are existing rows. Start without asking for anything.
+**You need no credentials for any of this and you will not write to the database.** Scott
+applies the results. Do not ask for .env. Half one hands back a table of pins; half two
+hands back JSON batches validated with `python3 scripts/sync.py check <file>`, which needs
+no credentials and runs the same checks the real write does.
 
-You only need a .env with SUPABASE_URL and SUPABASE_SERVICE_KEY for `sync.py add` in half
-two. Ask when you get there. Without it sync.py exits before it parses anything, so
---dry-run is blocked too, not just the write.
-
-Do not push; writes go to Supabase and the worklog comes back as a file.
+Do not push.
 
 Read prompts/RESEARCH_RULES.md and CLAUDE.md, then work The landscape group.
 
@@ -173,7 +186,8 @@ night (23), walk (34), nature (59).
   2. Then check by hand. Parks Victoria, the Great Ocean Road Coast and Parks Authority,
      the Otway Ranges walks guides, ANGAIR, council reserve pages, Trust for Nature.
   3. Before writing, search existing names for the candidate's distinctive word.
-  4. Build the row, `sync.py add --dry-run`, fix, write. Append to prompts/log/landscape.md.
+  4. Build the row, `python3 scripts/sync.py check <file>`, fix whatever it names, and
+     leave the batch as a file. Append to prompts/log/landscape.md.
 
 Judgement on what the sweep returns:
   - **`natural=peak` is mostly noise.** The Otways are full of named hills nobody visits —
@@ -543,8 +557,12 @@ somebody suggests. It is public, so this needs no key and no token:
     cd whattodo
 
 Then `python3 scripts/nearby.py --refresh` once. Never run --refresh again mid-pass.
-You need a .env with SUPABASE_URL and SUPABASE_SERVICE_KEY before sync.py will run —
-Scott supplies it. Do not push; the worklog comes back as a file.
+
+**You need no credentials and you will not write to the database.** Scott applies the
+results. Do not ask for .env. This pass produces tables and a worklog, nothing else —
+`places` cannot be written from a script by anyone, so that was always the shape here.
+
+Do not push.
 
 Read prompts/RESEARCH_RULES.md and CLAUDE.md, then work The music group.
 

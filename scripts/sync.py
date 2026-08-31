@@ -7,6 +7,7 @@
     python3 scripts/sync.py verify 1043   # mark one verified
     python3 scripts/sync.py reject 1043   # remove one that isn't real (asks first)
     python3 scripts/sync.py add x.json    # write a researched entry (or - for stdin)
+    python3 scripts/sync.py check x.json  # validate a batch — NO credentials needed
 
 `add` takes `kind` — spot, venue, shop, group, maker, idea, or happening —
 and writes it. Leave it out and the row lands unclassified, which is honest but
@@ -32,8 +33,28 @@ def load_env():
 load_env()
 URL = (os.environ.get('SUPABASE_URL') or '').rstrip('/')
 KEY = os.environ.get('SUPABASE_SERVICE_KEY') or ''
+
+# Reading needs no secret. The vocabularies, the listings and the duplicate check
+# are all public — index.html reads them with the anon key on every page view — so
+# `check` falls back to the anon key out of public/notice-data.js when there is no
+# .env. It used to exit here for every command, which meant a research pass with
+# no credentials could not even VALIDATE a batch: the arts and ocean passes both
+# hand-rolled their own copy of check() instead, and two copies of a validator is
+# precisely the drift this project keeps paying for. Writing still requires the
+# service key; nothing below can insert without it.
+def anon():
+    data = (ROOT/'public'/'notice-data.js').read_text()
+    return (re.search(r'SUPABASE_URL\s*=\s*"([^"]+)"', data).group(1).rstrip('/'),
+            re.search(r'SUPABASE_ANON\s*=\s*"([^"]+)"', data).group(1))
+
+READ_ONLY = {'check'}
 if not URL or not KEY:
-    sys.exit("Set SUPABASE_URL and SUPABASE_SERVICE_KEY (in the environment or .env).")
+    if (sys.argv[1] if len(sys.argv) > 1 else '') in READ_ONLY:
+        URL, KEY = anon()
+    else:
+        sys.exit("Set SUPABASE_URL and SUPABASE_SERVICE_KEY (in the environment or .env).\n"
+                 "`sync.py check <file>` needs neither and validates a batch against the "
+                 "live vocabularies.")
 
 PAGE = 1000
 
@@ -381,12 +402,41 @@ def add(path, verified=False, dry=False, force=False):
     if dry: print(f"dry run — {len(rows)} row(s) checked, nothing written")
 
 
+def check_only(path):
+    """Validate a batch without writing, and without needing the service key.
+
+    Same check() and the same live vocabularies `add` uses, plus the same
+    name-clash query, so a pass that cannot write can still hand back a batch
+    somebody else can apply with confidence."""
+    raw = sys.stdin.read() if path == '-' else pathlib.Path(path).read_text()
+    try: doc = json.loads(raw)
+    except json.JSONDecodeError as e: sys.exit(f"that is not valid JSON: {e}")
+    rows = doc if isinstance(doc, list) else [doc]
+    types, conds, kinds = vocab('types'), vocab('conditions'), vocab('kinds')
+    places = place_ids() if any('place_id' in r for r in rows) else None
+    bad = [c for i,r in enumerate(rows,1) for c in check(r, i, types, conds, kinds, places)]
+    for r in rows:
+        q = urllib.parse.quote(str(r.get('name','')).strip())
+        if not q: continue
+        for t in ('activities','events'):
+            for hit in req('GET', f'/rest/v1/{t}?select=id,name&name=ilike.{q}'):
+                bad.append(f"  • {r['name']} already exists as {t} {hit['id']} '{hit['name']}'")
+    if bad:
+        print(f"{len(rows)} row(s) checked — {len(bad)} problem(s):")
+        [print("  •", b) if not b.startswith('  •') else print(b) for b in bad]
+        sys.exit(1)
+    ev = sum(1 for r in rows if bool(EVENT_ONLY & set(r)) or r.get('kind')=='happening')
+    print(f"{len(rows)} row(s) checked, nothing wrong. "
+          f"{len(rows)-ev} would go to activities, {ev} to events.")
+
+
 cmd = sys.argv[1] if len(sys.argv)>1 else ''
 if   cmd=='seed': seed()
 elif cmd=='export': export()
 elif cmd=='pending': pending()
 elif cmd=='verify' and len(sys.argv)>2: verify(sys.argv[2])
 elif cmd=='reject' and len(sys.argv)>2: reject(sys.argv[2], '--yes' in sys.argv)
+elif cmd=='check' and len(sys.argv)>2: check_only(sys.argv[2])
 elif cmd=='add' and len(sys.argv)>2: add(sys.argv[2], '--verified' in sys.argv,
                                          '--dry-run' in sys.argv, '--force' in sys.argv)
 else: print(__doc__)
