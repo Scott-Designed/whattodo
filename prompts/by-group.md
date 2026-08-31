@@ -8,6 +8,35 @@ Counts in each prompt are as at **26 Aug 2026**. They will be wrong after the
 first pass, which is fine — every prompt starts by reading the real numbers with
 `scripts/have.py`, so a stale figure in the prompt only sets the reading order.
 
+## Getting the repo — read this before pasting any prompt
+
+**Every prompt below starts by cloning. Do not go looking for a folder on the
+Mac, and do not accept a folder someone suggests.** Three Cowork sessions have
+been lost to this, twice by being pointed at `~/surfcoast-events` — which is a
+real repo and the wrong one. That is `Scott-Designed/surfcoast-events`, an older
+scraper project last touched in March; none of this tooling has ever been in it.
+
+The project is **public**, so an anonymous clone needs no SSH key and no token:
+
+```bash
+git clone https://github.com/Scott-Designed/whattodo.git
+cd whattodo
+```
+
+Three reasons this beats connecting a folder. The real checkout lives in iCloud
+Drive (`~/Library/Mobile Documents/com~apple~CloudDocs/Desktop/Clients/whattodo`,
+**not** `~/Desktop`), and this project has a documented history of sandboxed
+processes getting `PermissionError` on that path while the terminal reads it
+fine. A cloud VM has no route to the Mac's filesystem at all. And a clone is
+guaranteed to be at `origin/main`, which is where every pass's tooling lands.
+
+The one thing NOT in the repo is `.env`, which `sync.py` needs for
+`SUPABASE_URL` and `SUPABASE_SERVICE_KEY`. It is gitignored on purpose and Scott
+supplies it separately. `SUPABASE_ACCESS_TOKEN` is account-wide and is never
+needed for a research pass — leave it out.
+
+Nothing gets pushed. Writes go to Supabase; the worklog comes back as a file.
+
 Three commands the prompts lean on:
 
 ```bash
