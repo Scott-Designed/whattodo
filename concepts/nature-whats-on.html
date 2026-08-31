@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Concept — nature as what's on</title>
+<script>
+try{var t=localStorage.getItem('notice.theme');
+    if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}
+</script>
+<link rel="stylesheet" href="/sunset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/notice-page.css">
+<style>
+/* ══ concept scaffolding — would not survive into the real page ═══════ */
+body{padding-bottom:140px}
+:root{--fire:#C0562B;--flower:#7A5EA8}
+:root[data-theme="dark"]{--fire:#E08050;--flower:#A78BD8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --fire:#E08050;--flower:#A78BD8}}
+
+.bar{position:sticky;top:0;z-index:90;background:var(--surface);
+  border-bottom:1px solid var(--rule2);padding:11px var(--pad);
+  display:flex;gap:20px;align-items:baseline;flex-wrap:wrap;
+  font-family:var(--util);font-size:12px;color:var(--ink3)}
+.bar b{font-weight:600;color:var(--ink);letter-spacing:.12em;
+  text-transform:uppercase;font-size:11px}
+.bar .key{margin-left:auto;display:flex;gap:16px;align-items:center}
+.swatch{display:inline-block;width:20px;height:0;border-top:2px solid var(--rule2);
+  vertical-align:middle;margin-right:6px}
+.swatch.prop{border-top-style:dashed;border-top-color:var(--accent)}
+
+/* Anything the database cannot answer today is drawn dashed in the accent,
+   with what it would cost written on it — the same convention as
+   type-running.html. This project has been burned by invented data; a mockup
+   that hides which half is imaginary is the same mistake in a nicer typeface.
+
+   Everything NOT dashed on this page is a real number, fetched 31 Aug 2026,
+   and says underneath where it came from. */
+.proposed{position:relative;border:1px dashed var(--accent);border-radius:3px;
+  padding:22px 20px 20px;margin-top:14px}
+.proposed::before{content:attr(data-note);position:absolute;top:-9px;left:14px;
+  background:var(--ground);padding:0 8px;font-family:var(--util);font-size:10px;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+
+.src{font-family:var(--util);font-size:11.5px;line-height:1.6;color:var(--ink3);
+  margin-top:10px;max-width:74ch}
+.src code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
+  color:var(--ink2)}
+
+.ch{margin-top:64px}
+.ch > h2{margin:0 0 2px;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);
+  padding-bottom:10px;border-bottom:1px solid var(--rule2);
+  display:flex;justify-content:space-between;align-items:baseline}
+.ch > h2 .n{font-variant-numeric:tabular-nums;opacity:.8}
+.ch > h2 + .sig{margin:13px 0 0;color:var(--ink2);font-size:17px;
+  max-width:66ch;line-height:1.55}
+.ch .sig b{font-weight:400;color:var(--ink)}
+
+/* ── 0. the ledger of tags ───────────────────────────────────────────── */
+.ledger{display:grid;grid-template-columns:1fr 1fr;gap:0 52px;margin-top:26px}
+.ledger h3{margin:0 0 4px;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.13em;text-transform:uppercase;padding-bottom:9px;
+  border-bottom:1px solid var(--rule)}
+.ledger .on h3{color:var(--ink)}
+.ledger .off h3{color:var(--fire)}
+.tag{display:grid;grid-template-columns:132px 1fr 46px;gap:0 12px;
+  align-items:center;padding:8px 0;border-bottom:1px solid var(--rule)}
+.tag .t{font-family:var(--util);font-size:13px;color:var(--ink2)}
+.tag .n{font-family:var(--util);font-size:12px;color:var(--ink3);text-align:right;
+  font-variant-numeric:tabular-nums}
+.tag .b{height:7px;background:var(--rule2);border-radius:1px}
+.ledger .on .tag .b{background:var(--ink3)}
+.ledger .off .tag{opacity:.72}
+.ledger .off .tag .b{background:none;border-top:2px dashed var(--fire);height:0}
+.ledger .off .tag .t{color:var(--fire)}
+
+/* ── 1. the year ─────────────────────────────────────────────────────── */
+.year{margin-top:30px;border-top:1px solid var(--rule2);padding-top:4px}
+.yr-row{display:grid;grid-template-columns:170px minmax(0,1fr);gap:0 24px;
+  align-items:center;padding:15px 0;border-bottom:1px solid var(--rule)}
+.yr-row .lbl{font-family:var(--util);font-size:12px;color:var(--ink2);line-height:1.4}
+.yr-row .lbl span{display:block;color:var(--ink3);font-size:11px;margin-top:2px}
+.yr-row svg{width:100%;height:auto;display:block;overflow:visible}
+.months{display:grid;grid-template-columns:170px minmax(0,1fr);gap:0 24px;
+  margin-top:9px;font-family:var(--util);font-size:10.5px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.months .m{display:grid;grid-template-columns:repeat(12,1fr);text-align:center}
+.months .m i{font-style:normal}
+.months .m i.now{color:var(--ink);font-weight:600}
+
+/* ── 2. the day: a board masthead ────────────────────────────────────── */
+.board{border:1px solid var(--rule2);background:var(--surface);
+  border-radius:3px;overflow:hidden;margin-top:16px}
+.board .mh{padding:20px 24px 18px}
+.board .mh h3{margin:0;font-family:var(--serif);font-weight:400;font-size:34px;
+  letter-spacing:-.02em;line-height:1}
+.board .mh .datel{font-family:var(--util);font-size:12px;color:var(--ink3);
+  margin-top:9px}
+.board .mh .datel i{font-style:normal}
+.board .mh .datel i + i::before{content:" · ";opacity:.6}
+
+/* the fire strip — a fact about the day, where the date and sunset already are */
+.firestrip{display:flex;align-items:center;gap:0;flex-wrap:wrap;
+  border-top:1px solid var(--rule2);border-bottom:1px solid var(--rule2);
+  background:color-mix(in oklch,var(--fire) 13%,var(--surface));
+  padding:12px 24px;font-family:var(--util);font-size:13px;color:var(--ink)}
+.firestrip .tfb{font-size:9.5px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:#fff;background:var(--fire);border-radius:999px;
+  padding:2.5px 9px;margin-right:12px;white-space:nowrap}
+.firestrip .who{color:var(--ink2);margin-left:auto;font-size:11.5px}
+.firestrip.calm{background:none;color:var(--ink2)}
+.firestrip.calm .tfb{background:none;color:var(--ink3);padding:0;margin-right:10px;
+  border:1px solid var(--rule2);padding:2px 8px}
+
+/* the season line — quieter than the day, and always there for five months */
+.seasonline{padding:10px 24px;font-family:var(--util);font-size:12px;
+  color:var(--ink2);border-bottom:1px solid var(--rule);
+  display:flex;gap:10px;align-items:center}
+.seasonline .dot{width:7px;height:7px;border-radius:50%;background:var(--fire);
+  flex:none}
+.seasonline .dot.f{background:var(--flower)}
+.seasonline em{font-style:normal;color:var(--ink3)}
+
+/* ── board rows, the site's own five columns ─────────────────────────── */
+.tbl{border-top:1px solid var(--ink)}
+.rec{border-bottom:1px solid var(--rule)}
+.rowline{display:grid;
+  grid-template-columns:48px minmax(0,1fr) 92px 190px 128px;
+  gap:0 22px;align-items:center;padding:13px 24px;background:none}
+.c-icon{width:48px;display:grid;place-items:center end;color:var(--ink3)}
+.c-icon svg{width:26px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round}
+.c-name{font-size:19px;letter-spacing:-.01em;line-height:1.2;
+  display:flex;align-items:center;min-width:0}
+.c-name .nm{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.c-type,.c-where,.c-when{font-family:var(--util);font-size:14px;color:var(--ink2);
+  line-height:1.22;min-width:0;overflow:hidden;white-space:nowrap;
+  text-overflow:ellipsis}
+.c-when{text-align:right}
+.tm{display:block;font-family:var(--serif);font-size:12px;color:var(--ink3);
+  line-height:1.25;margin-top:1px}
+.live{font-family:var(--util);font-size:9.5px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:#fff;background:var(--live);border-radius:999px;
+  padding:1.5px 7px;margin-left:8px;white-space:nowrap;flex:none}
+.live.fire{background:var(--fire)}
+.live.bloom{background:var(--flower)}
+
+/* a row a condition has closed: it says so, it does not vanish */
+.rec.shut .rowline{opacity:.5}
+.rec.shut .c-name{text-decoration:line-through;text-decoration-color:var(--rule2)}
+.why{padding:0 24px 13px 118px;font-family:var(--util);font-size:12px;
+  color:var(--fire);margin-top:-4px}
+.why a{color:var(--ink3);border-bottom:1px solid var(--rule2);text-decoration:none}
+
+/* an open row */
+.detail{padding:4px 24px 26px 118px;border-top:1px solid var(--rule)}
+.detail p{margin:0 0 14px;font-size:16px;line-height:1.6;color:var(--ink2);
+  max-width:64ch}
+.dl{margin:0 0 16px;font-family:var(--util);font-size:12px;line-height:1.7;
+  color:var(--ink3)}
+.dl b{display:block;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  font-size:10px;color:var(--ink3);margin-bottom:5px}
+.dl span{color:var(--ink2)}
+
+/* the live species list — the genuinely new thing */
+.bloom{margin-top:4px}
+.bloom h4{margin:0 0 3px;font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--flower)}
+.bloom .cnt{font-family:var(--util);font-size:12px;color:var(--ink3);
+  margin:0 0 12px}
+.sp{display:grid;grid-template-columns:34px minmax(0,1fr) 60px;gap:0 14px;
+  align-items:center;padding:6px 0;border-bottom:1px solid var(--rule)}
+.sp .n{font-family:var(--util);font-size:12px;color:var(--ink3);text-align:right;
+  font-variant-numeric:tabular-nums}
+.sp .cm{font-size:16px;color:var(--ink);line-height:1.25}
+.sp .cm i{display:block;font-style:italic;font-size:12.5px;color:var(--ink3);
+  font-family:var(--util)}
+.sp .b{height:6px;background:var(--flower);opacity:.55;border-radius:1px}
+
+/* ── the two districts ───────────────────────────────────────────────── */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin-top:20px}
+.split .d{border-top:2px solid var(--fire);padding-top:12px}
+.split .d.sw{border-top-color:var(--flower)}
+.split .d h3{margin:0;font-family:var(--util);font-size:11px;font-weight:600;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--ink)}
+.split .d .feed{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:11px;color:var(--ink3);margin:7px 0 12px;word-break:break-all}
+.split .d ul{margin:0;padding:0;list-style:none}
+.split .d li{font-family:var(--util);font-size:12.5px;color:var(--ink2);
+  padding:6px 0;border-bottom:1px solid var(--rule)}
+.split .d li em{font-style:normal;color:var(--ink3);font-size:11.5px;
+  display:block;margin-top:2px}
+
+/* ── the gap this leaves ─────────────────────────────────────────────── */
+.gap{margin-top:22px;display:grid;grid-template-columns:repeat(3,1fr);gap:0 34px}
+.gap .g{border-top:1px solid var(--rule2);padding-top:14px}
+.gap .g b{display:block;font-family:var(--serif);font-size:21px;font-weight:400;
+  letter-spacing:-.01em;color:var(--ink);margin-bottom:7px}
+.gap .g p{margin:0;font-family:var(--util);font-size:12.5px;line-height:1.65;
+  color:var(--ink3)}
+
+@media (max-width:980px){
+  .ledger,.split,.gap{grid-template-columns:1fr;gap:34px}
+  .yr-row,.months{grid-template-columns:1fr}
+  .rowline{grid-template-columns:36px minmax(0,1fr);gap:0 14px}
+  .c-type,.c-where,.c-when{display:none}
+  .detail,.why{padding-left:24px}
+}
+</style>
+</head>
+<body data-nav="board">
+
+<div class="bar">
+  <b>Concept</b>
+  <span>Nature as what&rsquo;s on &mdash; fire, and wildflowers</span>
+  <span class="key">
+    <span><i class="swatch"></i>real, fetched 31 Aug 2026</span>
+    <span><i class="swatch prop"></i>does not exist yet</span>
+  </span>
+</div>
+
+<div class="page">
+
+<div class="mast">
+  <h1>Nature as what&rsquo;s on</h1>
+  <p class="stand">Two of the coast&rsquo;s real seasons, drawn as they would look on the
+  board. <b>Fire is a season that closes things. Wildflowers are a season that
+  opens them.</b> Every number here was fetched on 31 Aug 2026 and says where it
+  came from; every interface is dashed, because none of it is built.</p>
+</div>
+
+
+<!-- ══ 0 ══════════════════════════════════════════════════════════════ -->
+<section class="ch">
+  <h2>The vocabulary is already written <span class="n">7 of 14 wired up</span></h2>
+  <p class="sig">This is not an idea to invent. <b>Seven condition tags evaluate and
+  seven have never done anything</b> &mdash; <code>met()</code> returns null for a tag it
+  does not know and <code>suits()</code> filters nulls out, so an unwired tag is
+  silently inert. No error, no gap on screen, nothing to tell it from a row with
+  no conditions at all.</p>
+
+  <div class="ledger">
+    <div class="on">
+      <h3>Evaluates</h3>
+      <div class="tag"><span class="t">any-weather</span><span class="b" style="width:100%"></span><span class="n">476</span></div>
+      <div class="tag"><span class="t">good-in-rain</span><span class="b" style="width:47%"></span><span class="n">223</span></div>
+      <div class="tag"><span class="t">dry-ground</span><span class="b" style="width:29%"></span><span class="n">139</span></div>
+      <div class="tag"><span class="t">warm</span><span class="b" style="width:10%"></span><span class="n">47</span></div>
+      <div class="tag"><span class="t">dry-trails</span><span class="b" style="width:7%"></span><span class="n">32</span></div>
+      <div class="tag"><span class="t">low-wind</span><span class="b" style="width:6%"></span><span class="n">27</span></div>
+      <div class="tag"><span class="t">clear-sky</span><span class="b" style="width:4%"></span><span class="n">19</span></div>
+    </div>
+    <div class="off">
+      <h3>Inert since the day it was written</h3>
+      <div class="tag"><span class="t">calm-sea</span><span class="b" style="width:8%"></span><span class="n">40</span></div>
+      <div class="tag"><span class="t">low-tide</span><span class="b" style="width:4%"></span><span class="n">18</span></div>
+      <div class="tag"><span class="t">new-moon</span><span class="b" style="width:2%"></span><span class="n">7</span></div>
+      <div class="tag"><span class="t">no-fire-ban</span><span class="b" style="width:2%"></span><span class="n">5</span></div>
+      <div class="tag"><span class="t">full-moon</span><span class="b" style="width:1.5%"></span><span class="n">2</span></div>
+      <div class="tag"><span class="t">geomagnetic-storm</span><span class="b" style="width:1.5%"></span><span class="n">1</span></div>
+      <div class="tag"><span class="t">high-tide</span><span class="b" style="width:1.5%"></span><span class="n">1</span></div>
+    </div>
+  </div>
+  <p class="src">Counted against the live <code>listings</code> view, 1,079 rows, 31 Aug 2026.
+  Event&nbsp;11 <em>Full Moon Bonfire</em> carries <code>no-fire-ban</code> <b>and</b>
+  <code>full-moon</code> &mdash; two inert tags on one row, and it filters on neither.</p>
+</section>
+
+
+<!-- ══ 1 ══════════════════════════════════════════════════════════════ -->
+<section class="ch">
+  <h2>The year, as the coast actually has it <span class="n">two seasons nothing on the site names</span></h2>
+  <p class="sig">The board knows about dates and it knows nothing about the year.
+  These two bands are the answer to <b>redefining what&rsquo;s on</b>: neither has an
+  organiser, a venue or a ticket, and both change what the place is for, for
+  months at a time.</p>
+
+  <div class="proposed" data-note="does not exist yet">
+    <div class="year">
+
+      <div class="yr-row">
+        <div class="lbl">Fire danger period<span>declared per council &middot; roughly five months</span></div>
+        <svg viewBox="0 0 1200 34" preserveAspectRatio="none" style="height:34px">
+          <rect x="0" y="10" width="1200" height="14" fill="var(--rule)" opacity=".5"/>
+          <!-- Nov 25 -> Apr 30, wrapping the year -->
+          <rect x="0" y="10" width="400" height="14" fill="var(--fire)" opacity=".85"/>
+          <rect x="1082" y="10" width="118" height="14" fill="var(--fire)" opacity=".85"/>
+          <line x1="800" y1="0" x2="800" y2="34" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"/>
+        </svg>
+      </div>
+
+      <div class="yr-row">
+        <div class="lbl">Orchids in flower<span>8,085 records &middot; Anglesea heath</span></div>
+        <svg viewBox="0 0 1200 78" preserveAspectRatio="none" style="height:78px">
+          <!-- real monthly counts, scaled to 2563 max -->
+          <polyline fill="var(--flower)" fill-opacity=".2" stroke="none"
+            points="0,78 50,73 150,75 250,74 350,66 450,72 550,71 650,68 750,50 850,7 950,0 1050,64 1150,71 1200,73 1200,78"/>
+          <polyline fill="none" stroke="var(--flower)" stroke-width="2"
+            points="50,73 150,75 250,74 350,66 450,72 550,71 650,68 750,50 850,7 950,0 1050,64 1150,71"/>
+          <line x1="800" y1="0" x2="800" y2="78" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <circle cx="750" cy="50" r="4" fill="var(--flower)"/>
+        </svg>
+      </div>
+
+      <div class="months">
+        <div></div>
+        <div class="m"><i>Jan</i><i>Feb</i><i>Mar</i><i>Apr</i><i>May</i><i>Jun</i><i>Jul</i><i class="now">Aug</i><i>Sep</i><i>Oct</i><i>Nov</i><i>Dec</i></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="src">The orchid curve is real: research-grade <em>Orchidaceae</em> observations by
+  month of year from <code>api.inaturalist.org</code>, in a box over the Anglesea heath
+  and the coast Torquay&ndash;Lorne. Jan&nbsp;164 &middot; Aug&nbsp;949 &middot;
+  <b>Sep&nbsp;2,339</b> &middot; <b>Oct&nbsp;2,563</b> &middot; Nov&nbsp;470.
+  All plants in the same box, 28,029 records, make the same shape.
+  <br>The honest caveat, which belongs on the page if this is ever printed:
+  <b>observation counts measure observers as much as flowers</b> &mdash; ANGAIR&rsquo;s show
+  brings people out in September. But orchids swing 25&times; between trough and
+  peak where all plants swing 9&times;, off the same walkers. That difference is
+  the flowering signal separating itself from the effort.
+  <br>The fire band is drawn from a typical declaration and is <b>the one shape on
+  this page nobody has verified</b> &mdash; CFA&rsquo;s dates table is drawn client-side, so
+  the <em>start date</em> is not readable. The live <em>state</em> is.</p>
+</section>
+
+
+<!-- ══ 2 ══════════════════════════════════════════════════════════════ -->
+<section class="ch">
+  <h2>The day <span class="n">a fact, not a filter</span></h2>
+  <p class="sig">A Total Fire Ban is the single most legitimate &ldquo;what&rsquo;s on today&rdquo;
+  this coast has. It belongs where the date and the sunset already are &mdash;
+  <b>and it has to name its district</b>, because a reader in Apollo Bay is on a
+  different feed from a reader in Torquay.</p>
+
+  <div class="proposed" data-note="on a ban day &mdash; does not exist yet">
+    <div class="board">
+      <div class="mh">
+        <h3>Notice Board</h3>
+        <div class="datel"><i>Saturday, 17 January</i><i>sunset 8.44pm</i><i>634 things pinned</i></div>
+      </div>
+      <div class="firestrip">
+        <span class="tfb">Total fire ban</span>
+        Today is a day of Total Fire Ban. No campfires, no solid fuel BBQs, no fire pits.
+        <span class="who">Central district &middot; CFA</span>
+      </div>
+      <div class="seasonline"><span class="dot"></span>
+        Surf Coast is in the fire danger period. <em>Permits required to burn off &middot; since 25 Nov</em></div>
+      <div class="tbl">
+        <div class="rec shut">
+          <div class="rowline">
+            <span class="c-icon"><svg viewBox="0 0 24 24"><path d="M12 3s4 4 4 8a4 4 0 1 1-8 0c0-2 1-3 1-3s3 2 3-5Z"/><path d="M5 21h14"/></svg></span>
+            <span class="c-name"><span class="nm">Backyard Bonfire / Fire Pit Night</span><span class="live fire">Not today</span></span>
+            <span class="c-type">night</span>
+            <span class="c-where">Jan&nbsp;Juc</span>
+            <span class="c-when">Tonight<span class="tm">from sunset</span></span>
+          </div>
+          <div class="why">Total Fire Ban in the Central district &mdash; <a href="#">why this is closed</a></div>
+        </div>
+        <div class="rec shut">
+          <div class="rowline">
+            <span class="c-icon"><svg viewBox="0 0 24 24"><path d="M3 20 12 4l9 16Z"/><path d="M8 20l4-7 4 7"/></svg></span>
+            <span class="c-name"><span class="nm">Bimbi Park &ndash; Camp under Koalas</span><span class="live fire">No fires</span></span>
+            <span class="c-type">camping</span>
+            <span class="c-where">Cape&nbsp;Otway</span>
+            <span class="c-when">Any night</span>
+          </div>
+          <div class="why">Total Fire Ban in the <b>South&nbsp;West</b> district &mdash; a different declaration from the one above</div>
+        </div>
+        <div class="rec">
+          <div class="rowline">
+            <span class="c-icon"><svg viewBox="0 0 24 24"><path d="M2 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 19c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><circle cx="12" cy="7" r="3"/></svg></span>
+            <span class="c-name"><span class="nm">Point Roadknight Beach</span></span>
+            <span class="c-type">beach</span>
+            <span class="c-where">Anglesea</span>
+            <span class="c-when">Any day</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="src">The wording is the feed&rsquo;s own. Today, 31 Aug 2026, the Central feed
+  says verbatim: <em>&ldquo;Today, Mon, 31 Aug 2026 is not currently a day of Total Fire
+  Ban&rdquo;</em>, <em>&ldquo;Central: NO RATING&rdquo;</em>, and
+  <em>&ldquo;SURF COAST: No&nbsp;- restrictions may apply&rdquo;</em>.
+  <br><b>A closed row says so and does not vanish.</b> Hiding it would answer a
+  question nobody asked &mdash; the reader wants to know the fire pit is out, not to
+  find it missing.</p>
+</section>
+
+
+<!-- ══ 3 ══════════════════════════════════════════════════════════════ -->
+<section class="ch">
+  <h2>One region, two districts <span class="n">the thing that decides the build</span></h2>
+  <p class="sig">A ban is declared per fire weather district, never per town. This
+  region sits in two of them &mdash; so <b>a single site-wide banner would be wrong for
+  a third of the listings</b>, and wrong in the direction that matters, since the
+  Otways rows are the camping and picnic ones.</p>
+
+  <div class="split">
+    <div class="d">
+      <h3>Central</h3>
+      <div class="feed">cfa.vic.gov.au/cfa/rssfeed/central-firedistrict_rss.xml</div>
+      <ul>
+        <li>Surf Coast<em>Torquay &middot; Jan Juc &middot; Anglesea &middot; Aireys Inlet &middot; Lorne &middot; Winchelsea &middot; Deans Marsh</em></li>
+        <li>Greater Geelong</li>
+        <li>Golden Plains</li>
+        <li>Borough of Queenscliffe</li>
+      </ul>
+    </div>
+    <div class="d sw">
+      <h3>South West</h3>
+      <div class="feed">cfa.vic.gov.au/cfa/rssfeed/southwest-firedistrict_rss.xml</div>
+      <ul>
+        <li>Colac Otway<em>Apollo Bay &middot; Wye River &middot; Kennett River &middot; Forrest &middot; Beech Forest &middot; Lavers Hill &middot; Skenes Creek</em></li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="src">Municipality lists read off the two feeds themselves, 31 Aug 2026 &mdash;
+  26 councils in Central, 12 in South West. <b>Your five <code>no-fire-ban</code> rows
+  already span the split</b>: Blanket Leaf Picnic Area is Surf Coast, Bimbi Park is
+  Colac Otway. The cost this implies is a <code>town &rarr; LGA &rarr; district</code>
+  lookup that does not exist &mdash; small, fixed, and it belongs beside
+  <code>suburbOf</code>.
+  <br>Both feeds carry <b>five days</b> of ban/no-ban plus <b>a sixth item listing every
+  council&rsquo;s fire danger period state</b> &mdash; one document answers the day and the
+  season. <code>robots.txt</code> on cfa.vic.gov.au is <code>User-agent: *</code> and
+  nothing else.</p>
+</section>
+
+
+<!-- ══ 4 ══════════════════════════════════════════════════════════════ -->
+<section class="ch">
+  <h2>What is out right now <span class="n">147 species &middot; 857 records &middot; 28 days</span></h2>
+  <p class="sig">The heath is the best wildflower ground in Victoria and five rows
+  touch it, all filed under <code>nature</code>, <code>walk</code> and
+  <code>festival</code>. There is no <code>wildflower</code> type. This is the
+  genuinely new thing on the page: <b>a what&rsquo;s-on with no organiser, no venue and
+  no ticket.</b></p>
+
+  <div class="proposed" data-note="does not exist yet &mdash; one cached API call per pinned natural spot">
+    <div class="board">
+      <div class="tbl">
+        <div class="rec">
+          <div class="rowline">
+            <span class="c-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.6c0-3 1-5.6 0-5.6s0 2.6 0 5.6M14.4 12c3 0 5.6 1 5.6 0s-2.6 0-5.6 0M12 14.4c0 3-1 5.6 0 5.6s0-2.6 0-5.6M9.6 12c-3 0-5.6 1-5.6 0s2.6 0 5.6 0"/></svg></span>
+            <span class="c-name"><span class="nm">Anglesea Heath</span><span class="live bloom">In flower</span></span>
+            <span class="c-type">wildflower</span>
+            <span class="c-where">Anglesea</span>
+            <span class="c-when">Peak now<span class="tm">Aug&ndash;Nov</span></span>
+          </div>
+          <div class="detail">
+            <p>Heathland over old brown coal, and the richest wildflower ground in the
+            state &mdash; over a hundred orchid species inside the one reserve.</p>
+            <div class="dl"><b>Season</b><span>Aug&ndash;Nov, peaking late September</span></div>
+            <div class="bloom">
+              <h4>Recorded here in the last four weeks</h4>
+              <p class="cnt">147 species &middot; 857 research-grade records &middot; iNaturalist</p>
+              <div class="sp"><span class="b" style="width:100%"></span><span class="cm">Mayfly Orchid<i>Acianthus caudatus</i></span><span class="n">45</span></div>
+              <div class="sp"><span class="b" style="width:87%"></span><span class="cm">Leopard Orchid<i>Diuris pardina</i></span><span class="n">39</span></div>
+              <div class="sp"><span class="b" style="width:82%"></span><span class="cm">Tall Greenhood<i>Pterostylis melagramma</i></span><span class="n">37</span></div>
+              <div class="sp"><span class="b" style="width:80%"></span><span class="cm">Nodding Greenhood<i>Pterostylis nutans</i></span><span class="n">36</span></div>
+              <div class="sp"><span class="b" style="width:71%"></span><span class="cm">Dwarf Greenhood<i>Pterostylis nana</i></span><span class="n">32</span></div>
+              <div class="sp"><span class="b" style="width:51%"></span><span class="cm">Common Heath<i>Epacris impressa</i></span><span class="n">23</span></div>
+              <div class="sp"><span class="b" style="width:49%"></span><span class="cm">Red-banded Greenhood<i>Pterostylis sanguinea</i></span><span class="n">22</span></div>
+              <div class="sp"><span class="b" style="width:42%"></span><span class="cm">Red Beaks<i>Pyrorchis nigricans</i></span><span class="n">19</span></div>
+              <div class="sp"><span class="b" style="width:38%"></span><span class="cm">Blue Fairy Orchid<i>Pheladenia deformis</i></span><span class="n">17</span></div>
+              <div class="sp"><span class="b" style="width:36%"></span><span class="cm">Waxlip Orchid<i>Glossodia major</i></span><span class="n">16</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="src">Every name and number above is a real query result, 4 Aug &ndash; 31 Aug
+  2026, research grade only. <code>api.inaturalist.org</code> is a documented public
+  API, not a scrape; its robots signals read
+  <code>search=yes, ai-train=no, use=reference</code> &mdash; the same shape as Coast &amp;
+  Bay, and the same reading: nothing here trains anything, referencing is
+  permitted. <b>Every observation carries an observer and a licence and both would
+  have to be shown.</b> Second source if wanted: the Atlas of Living Australia,
+  37.8M Victorian records, no key.</p>
+</section>
+
+
+<!-- ══ 5 ══════════════════════════════════════════════════════════════ -->
+<section class="ch">
+  <h2>What this leaves open <span class="n">decide before building</span></h2>
+  <p class="sig">Both halves came out the same way. <b>The interesting nature data is
+  not a filter &mdash; it is a season and a day.</b> Seven tags have sat inert for months
+  and nobody missed them, because hiding things is not what anyone opens a
+  listings site to get.</p>
+
+  <div class="gap">
+    <div class="g">
+      <b>The licensed feed cannot say no</b>
+      <p>The RSS is readable and CFA licenses it &ldquo;personal, non-commercial use
+      only&rdquo;, pointing websites at EMV&rsquo;s developer feeds instead. Those return a
+      single newline byte &mdash; <code>0a</code> &mdash; not <code>[]</code>. It cannot tell
+      &ldquo;no bans in Victoria&rdquo; from &ldquo;endpoint moved&rdquo;. Nobody has seen it populated;
+      November is the first honest chance. An email to EMV settles it.</p>
+    </div>
+    <div class="g">
+      <b>ANGAIR is a listing and not a source</b>
+      <p>No <code>places</code> row, robots fully open, a live calendar of walks and
+      working bees nobody reads. But it runs Modern Events Calendar, and both
+      halves of the GMBC trap were re-confirmed against it: <code>mec/v1/events</code>
+      returns <code>[]</code>, and <code>wp/v2/mec-events</code> gives the post date &mdash; all
+      three events read back 29 Aug, the day somebody typed them in.</p>
+    </div>
+    <div class="g">
+      <b>There is nowhere to put a season</b>
+      <p><em>It is fire danger period.</em> <em>The orchids are out.</em> No organiser,
+      no venue, no ticket, and no row shape that holds them. The same gap already
+      recorded for &ldquo;an organiser worth watching that is not a room&rdquo;. That is the
+      thing to decide, and it is a schema question, not a design one.</p>
+    </div>
+  </div>
+</section>
+
+</div>
+</body>
+</html>

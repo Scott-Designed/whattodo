@@ -2039,11 +2039,24 @@ function automationCell(p, s){
                return icon('i-mail')
                     + `<span style="color:var(--accent)">${mail.n} email${mail.n === 1 ? '' : 's'}</span>`
                     + ` <span style="color:var(--ink3)">${esc(ago(mail.last))}</span>`;
+             // A feed that exists but has not been read yet is NOT the same as
+             // no feed, and saying so cost real trust: 20 venues registered on
+             // 31 Aug 2026 all read "check website", which is an instruction to
+             // go and do by hand the exact thing that is already automated. The
+             // comment here used to claim '"no website on file" and "not tried
+             // yet" both just mean no'. They do not. `events_url` on the row is
+             // a deliberate claim that this page belongs to this place, so it
+             // outranks the run log, which is only a snapshot and cannot know
+             // about a source registered after it was written.
+             if (p.events_url || p.ticketing_url)
+               return icon('i-sync')
+                    + `<span class="autopill" style="opacity:.65"><span>·</span>registered</span>`
+                    + ` <span style="color:var(--ink3)">not read yet</span>`
+                    + (mail ? ` ${icon('i-mail')}` : '');
              // For everything else the useful fact is not WHY there is no feed —
-             // "no website on file" and "not tried yet" both just mean no — but
-             // how long since anyone added anything here. A venue changes slowly,
-             // so silence is the signal. The reason is on the tooltip and in the
-             // drawer for when it is wanted.
+             // "no website on file" really does mean no — but how long since
+             // anyone added anything here. A venue changes slowly, so silence is
+             // the signal. The reason is on the tooltip and in the drawer.
              const when = agoLong(lastAdded);
              // Nothing reads this one, so the useful thing is not how stale it
              // is but what to DO — go and look. The staleness stays on the

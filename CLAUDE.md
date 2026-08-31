@@ -4301,6 +4301,28 @@ are a snapshot, not a key.
 for *either* row — which would happen to Blackmans Geelong, Costa Hall and the
 Great Ocean Road Brewing pair if their URLs were copied across carelessly.
 
+### "Not tried yet" is not "no feed" — 31 Aug 2026
+
+Twenty venues were registered with a working `events_url` and the Places tab
+showed every one of them as **check website** under a hand icon. Scott read that
+as the feeds not having been set up, which is exactly what it says: *go and do
+this by hand.* The instruction was to do the one thing already automated.
+
+`automationCell()` fell through to the hand whenever the run log had nothing for
+a place, and its own comment stated the wrong premise out loud — *"no website on
+file" and "not tried yet" both just mean no*. They do not. **An `events_url` on
+the row is a deliberate claim that this page belongs to this place**, so it
+outranks the run log, which is a snapshot and cannot know about a source added
+after it was written. The cell now checks the row before the log and says
+**registered · not read yet**.
+
+This is the third time a derived status here has been honest about its source
+and wrong about the world — Moshtix read as *needs a person* while working,
+`source_state()` defaulted to success so a 401 read as green, and now a
+registered feed read as manual work. The pattern: **when the log and the row
+disagree about whether something exists, the row wins.** A log only knows what
+happened; the row knows what was decided.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
