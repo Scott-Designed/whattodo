@@ -80,6 +80,27 @@ jobs:
           echo "$?" > venues.rc
           exit 0
 
+      # Added to the schedule 31 Aug 2026. The feed hands back at most 500 items
+      # — a rolling window of about 21 days — and no parameter widens it, so the
+      # only way to see everything is to keep asking. Twice a week against 21
+      # days means nothing is ever missed and every event is seen at least 17
+      # days out. It is also cheap: the importer is idempotent against the
+      # database, so a run with nothing new writes nothing.
+      #
+      # NOT --expire. Standing a series down is a judgement about whether a
+      # session has really ended or is just off for the school holidays, and the
+      # run reports the candidates rather than acting on them.
+      - name: Read the library calendar
+        if: always()
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set +e -o pipefail
+          python3 scripts/scrape_library.py --write 2>&1 | tee library.txt
+          echo "$?" > library.rc
+          exit 0
+
       # The job summary below is a page on github.com nobody visits. This is the
       # same information written into the repo, where the back-of-house page can
       # read it off raw.githubusercontent.com without a token or a redeploy.
@@ -99,6 +120,10 @@ jobs:
             echo '```'
             cat venues.txt 2>/dev/null || echo 'produced nothing — check the step above'
             echo '```'
+            echo '## Geelong Regional Libraries'
+            echo '```'
+            cat library.txt 2>/dev/null || echo 'produced nothing — check the step above'
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       # always(), because a crashed run is exactly the one worth having on file.
@@ -107,7 +132,7 @@ jobs:
         run: |
           git config user.name  'events bot'
           git config user.email 'noreply@github.com'
-          git add scripts/events_seen.json scripts/venues_seen.json scripts/run_log.json
+          git add scripts/events_seen.json scripts/venues_seen.json scripts/library_seen.json scripts/run_log.json
           git diff --cached --quiet && { echo 'nothing new to remember'; exit 0; }
           # [skip ci] because the site reads Supabase live, and the back-of-house
           # page reads this log from raw.githubusercontent — neither needs a build.
@@ -137,10 +162,11 @@ jobs:
           echo "could not push the ledgers after three attempts"
           exit 1
 
-      - name: Fail the job if either scraper crashed
+      - name: Fail the job if any scraper crashed
         if: always()
         run: |
-          rc1=$(cat run.rc    2>/dev/null || echo 1)
-          rc2=$(cat venues.rc 2>/dev/null || echo 1)
-          echo "scrape_events.py exited $rc1, scrape_venues.py exited $rc2"
-          [ "$rc1" = 0 ] && [ "$rc2" = 0 ]
+          rc1=$(cat run.rc     2>/dev/null || echo 1)
+          rc2=$(cat venues.rc  2>/dev/null || echo 1)
+          rc3=$(cat library.rc 2>/dev/null || echo 1)
+          echo "scrape_events.py exited $rc1, scrape_venues.py exited $rc2, scrape_library.py exited $rc3"
+          [ "$rc1" = 0 ] && [ "$rc2" = 0 ] && [ "$rc3" = 0 ]

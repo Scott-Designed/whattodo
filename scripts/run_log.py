@@ -159,6 +159,50 @@ def read_venues(text):
     }
 
 
+def read_library(text):
+    """What scrape_library.py said.
+
+    This source has no drift branch: the importer never rewrites a date, it
+    collapses repeats into one row carrying a `recurrence` and lets nextDate()
+    do the rest. What it CAN report is a series the feed has stopped carrying,
+    which is the same shape of thing — a row a person has to decide about.
+
+    The state is set here rather than through source_state(), because that
+    function defaults to success and this scraper's failure phrases are its
+    own. A run that could not read the feed exits before printing a count, so
+    "no occurrences" is the honest signal that nothing was read.
+    """
+    occ    = _int(r'^\s+(\d+) events, \d{4}-\d\d-\d\d', text)
+    series = _int(r'^\d+ occurrences -> (\d+) series', text)
+    weekly = _int(r'^\s+(\d+)\s+weekly ', text)
+    added  = _int(r'^(\d+) added unverified', text)
+    gone   = _int(r'^(\d+) recurring row\(s\) the feed no longer carries', text)
+    return {
+        'occurrences': occ,
+        'series':      series,
+        'weekly':      weekly,
+        'added':       added or 0,
+        'stopped':     gone or 0,
+        # Nothing here rewrites a verified row, so there is no drift to report.
+        'drift':       [],
+        'sources': [{
+            'name':  'events.grlc.vic.gov.au',
+            'how':   (f'one iCal feed ({occ} occurrences -> {series} series)'
+                      if occ else 'one iCal feed'),
+            # The cap is the standing fact about this source, not a fault, and
+            # the page should say so rather than making it look like a full read.
+            'hint':  ('the feed returns at most 500 items — about 21 days. No '
+                      'parameter widens it; only Communico API credentials would.'
+                      if occ and occ >= 500 else None),
+            'state': 'read' if occ else 'nothing',
+            'via':   ['Communico'],
+            'own':   False,
+            'new':   added or 0,
+            'dupe':  0,
+        }],
+    }
+
+
 def step(name, script, out, rc, parse):
     """One scraper's leg of the run. Missing output is itself worth recording —
     it means the step never got to run, which the page should say out loud."""
@@ -183,6 +227,8 @@ def main():
              'run.txt', 'run.rc', read_events),
         step('Venue ticketing pages', 'scrape_venues.py',
              'venues.txt', 'venues.rc', read_venues),
+        step('Geelong Regional Libraries', 'scrape_library.py',
+             'library.txt', 'library.rc', read_library),
     ]
 
     record = {

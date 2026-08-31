@@ -1077,9 +1077,9 @@ const AGGREGATORS = [
    note:'Two things stand in the way. The check needs one request that CANNOT come from a Claude session — coastandbay.com.au names ClaudeBot and disallows the whole site, exactly like Humanitix, so a person or the Action has to run it: curl -s "https://coastandbay.com.au/wp-json/tribe/events/v1/events?per_page=3". And scrape_events.py is hardwired to one source — the URL, the provenance note, the added_by, the drift regex and the slug-keyed seen ledger all say surfcoastevents — so a second site is a refactor, not a config line. Slugs would collide across sites; the ledger needs keying by source too.'},
   {name:'Geelong Regional Libraries', host:null, src:'events.grlc.vic.gov.au',
    what:'Every GRLC branch — one calendar feed',
-   how:'Reads the iCal feed, not the RSS — iCal alone carries LOCATION and GEO, so every event knows its branch and arrives with the library\u2019s own published pin. 500 events across 19 branches imported 27 Aug 2026 by scripts/scrape_library.py.',
-   auto:'part',
-   note:'NEEDS FILTERING WORK — this is the open job on this source. Everything came in wholesale: 500 events over 20 days, of which 215 are story times and 161 landed with no type at all, because types are only ever proposed from what a title actually says. Nothing yet decides what is worth putting on the board: a weekly Toddler Time at every branch is 72 rows saying almost the same thing, and it now outnumbers most real categories. Two things to settle — which sessions belong on the board at all, and how the 161 unsorted get typed. It is also NOT on the Mon/Thu schedule yet; events.yml still runs only the other two scrapers, so nothing refreshes until somebody runs it.'},
+   how:'Reads the iCal feed, not the RSS — iCal alone carries LOCATION and GEO, so every event knows its branch and arrives with the library\u2019s own published pin. Repeating sessions are collapsed on the way in: one row with a recurrence, not one row per occurrence.',
+   auto:'full',
+   note:'On the Mon/Thu schedule since 31 Aug 2026. The feed hands back at most 500 items whatever you ask it for — a rolling window of about 21 days — and no parameter widens it: days, a start/end pair and a limit were all probed and all ignored. The date range on the library\u2019s own site is widget state that never reaches the feed, and the page carries no events in its HTML at all. So it is polled rather than asked, and twice a week against 21 days means nothing is missed and everything is seen at least 17 days out. The cap used to be spent on repeats — 500 occurrences were only 250 real series, 119 of them weekly — so a standing session is now one row carrying its recurrence and nextDate() keeps its date right. A series the feed stops carrying is REPORTED, never stood down automatically: telling a finished term from a school holiday is a judgement. Still open: 161 rows landed with no type, because types are only ever proposed from what a title actually says. The only route past 500 is Communico\u2019s own API at api.communico.co, which needs credentials from the library.'},
   {name:'Moshtix', host:'moshtix', what:'Ticketing platform',
    how:'Read from the venue page\u2019s own schema.org, not by following its ticket links.',
    auto:'full',
@@ -1249,7 +1249,7 @@ const todoFor = r => (r.name === 'Coast & Bay'
   : r.name === 'Eventbrite'
     ? 'Choose how to read it. Either wire up the free API (needs a token you create, stored in GitHub and Vercel) or parse the event pages\u2019 JSON-LD, which works today and needs nothing. 17 events are sitting behind it.'
   : r.name === 'Geelong Regional Libraries'
-    ? 'Two decisions before it goes on the schedule: which sessions belong on the board at all, and how the 161 untyped ones get typed. Then add it to events.yml.'
+    ? 'Fold the rows imported before the collapse: python3 scripts/scrape_library.py --collapse (dry run; --write --force to apply, and it deletes verified rows). Then type the 161 unsorted ones.'
   : TODO[r.state] || '');
 
 const SRC_ORDER = ['read','skipped','failed','manual','fbweekly','dead','refused','untried','nothing','nourl'];
