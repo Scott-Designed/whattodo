@@ -3971,15 +3971,22 @@ is against it; a decision either way is Scott's.
 
 Existing rows this pass found wrong, all needing /admin:
 
-- **Listing 163 `Reef Life Survey – Point Addis` is pinned 11 km inland** at
-  Denham Track, Wensleydale, and its longitude has two decimal places — a row
-  `sync.py add` would refuse today.
-- **Listing 74 `Cumberland River Holiday Park` is 2.3 km off**, reverse-geocoding
-  to the Allenvale Mill camp site.
+- ~~**Listing 163 `Reef Life Survey – Point Addis` is pinned 11 km inland**~~
+  **FIXED 31 Aug 2026.** It held -38.4049,144.12 — Denham Track, Wensleydale,
+  inland bush nowhere near the marine park, with a two-decimal longitude that
+  `sync.py add` would refuse today. Moved onto the Point Addis access already
+  shared by listings 3, 91 and 153; reverse-geocodes to Point Addis Road.
+- ~~**Listing 74 `Cumberland River Holiday Park` is 2.3 km off**~~ **FIXED
+  31 Aug 2026**, onto Nominatim's own named `tourism=camp_site` node for the
+  park. Note the reverse lookup reads "Cumberland Track, Separation Creek" —
+  that is the track the park sits on, not a different place.
 - **Eleven ocean rows have no coordinate**, and geocodes exist for most.
-- **Listing 18 `Jan Juc Rockpools` has `season: ["low tide","any"]`** — a
-  conditions value in the season column, which the new season check would refuse.
-  The row already carries `conditions: ["low-tide"]`, so the season entry can go.
+- ~~**Listing 18 `Jan Juc Rockpools` has `season: ["low tide","any"]`**~~
+  **FIXED 31 Aug 2026** — season is `["any"]` now. It was a conditions value in
+  the season column and the row already carried `conditions: ["low-tide"]`, so
+  nothing was lost. Worth noting this row predates the season check and would be
+  refused if it were written today: **the guards only protect new writes, and
+  the table still holds rows that would fail them.**
 - 209 Point Roadknight should gain `swimming`, 208 Anglesea Main Beach should
   gain `surfing`, 283 Eastern Beach should gain `swimming` — without which the
   region's best-known enclosed swimming beach is absent from `/swimming`.
