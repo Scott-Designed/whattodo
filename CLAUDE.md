@@ -5859,6 +5859,242 @@ Three different things wear the name and only one is the answer:
   so the only way in is the Dashboard tile. Worth fixing.
 - **Listings → Organisations** is unrelated: `activities` with `kind = group`.
 
+## The natural world — `/api/conditions`, 1 Sep 2026
+
+`api/conditions.mjs` gathers what the weather, the sea and the sky are doing
+and hands every reader the same cached copy. `/admin` → Automations →
+**Conditions** is the window onto it. Nothing on the public board reads it yet.
+
+**IT READS AND NEVER WRITES.** Every other function in `api/` that touches
+Supabase writes something; this one holds no key and touches Supabase not at
+all. If it ever grows a write it is the seventh write path onto the board —
+run this file's own invariant then:
+
+    select count(*) from listings where published and not verified;   -- 0
+
+### Why a function and not the browser, which was measured
+
+Sent with `Origin: https://www.notice.place`, **six of the eight sources answer
+`Access-Control-Allow-Origin: *`** — Open-Meteo (all three subdomains), NOAA
+SWPC, iNaturalist and `emergency.vic.gov.au`. So the page *could* call them.
+
+It should not. **Open-Meteo's free terms are 10,000 calls a day**, and three
+calls per page load caps the whole site at about 3,300 views — a ceiling that
+tightens as the site gets busier, which is backwards. The data is identical
+for every reader, so it is fetched once per window and shared.
+
+Measured: **all six in parallel, 1.5–1.8 s, 63 KB raw in, 5.7 KB out.**
+
+**The cache header is load-bearing and was checked, not assumed.**
+`vercel.json` puts `public, max-age=0, must-revalidate` on `/(.*)`, which looks
+like it forbids edge caching — it does not: `/admin` on the live deploy answers
+`cache-control: no-store`, and that is `adminpage.mjs` setting its own header.
+A function's header wins. `s-maxage=600, stale-while-revalidate=1800` gives one
+upstream gather per ten minutes however many people are reading — 288 of the
+10,000 allowed. Open-Meteo is **CC-BY 4.0 and the attribution is owed**; it is
+on the response as `X-Data-Sources` and printed at the foot of the tab.
+
+**One source being down never takes the run with it.** Each is settled
+independently and reports its own state; the reply is always 200 with a
+`sources` block. Same lesson as `SourceDown` in `scrape_events.py`.
+
+### 28 beaches in one request, and the column that does not exist
+
+Open-Meteo takes a comma-separated coordinate list and answers with an array —
+**tested to 120 points**, so the whole sheltered-beach feature is ONE call
+(28 points, 1.76 s). Worth doing per point rather than once for the region: at
+one moment the wind ran 275° at Marengo and 311° at Point Lonsdale, 36° apart,
+which is the difference between offshore and cross-shore.
+
+**`FACES` and `BEACH_AT` in that file are a stand-in for a database column.**
+`activities` stores a coordinate for every pinned row and nothing about which
+way it points, so offshore/onshore/sheltered cannot be derived from the
+database alone. The bearings were measured 31 Aug 2026 from OpenStreetMap
+coastline — OSM draws it with land on the left and water on the right, so the
+seaward normal is the segment bearing + 90°, averaged over every segment within
+400 m. **Validated against a fact it was not given**: Bells came out 136°,
+making its offshore a north-westerly, which is the classic Bells offshore.
+(A figure of ~200° asserted from memory earlier the same day was wrong by 64°.)
+
+Adding a `faces` column to `activities` retires both constants. That is the
+only schema change anything in this work needs.
+
+### The tide is real, and must never print a minute
+
+`sea_level_height_msl` comes back hourly in the same free marine call as the
+swell. It is a genuine lunar tide, not a surge field: **mean interval between
+23 high waters over twelve days was 12.32 h**, against 12.42 for the lunar M2
+constituent and 12.00 for anything solar, and the range grew 1.5 m → 2.37 m as
+the spring–neap cycle came round.
+
+**It is an hourly model, so the times are good to about half an hour.** The tab
+prints *"around 8pm"* and the board must too. It is not a gauge and not a BOM
+tide table.
+
+### Fire bans are deliberately NOT fetched
+
+The one signal that would actually gate a listing is the one blocked, and it is
+a licence question rather than a technical one. CFA's per-district RSS is
+readable and **CORS-blocked**; its own terms say the feeds are *"available for
+personal, non-commercial use only"* and point websites at Emergency Management
+Victoria instead. **EMV's developer feeds return a single newline byte** —
+`0a`, not `[]` — because it is out of season, so nobody has seen the populated
+shape.
+
+So `out.fire` reports `state: 'blocked'` with the reason and what to do, and
+the Conditions tab prints it. **Do not build a parser against an empty
+endpoint** — that is how a source reads green while returning nothing, which
+`run_log.py` has already had to be taught about once.
+
+Three ways forward, best first: **email EMV** (they manage third-party access;
+one paragraph settles both questions, same move as the Communico email drafted
+for the library); wait for November and read it with data in it; or embed CFA's
+own district widget for one season.
+
+**And the region straddles two fire districts** — Central holds Surf Coast,
+Greater Geelong, Golden Plains and Queenscliffe; South West holds Colac Otway.
+There can never be one site-wide fire banner: Apollo Bay, Wye River, Forrest
+and Lavers Hill are on the other declaration from Torquay and Anglesea.
+
+### The Conditions tab answers three questions, not one
+
+`private/admin.html`, under Automations. Added to `TABS`, `PAGES`, and
+`SECTION_OF`; it reads on entering the tab the way Inbox does.
+
+    is it reading    per-source state, straight out of the reply
+    is it CACHING    x-vercel-cache and age off the RESPONSE HEADERS, which is
+                     the only place that fact exists anywhere
+    is it SENSIBLE   every reading against a plausible range
+
+**The third is the one worth having.** A source that 401s is loud; a source
+that answers 200 with a sea temperature of 91 °C is the failure this project
+keeps paying for, and nothing else would catch it. `SANE` holds a wide range
+per reading — wide on purpose, to catch a field being read wrong or a unit
+changing, never to second-guess the weather. A cold snap must not light it up.
+
+**Tested by corrupting the payload**, which is the only test that proves a
+monitor works: sea temp 91.4, Kp 42, wind −3 km/h and the air source timed out.
+All three readings flagged with their ranges, the strip went red on both
+counts, and PM2.5/PM10 correctly read *"source did not answer"* rather than
+being counted a second time as out of range.
+
+**"Skip the cache" is a real control, not a convenience.** Without it the edge
+answers and `gathered_ms` is whatever it was ten minutes ago, so a cold gather
+can never be observed.
+
+**Locally the tab says so rather than looking broken.** There is no `/api`
+under the preview server, so it prints *"There is no /api under the local
+preview server. Check this on the deploy."* Cache shows *unknown — not behind
+the edge*, which is the honest answer off Vercel.
+
+### Still open
+
+- **Nothing on the public board reads this yet.** The function and the monitor
+  exist; `index.html` has not changed.
+- The `faces` column, which retires two constants in the function.
+- Fire, behind the EMV licence question.
+- The monthly iNaturalist job — wildflower and fungi counts per natural spot.
+  That belongs in the database written by a scheduled job, NOT in this
+  function: it moves over weeks and costs one call per spot.
+- Nine new types if these ever become rows — see `concepts/nature-as-events.html`.
+
+The full investigation is `concepts/AUTOMATING_NATURE.md`; the exploration
+behind it is `concepts/nature-whats-on.html` and its published artifact.
+
+## A listing needs its own page — the linking pass, 1 Sep 2026
+
+Scott, asking whether shops and venues need listing pages, and then clarifying
+what he actually meant: **does Bells Beach need a page of its own**, showing
+more than the open row and naming the events that happen there.
+
+**The answer measured out as yes, for about half the database.** What a detail
+page adds over the open row is exactly three things — an address you can send
+someone, *what's on here*, and *what else is at this pin*. Everything else it
+would print, `index.html:1410` already prints when you open the row.
+
+    published listings 1198
+    happening 516   venue 316   spot 230   idea 62   group 51   shop 17   maker 6
+
+### The linking pass — 27 links, and 158 events now reachable
+
+**"Events here" was switched off for 96% of rows**, because an event points at a
+`places` row and only 49 published activities carried a `place_id`. So the
+feature the page exists for could not have worked.
+
+`scripts/` has no home for this yet; it was run from a scratch script whose rules
+are worth keeping: **exact normalised name match, or a match against a place's own
+aliases — never fuzzy**, because fuzzy matching once wanted to file the Bells
+Beach surf comp at Bells Beach Brewing. Anything ambiguous, or contradicted by a
+coordinate more than 500 m out, is reported and never written.
+
+    published activities linked to a place    49 -> 76
+    published events reachable from a listing 94 -> 158
+    listings that can show "events here"      26 -> 30
+    published listings with a pin            975 -> 980
+
+**Zero coordinate disagreements over 500 m**, which is the check that says the
+matches are real. Five rows gained a pin by inheriting their place's, through the
+view's own own-first/place-second coalesce — no second copy that could drift.
+
+**All 27 are exact name matches, so `place` == `name` on every one.** That is
+already handled: `item()`, `row()` and `whereParts()` each drop `place` when it
+matches the name, so nothing prints its own name back at itself. 65 rows are in
+that state now and none of them shows it.
+
+The invariant was re-run after: `published and not verified` is still 0.
+
+**The best single link is `a288 Geelong Library & Heritage Centre – The Dome`
+→ place 128**, which carries **61 published events** and gave the activity a pin
+it did not have.
+
+### Place 201 was a duplicate and blocked the only ambiguous match
+
+`Flying Brick Cider House` matched two places. **14** is the real row — pinned,
+addressed, `kind = cidery`, seeded from the music spreadsheet, one event, and it
+already carried `Flying Brick Cider House` as an alias. **201** was created by
+hand from /admin on 31 Aug 2026 carrying nothing but an Eventbrite organiser
+URL, with no events and no activities pointing at it.
+
+Merged onto 14: the `events_url` moved across, then 201 was deleted. **No new
+alias was needed** — the alias already there is what made the duplicate visible
+in the first place, since both names normalise to one key. Checked before the
+move that no other place carried that Eventbrite URL: two places sharing an
+`events_url` makes `scrape_venues.py` set `__shared_pin` and return nothing for
+**either** row.
+
+So a pinned, addressed venue now has a readable Eventbrite feed, which is a real
+gain on top of the merge.
+
+### The concept — `concepts/listing-page.html`
+
+Two real rows rendered as they would ship, with nothing written for the mockup:
+**Bells Beach** (a spot with five events and Winkipop on the same pin) and
+**Anglesea Bakery** (a venue with none). Four decisions in it:
+
+- **The id goes in the URL — `/l/a2-bells-beach`.** Not the name: **45 slugs
+  collide across 221 published rows**, `toddler-time` alone being 32 of them, one
+  per library branch. And not the kind either — `Go Ride A Wave` went venue →
+  shop in a day, which would have broken `/venue/…`. `a2` is the key `keyOf()`
+  already uses for saved listings, so it is one key shape across the site.
+- **Happenings get no page.** An event page is wrong the day after, every one of
+  those 221 colliding slugs lives there, and `/noticeboard` already lists them.
+  This is for the ~620 rows that persist.
+- **No new fields.** Every value on both plates is a column the open row already
+  prints. Nobody has to write prose for 620 rows.
+- **The empty case decides the design.** With only 30 of 682 able to show
+  events, most pages are the bakery, so the page cannot lean on the events
+  section — and it **drops the heading it cannot fill**. That is deliberately the
+  opposite of `type.html`, which draws all seven kind buckets even when empty:
+  right for a monitoring view you scan, wrong for a page a reader lands on.
+
+**Not built.** No route, no `public/listing.html`, no `RESERVED` entry. `/l/` sits
+under its own prefix precisely so it does not join the flat `/<slug>` namespace
+that towns and types share.
+
+**`concepts/homepage.html` has no `<meta charset>`** and mojibakes in the local
+preview — every `·` and `—` in it. `type-running.html` and `index.html` both
+declare one. One line, not fixed here because it is Scott's uncommitted draft.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
