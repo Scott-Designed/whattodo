@@ -2183,7 +2183,7 @@ function drawReview(){
           data-approve="${esc(src)}">Approve all ${rows.length}</button>
       </h3>
       <div style="overflow-x:auto"><table><thead><tr>
-        <th>Name</th><th>Type</th><th>When</th><th>Town</th><th>Already have</th><th>Submitted</th><th></th>
+        ${pickHead()}<th>Name</th><th>Type</th><th>When</th><th>Town</th><th>Already have</th><th>Submitted</th><th></th>
       </tr></thead><tbody>${rows.slice(0, 400).map(r => {
         const place = DATA.places.find(p => p.id === r.place_id);
         const venue = place?.name || r.venue || '';
@@ -2197,6 +2197,7 @@ function drawReview(){
         const past  = r.starts_on && r.starts_on < TODAY &&
                       (!r.recurrence || r.recurrence === 'none');
         return `<tr data-t="${r.__t}" data-id="${r.id}">
+          ${pickCell(r.__t, r.id)}
           <td class="clickable" data-open="1"><div class="rowname">${esc(r.name)}</div></td>
           <td class="cap" style="max-width:16ch" title="${esc(types)}">${
                 types ? esc(types) : '<span style="color:var(--ink3)"><i>unsorted</i></span>'}</td>
@@ -2242,6 +2243,11 @@ function drawReview(){
     tr.querySelector('[data-ok]').onclick   = () => approve(t, [id]);
     tr.querySelector('[data-no]').onclick   = () => rejectRow(t, id);
   });
+  /* One selection, shared with the other four tables — Review is the only view
+     whose rows are not all one table, which is why the pick key carries it.
+     Grouped by source, so several <table>s: wirePick reads them all through
+     `#review` and gives each group's header box its own scope. */
+  wirePick('#review', 'review', null);
 }
 
 function rsay(html, cls){ $('#rmsg').className = 'msg ' + (cls||''); $('#rmsg').innerHTML = html; }
@@ -2264,6 +2270,7 @@ async function approve(t1, ids1, t2, ids2){
     for (const r of DATA[table]) if (ids.includes(r.id)){ r.published = true; r.verified = true; }
   }
   rsay(`Approved ${done} — ${done === 1 ? 'it is' : 'they are'} on the site now.`, 'good');
+  clearPick();
   drawReview(); redrawAll();
 }
 

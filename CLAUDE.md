@@ -2121,6 +2121,67 @@ the way an exact match can, and the normalising happens once per row rather
 than once per pair, so 562 events is a few milliseconds. If `events` reaches
 five figures, bucket by date first: every state except `date` is same-day only.
 
+### Picking rows in Review, and the key that carries its table — 1 Sep 2026
+
+Scott: *"also add multi select on the review list"*, and *"change Hold to
+Unpublish"*.
+
+**Review is the only picking view whose rows are not all one table.** The other
+four are Events (`events`), Listings (`activities`), Groups and Locations (both
+`places`). Review is grouped by **who submitted a row**, and a source hands over
+both kinds at once — *Researched by hand* is 17 events and 3 activities today.
+
+**So the pick key now carries its table: `"events:751"`, never `751`.** Ids
+collide across the two listing tables — event 13 and activity 13 are different
+things, which the board's saved-listings code has known since the day it was
+written (`keyOf()` makes `e13`/`a90` for exactly this reason). It did not matter
+while every picking table held one kind of row. In Review a bare id would let a
+tick on an event untick an activity, silently, and the next button is Delete.
+
+`pickByTable()` splits the selection into `{events:[…], activities:[…]}`, and
+**every action goes through it** — one request per table, which is the shape
+`approve()` has always had. `bulkPublish` and `bulkDelete` loop it; nothing has
+to know in advance which tables it got.
+
+**One field at a time is the exception, and it refuses rather than guesses.**
+`Edit…` on a mixed selection says so and stops: `place_id` means nothing on an
+activity, `kind` means nothing on an event, so there is no honest shared field
+list. Narrow the selection, or use Approve / Publish / Unpublish / Delete, which
+all handle a mixed set.
+
+**`Approve` is on the bar in Review and nowhere else.** It is `verify` and
+nothing more — the queue's own gesture, now for a subset instead of a whole
+group. Publish is the stronger one (it sets `verified` too) and stays separate.
+Approving clears the selection, because those rows have just left the queue and
+a selection pointing at rows that are gone is what Delete would act on.
+
+**The header checkbox is now per `<table>`, not per view.** Review draws one
+table per source, and `root.querySelector('.pickall')` — singular — would have
+given the first group's box authority over every row on the tab while leaving
+the other four groups' boxes with no handler at all. It is `querySelectorAll`
+now, each box scoped to `closest('table')`. No change for the four single-table
+views; it is what makes a group's own "select all" mean that group.
+
+Measured after wiring: 164 rows, 5 group boxes, a mixed group selecting 20 rows
+that split 17/3, the other groups untouched, shift-ranges intact, and switching
+to Events clearing the lot.
+
+### `Hold` is `Unpublish`
+
+Same action, better word — `published = false`. The button said Hold, which
+named a state rather than what pressing it does, and the column, the chip and
+the Review mode all say *published*.
+
+Worth keeping straight, because the two are deliberately not symmetrical:
+
+    Publish     published = true AND verified = true
+                refuses a row with no source_note, or an event with no date
+    Unpublish   published = false, and verified is LEFT ALONE
+                no confirm — it takes something off the site, the safe direction
+
+Taking a row off the board says nothing about whether it is true. Putting one in
+front of readers IS the human judgement `verified` was always meant to record.
+
 ## A group is not a room — the Groups tab, 31 Aug 2026
 
 Scott, naming six rows sitting in Places: *"Bellarine Catchment Network is a
