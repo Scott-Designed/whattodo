@@ -86,6 +86,15 @@ KIND_TAGS = {
                 'amenity': {'marketplace'},
                 'craft': {'winery', 'distillery'},
                 'landuse': {'orchard', 'vineyard'}},
+    # what a second-hand pass is looking for. `second_hand`, `charity` and
+    # `antiques` are precise and are the bulk of it. `books` and `music` are in
+    # because a used bookshop and a record shop carry no other tag — they catch
+    # new shops too, so every hit needs reading, the same bargain `tourism=hotel`
+    # makes in the food net. `clothes` is deliberately OUT: it is overwhelmingly
+    # new fashion and would swamp Geelong, which is the mistake `florist` made in
+    # the produce sweep. An op shop is tagged `charity`, not `clothes`.
+    'secondhand': {'shop': {'second_hand', 'charity', 'antiques', 'books',
+                            'music'}},
     # what an arts & culture pass is looking for. OSM is comparatively GOOD here
     # — a museum or a cinema is a landmark and somebody maps it — but it is blind
     # to the thing this group is actually short of: artist-run spaces, open

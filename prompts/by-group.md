@@ -68,6 +68,12 @@ prompt reads it rather than repeating it.
 
 ---
 
+**A type can want a pass of its own.** `second-hand` is the 44th type and had one
+row when it was added; it is worked by SOURCE rather than by type, so it has its own
+file: [prompts/second-hand.md](second-hand.md).
+
+---
+
 ## 1 · The ocean
 
 > beach 25 · swimming 10 · paddling 9 · surfing 8 · water 8
