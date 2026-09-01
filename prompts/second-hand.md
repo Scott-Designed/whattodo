@@ -4,13 +4,48 @@
 other nine prompts work a whole group thinnest-first; this one works a single
 type from nearly zero, so it is organised by **source** rather than by type.
 
-Read the "Getting the repo" section at the top of
-[by-group.md](by-group.md) first — the clone instruction, the no-credentials
-rule and `sync.py check` are the same here.
+The clone instruction is **inside** the block below rather than in a preamble
+above it, because this file holds one prompt and the thing you copy has to stand
+on its own. The nine in [by-group.md](by-group.md) get away with a shared
+preamble only because it sits directly above all nine.
 
 ---
 
 ```text
+═══ GETTING THE REPO — DO THIS FIRST ═══
+
+Clone it. Do not go looking for a folder on the Mac, and do not accept a folder someone
+suggests. Three Cowork sessions have been lost to this, twice by being pointed at
+~/surfcoast-events — which is a real repo and the WRONG one: that is an older scraper
+project last touched in March and none of this tooling has ever been in it.
+
+  git clone https://github.com/Scott-Designed/whattodo.git
+  cd whattodo
+
+The project is public, so an anonymous clone needs no SSH key and no token. The real
+checkout lives in iCloud Drive and this project has a documented history of sandboxed
+processes getting PermissionError on that path while the terminal reads it fine; a cloud VM
+has no route to the Mac's filesystem at all. A clone is also guaranteed to be at origin/main,
+which is where every pass's tooling lands.
+
+**You never write to the database and never need a credential.** Scott pastes the results
+back and applies them himself. Do not ask for .env, do not ask for SUPABASE_SERVICE_KEY, and
+do not try to write — hand back the batches and the worklog as files. Nothing gets pushed.
+
+Validate properly rather than by eye:
+
+  python3 scripts/sync.py check <file>
+
+`check` needs no credentials. It reads the live vocabularies with the public anon key out of
+public/notice-data.js and runs THE SAME check() that add runs — types, kinds, conditions,
+season, cost, daypart, the URL rules, the four-decimal coordinate rule, unknown fields —
+plus the same name-clash query against every existing listing. A batch that passes it will
+apply cleanly. Do not hand-roll a second copy of it: the arts and ocean passes each did that
+when no .env arrived, and two copies of a validator is the drift this project keeps paying
+for.
+
+═══ THE PASS ═══
+
 Read prompts/RESEARCH_RULES.md and the `second-hand` section of CLAUDE.md, then research
 listings for the `second-hand` type. It has one row and the region has dozens of candidates.
 
