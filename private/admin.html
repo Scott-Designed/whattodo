@@ -2180,7 +2180,7 @@ function drawReview(){
     return `<h3 class="subhead" style="display:flex;align-items:center;gap:12px">
         <span>${esc(sourceName(src))} · ${rows.length}</span>
         <button class="btn" style="padding:4px 12px;font-size:11.5px"
-          data-approve="${esc(src)}">Approve all ${rows.length}</button>
+          data-approve="${esc(src)}">Publish all ${rows.length}</button>
       </h3>
       <div style="overflow-x:auto"><table><thead><tr>
         ${pickHead()}<th>Name</th><th>Type</th><th>When</th><th>Town</th><th>Already have</th><th>Submitted</th><th></th>
@@ -2218,16 +2218,16 @@ function drawReview(){
                  onclick="event.stopPropagation()"
                  style="color:var(--ink3);font-size:11.5px;margin-right:8px">source ↗</a>` : ''}
             <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-open="1">Edit</button>
-            <button class="btn" style="padding:3px 10px;font-size:11.5px" data-ok="1">Approve</button>
+            <button class="btn" style="padding:3px 10px;font-size:11.5px" data-ok="1">Publish</button>
             <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-no="1">Delete</button>
           </td></tr>`;
       }).join('')}</tbody></table></div>
-      ${rows.length > 400 ? `<p class="note">Showing the first 400. Approve all ${rows.length} does the lot.</p>` : ''}`;
+      ${rows.length > 400 ? `<p class="note">Showing the first 400. Publish all ${rows.length} does the lot.</p>` : ''}`;
   }).join('');
 
   $('#review').querySelectorAll('[data-approve]').forEach(b => b.onclick = () => {
     const rows = bySrc[b.dataset.approve] || [];
-    approve('events',     rows.filter(r => r.__t === 'events').map(r => r.id),
+    publishRows('events', rows.filter(r => r.__t === 'events').map(r => r.id),
             'activities', rows.filter(r => r.__t === 'activities').map(r => r.id));
   });
   $('#review').querySelectorAll('tr[data-id]').forEach(tr => {
@@ -2240,7 +2240,7 @@ function drawReview(){
       ev.preventDefault(); ev.stopPropagation();
       openEditor('events', DATA.events.find(x => x.id === +el.dataset.dup));
     });
-    tr.querySelector('[data-ok]').onclick   = () => approve(t, [id]);
+    tr.querySelector('[data-ok]').onclick   = () => publishRows(t, [id]);
     tr.querySelector('[data-no]').onclick   = () => rejectRow(t, id);
   });
   /* One selection, shared with the other four tables — Review is the only view
@@ -2258,10 +2258,16 @@ function rsay(html, cls){ $('#rmsg').className = 'msg ' + (cls||''); $('#rmsg').
    always meant to record. Two flags remain and they still mean different
    things: a scraper may set `verified` itself when its mechanical checks pass,
    and it may never set `published`. */
-async function approve(t1, ids1, t2, ids2){
+/* THE QUEUE HAS ONE VERB. This used to be `approve`, from when `verified` was
+   the gate on the board; it has posted `publish` since the gate moved, so the
+   word was the only thing left saying otherwise. Publishing sets `verified`
+   with it, and the queue is `published === false`, so there is no second
+   decision left for a separate Approve to make — on the pick bar the two
+   buttons were literally the same request. */
+async function publishRows(t1, ids1, t2, ids2){
   if (!PASS) return rsay('Unlock first — the button at the top right.', 'bad');
   const jobs = [[t1, ids1], [t2, ids2]].filter(([t, ids]) => t && ids && ids.length);
-  rsay('Approving…');
+  rsay('Publishing…');
   let done = 0;
   for (const [table, ids] of jobs){
     const [code, out] = await post({action:'publish', table, ids, on:true});
@@ -2269,7 +2275,7 @@ async function approve(t1, ids1, t2, ids2){
     done += out.published || 0;
     for (const r of DATA[table]) if (ids.includes(r.id)){ r.published = true; r.verified = true; }
   }
-  rsay(`Approved ${done} — ${done === 1 ? 'it is' : 'they are'} on the site now.`, 'good');
+  rsay(`Published ${done} — ${done === 1 ? 'it is' : 'they are'} on the site now.`, 'good');
   clearPick();
   drawReview(); redrawAll();
 }
@@ -3015,21 +3021,11 @@ function drawPickbar(){
   const pub = tabs.length > 0 && tabs.every(x => x === 'events' || x === 'activities');
   bar.innerHTML = `<span><b>${n}</b> ${esc(noun)}${n === 1 ? '' : 's'} selected</span>
     ${off ? `<span class="off">${off} not in this view</span>` : ''}
-    ${PICK.view === 'review' ? `<button class="btn" id="pkok">Approve</button>` : ''}
     ${pub ? `<button class="btn" id="pkpub">Publish</button>
              <button class="btn ghost" id="pkhold">Unpublish</button>` : ''}
     <button class="btn" id="pkedit">Edit…</button>
     <button class="btn danger" id="pkdel">Delete</button>
     <button class="btn ghost" id="pkclear">Clear</button>`;
-  if (PICK.view === 'review'){
-    // Approve is verify and nothing else — the queue's own gesture, now for a
-    // subset rather than a whole group. Publish is the stronger one and stays
-    // its own button.
-    $('#pkok').onclick = () => {
-      const b = pickByTable();
-      approve('events', b.events || [], 'activities', b.activities || []);
-    };
-  }
   if (pub){
     $('#pkpub').onclick  = () => bulkPublish(true);
     $('#pkhold').onclick = () => bulkPublish(false);
@@ -3055,7 +3051,7 @@ async function bulkPublish(on){
   if (on && !confirm(`Put ${n} ${noun} on the site? This is what readers will see.`))
     return;
   // One request per table. Review mixes events and activities in one group, so
-  // this is the same shape approve() has always had.
+  // this is the same shape publishRows() has always had.
   for (const [table, ids] of Object.entries(byT)){
     const [code, out] = await post({action:'publish', table, ids, on});
     if (code !== 200) return alert(out.message || out.error || ('error ' + code));

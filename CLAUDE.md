@@ -1124,9 +1124,39 @@ its CSS and both comments that described it.
 **One queue, one button.** The Review tab was briefly two — *Not checked* and
 *Not published* — which was right about the flags and wrong about the gesture.
 There is one decision, "does this go on the site", so `reviewRows()` is
-`published === false` and **Approve publishes**. The endpoint sets `verified`
-alongside, because a person putting a row in front of readers IS the judgement
-that flag was always meant to record.
+`published === false` and **the button publishes**. The endpoint sets
+`verified` alongside, because a person putting a row in front of readers IS the
+judgement that flag was always meant to record.
+
+### The queue has one verb — 1 Sep 2026
+
+Scott: *"What's the difference between approve and publish, I think we
+simplified this into just published and unpublished?"* He was right, and the
+interface had not caught up.
+
+`approve()` was named when `verified` was the gate on the board. When the gate
+moved to `published` the function was switched to post `action: 'publish'` —
+and **only the word was left saying otherwise.** So the row button said Approve
+and published, the group button said *Approve all 115* and published, and the
+pick bar had **Approve and Publish side by side firing the identical request**.
+
+Everything says **Publish** now: *Publish all 115*, a per-row *Publish*, and on
+the pick bar **Publish · Unpublish · Edit… · Delete · Clear**. `approve()` is
+`publishRows()`.
+
+**The page no longer calls `action: 'verify'` at all.** The action stays on the
+endpoint — it is still the honest way to record "somebody checked this" without
+releasing it — but nothing in the interface presses it, because the queue is
+`published === false` and publishing sets `verified` anyway. There is no second
+decision left for a separate button to make.
+
+**`verified` is NOT dead**, and this is the thing to keep straight: a scraper
+still sets it when its four mechanical checks pass, and Publish still sets it.
+What changed is that it is no longer a *gesture*. Two flags, one button.
+
+**The public `unverified` badge was already gone** and stays gone — with the
+gate closed it can never fire, and a badge that can never render teaches the
+reader that a state exists which does not.
 
 **Unpublishing does NOT clear `verified`.** Taking a row off the board says
 nothing about whether it is true.
@@ -2149,11 +2179,12 @@ activity, `kind` means nothing on an event, so there is no honest shared field
 list. Narrow the selection, or use Approve / Publish / Unpublish / Delete, which
 all handle a mixed set.
 
-**`Approve` is on the bar in Review and nowhere else.** It is `verify` and
-nothing more — the queue's own gesture, now for a subset instead of a whole
-group. Publish is the stronger one (it sets `verified` too) and stays separate.
-Approving clears the selection, because those rows have just left the queue and
-a selection pointing at rows that are gone is what Delete would act on.
+**Publishing clears the selection**, because those rows have just left the
+queue and a selection pointing at rows that are gone is what Delete would act
+on.
+
+**An `Approve` button was added to this bar and removed the same day** — see
+*The queue has one verb* below. It called the same endpoint as Publish.
 
 **The header checkbox is now per `<table>`, not per view.** Review draws one
 table per source, and `root.querySelector('.pickall')` — singular — would have
