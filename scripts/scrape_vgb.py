@@ -4,6 +4,7 @@
     python3 scripts/scrape_vgb.py            # look and report, writes nothing
     python3 scripts/scrape_vgb.py --write    # insert, UNPUBLISHED
     python3 scripts/scrape_vgb.py --json f   # rows for `sync.py add` instead
+    python3 scripts/scrape_vgb.py --backfill # fill the venue on rows already here
 
 EVERY ROW LANDS `published = false`, and that is Scott's instruction for this
 source specifically: "I would like for events not to appear until they have been
@@ -75,12 +76,44 @@ Weekly needs three, not two: two dates a week apart is a coincidence. Monthly is
 deliberately absent, because `nextDate()` does not roll monthly forward and a
 recurrence the page cannot honour is worse than none.
 
-── WHAT THIS SOURCE CANNOT GIVE ──────────────────────────────────────────────
+── THE VENUE IS ON THE PRODUCT PAGE, AND ONLY THERE ──────────────────────────
 
-No venue name and no address, anywhere — not in the index, not in the page, not
-in its JSON-LD. So no `place_id` and no pin, and `venue` is null. The index does
-carry a coordinate per product, and it goes in `source_note` for a person who
-wants to build a places row rather than being silently dropped.
+This file used to say the venue was nowhere — "not in the index, not in the
+page, not in its JSON-LD" — and it was two-thirds right. The INDEX has no venue
+name and the JSON-LD has none, but every product page carries a server-rendered
+"Find Us" block with the venue's name, street, suburb and postcode:
+
+    >Find Us</h2> ... <span class="block">Geelong Gallery</span>
+                      <span class="block">55 Little Malop Street</span>
+                      <span class="block">Geelong</span>
+                      <span class="block">VIC 3220</span>
+
+Measured 1 Sep 2026 over all 119 What's On products: 118 have the block, one
+does not, 69 distinct venues, and 56 of the products name a venue that is
+already a row in `places`. So the whole reason these events arrived with no
+venue, no place and no pin was that nobody had read the page.
+
+`find_us()` reads it and `match_place()` looks the name up in the SAME registry
+scrape_venues.py builds - every place's name plus every alias, then each part of
+a name split on ' - ' and commas, because "Geelong Arts Centre - The Story
+House" and "Costa Hall - Deakin University" are one room wearing a programme.
+
+WHAT IT WILL NOT DO IS CREATE A PLACE. A places row needs a geocode and a
+person, and this project has 32 things existing in two tables because something
+once created rooms it found on a page. An unmatched venue is printed with its
+address and the index's coordinate, which is everything needed to build the row
+by hand, and the event keeps the name as free text in `venue` so a reader is
+still told where it is.
+
+Guards, both learned elsewhere: a venue name that is only the suburb is not a
+venue ("Geelong", 2 products), and neither is anything in GENERIC.
+
+── WHAT THIS SOURCE STILL CANNOT GIVE ────────────────────────────────────────
+
+No pin of its own. The index carries a coordinate per product and it goes in
+`source_note` for whoever builds the places row rather than being written as a
+pin: an event is pinned through `place_id`, and a coordinate a tourism board
+publishes for a product is not the same fact as a geocoded room.
 
 `km` is not set. Standing decision, not an omission.
 """
@@ -178,6 +211,86 @@ def pick_types(h):
     if have & TYPE_UNSURE: return []      # a person picks the sport
     return ['community']
 
+# ── the venue, off the product page ─────────────────────────────────────────
+# The block is server-rendered, so a plain fetch reads it. It is anchored on the
+# "Find Us" heading rather than on a class name: the classes are Tailwind and
+# would change with a redesign, while the heading is the site's own words.
+FIND_US = re.compile(r'>Find Us</h2>.*?<div class="text-sm[^"]*"[^>]*>(.*?)</div>', re.S)
+FIND_ROW = re.compile(r'<span class="block">(.*?)</span>', re.S)
+
+# A name that is not a place. GENERIC is scrape_venues.py's list, kept in step
+# by hand because these two scrapers share no module for it yet.
+GENERIC = {'online', 'tba', 'tbc', 'various', 'venue', 'virtual', 'zoom',
+           'to be advised', 'hosted online',
+           # This source's own contributions, both seen on real products:
+           'multiple venues', 'various venues'}
+
+def find_us(path):
+    """(venue name, address line, suburb) off a product page, or (None,)*3."""
+    html = E.fetch(ROOT + path)
+    if not html: return None, None, None
+    m = FIND_US.search(html)
+    if not m: return None, None, None
+    parts = [re.sub(r'\s+', ' ', E.text(x)).strip() for x in FIND_ROW.findall(m.group(1))]
+    parts = [x for x in parts if x]
+    if not parts: return None, None, None
+    name = parts[0]
+    # The block runs name / street / suburb / STATE POSTCODE. The last line is
+    # dropped rather than parsed — we take the town from the index, which is the
+    # value suburbOf() has already been checked against.
+    rest   = parts[1:-1] if len(parts) > 2 and re.match(r'^[A-Z]{2,3}\s+\d{4}$', parts[-1]) else parts[1:]
+    street = rest[0] if rest else None
+    suburb = rest[-1] if len(rest) > 1 else None
+    return name, street, suburb
+
+def place_key(name):
+    """scrape_venues.py's key: forgives 'The' and punctuation."""
+    return E.norm(re.sub(r'(?i)^the\s+', '', (name or '').strip()))
+
+def usable_venue(name, town):
+    """The venue name worth writing, or None. Refusing is not a failure.
+
+    A name we will not link is still written to `venue` as free text, so this
+    guard has to run on the WRITE and not only on the match — the first version
+    ran it inside match_place alone and would have written a venue called
+    "Geelong" (the suburb) and one called "Multiple Venues" onto real rows.
+    """
+    name = (name or '').strip()
+    if len(name) < 3: return None
+    if name.lower() in GENERIC: return None
+    # The suburb wearing a venue's hat. Two products do exactly this.
+    if town and place_key(name) == place_key(town): return None
+    return name
+
+def match_place(name, town, registry):
+    """The id of the place this venue name IS, or None. Never creates one.
+
+    Tries the whole name, then each part of it split on a dash or a comma — the
+    product pages hang a programme off a room ("Geelong Arts Centre - The Story
+    House") and a suburb off a name, and the room is what `places` holds.
+    """
+    name = usable_venue(name, town)
+    if not name: return None
+    hit = registry.get(place_key(name))
+    if hit: return hit
+    for bit in re.split(r'\s+[-\u2013]\s+|,', name):
+        if len(bit.strip()) < 3: continue
+        hit = registry.get(place_key(bit))
+        if hit: return hit
+    return None
+
+def registry_of(places):
+    """Every place by its own name and by every alias — scrape_venues.py's rule.
+
+    An alias is what a merged duplicate leaves behind, and it is the only thing
+    that makes a merge stick against a source that spells a venue its own way.
+    """
+    reg = {place_key(v['name']): v['id'] for v in places}
+    for v in places:
+        for a in (v.get('aliases') or []):
+            reg.setdefault(place_key(a), v['id'])
+    return reg
+
 def shape_of(dates):
     """('run'|'weekly'|'fortnightly'|'one'|'irregular') for a product's dates.
 
@@ -213,10 +326,11 @@ def build(h, today, horizon):
         note += f"; dates: {shown}{' …' if len(days) > 12 else ''}"
     if geo.get('lat') is not None:
         # The source's own coordinate. NOT written to a pin: an event is pinned
-        # through place_id and this source names no venue to make a place from.
+        # through place_id, and a coordinate a tourism board publishes for a
+        # product is not the same fact as a geocoded room. It is recorded so
+        # whoever builds the places row has it.
         note += (f"; source gives {geo['lat']},{geo['lng']}"
-                 f"{' (' + geo['postcode'] + ')' if geo.get('postcode') else ''}"
-                 f" — no venue named, so no place row was made")
+                 f"{' (' + geo['postcode'] + ')' if geo.get('postcode') else ''}")
     note += ("; imported " + today.isoformat() +
              ", held unpublished, date not checked against a first-party page")
 
@@ -225,7 +339,11 @@ def build(h, today, horizon):
         'types'          : pick_types(h),
         'starts_on'      : days[0].isoformat(),
         'time_text'      : clock(first),
+        # Filled by add_venue() off the product page. Both keys are always
+        # present, null included — PostgREST refuses a batch insert whose
+        # objects have different key sets, with a bare 400 naming no field.
         'venue'          : None,
+        'place_id'       : None,
         'location'       : town,
         'description'    : E.text(h.get('roam_products_description')),
         'info_url'       : ROOT + h['roam_products_url'],
@@ -249,9 +367,104 @@ def build(h, today, horizon):
     row['recurrence'] = kind if kind in ('weekly', 'fortnightly') else None
     return row
 
+def add_venue(row, registry, seen_pages):
+    """Read the product page, put the venue on the row, link it if we know it.
+
+    Mutates and returns (venue name, street, place_id). The page is fetched once
+    per product per run and cached in `seen_pages`, because the report and the
+    write both want the answer and a second fetch would be a second chance to
+    disagree with the first.
+    """
+    path = row['info_url'][len(ROOT):]
+    if path not in seen_pages:
+        seen_pages[path] = find_us(path)
+        time.sleep(0.3)                     # one page every third of a second
+    raw, street, suburb = seen_pages[path]
+    name = usable_venue(raw, row.get('location') or suburb)
+    if not name: return None, None, None
+    pid = match_place(name, row.get('location') or suburb, registry)
+    row['venue']    = None if pid else name   # a linked place already says it
+    row['place_id'] = pid
+    row['source_note'] += (f"; venue \"{name}\""
+                           + (f", {street}" if street else '')
+                           + (f" — matched place {pid}" if pid
+                              else " — no places row yet, so no pin"))
+    return name, street, pid
+
+def backfill(write):
+    """Put the venue on the rows imported before anyone read the product page.
+
+    115 events arrived from this source with `venue` null and `place_id` null,
+    because the importer believed the page carried no venue. They do. This reads
+    each row's own product page — the path is in its source_note, which is why
+    that field is written the way it is — and PATCHES ONLY the empty fields.
+
+    IT NEVER TOUCHES A ROW THAT ALREADY HAS ONE. A person may have linked a
+    place or typed a venue by hand since the import, and a scraper overwriting
+    that is what this project refuses to do. The name, the date, the time and
+    the types are not touched at all.
+
+    Dry run by default, like everything else here.
+    """
+    E.load_env()
+    places   = E.db('GET', '/rest/v1/places?select=id,name,aliases,suburb',
+                    None, None, all_rows=True)
+    registry = registry_of(places)
+    by_pid   = {v['id']: v for v in places}
+    rows = E.db('GET', '/rest/v1/events?select=id,name,venue,place_id,location,'
+                        'source_note&added_by=eq.vgb', None, None, all_rows=True)
+    todo = [r for r in rows if not r.get('place_id') and not (r.get('venue') or '').strip()]
+    print(f"{len(rows)} rows from {SITE}, {len(todo)} with neither a venue nor a place")
+    if not todo: return 0
+
+    pages, patches, unknown = {}, [], {}
+    for r in todo:
+        m = re.search(r'visitgeelongbellarine\.com\.au(/products/[a-z0-9\-.]+)',
+                      r.get('source_note') or '')
+        if not m:
+            print(f"  {r['id']:>6}  no product path in source_note — skipped"); continue
+        path = m.group(1)
+        if path not in pages:
+            pages[path] = find_us(path)
+            time.sleep(0.3)
+        raw, street, suburb = pages[path]
+        name = usable_venue(raw, r.get('location') or suburb)
+        if not name:
+            print(f"  {r['id']:>6}  no venue worth writing"
+                  f"{' (' + raw + ')' if raw else ' — no Find Us block'}"
+                  f" — {r['name'][:40]}"); continue
+        pid = match_place(name, r.get('location') or suburb, registry)
+        if not pid: unknown.setdefault(name, (street, r.get('location') or suburb))
+        patch = {'place_id': pid} if pid else {'venue': name}
+        patch['source_note'] = ((r.get('source_note') or '') +
+            f'; venue "{name}"' + (f", {street}" if street else '') +
+            (f" — matched place {pid}" if pid else " — no places row yet, so no pin") +
+            f", read from the product page {datetime.date.today().isoformat()}")
+        patches.append((r, patch, name, pid))
+
+    link = sum(1 for _, _, _, pid in patches if pid)
+    print(f"\n{len(patches)} row(s) to fill — {link} link to a place, "
+          f"{len(patches) - link} keep the venue as free text")
+    for r, _, name, pid in patches:
+        where = f"-> place {pid} {by_pid[pid]['name']}" if pid else "(no places row)"
+        print(f"  {r['id']:>6}  {r['name'][:40]:42} {name[:30]:32} {where}")
+    if unknown:
+        print(f"\nVENUES WITH NO PLACES ROW — {len(unknown)}, build these by hand")
+        for n in sorted(unknown):
+            street, town = unknown[n]
+            print(f"  {n[:46]:48} {street or '—'}{', ' + town if town else ''}")
+    if not write:
+        print("\nnothing written. --backfill --write to apply.")
+        return 0
+    for r, patch, _, _ in patches:
+        E.db('PATCH', f"/rest/v1/events?id=eq.{r['id']}", patch)
+    print(f"\n{len(patches)} row(s) filled. Nothing else on them was touched.")
+    return 0
+
 # ── main ────────────────────────────────────────────────────────────────────
 def main(argv):
     write   = '--write' in argv
+    if '--backfill' in argv: return backfill(write)
     as_json = argv[argv.index('--json') + 1] if '--json' in argv else None
     need_db = write or '--json' not in argv
 
@@ -287,6 +500,20 @@ def main(argv):
                       e.get('source_note') or '')
         if m: by_id[m.group(1)] = e
 
+    # ── the venue, one page per product ──
+    # Read for EVERY dated product, not only the new ones: the unmatched list
+    # below is the worklist for building places rows, and a list that only
+    # covered this run's arrivals would say the registry was nearly complete
+    # when 62 of 119 products name a room we do not hold.
+    places   = E.db('GET', '/rest/v1/places?select=id,name,aliases,suburb',
+                    None, None, all_rows=True)
+    registry = registry_of(places)
+    log(f"reading {len(rows)} product page(s) for the venue …")
+    pages, venues = {}, {}
+    for r in rows.values():
+        name, street, pid = add_venue(r, registry, pages)
+        if name: venues[name] = (street, pid, r.get('location'))
+
     new, clash, drift = [], [], []
     for oid, r in rows.items():
         path  = r['info_url'][len(ROOT):]
@@ -313,6 +540,23 @@ def main(argv):
         rec   = f"  [{r['recurrence']}]" if r.get('recurrence') else ''
         print(f"  {r['starts_on']}{span:<12} {kinds:<10} {r['name'][:42]:44} "
               f"{(r['location'] or '?')[:16]:18}{r['time_text'] or '—'}{rec}")
+
+    linked  = sum(1 for r in rows.values() if r.get('place_id'))
+    noven   = [r for r in rows.values() if not r.get('venue') and not r.get('place_id')]
+    unknown = {n: v for n, v in venues.items() if not v[1]}
+    print(f"\nVENUES — {len(venues)} distinct, {linked} of {len(rows)} products "
+          f"linked to a place, {len(noven)} with no venue on the page")
+    if unknown:
+        print(f"\nVENUES WITH NO PLACES ROW — {len(unknown)}")
+        print("  Each one needs a `places` row built and geocoded BY HAND before "
+              "its events can be pinned. The address is what the page prints; "
+              "the coordinate is in each event's source_note.")
+        for n in sorted(unknown):
+            street, _, town = unknown[n]
+            print(f"  {n[:46]:48} {street or '—'}{', ' + town if town else ''}")
+    if noven:
+        print(f"\nNO VENUE ON THE PAGE — {len(noven)}")
+        for r in noven: print(f"  {r['name'][:60]}")
 
     if drift:
         print(f"\nDATE MOVED since we imported it — {len(drift)}")

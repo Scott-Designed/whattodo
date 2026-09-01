@@ -222,6 +222,15 @@ th{text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.1em;
 td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule);vertical-align:top}
 tr.clickable{cursor:pointer}
 tr.clickable:hover td{background:var(--surface)}
+/* ── sorting a column ──
+   The Review queue's headings are buttons. The arrow only ever draws on the
+   column actually in force — an arrow on every heading says nothing, and a
+   heading that looks pressable and is not is worse than a plain one. */
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--ink)}
+th.sortable[aria-sort]{color:var(--ink)}
+th.sortable .arw{font-size:9px;margin-left:3px;opacity:0}
+th.sortable[aria-sort] .arw{opacity:1}
 /* ── picking rows ──
    A checkbox in the first cell of every data table, invisible until the row is
    hovered, so a table you are only reading is still a table. The cell is
@@ -1390,7 +1399,7 @@ const AGGREGATORS = [
    what:'The regional tourism board\u2019s What\u2019s On',
    how:'Reads the site\u2019s own Algolia search index — the only place the dates exist. The page a person would send you (/search/What\u2019s+On/) has no events in its HTML at all: 139KB of chrome, drawn client-side. Every row lands UNPUBLISHED and waits in Review.',
    auto:'full',
-   note:'Registered and automated 1 Sep 2026, on the Mon/Thu schedule. EVERY ROW IS HELD BACK — Scott\u2019s instruction for this source: nothing appears on the board until he publishes it. That is the `published` column, which is not `verified`: verified says somebody established this is true and a scraper can now set it itself, published says a person decided this belongs on the board and only /admin ever sets it. ▸ The product pages DO carry schema.org "@type":"Event" and it MUST NOT be used — there is no startDate on it, only datePublished, so a reader would file every event on the day its page was written. That is the GMBC wp/v2 failure a second time: a first-party-looking page is authoritative about intent, not correctness. ▸ Dates are Melbourne instants carrying a real start time and must be read in Melbourne; in UTC a 7pm gig becomes 9am and a midday lunch becomes 2am. ▸ One product is one row: a naive import is 556 rows for 119 things, because an exhibition carries 93 dates and Dinos at the Zoo carries 258. A consecutive run becomes starts_on + ends_on, weekly and fortnightly become a recurrence, and an irregular set keeps its dates in source_note with no recurrence claimed. ▸ It names no venue and no address anywhere, so no place row and no pin; the coordinate it does give goes in source_note for a person. ▸ The Algolia key is the public search-only one published in the site\u2019s HTML — it can be rotated without notice, and the run says so plainly rather than reading as a region with nothing on.'},
+   note:'Registered and automated 1 Sep 2026, on the Mon/Thu schedule. EVERY ROW IS HELD BACK — Scott\u2019s instruction for this source: nothing appears on the board until he publishes it. That is the `published` column, which is not `verified`: verified says somebody established this is true and a scraper can now set it itself, published says a person decided this belongs on the board and only /admin ever sets it. ▸ The product pages DO carry schema.org "@type":"Event" and it MUST NOT be used — there is no startDate on it, only datePublished, so a reader would file every event on the day its page was written. That is the GMBC wp/v2 failure a second time: a first-party-looking page is authoritative about intent, not correctness. ▸ Dates are Melbourne instants carrying a real start time and must be read in Melbourne; in UTC a 7pm gig becomes 9am and a midday lunch becomes 2am. ▸ One product is one row: a naive import is 556 rows for 119 things, because an exhibition carries 93 dates and Dinos at the Zoo carries 258. A consecutive run becomes starts_on + ends_on, weekly and fortnightly become a recurrence, and an irregular set keeps its dates in source_note with no recurrence claimed. ▸ THE VENUE IS ON THE PRODUCT PAGE and nowhere else — a server-rendered “Find Us” block with the venue’s name, street and suburb. The index has none and the JSON-LD has none, which is why 114 rows arrived with no venue, no place and no pin: nobody had read the page. The scraper reads it now and looks the name up in the same registry the venue scraper uses — every place’s name plus every alias, then each part of a name split on a dash or a comma, because “Geelong Arts Centre - The Story House” is one room wearing a programme. It will NOT create a place: a room needs a geocode and a person, and an unmatched venue is printed with its address and kept as free text on the event instead. ▸ It was on NO schedule until 2 Sep 2026 — this note said Mon & Thu from the day it was written and the Action had never heard of the script. All 114 rows came from one hand-run on 1 Sep. It is a step in the workflow now. ▸ The Algolia key is the public search-only one published in the site\u2019s HTML — it can be rotated without notice, and the run says so plainly rather than reading as a region with nothing on.'},
   {name:'Moshtix', host:'moshtix', what:'Ticketing platform',
    how:'Read from the venue page\u2019s own schema.org, not by following its ticket links.',
    auto:'full',
@@ -2175,7 +2184,61 @@ async function markInbox(id, status){
    where it came from, because the useful gesture is almost always "approve all
    of these" rather than one at a time — 500 library rows are one decision, not
    five hundred. */
-let RFILTER = {src: ''};
+let RFILTER = {src: '', sort: 'when', dir: 1};
+
+/* ── what order the queue comes in ────────────────────────────────────────
+   Every column of the review table sorts, because the queue is a worklist and
+   which end of it you start from depends on what you are doing: `when` to deal
+   with what is on first, `submitted` to work newest-in, `dupe` to clear the
+   things we may already hold, `town` to sweep one place at a time.
+
+   `when` is the default, and ASCENDING puts the past at the top. That is the
+   right way round for a queue rather than a board: a row whose date has gone
+   is either a delete or a date to fix, and it is the most urgent thing on the
+   list. What is on soonest follows it.
+
+   Rows carry `starts_on` only if they are events, so every comparator sends
+   the empty value LAST in both directions — an activity has no date and a
+   blank sorting to the top would push the dated rows, which are the whole
+   point of the ordering, off the screen. */
+const RSORTS = {
+  name:      r => r.name || '',
+  type:      r => (r.types || []).join(' · '),
+  when:      r => r.starts_on || '',
+  town:      r => rowTown(r),
+  dupe:      r => { const h = r.__t === 'events' ? dupesOf(r) : [];
+                    return h.length ? String(DUP_RANK.indexOf(h[0].how)) : ''; },
+  submitted: r => r.created_at || '',
+};
+const RSORT_HEADS = [['name','Name'], ['type','Type'], ['when','When'],
+                     ['town','Town'], ['dupe','Already have'],
+                     ['submitted','Submitted']];
+
+/* The town of a review row, by the same rules the board uses: a linked place's
+   curated suburb wins, the row's own location is the fallback, and townOf
+   collapses a street address to its town. Lifted out of drawReview because the
+   sort needs the identical answer the cell prints. */
+function rowTown(r){
+  const place = DATA.places.find(p => p.id === r.place_id);
+  return place?.suburb || townOf(r.location) || '';
+}
+
+function rsort(rows){
+  const get = RSORTS[RFILTER.sort] || RSORTS.when, d = RFILTER.dir;
+  return rows.slice().sort((a, b) => {
+    const x = get(a), y = get(b);
+    // Blank last whichever way the column is pointing.
+    if (!x !== !y) return x ? -1 : 1;
+    return d * String(x).localeCompare(String(y), 'en', {numeric: true})
+        || a.name.localeCompare(b.name);
+  });
+}
+
+/* A heading that says what it does and which way it is pointing. */
+const rhead = ([k, label]) =>
+  `<th class="sortable" data-s="${k}"${RFILTER.sort === k
+      ? ` aria-sort="${RFILTER.dir > 0 ? 'ascending' : 'descending'}"` : ''
+    }>${label}<span class="arw">${RFILTER.sort === k && RFILTER.dir < 0 ? '\u25bc' : '\u25b2'}</span></th>`;
 
 /* The queue is NOT PUBLISHED, not `not verified` — 1 Sep 2026, Scott's rule:
    "Anything from scrapers goes in for review, and doesn't go on site until I
@@ -2261,15 +2324,14 @@ function drawReview(){
           data-approve="${esc(src)}">Publish all ${rows.length}</button>
       </h3>
       <div style="overflow-x:auto"><table><thead><tr>
-        ${pickHead()}<th>Name</th><th>Type</th><th>When</th><th>Town</th><th>Already have</th><th>Submitted</th><th></th>
-      </tr></thead><tbody>${rows.slice(0, 400).map(r => {
+        ${pickHead()}${RSORT_HEADS.map(rhead).join('')}<th></th>
+      </tr></thead><tbody>${rsort(rows).slice(0, 400).map(r => {
         const place = DATA.places.find(p => p.id === r.place_id);
         const venue = place?.name || r.venue || '';
-        // The town is the thing you check first — is this even in the region —
-        // and it was the one fact the row did not carry. Same rules as the
-        // board: the place's curated suburb wins, the row's own location is the
-        // fallback, and townOf collapses a street address to its town.
-        const town  = place?.suburb || townOf(r.location) || '';
+        // The town is the thing you check first — is this even in the region.
+        // rowTown is the same answer the sort reads, so the column cannot be
+        // ordered by one rule and printed by another.
+        const town  = rowTown(r);
         const types = (r.types || []).join(' · ');
         const link  = r.info_url || r.ticket_url || r.url;
         const past  = r.starts_on && r.starts_on < TODAY &&
@@ -2302,6 +2364,18 @@ function drawReview(){
       }).join('')}</tbody></table></div>
       ${rows.length > 400 ? `<p class="note">Showing the first 400. Publish all ${rows.length} does the lot.</p>` : ''}`;
   }).join('');
+
+  /* Same column again flips the direction; a new one starts ascending, which
+     for `when` is soonest (and the past) first and for a name is A-Z. The
+     headings repeat once per source group, so this is querySelectorAll and
+     every group's heading drives the one shared order — the groups are one
+     queue split up, not five tables with opinions of their own. */
+  $('#review').querySelectorAll('th[data-s]').forEach(th => th.onclick = () => {
+    const k = th.dataset.s;
+    RFILTER.dir  = RFILTER.sort === k ? -RFILTER.dir : 1;
+    RFILTER.sort = k;
+    drawReview();
+  });
 
   $('#review').querySelectorAll('[data-approve]').forEach(b => b.onclick = () => {
     const rows = bySrc[b.dataset.approve] || [];

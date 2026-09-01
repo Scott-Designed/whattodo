@@ -1384,15 +1384,98 @@ call `scrape_library.py` makes. **Monthly is deliberately not offered**:
 `nextDate()` does not roll it, so claiming it would promise a date the page
 cannot show.
 
-### What this source cannot give
+### The venue IS on the product page — fixed 2 Sep 2026
 
-**No venue name and no address, anywhere** — not in the index, not in the page,
-not in its JSON-LD. So no `place_id`, no pin, and `venue` null. The index does
-carry a coordinate per product and it goes into `source_note` rather than being
-dropped, for whoever wants to build a places row from it.
+This section said the venue was nowhere: *"not in the index, not in the page,
+not in its JSON-LD."* It was two-thirds right, and the wrong third is why **114
+events arrived with no venue, no place and no pin.** The index has no venue and
+the JSON-LD has none — but **every product page carries a server-rendered "Find
+Us" block** with the venue's name, street, suburb and postcode:
+
+    >Find Us</h2> … <span class="block">Geelong Gallery</span>
+                    <span class="block">55 Little Malop Street</span>
+                    <span class="block">Geelong</span>
+
+Measured over all 119 What's On products: **118 have the block, 69 distinct
+venues, and 56 products name a room already in `places`.** Nobody had read the
+page. `find_us()` reads it, anchored on the site's own **words** rather than on
+a Tailwind class that would change with a redesign.
+
+**`match_place()` uses the registry `scrape_venues.py` builds** — every place's
+name plus every alias — and then each part of a name split on a dash or a comma,
+because the pages hang a programme off a room. Every one of the 54 links is an
+exact name or an alias, checked one by one:
+
+    Costa Hall - Deakin University   -> 166  by the dash split
+    GMHBA Stadium                    -> 139  Kardinia Park Precinct, alias
+    Bellarine Railway Queenscliff    -> 141  Queenscliff Railway Station, alias
+    Little Malop street Central      -> 113  Little Malop Street Mall, alias
+    Flying Brick Cider House         ->  14  Flying Brick Cider Co, alias
+
+**IT WILL NOT CREATE A PLACE.** A room needs a geocode and a person, and this
+project has 32 things in two tables because something once created rooms it
+found on a page. An unmatched venue is **printed with its address** — which is
+the worklist — and kept as free text in `venue` so a reader is still told where
+the event is.
+
+**The guard has to run on the WRITE, not only on the match.** The first version
+put it inside `match_place`, so a name it refused to link was still written as a
+venue: it would have put **"Geelong"** (the suburb wearing a venue's hat, 2
+products) and **"Multiple Venues"** onto real rows. `usable_venue()` is the one
+gate both paths ask.
+
+### `--backfill` filled the 114 rows already here
+
+    python3 scripts/scrape_vgb.py --backfill            # dry run
+    python3 scripts/scrape_vgb.py --backfill --write
+
+**Applied 2 Sep 2026: 112 rows filled — 54 linked to a place, 58 keeping the
+venue as free text, 2 correctly refused.** The product path comes out of each
+row's own `source_note`, which is why that field is written the way it is.
+
+**It PATCHES ONLY the empty fields and never a row that already has one.** A
+person may have linked a place by hand since the import, and a scraper
+overwriting that is what this project refuses to do. The name, date, time and
+types are not touched at all.
+
+**45 venues still have no `places` row**, listed with their addresses every run
+— 360Q (8 products), Geelong Racecourse, Werribee Open Range Zoo, Adventure
+Park, Crowne Plaza, Sailors' Rest, the Barwon Club. Building those by hand is
+what puts the rest of this source on the map. Two pairs want an **alias** rather
+than a new row: *Bellarine Estate* / *Bellarine Estate Winery and Brewery* on
+place 5, and *Werribee Park Historic Mansion* / *Werribee Park Mansion*.
+
+### What this source still cannot give
+
+**No pin of its own.** The index carries a coordinate per product and it goes
+into `source_note` rather than being written as a pin: an event is pinned
+through `place_id`, and a coordinate a tourism board publishes for a product is
+not the same fact as a geocoded room.
 
 `km` is not set. `date_confidence` is `medium`: a tourism board republishing ATDW
 is a curated calendar, the same standing as surfcoastevents.
+
+### It was on NO schedule, for a day — fixed 2 Sep 2026
+
+This file said *"On the Mon/Thu Action"* from the day the importer was written.
+**The Action had never heard of the script.** `.github/workflows/events.yml` ran
+three scrapers and `run_log.py` parsed three; the Automations tab printed *Mon &
+Thu* beside it because `auto:'full'` is hand-written prose, and prose is what
+the Runs column exists to cross-check.
+
+The proof is in the data and took one query: **all 114 rows carry
+`created_at = 2026-09-01`**, the day of the single hand-run. A source that runs
+twice a week does not import its whole catalogue on one date and nothing since.
+
+It is a fourth step now, with `vgb.txt`/`vgb.rc`, `vgb_seen.json` in the ledger
+commit, its own line in the job summary, and `rc4` in the crash gate.
+`run_log.py` gained `read_vgb` — **its state is set in that function**, the rule
+this file keeps recording, because `source_state()` defaults to success and a
+rejected Algolia key exits before printing a count.
+
+**Generalisable: a schedule claim is checkable and nobody checked it.** Any
+source this file says is automated should be provable from `created_at` spread
+or from the workflow file, and both were one query away for a day.
 
 ### Three towns had to be added to the vocabulary
 
@@ -2049,6 +2132,52 @@ list of ids, `id=in.(…)`), capped at 600. **It refuses a batch where any row h
 no `source_note`** — verifying those would record that somebody looked when
 nothing says what they checked, which is the exact failure this file already
 notes about the 25 Aug bulk accept.
+
+### Every column of the review queue sorts — 2 Sep 2026
+
+Scott: *"add a sort to each column on the review queue, as I will need an easy
+way to prioritise what is happening first."*
+
+`RSORTS`, `rsort()` and `rhead()` in `admin.html`. Six columns — Name, Type,
+When, Town, Already have, Submitted — each a heading you press, pressing the
+same one again flipping the direction.
+
+**`when` is the default and ASCENDING, which puts the past at the top.** That is
+the right way round for a queue rather than a board: a row whose date has gone
+is either a delete or a date to fix, and it is the most urgent thing on the
+list. What is on soonest follows it. The board sorts the other way because it is
+answering a different question.
+
+**Blank sorts LAST in both directions**, on every column. An activity has no
+`starts_on`, so a blank rising to the top would push the dated rows — the whole
+point of the ordering — off the screen. That is one rule in `rsort()`, not six
+comparators each remembering it.
+
+**The headings repeat once per source group and drive one shared order.** Review
+is grouped by `added_by`, so there are four or five `<table>`s; `querySelectorAll`
+wires them all to the same `RFILTER.sort`. They are one queue split up, not five
+tables with opinions of their own — the same call the header checkbox already
+had to make, and for the same reason.
+
+**`rowTown()` was lifted out of `drawReview` so the sort and the cell read one
+rule.** A column ordered by one answer and printed with another is worse than an
+unsorted one. It is the board's rule: a linked place's curated suburb wins, the
+row's own `location` is the fallback, `townOf` collapses a street address.
+
+**The `Already have` column sorts by how strong the match is**, through
+`DUP_RANK` — clone, source, unsure, date — so ascending puts *could not both be
+true* at the top and the empty majority at the bottom. That is the column's own
+order of seriousness, already written down, read rather than re-invented.
+
+**The arrow draws only on the column in force.** An arrow on every heading says
+nothing, and a heading that looks pressable and is not is worse than a plain
+one.
+
+**Verified by driving it, not by reading it** — 293 real rows across four groups
+in a browser: all six columns, both directions, the row count unchanged after
+every press, a second group's heading moving all four tables, and a shift-range
+selecting five rows that are contiguous **on screen and not by id**, which is
+what proves the pick logic follows the sorted order rather than the original one.
 
 ### The same thing arriving twice — 1 Sep 2026
 

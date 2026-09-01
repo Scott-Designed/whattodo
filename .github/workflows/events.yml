@@ -101,6 +101,23 @@ jobs:
           echo "$?" > library.rc
           exit 0
 
+      # NOT ON THE SCHEDULE UNTIL 2 Sep 2026, though CLAUDE.md had said it was
+      # since the day it was written. All 114 of this source's rows were created
+      # in one hand-run on 1 Sep and nothing had read it since — the file said
+      # "on the Mon/Thu Action" and the Action had never heard of it.
+      # robots.txt allows our crawler and names no AI crawler, so unlike Coast &
+      # Bay this one can also be run from a terminal or a Claude session.
+      - name: Read Visit Geelong & The Bellarine
+        if: always()
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set +e -o pipefail
+          python3 scripts/scrape_vgb.py --write 2>&1 | tee vgb.txt
+          echo "$?" > vgb.rc
+          exit 0
+
       # The job summary below is a page on github.com nobody visits. This is the
       # same information written into the repo, where the back-of-house page can
       # read it off raw.githubusercontent.com without a token or a redeploy.
@@ -124,6 +141,10 @@ jobs:
             echo '```'
             cat library.txt 2>/dev/null || echo 'produced nothing — check the step above'
             echo '```'
+            echo '## Visit Geelong & The Bellarine'
+            echo '```'
+            cat vgb.txt 2>/dev/null || echo 'produced nothing — check the step above'
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       # always(), because a crashed run is exactly the one worth having on file.
@@ -132,7 +153,7 @@ jobs:
         run: |
           git config user.name  'events bot'
           git config user.email 'noreply@github.com'
-          git add scripts/events_seen.json scripts/venues_seen.json scripts/library_seen.json scripts/run_log.json
+          git add scripts/events_seen.json scripts/venues_seen.json scripts/library_seen.json scripts/vgb_seen.json scripts/run_log.json
           git diff --cached --quiet && { echo 'nothing new to remember'; exit 0; }
           # [skip ci] because the site reads Supabase live, and the back-of-house
           # page reads this log from raw.githubusercontent — neither needs a build.
@@ -145,7 +166,7 @@ jobs:
           # both scrapers succeeded, the database was written, and the whole job
           # went red on `! [rejected] main -> main (fetch first)`.
           #
-          # These three files are append-only ledgers, so rebasing on top of
+          # These ledgers are append-only, so rebasing on top of
           # whatever landed is the right move. A conflict is not — it means two
           # runs raced or somebody hand-edited a ledger, and quietly picking a
           # side would drop a record. Fail loudly instead.
@@ -168,5 +189,6 @@ jobs:
           rc1=$(cat run.rc     2>/dev/null || echo 1)
           rc2=$(cat venues.rc  2>/dev/null || echo 1)
           rc3=$(cat library.rc 2>/dev/null || echo 1)
-          echo "scrape_events.py exited $rc1, scrape_venues.py exited $rc2, scrape_library.py exited $rc3"
-          [ "$rc1" = 0 ] && [ "$rc2" = 0 ] && [ "$rc3" = 0 ]
+          rc4=$(cat vgb.rc     2>/dev/null || echo 1)
+          echo "scrape_events.py exited $rc1, scrape_venues.py exited $rc2, scrape_library.py exited $rc3, scrape_vgb.py exited $rc4"
+          [ "$rc1" = 0 ] && [ "$rc2" = 0 ] && [ "$rc3" = 0 ] && [ "$rc4" = 0 ]

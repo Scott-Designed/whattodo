@@ -224,6 +224,49 @@ def read_library(text):
     }
 
 
+def read_vgb(text):
+    """What scrape_vgb.py said.
+
+    Its own state, not source_state()'s, for the reason this file keeps
+    recording: that function defaults to success, so a phrase it has never been
+    taught comes out green. A rejected Algolia key exits before printing a
+    count, so a missing product count is the honest signal that nothing was read
+    — and it must not read as a region with nothing on in it.
+
+    The venue counts are here because they are the thing worth watching about
+    this source. It publishes no venue in its index at all; the name is only on
+    the product page, and how many of those names we can link to a `places` row
+    is what decides whether these events ever get a pin.
+    """
+    prods  = _int(r'^source visitgeelongbellarine\.com\.au — (\d+) products', text)
+    new    = _int(r'^source visitgeelongbellarine\.com\.au — \d+ products, \d+ dated, (\d+) new', text)
+    ven    = _int(r'^VENUES — (\d+) distinct', text)
+    linked = _int(r'^VENUES — \d+ distinct, (\d+) of \d+ products linked', text)
+    unknown= _int(r'^VENUES WITH NO PLACES ROW — (\d+)', text)
+    return {
+        'products': prods,
+        'added':    new or 0,
+        'venues':   ven or 0,
+        'linked':   linked or 0,
+        # Nothing here rewrites a date; a moved one is reported and left alone.
+        'drift':    [],
+        'sources': [{
+            'name':  'visitgeelongbellarine.com.au',
+            'how':   (f'Algolia index ({prods} What\'s On products, '
+                      f'{linked or 0} linked to a place)' if prods
+                     else 'Algolia index'),
+            'hint':  (f'{unknown} venue(s) it names have no places row, so those '
+                      f'events cannot be pinned — the run lists them with their '
+                      f'addresses' if unknown else None),
+            'state': 'read' if prods else 'nothing',
+            'via':   ['Algolia'],
+            'own':   False,
+            'new':   new or 0,
+            'dupe':  0,
+        }],
+    }
+
+
 def step(name, script, out, rc, parse):
     """One scraper's leg of the run. Missing output is itself worth recording —
     it means the step never got to run, which the page should say out loud."""
@@ -250,6 +293,8 @@ def main():
              'venues.txt', 'venues.rc', read_venues),
         step('Geelong Regional Libraries', 'scrape_library.py',
              'library.txt', 'library.rc', read_library),
+        step('Visit Geelong & The Bellarine', 'scrape_vgb.py',
+             'vgb.txt', 'vgb.rc', read_vgb),
     ]
 
     record = {
