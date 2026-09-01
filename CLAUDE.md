@@ -6147,6 +6147,93 @@ that towns and types share.
 preview — every `·` and `—` in it. `type-running.html` and `index.html` both
 declare one. One line, not fixed here because it is Scott's uncommitted draft.
 
+### Wikipedia fills 34 of those pages, and they are the right 34
+
+Scott, on the first concept: *"the pages feel very light on. For a page like
+bells beach and other venues with a wiki listing, can you look at wikipedia /
+wikimedia for content / history"*. Yes — and the coverage was measured before
+anything was designed around it.
+
+**One Wikidata SPARQL query answers it, not 980 lookups.** A `wikibase:box`
+query over the region (SW 143.35 −39.05, NE 144.85 −37.80) for items with a
+coordinate and an English Wikipedia sitelink returns **712 articles in 3.2s**,
+304 of them with a `P18` image. Matching happens locally after that. Note the
+`VALUES` follow-up for `P31` has to be **POSTed** — 668 qids in a GET is a 414.
+
+    pinned, published, non-happening listings          522
+    TIER 1  the listing IS the article                  10
+    TIER 2  the article is named inside the listing     24
+    matched but over 1 km away — a person decides       15
+    of the 34 confident matches, carrying a photograph  21
+
+**7% sounds thin until you see which 7%.** 27 of the 34 are **spots** — beaches,
+waterfalls, lighthouses, the zoo — which are exactly the rows whose own
+`description` is one line. Anglesea Bakery will never have an article and does
+not need one. So this is not a way to fill 620 pages; it is a way to make the
+thinnest fifty genuinely worth opening.
+
+**The 15 flagged are mostly rivers and lakes** — Aire River, Lake Elizabeth,
+Anglesea River — where the article's coordinate is a centroid of a linear or
+area feature and the distance means nothing. Same class of fact as
+`type=administrative` meaning a boundary. They want a person, not a wider radius.
+
+### Match by coordinate, and the trap is the town
+
+**A first pass matched `Klein's Anglesea Hotel` to the article for the TOWN of
+Anglesea**, 180 m away, along with `The Portarlington Bakehouse`, `Forrest Bike
+Hire` and `Torquay Community Men's Shed`. That is *a suburb centroid is not the
+place* in a third vocabulary, and a plain substring rule creates it.
+
+The fix is Wikidata's own `P31`: an article whose **instance of** is `locality`,
+`town`, `suburb`, `gazetted locality of Victoria`, an electoral district or an
+LGA is **refused — unless the listing's name equals the article's exactly.**
+
+That one exception is load-bearing. `Bells Beach` the article is classed a
+locality, and the listing genuinely IS that locality, so it must be kept; the
+hotel standing inside Anglesea must not get the town's article. Excluding
+admin classes outright dropped Bells Beach, which is how the rule was found.
+
+### The licence is a term, not a courtesy
+
+**Wikipedia text is CC BY-SA 4.0.** Commons images vary and must be checked per
+file: `action=query&prop=imageinfo&iiprop=extmetadata` gives `LicenseShortName`,
+`Artist` and `AttributionRequired`. The Bells Beach photograph is CC BY-SA 4.0
+by Michael J Fromholtz with `AttributionRequired: true`.
+
+So anything borrowed carries **the article link, the revision id it was taken
+from, and the licence** — plus the photographer for an image. The revision id
+matters because the article changes under us; quoting without one is the
+undated-source problem this file already refuses everywhere else.
+
+That is the existing `source_note` discipline pointed at a second kind of
+source. Nothing about it is new except that share-alike makes it enforceable.
+
+**Do not hotlink `upload.wikimedia.org` in production.** The concept does, which
+is fine for a local file; at page-view scale the image wants caching, and that is
+a decision nobody has made.
+
+### The Victorian Heritage Database is the obvious next source, and Claude may not read it
+
+Bells Beach's own extract says the beach and coastal reserve are on the Victorian
+Heritage Register, so VHD is where the rest of the history for this region lives.
+
+**Its `robots.txt` names about 40 AI crawlers — `ClaudeBot` and `anthropic-ai`
+among them — and gives them `Disallow: /` for the whole site.** `User-agent: *`
+disallows only `/search`, `/index.php/search` and `/places/*/download-report`, so
+**the scheduled Action and Scott's terminal may read `/places/<id>`; a Claude
+session may not.** Exactly the Coast & Bay rule, one domain along.
+
+**`/search` is disallowed for everyone**, and its results are client-rendered
+anyway (no `/places/` ids in the HTML at all), so the id cannot come from there.
+Wikidata carries VHR numbers — that is the route in, and it costs no extra
+crawl.
+
+`Trove`'s v2 API is gone (410) and v3 wants a key. `victoriancollections.net.au`
+answers 403 to our UA.
+
+**Nothing from VHD has been read or written.** It is a route, checked for
+permission, and left for the Action.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

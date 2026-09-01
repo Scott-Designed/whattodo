@@ -142,6 +142,20 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
   padding:7px 14px;color:var(--ink2);text-decoration:none}
 .tail a:hover{border-color:var(--ink)}
 
+/* ══ borrowed from Wikipedia — always credited, never silently ══ */
+.wiki{border:1px solid var(--rule);border-radius:8px;overflow:hidden;background:var(--surface)}
+.wiki figure{margin:0;position:relative}
+.wiki figure img{display:block;width:100%;height:190px;object-fit:cover}
+.wiki figure figcaption{position:absolute;right:0;bottom:0;font-size:10.5px;
+  background:rgba(0,0,0,.62);color:#fff;padding:3px 8px;border-radius:4px 0 0 0}
+.wiki figure figcaption a{color:#fff}
+.wiki .in{padding:15px 17px 14px}
+.wiki h3{font-size:17px;margin-bottom:7px}
+.wiki p{font-size:14.5px;line-height:1.55;color:var(--ink2);margin-bottom:9px}
+.wiki p:last-of-type{margin-bottom:0}
+.wiki .src{margin-top:12px;padding-top:10px;border-top:1px solid var(--rule);
+  font-size:11.5px;color:var(--ink3);line-height:1.5}
+.wiki .src a{color:var(--ink2)}
 .absent{font-size:13.5px;color:var(--ink3);font-style:italic;
   border-left:2px solid var(--rule2);padding-left:13px}
 </style>
@@ -223,6 +237,34 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
               <div class="sib"><svg class="ic"><use href="#i-waves"/></svg>
                 <span class="nm">Winkipop</span><span class="tp">surfing</span></div>
             </div>
+
+            <div class="sec">
+              <h2>The story of it <span class="n">FROM WIKIPEDIA</span></h2>
+              <div class="wiki">
+                <figure>
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Bells_Beach_2019.jpg/960px-Bells_Beach_2019.jpg"
+                       alt="Bells Beach from the cliff top, 2019">
+                  <figcaption>Michael J Fromholtz · CC BY-SA 4.0</figcaption>
+                </figure>
+                <div class="in">
+                  <p>Named after <b>William Bell</b>, a Geelong businessman and grazier who owned
+                    much of the property from the 1840s. Many records wrongly credit the name to
+                    John Calvert Bell, whose family took up a pastoral run here much later, in 1905.</p>
+                  <p>As early as 1939 surfers from Torquay made their way to Bells, but access was a
+                    considerable problem until 1960, when Torquay surfers and Olympic wrestler
+                    <b>Joe Sweeney</b> hired a bulldozer and cleared a road along the cliff.</p>
+                  <p>The final scene of <i>Point Break</i> is set at Bells — but was not filmed here.
+                    Bells is a straight stretch; the beach in the film is a cove, and it was shot at
+                    Indian Beach in Oregon.</p>
+                  <p class="src">From the Wikipedia article
+                    <a href="https://en.wikipedia.org/wiki/Bells_Beach">Bells Beach</a>, revision
+                    1366753022 of 30 Jul 2026, under
+                    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+                    Photograph by Michael J&nbsp;Fromholtz, same licence.
+                    Matched to this listing by coordinate: 301&nbsp;m, and the names agree.</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="facts">
@@ -255,6 +297,29 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
     shares this exact coordinate, which the map has always known and no page ever said.
     Everything in the right-hand panel is what <code>index.html:1410</code> already prints when you
     open the row; it is moved, not invented.
+  </p>
+
+  <p class="why">
+    <b>Wikipedia fills 34 pages, not 620 — and they are the right 34.</b> Measured, not guessed:
+    one Wikidata query returns 712 articles with coordinates in the region, and matching them
+    against our 522 pinned listings gives <b>10 where the listing IS the article</b> (Bells Beach,
+    Geelong Gallery, Werribee Open Range Zoo) and <b>24 where the article is named inside it</b>
+    (Erskine Falls Walk → Erskine Falls). 21 carry a photograph. A further 15 match by name but
+    sit over a kilometre out — nearly all rivers and lakes, where the article&rsquo;s coordinate is
+    a centroid and the distance means nothing, so those want a person.
+    <b>7% sounds thin until you see which 7%</b>: it is almost entirely <i>spots</i> — beaches,
+    waterfalls, lighthouses — whose own descriptions run to a single line. Anglesea Bakery will
+    never have an article and does not need one.
+  </p>
+
+  <p class="why">
+    <b>The match is by coordinate, and the trap is the town.</b> A first pass matched
+    <i>Klein&rsquo;s Anglesea Hotel</i> to the article for the <i>town</i> of Anglesea, 180 m away —
+    &ldquo;a suburb centroid is not the place&rdquo; in a new vocabulary. The fix is
+    Wikidata&rsquo;s own <code>instance of</code>: an article classed <i>locality</i>, <i>town</i>
+    or <i>suburb</i> is refused <b>unless the listing&rsquo;s name equals it exactly</b> — which is
+    how Bells Beach keeps its article, being genuinely that locality, while a hotel standing in
+    Anglesea does not get the town&rsquo;s.
   </p>
 
   <!-- ══════════════ PLATE 2 — the harder case: no events ════════ -->
@@ -357,6 +422,12 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
           <span>Every value on both plates is a column the open row already prints. The page earns
           its place through the URL, the events and the neighbours — not by asking anyone to write
           more prose for 620 rows.</span></p>
+        <p class="dl" style="grid-template-columns:186px 1fr;"><b>Borrowed text is credited</b>
+          <span>Wikipedia is <b>CC BY-SA 4.0</b> and the Commons photograph above is the same, with
+          <code>AttributionRequired</code> set. So an extract carries the article link, the revision
+          it came from and the licence; a photo carries its photographer. That is the existing
+          <code>source_note</code> discipline pointed at a second kind of source — and share-alike
+          makes the credit a licence term, not a courtesy.</span></p>
         <p class="dl" style="grid-template-columns:186px 1fr;border-bottom:0"><b>It needs a link preview</b>
           <span><code>api/subject.mjs</code> already serves per-subject titles and descriptions for
           towns and types. This is the same trick with a third case — and it is the whole point of
@@ -370,6 +441,17 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
     library feed — so they reach no type page and would give a venue page a poorer &ldquo;more like
     this&rdquo; tail than it deserves. And 98 places hold 401 published events with no listing row
     at all, so those events have a room and the room has no page. Both are data passes, not design.
+  </p>
+
+  <p class="why">
+    <b>Where the rest of the history would come from.</b> The Victorian Heritage Database is the
+    obvious second source — Bells Beach&rsquo;s own extract says the beach and coastal reserve are
+    on the Victorian Heritage Register. Its <code>robots.txt</code> disallows <code>ClaudeBot</code>
+    and <code>anthropic-ai</code> from the whole site, so <b>a Claude session may not read it and
+    the scheduled Action may</b>: <code>User-agent: *</code> allows <code>/places/&lt;id&gt;</code>.
+    It disallows <code>/search</code> for everyone, so the id has to come from elsewhere — Wikidata
+    carries VHR numbers, which is the way in. Same shape as Coast &amp; Bay. Trove&rsquo;s v2 API is
+    gone (410) and v3 wants a key.
   </p>
 
 </div>
