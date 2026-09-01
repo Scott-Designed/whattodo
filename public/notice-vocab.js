@@ -158,7 +158,7 @@ const GROUP_OF={
   music:'music', party:'music', comedy:'music', festival:'music',
 
   community:'community', volunteering:'community', workshop:'community',
-  reading:'community', kids:'community',
+  reading:'community', kids:'community', 'second-hand':'community',
 
   'at-home':'home'};
 
@@ -203,6 +203,7 @@ const ICON_OF={
   restaurant:'utensils',
   'rock climbing':'mountain',
   running:'sport-shoe',
+  'second-hand':'recycle',
   skatepark:'hand-metal',
   surfing:'waves',
   swimming:'waves-ladder',
@@ -364,6 +365,7 @@ const PLACE_TYPES=['beach','surfing','swimming','paddling','water',
   'cafe','bakery','restaurant','bar','pub','winery','brewery',
   'produce','farm life','nursery',
   'art gallery','theatre','museum','cinema','cultural','volunteering',
+  'second-hand',
   'kids'];
 
 /* A type is stored lower-case and hyphenated because the database checks it
@@ -386,7 +388,7 @@ const TYPE_PLURAL={
   cinema:'Cinemas', cultural:'Wadawurrung Country',
   music:'Music', comedy:'Comedy', party:'Parties', reading:'Reading',
   festival:'Festivals', workshop:'Workshops', community:'Community',
-  volunteering:'Volunteering'};
+  volunteering:'Volunteering', 'second-hand':'Second-hand'};
 const typeLabel = t => TYPE_PLURAL[t] || (t||'').replace(/-/g,' ')
   .replace(/^./,c=>c.toUpperCase());
 

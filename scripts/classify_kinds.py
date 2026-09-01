@@ -116,6 +116,15 @@ KIND_OF = {
 # carry `cafe` or need a BY_ID line, the same as every shop.
 KIND_OF['kids'] = 'spot'
 
+# The FIRST type since `shop` was retired that can honestly infer a shop, and it
+# reopens a door this file recorded as permanently shut. The retirement was
+# right for the reason given: `shop` as a type said twice what `kind` already
+# said. `second-hand` does not — it says WHAT is sold, and a row can carry it
+# without being a shop at all (a vintage market is an event, a swap meet is a
+# happening). PRECEDENCE still puts venue and spot above shop, so a cafe that
+# also sells vintage stays a cafe. Anything this gets wrong is a BY_ID line.
+KIND_OF['second-hand'] = 'shop'
+
 # weakest first — the last one standing wins a row with several types.
 # venue above shop is what keeps `cafe · shop` a venue: if you can sit down,
 # you would go for its own sake, and that is the venue test.

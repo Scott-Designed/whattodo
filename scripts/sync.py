@@ -387,6 +387,15 @@ def add(path, verified=False, dry=False, force=False):
     for r in rows:
         r.setdefault('added_by','Research')
         if verified: r['verified'] = True
+        # THE FIFTH WRITE PATH. `published` defaults to true in the database, so
+        # a row written here walked straight onto the board unchecked — which is
+        # the one thing the 1 Sep 2026 gate exists to stop. The four scrapers and
+        # the public Add form were all changed that day; this one was missed,
+        # because it is the path a person drives and nobody thinks of themselves
+        # as an automation. The invariant it broke is
+        #     select count(*) from listings where published and not verified;
+        # and it was 1. Only /admin sets this true, by a person pressing Approve.
+        r['published'] = False
 
     bad = [c for i,r in enumerate(rows,1) for c in check(r, i, types, conds, kinds, places)]
     if bad:

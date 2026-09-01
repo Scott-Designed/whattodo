@@ -129,6 +129,87 @@ ended up in both sheets with two different dates, one of them wrong.
   `verified = true` or `added_by = 'Research'` — a submission cannot dress itself up
   as researched data.
 
+## `second-hand` — the 44th type, 1 Sep 2026
+
+Scott's call, off a newsletter naming the new Savers superstore: *"I can see us
+documenting all the vintage markets, op shops etc."*
+
+**The database held none of it.** Zero op shops, zero vintage, zero thrift, zero
+antiques, zero Salvos or Vinnies — the category was absent, not thin. And the one
+row in that space, `Anglesea Resale Shed (Tip Shop)`, was typed `community`
+alone, which this file already flagged as the weakest type in the database. That
+is the hole `shop`'s retirement left: nowhere to say what a shop SELLS.
+
+**Named `second-hand`, and the two rejected names are the argument:**
+
+- **not `vintage`** — it is a subset. Savers is a thrift megastore, Vinnies is a
+  charity shop, the Tip Shed is waste diversion; **none of them is vintage**.
+  Name the type after the curated end and the majority cannot be filed honestly.
+- **not `environmental`** — a motive, not a thing, and **the type is the word the
+  row prints**. It would also swallow rows already filed correctly: Landcare,
+  Odonata, both Repair Cafés, the seed library. That is the `at-home` failure
+  exactly, where twelve rows were held off the board for carrying a tag that
+  described their spirit rather than their substance.
+
+**The environmental idea is still good and is a PAGE, not a type** — "all the
+ways to not buy new" gathers second-hand *plus* repair *plus* borrowing, and
+those three do not share a shelf.
+
+Group is **The community**: op shops are overwhelmingly charity-run and both
+Repair Cafés already sit there. It matters little either way, because these rows
+are `kind = shop` and therefore off the board — they earn their place on
+`/second-hand`, the Patagonia and Running Company pattern.
+
+### It took SEVEN places, not five
+
+The five-places list in this file is necessary and not sufficient — the lesson
+the `gig` → `music` rename already wrote. The two it does not name:
+
+- **`ICON_OF`, and the sprite behind it.** All 42 symbols were in use, so this
+  needed a **new one**: Lucide `recycle`, fetched verbatim from unpkg rather than
+  redrawn. The check that proves it landed is `used - ids` and `ids - used` both
+  empty — note 44 entries map to 43 symbols, because `cycling` and
+  `mountain biking` deliberately share the bike.
+- **`KIND_OF` in `classify_kinds.py`**, which is exhaustive and **exits** on a
+  type it has never heard of. That is the `kids` failure: it blocked the
+  classifier for three days and nobody saw its disagreement report.
+
+**And it reopens a door this file called permanently shut.** `KIND_OF` has had
+nothing mapping to `shop` since the `shop` TYPE was retired, so a shop could not
+be inferred and every one needed a `BY_ID` line. `second-hand` maps to `shop`,
+and the distinction is why it is allowed to: the retired type said twice what
+`kind` already said, whereas `second-hand` says **what is sold** and can sit on a
+row that is not a shop at all — a vintage market is an event. `PRECEDENCE` still
+ranks venue and spot above shop, so a café that also sells vintage stays a café.
+Anything this gets wrong is still a `BY_ID` line.
+
+**`/second-hand` was collision-checked** against every town slug, every type
+slug, every file in `public/` and `RESERVED` before it went in — as were
+`/vintage`, `/op-shop`, `/environmental` and `/reuse`, all free.
+
+### The first row — Savers Geelong, activity 705
+
+340-344 Melbourne Road, North Geelong. `kind = shop`,
+`types = ['second-hand']`, held for review.
+
+**savers.com.au cannot be read and `stores.savers.com.au` can.** The main site is
+a client-rendered Next.js app — a plain fetch of `/locations` returns a 3KB
+shell, and a browser shows *"Oops! That page doesn't exist."* for every guessed
+store path. The **locator subdomain is server-rendered** and carries schema.org
+`LocalBusiness` with address, phone, trading hours and a coordinate. Same shape
+as the Patagonia and Flowstate storefronts, with the useful difference that a
+readable half exists — **find it by driving the site's own store finder** rather
+than guessing URLs.
+
+**The pin is two independent sources agreeing at building level** — the bike-shop
+technique. Savers publishes `-38.1075,144.3527`; an independent Nominatim
+structured query on the address returns a `class=building` node at
+`-38.1075398,144.3527367`, **5.5 m away**, which reverse-geocodes back to
+"340-344, Melbourne Road, North Geelong". The OSM node is stored.
+
+`km` is null. The newsletter was the tip-off and is named as such in the
+`source_note`, **not** cited as the source.
+
 ## Six kinds of listing — COLUMN BUILT AND EVERYTHING CLASSIFIED 27 Aug 2026
 
 Decided with Scott over a long session on 27 Aug 2026, after reading all 585
@@ -1071,6 +1152,25 @@ not enforce is a rule that gets broken, and it gets reported as a decision.
 only the insert path; the per-run update PATCHes `info_url` and `source_note`
 alone, so a re-run cannot un-publish a row you have already approved. That was
 the one way this change could have done real damage.
+
+### `sync.py add` was the FIFTH write path — fixed 1 Sep 2026
+
+The gate shipped covering four scrapers and the public Add form. **`sync.py add`
+was missed**, and `published` defaults to true, so a row written by hand walked
+straight onto the board unchecked — the exact thing the gate exists to stop. It
+went unnoticed because that is the path a PERSON drives, and nobody thinks of
+themselves as an automation.
+
+Caught by running this file's own invariant after writing one row:
+
+    select count(*) from listings where published and not verified;   -- was 1
+
+It writes `published: False` now, so a hand-researched row goes to the Review
+queue like everything else and Scott presses Approve. **Only `/admin` sets it
+true** — which is what this file already said, and was not true of the tooling.
+
+Worth generalising: **the invariant is the test, not the list of write paths.**
+Run it after any change that writes a listing.
 
 ### Batch actions — Publish and Hold on the pick bar
 
@@ -3091,7 +3191,38 @@ or a personal address, so the open message in the Inbox tab carries a place
 picker and those get linked by hand. The automatic match only saves the easy
 ones, and giving up is cheaper than a wrong link nobody notices.
 
-### The address does not exist yet, and the reason is DNS
+### `events@notice.place` IS LIVE — 1 Sep 2026
+
+Working end to end: real SMTP delivery, Postmark, webhook, Supabase. First real
+message landed 11:38am, 1 Sep 2026.
+
+**The last blocker was one field, and the bounce named it.** Google reported
+*"Delivery is delayed"*, which reads like DNS and was not — the MX was correct
+and resolving from Google's own resolver the whole time. The diagnostic headers
+carried the real answer:
+
+    454 4.7.1 <events@notice.place>: Relay access denied
+
+That is Postmark refusing a domain it has not been told to accept. **Servers →
+your server → Settings → Inbound → Inbound domain forwarding** had to hold
+`notice.place`. Until it does, the only address Postmark takes mail for is the
+`…@inbound.postmarkapp.com` hash address. It is a **4xx**, so the sender keeps
+retrying and you get a delay notice rather than a bounce — which is why this
+looked like propagation for a day.
+
+**A test that arrives is not proof the path works.** Postmark's *Send test*
+button posts a canned fixture straight at the webhook, bypassing SMTP entirely —
+`from: support@postmarkapp.com`, `subject: Test subject`. One landed at 9:58am
+and a real email was refused at 10:02am, four minutes apart, and the fixture was
+reasonably mistaken for the real one. **Check `from_addr`, not the clock.** The
+fixture does prove the second half of the path, which is genuinely useful — it
+is the first half it says nothing about.
+
+**The webhook URL must be `https://www.notice.place/api/inbox`, with the `www`.**
+The apex 308-redirects, and a sender that does not follow redirects reads that
+as a failure.
+
+### How the DNS was decided
 
 **`notice.place` is on Vercel's nameservers** (`ns1/ns2.vercel-dns.com`, checked
 30 Aug 2026) and has **no MX records at all**. Cloudflare Email Routing — the

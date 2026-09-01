@@ -13,7 +13,8 @@ const TYPES_PLACE = ['beach','surfing','swimming','paddling','water',
   'parks & playgrounds','camping ground','night','at-home',
   'cafe','bakery','restaurant','bar','pub','winery','brewery',
   'produce','farm life','nursery',
-  'art gallery','theatre','museum','cinema','cultural','volunteering'];
+  'art gallery','theatre','museum','cinema','cultural','volunteering',
+  'second-hand'];
 const TYPES_EVENT = ['music','comedy','party','reading','festival','workshop',
   'community','market','arts','kids'];
 const CONDITIONS = ['any-weather','low-tide','high-tide','new-moon','full-moon','clear-sky',
