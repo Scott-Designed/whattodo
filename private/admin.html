@@ -1963,7 +1963,7 @@ function dupeCell(r){
                      || p.venue || p.added_by || '';
   // Every match on the tooltip, so a row with five of them hides none of them.
   const all = hits.map(h => `${DUP_SAYS[h.how]} — #${h.row.id} ${dmy(h.row.starts_on)
-                             } ${where(h.row)} (${h.row.added_by || 'by hand'})`).join('\n');
+                             } ${where(h.row)} (${sourceName(h.row.added_by)})`).join('\n');
   return `<span title="${esc(all)}">
       <a href="#" data-dup="${top.row.id}" style="color:${col};text-decoration:none;border-bottom:1px dotted"
         >${esc(DUP_SAYS[top.how])}</a>
@@ -1983,7 +1983,7 @@ function drawReview(){
     sel.dataset.n = String(all.length);
     sel.innerHTML = '<option value="">Everything waiting</option>' +
       Object.entries(bySrc).sort((a,b) => b[1].length - a[1].length)
-        .map(([k,v]) => `<option value="${esc(k)}"${RFILTER.src===k?' selected':''}>${esc(k)} · ${v.length}</option>`).join('');
+        .map(([k,v]) => `<option value="${esc(k)}"${RFILTER.src===k?' selected':''}>${esc(sourceName(k))} · ${v.length}</option>`).join('');
   }
 
   const groups = Object.entries(bySrc)
@@ -2001,7 +2001,7 @@ function drawReview(){
     const ev = rows.filter(r => r.__t === 'events').map(r => r.id);
     const ac = rows.filter(r => r.__t === 'activities').map(r => r.id);
     return `<h3 class="subhead" style="display:flex;align-items:center;gap:12px">
-        <span>${esc(src)} · ${rows.length}</span>
+        <span>${esc(sourceName(src))} · ${rows.length}</span>
         <button class="btn" style="padding:4px 12px;font-size:11.5px"
           data-approve="${esc(src)}">Approve all ${rows.length}</button>
       </h3>
@@ -2127,15 +2127,27 @@ function urlStub(u, n = 28){
 /* Where a row came from, and whether a machine brought it in. `added_by` is
    what the scrapers stamp on every insert, so this needs no new column — it
    just has never been shown. A tick means no person typed this. */
+/* TWO labels, because the two places asking are asking different questions.
+   The Events tab's Source column asks "did a machine bring this in", so a short
+   kind — `calendar feed`, `by hand` — is the useful answer. The Review tab groups
+   rows by where they came from, so it wants the source's NAME. `vgb` and `grlc`
+   are the scraper's own `added_by` values and belong in the database, where the
+   importers key on them; nobody should ever have to read them on screen. */
 const SOURCE_OF = {
-  'venue-feed':      {label:'venue scraper', auto:true},
-  'surfcoastevents': {label:'calendar feed', auto:true},
-  'grlc':            {label:'library feed',  auto:true},
-  'Research':        {label:'by hand',       auto:false},
-  'Ideas Pipeline':  {label:'by hand',       auto:false},
+  'venue-feed':      {label:'venue scraper', name:'Venue ticketing pages',        auto:true},
+  'surfcoastevents': {label:'calendar feed', name:'Surf Coast Events',            auto:true},
+  'coastandbay':     {label:'calendar feed', name:'Coast & Bay',                  auto:true},
+  'grlc':            {label:'library feed',  name:'Geelong Regional Libraries',   auto:true},
+  'vgb':             {label:'tourism feed',  name:'Visit Geelong & The Bellarine',auto:true},
+  'Research':        {label:'by hand',       name:'Researched by hand',           auto:false},
+  'Ideas Pipeline':  {label:'by hand',       name:'Ideas Pipeline',               auto:false},
 };
+/* An unknown value falls back to itself rather than to 'unknown': a community
+   add writes whoever typed it ('Someone', 'Family'), and those are already the
+   right words. */
 const sourceOf = r => SOURCE_OF[r.added_by] ||
-  {label: r.added_by || 'unknown', auto: false};
+  {label: r.added_by || 'unknown', name: r.added_by || 'unknown', auto: false};
+const sourceName = k => SOURCE_OF[k]?.name || k || 'unknown';
 
 /* ── events: things that happen on a date and then are over ────────────────
    Kept apart from activities because almost nothing about them is the same
@@ -2163,7 +2175,8 @@ function drawEvents(){
     if (EFILTER.when === 'past' && !past) return false;
     if (EFILTER.when === 'upcoming' && past) return false;
     const place = DATA.places.find(p => p.id === r.place_id);
-    return hit(r, q, [r.venue, r.artist, place?.name, r.added_by, sourceOf(r).label]);
+    return hit(r, q, [r.venue, r.artist, place?.name, r.added_by,
+                      sourceOf(r).label, sourceOf(r).name]);
   });
 
   out.sort({
@@ -2335,6 +2348,13 @@ let PFILTER = {q:'', kind:'', sort:'name', flag:'', state:'', showQuiet:false};
    `venue-feed` is deliberately NOT translated — it covers Oztix, Humanitix,
    TryBooking and Moshtix at once, so the run log's own `via` is the more
    specific answer and keeps the cell. */
+/* Deliberately NOT every feed. This answers "what keeps this PLACE up to date",
+   so it only holds sources that attach their events to a place row. `venue-feed`
+   is out because it covers Oztix, Humanitix, TryBooking and Moshtix at once and
+   the run log's own `via` is the more specific answer. `vgb` and `coastandbay`
+   are out because neither sets a place_id at all — a tourism board and a local
+   publication are organisers, and filing their events at themselves is the trap
+   this file names a dozen times. */
 const FEED_NAME = {
   grlc:            {label: 'library calendar feed', agg: 'Geelong Regional Libraries'},
   surfcoastevents: {label: 'Surf Coast Events',     agg: 'Surf Coast Events'},
@@ -3236,7 +3256,12 @@ const SERIES = [
   {k:'total', t:'On the site',    c:'#7FB08A',       s:'events the board was carrying',
    axis:'right'},
 ];
-const AUTO_BY = ['grlc', 'surfcoastevents', 'venue-feed'];
+/* DERIVED from SOURCE_OF, not listed again. It was a hand-kept list and it was
+   already wrong within the hour: `vgb` and `coastandbay` landed without it, so
+   115 events a machine brought in were about to be drawn as `added by hand` on
+   the chart — the silent map-miss this project has paid for before, where a
+   missing key is not an error, just a wrong number nobody can see. */
+const AUTO_BY = Object.entries(SOURCE_OF).filter(([,v]) => v.auto).map(([k]) => k);
 const LIBRARY = 'grlc';
 // 500 of 706 events are library story times, so they set the shape of every
 // line and everything else hides under them. The switch is the only way to see

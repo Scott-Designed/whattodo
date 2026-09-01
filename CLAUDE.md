@@ -1018,6 +1018,40 @@ K new, D already held`, and that is what the Automations tab reads back. A site
 aggregator matches on `s.name === a.src`, so both rows appear with no change to
 the page beyond the `AGGREGATORS` prose.
 
+## Nobody should have to read `vgb` — 1 Sep 2026
+
+Scott, on the Review tab's source filter offering *vgb · 115* and *grlc · 25*:
+**"Dont use acronym."** Right — those are the scrapers' own `added_by` values.
+They belong in the database, where three importers key on them, and nowhere on
+screen.
+
+`SOURCE_OF` already had labels and the Review tab was not using them. It carries
+**two** now, because the two places asking are asking different questions:
+
+    label   the Events tab's Source column: DID A MACHINE bring this in?
+            'calendar feed', 'venue scraper', 'by hand'
+    name    the Review tab's grouping: WHICH SOURCE sent these?
+            'Visit Geelong & The Bellarine', 'Geelong Regional Libraries'
+
+An unknown value falls back to **itself**, not to 'unknown' — a community add
+writes whoever typed it (`Someone`, `Family`), and those are already the right
+words.
+
+**The fix found a real bug next door.** `AUTO_BY` — which splits the dashboard
+chart into *from automations* and *by hand* — was a hand-kept list of three, and
+`vgb` and `coastandbay` had landed without it. So 115 events a machine brought in
+were about to be drawn as hand-added. It is derived from `SOURCE_OF` now: one
+list, and a new source cannot be forgotten.
+
+That is the `gig` → `music` lesson in a different map. **A missing key is not an
+error — it is a wrong number nobody can see.** Anything keyed on a source name
+has to be derived or grepped, never remembered.
+
+**`FEED_NAME` was deliberately left alone**, and its comment now says why. It
+answers "what keeps this PLACE up to date", so it only holds sources that attach
+their events to a place row. `vgb` and `coastandbay` set no `place_id` at all —
+a tourism board and a local publication are organisers, not rooms.
+
 ## A publish gate — `published`, 1 Sep 2026
 
 Scott, registering the tourism board's calendar: *"I would like for events not to
