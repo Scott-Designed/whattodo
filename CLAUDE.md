@@ -5387,6 +5387,58 @@ pub whose gig list is a JPEG, the routes that can actually work are the email
 inbox — which is why it exists — and a person. Do not spend another pass
 hunting gig pages expecting feeds out of them.
 
+### Geelong Gallery — place 216, registered 1 Sep 2026
+
+Scott sent `geelonggallery.org.au/whats-on/events`. It is registered and **it
+reads nothing**, which is the honest state and was established before writing
+rather than discovered by a run.
+
+**The page is server-rendered and machine-illegible.** `eventlib.fetch` — the
+fetcher that will actually do the work, not curl — gets 29,018 characters with
+**zero `application/ld+json` blocks**, no ticketing link, no WordPress or Events
+Calendar, and no RSS or iCal `<link>`. Twelve dated events are on it as plain
+HTML. `gigs_for()` was run against the row after writing and says *"nothing
+machine-readable"*, 0 gigs.
+
+**The gap is punctuation, and that is exactly why the script was not touched.**
+`from_listing`'s `LISTING_WHEN` wants `Saturday, Oct 17, 2026`; this page prints
+`Friday 26 June 2026` — no comma, full month, day first — and hangs the name on
+the line above behind a `Special events:` label. Loosening that regex is not a
+config change: it runs unattended twice a week against 100+ venues, anchored on
+a deliberately distinctive shape, and a general Australian date pattern would
+match prose anywhere on any page and file the preceding line as a gig name. **A
+source that would need a per-venue special case is a source we do not take** —
+so this is Scott's call, not a side effect of registering a URL.
+
+Registered anyway on the **Patagonia precedent**: it costs nothing, every run
+re-checks it, and it is visible in the back office rather than forgotten. That
+is now 21 gig pages registered for one working feed (The Sphinx), which is the
+same conclusion the music pass reached — **what caps coverage is what venues
+publish**.
+
+**robots.txt allows it** and names no AI crawler — `Disallow` is `/cms/`,
+`/includes/`, `/pages/`, `/z_extras/`, `/config/` only — so a Claude session may
+read it as well as the Action. Not Humanitix, not Coast & Bay.
+
+**Pinned by feature name, both directions.** Nominatim matched
+`tourism=gallery` "Geelong Gallery, 55, Little Malop Street" and it
+reverse-geocodes back to the same house number and street. Asked for the feature
+by name rather than its street, because **Little Malop Street returns segments up
+to 1.2 km apart** — the rule this file already paid for at Creative Geelong. The
+`address` on the row is what the gallery publishes (Little Malop Street, no
+number); the 55 is OSM's and is in the `source_note`, not the field.
+
+**Activity 268 was linked with `place_id`, not given a copy of the pin** — and it
+had no pin at all before, so the link is what put the region's public art gallery
+on the map. That is the "a places row is not a listing" rule run the other way:
+the listing already existed and the registry row did not.
+
+**Place 128 (The Dome) sits 9 m from this pin.** Two buildings in the Johnstone
+Park cultural precinct, so not the duplicate case — but 128's own coordinate came
+from the library iCal `GEO` and 9 m apart reads more like a precinct point than
+two buildings. Not touched, on the standing rule about moving somebody else's pin
+on suspicion. Worth a check.
+
 ### The community pass — 36 rows, 31 Aug 2026
 
 volunteering 12→35, community 32→52. The pass did what the prompt asked and did
