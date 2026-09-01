@@ -300,15 +300,28 @@ h2[id]{scroll-margin-top:60px}
    A source that answers 200 with nonsense is the failure this project keeps
    paying for, so every reading carries a plausible range and says when it
    falls outside it. Colour is the signal; there are no chips in the table. */
-.rd{display:grid;grid-template-columns:200px 130px minmax(0,1fr);gap:0 20px;
+.rd{display:grid;grid-template-columns:200px 130px 140px minmax(0,1fr);gap:0 20px;
   align-items:baseline;padding:8px 0;border-bottom:1px solid var(--rule)}
 .rd .k{font-family:var(--util);font-size:12.5px;color:var(--ink2)}
 .rd .v{font-family:var(--util);font-size:13.5px;color:var(--ink);
   font-variant-numeric:tabular-nums}
 .rd .n{font-family:var(--util);font-size:11.5px;color:var(--ink3)}
+.rd .w{font-family:var(--util);font-size:12px;color:var(--ink3)}
+/* what is growing */
+.grow{padding:13px 0;border-bottom:1px solid var(--rule)}
+.gh{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.gh .gn{font-size:18px;color:var(--ink)}
+.gh .gw{font-family:var(--util);font-size:12px;color:var(--ink3)}
+.gh .gs{font-family:var(--util);font-size:11px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;margin-left:auto}
+.gc{font-family:var(--util);font-size:12.5px;color:var(--ink2);margin-top:5px}
+.gc b{font-weight:600;color:var(--ink)}
+.gt{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}
+.gt .sp2{font-family:var(--util);font-size:12px;color:var(--ink3)}
+.gt .sp2 b{font-weight:600;color:var(--ink2)}
 .rd.odd .v{color:var(--bad)}
 .rd.odd .n{color:var(--bad)}
-.condhead{display:grid;grid-template-columns:200px 130px minmax(0,1fr);gap:0 20px;
+.condhead{display:grid;grid-template-columns:200px 130px 140px minmax(0,1fr);gap:0 20px;
   font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.12em;
   text-transform:uppercase;color:var(--ink3);padding-bottom:8px;
   border-bottom:1px solid var(--rule2)}
@@ -3913,6 +3926,10 @@ let CONDMETA = null;  // headers, timing — not in the body
 /* A plausible range per reading, and the unit. Deliberately WIDE: this is
    here to catch a parser reading the wrong field or a unit changing under
    us, not to second-guess the weather. A cold snap must never light this up. */
+/* [low, high, unit] — and the block name, which decides WHERE it was taken.
+   The reply carries `taken_at` per block because three different places answer
+   it and the table named none of them, which reads as one number covering the
+   whole coast. It does not. */
 const SANE = {
   'weather.temp':        [-5, 50,  '°C'],
   'weather.wind_kmh':    [0, 150,  'km/h'],
@@ -4008,8 +4025,8 @@ function drawConditions(){
   </div>`;
 
   B.innerHTML =
-    sourcesTable(d) + readingsTable(d) + tideBlock(d) + beachTable(d) +
-    burnsBlock(d) + fireBlock(d) + footNote(d);
+    sourcesTable(d) + readingsTable(d) + growingBlock(d) + tideBlock(d) +
+    beachTable(d) + burnsBlock(d) + fireBlock(d) + footNote(d);
 }
 
 /* Every reading whose value falls outside its plausible range. Missing is not
@@ -4048,22 +4065,68 @@ function sourcesTable(d){
 }
 
 function readingsTable(d){
+  const at = d.taken_at || {};
   const rows = Object.keys(SANE).map(k => {
     const v = dig(d, k), [lo, hi, unit] = SANE[k];
+    const block = k.split('.')[0];
+    const where = at[block]?.name || '—';
     if (v == null) return `<div class="rd"><span class="k">${esc(LABEL[k] || k)}</span>
       <span class="v" style="color:var(--ink3)">—</span>
+      <span class="w">${esc(where)}</span>
       <span class="n">source did not answer</span></div>`;
     const bad = Number(v) < lo || Number(v) > hi;
     return `<div class="rd${bad ? ' odd' : ''}">
       <span class="k">${esc(LABEL[k] || k)}</span>
       <span class="v">${esc(String(v))}${unit ? ' ' + unit : ''}</span>
+      <span class="w">${esc(where)}</span>
       <span class="n">${bad ? 'OUTSIDE ' : 'plausible '}${lo} to ${hi}${unit ? ' ' + unit : ''}</span></div>`;
   }).join('');
-  return `<div class="subhead">What it is saying, and whether that is believable</div>
-    <p class="note">The ranges are deliberately wide. They are here to catch a
-      field being read wrong or a unit changing, not to second-guess the weather.</p>
-    <div class="condhead"><span>Reading</span><span>Now</span><span>Plausible range</span></div>
+  return `<div class="subhead">What it is saying, where, and whether that is believable</div>
+    <p class="note">Three different places answer this. The air is measured at
+      <b>Jan Juc</b>, the sea at <b>Bells Beach</b>, and Kp is planet-wide —
+      wind per beach is its own table below. The ranges are deliberately wide:
+      they are here to catch a field being read wrong or a unit changing, not to
+      second-guess the weather.</p>
+    <div class="condhead"><span>Reading</span><span>Now</span><span>Taken at</span>
+      <span>Plausible range</span></div>
     ${rows}`;
+}
+
+/* ── what is growing ───────────────────────────────────────────────────────
+   A raw count says very little on its own: 63 fungi records is either a dead
+   feed or the end of the season. The stored twelve-month baseline is what
+   tells them apart, so the season verdict sits beside the count rather than
+   under it. */
+function growingBlock(d){
+  if (!d.growing?.length) return '';
+  const g = d.growing.map(x => {
+    const st = x.season.state;
+    const col = st === 'peak' ? 'good' : st === 'in season' ? 'ink' : 'ink3';
+    const top = (x.top || []).map(s =>
+      `<span class="sp2"><b>${s.n}</b> ${esc(s.name)}</span>`).join('');
+    return `<div class="grow">
+      <div class="gh">
+        <span class="gn">${esc(x.label)}</span>
+        <span class="gw">${esc(x.where)}</span>
+        <span class="gs" style="color:var(--${col})">${esc(st)}${
+          x.season.rising ? ' · rising' : ''}</span>
+      </div>
+      <div class="gc">${x.species == null
+        ? '<span style="color:var(--bad)">iNaturalist did not answer</span>'
+        : `<b>${x.species}</b> species · <b>${x.records}</b> records in 30 days ·
+           ${x.season.share}% of its own peak, which is ${esc(x.season.peak_month)}`}</div>
+      ${top ? `<div class="gt">${top}</div>` : ''}
+    </div>`;
+  }).join('');
+  const n = d.growing_note || {};
+  return `<div class="subhead">What is growing</div>
+    <p class="note">Research-grade observations over the last 30 days. The season
+      verdict compares this month against a twelve-month baseline measured
+      ${esc(n.baseline_taken || '—')} and stored — re-measure it yearly.</p>
+    ${g}
+    <p class="note" style="margin-top:14px">${esc(n.caveat || '')}
+      <b>Nothing here is an animal</b>, on purpose: the method works where the
+      organism's visibility IS the phenomenon, and fails where it is not.</p>`;
 }
 
 function tideBlock(d){

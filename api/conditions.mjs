@@ -116,6 +116,59 @@ function metres(a, b, c, d) {
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
+
+/* ── what is growing, out of iNaturalist ───────────────────────────────────
+   The same method the wildflower work used: research-grade observations in a
+   bounding box over the last 30 days. It works for plants and fungi because
+   THE ORGANISM'S VISIBILITY IS THE PHENOMENON — a flower is only recorded when
+   it is out. It does NOT work for animals, and this deliberately carries none:
+   Hooded Plover peaks in the records in February and nests from August,
+   because February is when people are on the beach.
+
+   Two boxes, because the two seasons are in different country. The orchids are
+   the Anglesea heath; the fungi are the Otways.
+
+   THE HONEST CAVEAT, which belongs anywhere this is printed: observation
+   counts measure observers as much as they measure flowers. The reason to
+   trust the shape anyway is the differential — orchids swing 25x between
+   trough and peak where all plants swing 9x, off the same walkers. */
+const HEATH = {nelat: -38.28, nelng: 144.40, swlat: -38.58, swlng: 143.95};
+const OTWAY = {nelat: -38.15, nelng: 144.55, swlat: -38.90, swlng: 143.40};
+
+/* Twelve monthly totals per taxon, measured once on 31 Aug 2026 and STORED
+   rather than re-fetched: it is years of records, it barely moves, and asking
+   for it every ten minutes would be three more calls to say the same thing.
+   It is what turns a raw count into "in season" or "over" — without it, 63
+   fungi records is a number with nothing to compare against. Re-measure it
+   yearly; the date it was taken is printed beside it. */
+const BASELINE = {
+  orchids: {taxon: 47217, box: HEATH, label: 'Orchids', where: 'Anglesea heath',
+            months: [164, 100, 121, 381, 208, 232, 321, 949, 2339, 2563, 470, 237]},
+  fungi:   {taxon: 47170, box: OTWAY, label: 'Fungi', where: 'The Otways',
+            months: [84, 145, 514, 1007, 2857, 2634, 1160, 384, 234, 259, 114, 86]},
+  plants:  {taxon: 47126, box: HEATH, label: 'All flowering plants', where: 'Anglesea heath',
+            months: [893, 803, 623, 1704, 1385, 977, 1263, 3272, 6210, 7175, 2290, 1434]},
+};
+const BASELINE_TAKEN = '2026-08-31';
+
+/* Where this month sits against the taxon's own annual peak, and which way it
+   is heading. Bands are wide on purpose — this is "is it worth going to look",
+   not a phenology model. */
+function seasonOf(months, monthIndex) {
+  const peak = Math.max(...months);
+  const now  = months[monthIndex];
+  const prev = months[(monthIndex + 11) % 12];
+  const share = peak ? now / peak : 0;
+  const state = share >= 0.7 ? 'peak' : share >= 0.35 ? 'in season' : 'out of season';
+  const peakMonth = months.indexOf(peak);
+  return {state, share: Math.round(share * 100),
+          rising: now > prev,
+          peak_month: ['Jan','Feb','Mar','Apr','May','Jun',
+                       'Jul','Aug','Sep','Oct','Nov','Dec'][peakMonth]};
+}
+
+const iso = d => d.toISOString().slice(0, 10);
+
 /* ── one source, settled on its own ────────────────────────────────────────
    Returns the parsed value AND a report. The report is what /admin draws, so
    a source that fails is visible rather than silently absent — the failure
@@ -197,6 +250,23 @@ export default async function handler(req, res) {
     source('space', 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json', J),
 
     source('burns', 'https://emergency.vic.gov.au/public/osom-geojson.json', J, 15000),
+
+    /* iNaturalist. Its robots signals read search=yes, ai-train=no,
+       use=reference — nothing here trains anything and referencing is what
+       this is. Every observation carries an observer and a licence, and both
+       have to be shown wherever the species names are.
+
+       These move over WEEKS, so a ten-minute cache is generous to the point of
+       waste — 432 calls a day against iNaturalist's 10,000. A second endpoint
+       on a six-hour window would be tidier and is not worth a second thing to
+       monitor until something else needs one. */
+    ...Object.entries(BASELINE).map(([id, b]) =>
+      source('nature.' + id, 'https://api.inaturalist.org/v1/observations/species_counts?' + q({
+        taxon_id: b.taxon, quality_grade: 'research',
+        d1: iso(new Date(Date.now() - 30 * 864e5)), d2: iso(new Date()),
+        nelat: b.box.nelat, nelng: b.box.nelng,
+        swlat: b.box.swlat, swlng: b.box.swlng}), J, 20000)),
+
   ];
 
   const reports = await Promise.all(jobs);
@@ -206,7 +276,18 @@ export default async function handler(req, res) {
      Every block is null-safe on its own, because a source that failed must
      cost only its own block. */
   const out = {at: new Date().toISOString(), gathered_ms: Date.now() - started,
-               cache_seconds: CACHE};
+               cache_seconds: CACHE,
+               /* Three different places answer this reply and it used to name
+                  none of them, which teaches a reader that one number covers
+                  the coast. It does not: the air is measured at Jan Juc, the
+                  sea at Bells, and Kp is planet-wide. */
+               taken_at: {
+                 weather: {name: 'Jan Juc', lat: HOME.lat, lng: HOME.lng},
+                 sea:     {name: 'Bells Beach', lat: SURF.lat, lng: SURF.lng},
+                 air:     {name: 'Jan Juc', lat: HOME.lat, lng: HOME.lng},
+                 space:   {name: 'planet-wide', lat: null, lng: null},
+                 beaches: {name: 'each beach, individually', lat: null, lng: null},
+               }};
 
   const w = got.weather;
   if (w) {
@@ -274,6 +355,37 @@ export default async function handler(req, res) {
       .filter(x => x.km <= 120)          // the region, plus a margin for smoke
       .sort((a, c) => a.km - c.km);
   }
+
+
+  /* One entry per taxon: what is out now, and where that sits in its own year.
+     A raw count with nothing to compare against says very little — 63 fungi
+     records is either a dead feed or the end of the season, and only the
+     baseline can tell them apart. */
+  const month = Number(new Date().toLocaleDateString('en-CA',
+                  {timeZone: TZ, month: '2-digit'})) - 1;
+  out.growing = Object.entries(BASELINE).map(([id, b]) => {
+    const g = got['nature.' + id];
+    const season = seasonOf(b.months, month);
+    if (!g) return {id, label: b.label, where: b.where, season, species: null,
+                    records: null, top: []};
+    return {
+      id, label: b.label, where: b.where, season,
+      species: g.total_results,
+      records: (g.results || []).reduce((n, r) => n + r.count, 0),
+      top: (g.results || []).slice(0, 6).map(r => ({
+        n: r.count,
+        name: r.taxon.preferred_common_name || r.taxon.name,
+        latin: r.taxon.name})),
+    };
+  });
+  out.growing_note = {
+    window: '30 days', source: 'iNaturalist, research grade',
+    baseline_taken: BASELINE_TAKEN,
+    caveat: 'Observation counts measure observers as much as flowers. Orchids '
+          + 'swing 25x between trough and peak where all plants swing 9x, off '
+          + 'the same walkers, which is the flowering signal separating itself '
+          + 'from the effort.',
+  };
 
   /* ── fire is deliberately NOT fetched ──────────────────────────────────
      CFA's per-district RSS is readable and CORS-blocked, and its own terms

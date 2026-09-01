@@ -6096,6 +6096,46 @@ under the preview server, so it prints *"There is no /api under the local
 preview server. Check this on the deploy."* Cache shows *unknown — not behind
 the edge*, which is the honest answer off Vercel.
 
+### Every reading says WHERE it was taken
+
+Scott's question on first reading the tab, and it was a fair one: the readings
+table named no location at all. **Three different places answer that reply** —
+the air is measured at Jan Juc, the sea at Bells Beach, and Kp is planet-wide,
+while the wind is per beach in its own table. A table that names none of them
+teaches the reader that one number covers the coast. `taken_at` carries the
+name and coordinate per block, and the table has a Taken-at column.
+
+### What is growing — iNaturalist, three taxa
+
+`BASELINE` in the function: orchids and all flowering plants over the Anglesea
+heath, fungi over the Otways. Research-grade observations in the last 30 days,
+one call each, ~1.2 s in parallel so they cost no wall clock.
+
+**The twelve-month baseline is STORED, not fetched.** It is years of records,
+it barely moves, and asking for it every ten minutes would be three more calls
+to say the same thing. `BASELINE_TAKEN` is the date it was measured and is
+printed beside the verdict — re-measure it yearly.
+
+**That baseline is the whole point, because a raw count says very little.**
+Read 1 Sep 2026: fungi came back **34 species and 63 records**, which alone
+looks like a dead feed. Against its own year it is **8% of a May peak — out of
+season**, which is the truth. Orchids the same day were **91% of an October
+peak, rising**. Without the baseline neither number means anything.
+
+**Nothing here is an animal, on purpose.** The method works where the
+organism's visibility IS the phenomenon — a flower is only recorded when it is
+out. Hooded Plover peaks in the records in February and nests from August,
+because February is when people are on the beach.
+
+The caveat rides in the payload as `growing_note.caveat` and is printed under
+the block: observation counts measure observers as much as flowers, and the
+reason to trust the shape anyway is that orchids swing 25x between trough and
+peak where all plants swing 9x, off the same walkers.
+
+**These move over weeks, so a ten-minute cache is generous to the point of
+waste** — 432 calls a day against iNaturalist's 10,000. A second endpoint on a
+six-hour window would be tidier and is not worth a second thing to monitor.
+
 ### Still open
 
 - **Nothing on the public board reads this yet.** The function and the monitor
