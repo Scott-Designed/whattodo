@@ -517,6 +517,14 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
       <option value="filed">Filed</option>
       <option value="ignored">Ignored</option>
     </select>
+    <select id="itriage">
+      <option value="">Any triage</option>
+      <option value="ready">Ready</option>
+      <option value="needs-you">Needs you</option>
+      <option value="duplicate">We have it</option>
+      <option value="nothing">Nothing in it</option>
+      <option value="unread">Not read</option>
+    </select>
     <button class="btn ghost" id="ireload">Refresh</button>
     <button class="btn ghost" id="ipaste">Paste an email</button>
     <div class="msg" id="imsg" style="margin-left:0"></div>
@@ -1772,7 +1780,7 @@ async function probeSource(url){
    shows is already public; an email is not — it carries whoever sent it and
    whatever they wrote — so the table has no anon policy and this needs the
    password even to read. */
-let IFILTER = {status: 'new'};
+let IFILTER = {status: 'new', triage: ''};
 let EMAILED = {};
 let INBOX = [];
 
@@ -1790,12 +1798,37 @@ async function loadInbox(){
     '<p class="empty">Unlock first — the button at the top right. An email is the ' +
     'one thing here that is not already public, so it needs the password to read.</p>';
     return; }
-  const [code, out] = await post({action:'inbox', status: IFILTER.status});
+  const [code, out] = await post({action:'inbox', status: IFILTER.status,
+                                  triage: IFILTER.triage});
   if (code !== 200){
     $('#inbox').innerHTML = `<p class="empty">${esc(out.message || out.error || ('error ' + code))}</p>`;
     return; }
   INBOX = out.rows || [];
   drawInbox();
+  drawHome();     // the tile counts these rows, so it moves when they do
+}
+
+/* The triage states, and the ONLY place their words live. They say how much
+   work a message is, never what it means — deciding whether a thing is worth
+   listing is the judgement the queue exists to ask a person for.
+   `api/_read.mjs` computes them; supabase/INBOX_TRIAGE.sql checks them. */
+const TRIAGE = {
+  ready:      ['live', 'ready',      'links read, and nothing we already hold'],
+  duplicate:  ['',     'we have it', 'everything in it is already a row'],
+  'needs-you':['warn', 'needs you',  'something real that no machine can read'],
+  nothing:    ['',     'nothing',    'no links, no dates, no venue we know'],
+  unread:     ['warn', 'not read',   'the reader did not finish — press Read links'],
+};
+function triageCell(m){
+  const [cls, word, why] = TRIAGE[m.triage] || TRIAGE.unread;
+  const sig = m.read && m.read.signals || {};
+  const n = (sig.dates || []).length, v = (sig.venues || []).length;
+  /* On a message nothing could be read from, the counts ARE the triage — they
+     are what says which newsletter is worth twenty minutes. */
+  const extra = m.triage === 'needs-you' && (n || v)
+    ? `<div style="font-size:11px;color:var(--ink3)">${n ? n + ' date' + (n>1?'s':'') : ''}`
+      + `${n && v ? ' · ' : ''}${v ? v + ' known venue' + (v>1?'s':'') : ''}</div>` : '';
+  return `<span class="tag ${cls}" title="${esc(why)}">${esc(word)}</span>${extra}`;
 }
 
 function drawInbox(){
@@ -1806,7 +1839,7 @@ function drawInbox(){
       inbox address appears in this list; nothing is read or acted on automatically.</p>`;
     return; }
   $('#inbox').innerHTML = `<div style="overflow-x:auto"><table><thead><tr>
-      <th>Arrived</th><th>From</th><th>Subject</th><th>What it says</th><th>Status</th><th></th>
+      <th>Arrived</th><th>From</th><th>Subject</th><th>What it says</th><th>Triage</th><th>Status</th><th></th>
     </tr></thead><tbody>${INBOX.map((m,i) => `
       <tr data-i="${i}">
         <td style="white-space:nowrap">${esc(ago(m.received_at))}</td>
@@ -1814,6 +1847,7 @@ function drawInbox(){
         <td class="cap wide" title="${esc(m.subject || '')}"><a href="#" class="rowname" data-open="1"
              style="color:var(--ink)">${esc(m.subject || '(no subject)')}</a></td>
         <td class="cap wide" title="${esc(m.body || '')}" style="color:var(--ink3)">${esc(m.body || '')}</td>
+        <td style="white-space:nowrap">${triageCell(m)}</td>
         <td>${m.status === 'new' ? '<span class="tag warn">waiting</span>'
              : m.status === 'filed' ? '<span class="tag live">filed</span>'
              : '<span class="tag">ignored</span>'}</td>
@@ -1864,7 +1898,7 @@ function openMail(i){
   // on an unambiguous domain, so most of these get set here by hand.
   const opts = DATA.places.slice().sort((a, b) => a.name.localeCompare(b.name))
     .map(p => `<option value="${p.id}"${p.id === m.place_id ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
-  row.innerHTML = `<td colspan="6" style="background:var(--surface);padding:14px 12px">
+  row.innerHTML = `<td colspan="7" style="background:var(--surface);padding:14px 12px">
     <div style="margin-bottom:12px">
       <div class="lbl" style="margin-bottom:6px">Which place is this</div>
       <select data-place style="max-width:340px"><option value="">— not linked —</option>${opts}</select>
@@ -1875,8 +1909,10 @@ function openMail(i){
         ${links.map(u => `<div style="margin-bottom:3px"><a href="${esc(u)}" target="_blank"
            rel="noopener noreferrer" style="font-size:12px;word-break:break-all">${esc(u)}</a></div>`).join('')}
         <div style="margin-top:9px;display:flex;gap:8px;align-items:center">
-          <button class="btn" data-read style="padding:4px 12px;font-size:12px">Read links</button>
-          <span class="msg" data-readmsg></span>
+          <button class="btn" data-read style="padding:4px 12px;font-size:12px">${
+            m.read ? 'Read again' : 'Read links'}</button>
+          <span class="msg" data-readmsg>${m.read
+            ? 'read ' + esc(ago(m.read.at)) : ''}</span>
         </div>
         <div data-found></div>
       </div>` : ''}
@@ -1887,6 +1923,11 @@ function openMail(i){
   tr.after(row);
   const rd = row.querySelector('[data-read]');
   if (rd) rd.onclick = () => readMail(m, row);
+  /* /api/inbox reads the links the moment a message arrives, so by the time
+     anybody opens it the answer is usually already here. Drawing the stored
+     copy is what makes this a queue to skim rather than a pile to work — the
+     button is for asking again, not for asking at all. */
+  if (m.read) drawFound(m.read, m, row);
   const sel = row.querySelector('[data-place]'), note = row.querySelector('[data-linkmsg]');
   sel.onchange = async () => {
     note.className = 'msg'; note.textContent = 'Saving…';
@@ -1899,6 +1940,7 @@ function openMail(i){
     // The Places tab draws its mail icon off these counts, so it has to be
     // told — otherwise the icon appears only after a reload.
     loadEmailed();
+    loadInbox();      // so the dashboard tile has a number before you go looking
   };
 }
 
@@ -1910,15 +1952,25 @@ function openMail(i){
    page publishes its own event and a NEWSLETTER does not. When a page comes
    back "prose, so it needs a person", that is the answer, not a failure. */
 async function readMail(m, row){
-  const box = row.querySelector('[data-found]'), msg = row.querySelector('[data-readmsg]');
-  msg.className = 'msg'; msg.textContent = 'Reading…'; box.innerHTML = '';
+  const msg = row.querySelector('[data-readmsg]');
+  msg.className = 'msg'; msg.textContent = 'Reading…';
+  row.querySelector('[data-found]').innerHTML = '';
   const [code, out] = await post({action:'inbox_read', id: m.id});
   if (code !== 200){
     msg.className = 'msg bad'; msg.textContent = out.message || out.error; return; }
   msg.className = 'msg good';
   msg.textContent = `${out.read} of ${out.links} link(s) read`
     + (out.skipped ? ` · ${out.skipped} not read` : '');   // never a silent cap
+  m.read = out; m.triage = out.triage;
+  drawFound(out, m, row);
+  drawInbox();                       // the Triage column may have just moved
+}
 
+/* One drawing, two callers: the stored read from /api/inbox on open, and a
+   fresh one from the button. Two copies would have drifted the first time
+   either was touched. */
+function drawFound(out, m, row){
+  const box = row.querySelector('[data-found]');
   const pages = out.pages.map(p => `<div style="font-size:11.5px;color:var(--ink3);
       margin-bottom:2px">${esc(p.verdict)} — <span style="word-break:break-all">${esc(p.url)}</span></div>`).join('');
 
@@ -1958,6 +2010,23 @@ async function readMail(m, row){
     const c = out.candidates[+el.dataset.cand];
     el.querySelector('[data-make]').onclick = () => makeFromMail(c, m, el);
   });
+
+  /* What the prose sniffer found. It does NOT extract — it says how much is in
+     there, which is a question a regex can answer honestly, and leaves what
+     the events are to a person. A newsletter keeps its events in sentences and
+     no free path reads those. */
+  const sig = out.signals || {};
+  if ((sig.dates || []).length || (sig.venues || []).length){
+    box.insertAdjacentHTML('beforeend', `<div style="margin-top:10px">
+      <div class="lbl" style="margin-bottom:4px">Mentioned in the text</div>
+      <div style="font-size:12px;color:var(--ink2)">
+        ${(sig.dates||[]).map(d => `<span class="tag">${esc(d)}</span>`).join(' ')}
+        ${(sig.venues||[]).map(v => `<span class="tag live">${esc(v)}</span>`).join(' ')}
+      </div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:4px">
+        Dates and venues we already know, found in the words. Nothing is read
+        from them — they say whether this is worth your time.</div></div>`);
+  }
 }
 
 /* The candidate becomes a HELD row. `create` forces published:false for a
@@ -2317,7 +2386,7 @@ function drawEvents(){
       const town = place?.suburb || townOf(r.location) || '';
       const venue = place?.name || r.venue || '';
       return `<tr class="clickable" data-id="${r.id}">
-        ${pickCell(r.id)}
+        ${pickCell('events', r.id)}
         <td title="${esc(r.name)}"><div class="rowname">${esc(r.name)}</div></td>
         <td class="cap" title="${esc((r.types || []).join(' · '))}">${esc((r.types || []).join(' · ') || '—')}</td>
         <td${past ? ' style="color:var(--ink3)"' : ''} style="white-space:nowrap">${esc(dmy(r.starts_on) || '—')}</td>
@@ -2389,7 +2458,7 @@ function drawActivities(){
 ${showPlace ? '<th>Location</th><th>Events</th>' : ''}<th>Km</th><th>Pinned</th><th>Cost</th><th>To fix</th><th></th>
     </tr></thead><tbody>${out.map(r => `
       <tr class="clickable" data-id="${r.id}">
-        ${pickCell(r.id)}
+        ${pickCell('activities', r.id)}
         <td class="cap wide" title="${esc(r.name)}"><div class="rowname">${esc(r.name)}</div></td>
         ${showKind ? `<td>${r.kind ? esc(r.kind) : '<span style="color:var(--ink3)">—</span>'}</td>` : ''}
         <td class="cap" title="${esc((r.types || []).join(' · '))}">${esc((r.types || []).join(' · ') || '—')}</td>
@@ -2649,7 +2718,7 @@ function drawGroups(){
       // The same automation renderer the Places tab uses, so the two can never
       // disagree about whether a source is reading.
       return `<tr data-id="${p.id}">
-        ${pickCell(p.id)}
+        ${pickCell('places', p.id)}
         <td class="cap wide"><a href="#" class="rowname" data-edit="${p.id}">${esc(p.name)}</a></td>
         <td>${esc(p.kind || '—')}</td>
         <td>${esc(p.suburb || '—')}</td>
@@ -2756,7 +2825,7 @@ function drawPlaces(){
         .map(x => x.created_at).filter(Boolean).sort();
       const lastAdded = stamps[stamps.length - 1] || null;
       return `<tr class="clickable" data-id="${p.id}">
-        ${pickCell(p.id)}
+        ${pickCell('places', p.id)}
         <td><div class="rowname">${esc(p.name)}</div>
 </td>
         <td>${esc(p.kind || '—')}</td>
@@ -2817,10 +2886,30 @@ function drawPlaces(){
 let PICK = {view:'', table:'', sel:'', ids:new Set(), last:null};
 
 const PICK_NOUN = {events:'event', activities:'listing',
-                   places:'location', groups:'group'};
+                   places:'location', groups:'group', review:'row'};
 
 const pickHead = () => '<th class="pick"><input type="checkbox" class="pickall"></th>';
-const pickCell = id => `<td class="pick"><input type="checkbox" data-pick="${id}"></td>`;
+/* THE KEY CARRIES ITS TABLE — "events:751", never 751. Ids collide across the
+   two listing tables (event 13 and activity 13 are different things), which the
+   saved-listings code on the board has known since the day it was written. It
+   did not matter while every picking table held one kind of row; Review holds
+   both, grouped by who submitted them, so a bare id there would let a tick on
+   an event untick an activity. */
+const pickCell = (table, id) =>
+  `<td class="pick"><input type="checkbox" data-pick="${table}:${id}"></td>`;
+
+/* {events:[…ids], activities:[…ids]} — every action splits through this, so a
+   mixed selection costs one request per table and nothing has to know in
+   advance which tables it got. */
+function pickByTable(){
+  const out = {};
+  for (const k of PICK.ids){
+    const i = k.indexOf(':');
+    (out[k.slice(0, i)] ||= []).push(+k.slice(i + 1));
+  }
+  return out;
+}
+const pickTables = () => Object.keys(pickByTable());
 
 /* Called at the end of every draw: the table has just been rebuilt from
    scratch, so the boxes have to be re-ticked from PICK and re-wired. */
@@ -2841,7 +2930,7 @@ function wirePick(sel, view, table){
 
   const boxes = [...root.querySelectorAll('input[data-pick]')];
   boxes.forEach(b => {
-    const id = +b.dataset.pick;
+    const id = b.dataset.pick;
     b.checked = PICK.ids.has(id);
     b.closest('tr').classList.toggle('picked', b.checked);
     // The checkbox sits inside a row whose own click opens the editor, so it
@@ -2858,7 +2947,7 @@ function wirePick(sel, view, table){
       // PICK.last is null after a clear, so a range never crosses a view.
       if (e.shiftKey && PICK.last !== null){
         const [a, z] = [Math.min(i, PICK.last), Math.max(i, PICK.last)];
-        for (let k = a; k <= z; k++) setPick(+boxes[k].dataset.pick, on);
+        for (let k = a; k <= z; k++) setPick(boxes[k].dataset.pick, on);
       } else setPick(id, on);
       PICK.last = i;
       wirePick(sel, view, table);
@@ -2867,22 +2956,26 @@ function wirePick(sel, view, table){
 
   // The header box speaks for what is ON SCREEN, which is why it is ticked
   // from the visible rows rather than from the size of the selection.
-  const all = root.querySelector('.pickall');
-  if (all){
-    all.checked = boxes.length > 0 && boxes.every(b => b.checked);
+  // querySelectorAll, and scoped to its own <table>: Review draws one table per
+  // source, so a single header box would speak for every group at once and the
+  // other groups' boxes would have no handler at all.
+  root.querySelectorAll('.pickall').forEach(all => {
+    const scope = all.closest('table') || root;
+    const mine  = boxes.filter(b => scope.contains(b));
+    all.checked = mine.length > 0 && mine.every(b => b.checked);
     all.onclick = e => {
       e.stopPropagation();
       const on = all.checked;
       focusPick(sel, view, table);
-      boxes.forEach(b => setPick(+b.dataset.pick, on));
+      mine.forEach(b => setPick(b.dataset.pick, on));
       PICK.last = null;
       wirePick(sel, view, table);
     };
-  }
+  });
   drawPickbar();
 }
 
-const setPick = (id, on) => { on ? PICK.ids.add(id) : PICK.ids.delete(id); };
+const setPick = (key, on) => { on ? PICK.ids.add(key) : PICK.ids.delete(key); };
 
 /* Clears without a redraw. Every table is in the DOM at once — the tabs only
    hide sections — so untick the boxes directly rather than rebuilding four
@@ -2903,19 +2996,33 @@ function drawPickbar(){
   // How many of the picked rows the current filter is not showing. Printing it
   // is the price of letting a selection survive a search.
   const shown = new Set([...($(PICK.sel)?.querySelectorAll('td.pick input') || [])]
-                        .map(b => +b.dataset.pick));
+                        .map(b => b.dataset.pick));
   const off = [...PICK.ids].filter(id => !shown.has(id)).length;
   const noun = PICK_NOUN[PICK.view] || 'row';
   // Only the two tables that HAVE a published column get these. `places` is a
   // registry, not a listing — nothing about a venue is on or off the board.
-  const pub = PICK.table === 'events' || PICK.table === 'activities';
+  // Both listing tables have a `published` column; `places` is a registry and
+  // nothing about a venue is on or off the board. A mixed Review selection is
+  // events + activities, so it qualifies.
+  const tabs = pickTables();
+  const pub = tabs.length > 0 && tabs.every(x => x === 'events' || x === 'activities');
   bar.innerHTML = `<span><b>${n}</b> ${esc(noun)}${n === 1 ? '' : 's'} selected</span>
     ${off ? `<span class="off">${off} not in this view</span>` : ''}
+    ${PICK.view === 'review' ? `<button class="btn" id="pkok">Approve</button>` : ''}
     ${pub ? `<button class="btn" id="pkpub">Publish</button>
-             <button class="btn ghost" id="pkhold">Hold</button>` : ''}
+             <button class="btn ghost" id="pkhold">Unpublish</button>` : ''}
     <button class="btn" id="pkedit">Edit…</button>
     <button class="btn danger" id="pkdel">Delete</button>
     <button class="btn ghost" id="pkclear">Clear</button>`;
+  if (PICK.view === 'review'){
+    // Approve is verify and nothing else — the queue's own gesture, now for a
+    // subset rather than a whole group. Publish is the stronger one and stays
+    // its own button.
+    $('#pkok').onclick = () => {
+      const b = pickByTable();
+      approve('events', b.events || [], 'activities', b.activities || []);
+    };
+  }
   if (pub){
     $('#pkpub').onclick  = () => bulkPublish(true);
     $('#pkhold').onclick = () => bulkPublish(false);
@@ -2927,23 +3034,27 @@ function drawPickbar(){
 
 /* Put a selection on the board or take it off. The gesture the Review tab
    makes, available from whichever table you happen to be looking at — you find
-   a held row by its `not published` chip on Events or Listings, and this is how
-   you act on it without changing tab.
+   an unpublished row by its `not published` chip on Events or Listings, and
+   this is how you act on it without changing tab.
 
    It is NOT in BULK below, deliberately: `published` is the one field where a
    confirm is worth the friction, because publishing is the only thing here a
-   reader can see. Holding is the reverse and needs no confirm — it takes
+   reader can see. Unpublishing is the reverse and needs no confirm — it takes
    something off the site, which is the safe direction. */
 async function bulkPublish(on){
   if (!PASS) return alert('Unlock first — the button at the top right.');
-  const ids = [...PICK.ids], n = ids.length, table = PICK.table;
+  const byT = pickByTable(), n = PICK.ids.size;
   const noun = (PICK_NOUN[PICK.view] || 'row') + (n === 1 ? '' : 's');
   if (on && !confirm(`Put ${n} ${noun} on the site? This is what readers will see.`))
     return;
-  const [code, out] = await post({action:'publish', table, ids, on});
-  if (code !== 200) return alert(out.message || out.error || ('error ' + code));
-  for (const r of DATA[table]) if (PICK.ids.has(r.id)){
-    r.published = on; if (on) r.verified = true;
+  // One request per table. Review mixes events and activities in one group, so
+  // this is the same shape approve() has always had.
+  for (const [table, ids] of Object.entries(byT)){
+    const [code, out] = await post({action:'publish', table, ids, on});
+    if (code !== 200) return alert(out.message || out.error || ('error ' + code));
+    for (const r of DATA[table]) if (ids.includes(r.id)){
+      r.published = on; if (on) r.verified = true;
+    }
   }
   clearPick(); drawReview(); redrawAll();
 }
@@ -2996,7 +3107,15 @@ function bulkValue(spec){
 
 function openBulk(){
   if (!PASS) return alert('Unlock first — the button at the top right.');
-  const t = PICK.table, n = PICK.ids.size, specs = BULK[t];
+  // One field, one table. A mixed Review selection has no shared field list —
+  // `place_id` means nothing on an activity and `kind` means nothing on an
+  // event — so say so rather than offering a menu that is wrong for half of it.
+  const tabs = pickTables();
+  if (tabs.length > 1)
+    return alert(`This selection is ${tabs.join(' and ')}. Change one field at a `
+      + `time works on one table — narrow the selection, or use Approve, `
+      + `Publish, Unpublish or Delete, which all handle a mixed set.`);
+  const t = tabs[0], n = PICK.ids.size, specs = BULK[t];
   if (!specs) return;
   $('#editor').innerHTML = `<div class="scrim"><div class="drawer">
     <header>
@@ -3035,9 +3154,9 @@ const bsay = (html, cls) => {
 };
 
 async function applyBulk(){
-  const t = PICK.table, spec = BULK[t][+$('#bfield').value];
+  const t = pickTables()[0], spec = BULK[t][+$('#bfield').value];
   const raw = $('#bv').value;
-  const body = {action:'bulk', table:t, ids:[...PICK.ids]};
+  const body = {action:'bulk', table:t, ids:pickByTable()[t]};
 
   if (spec.f === '+type' || spec.f === '-type'){
     if (!raw) return bsay('Pick a type.', 'bad');
@@ -3066,19 +3185,25 @@ async function applyBulk(){
 
 async function bulkDelete(){
   if (!PASS) return alert('Unlock first — the button at the top right.');
-  const t = PICK.table, ids = [...PICK.ids];
-  if (!confirm(`Delete ${ids.length} row${ids.length === 1 ? '' : 's'} from ${t}?` +
-               `\n\nThis cannot be undone here.`)) return;
-  let [code, out] = await post({action:'delete_many', table:t, ids});
-  if (code === 409){
-    if (!confirm(out.message + '\n\n' + (out.names || []).join('\n') +
-                 '\n\nDelete them anyway?')) return;
-    [code, out] = await post({action:'delete_many', table:t, ids, force:true});
+  const byT = pickByTable(), n = PICK.ids.size;
+  if (!confirm(`Delete ${n} row${n === 1 ? '' : 's'} from ` +
+               `${Object.keys(byT).join(' and ')}?\n\nThis cannot be undone here.`)) return;
+  // Per table, because Review can hold both. The verified-row confirm is asked
+  // once per table rather than once for the lot — each answer is about the rows
+  // that table is actually refusing.
+  for (const [tb, ids] of Object.entries(byT)){
+    let [code, out] = await post({action:'delete_many', table:tb, ids});
+    if (code === 409){
+      if (!confirm(out.message + '\n\n' + (out.names || []).join('\n') +
+                   '\n\nDelete them anyway?')) return;
+      [code, out] = await post({action:'delete_many', table:tb, ids, force:true});
+    }
+    if (code !== 200)
+      return alert(out.message || out.detail || out.error || ('error ' + code));
+    DATA[tb] = DATA[tb].filter(x => !ids.includes(x.id));
   }
-  if (code !== 200)
-    return alert(out.message || out.detail || out.error || ('error ' + code));
-  DATA[t] = DATA[t].filter(x => !PICK.ids.has(x.id));
   clearPick();
+  drawReview();
   redrawAll();
 }
 
@@ -3610,7 +3735,13 @@ function drawHome(){
   const venues   = DATA.places.length - groups;
   const pinned   = DATA.places.filter(p => p.lat != null).length;
   const noPin    = venues - DATA.places.filter(p => p.lat != null && !isGroup(p)).length;
-  const inbox    = Object.keys(EMAILED).length;
+  const emailers = Object.keys(EMAILED).length;   // places that have written in
+  /* Waiting messages, and the ones that actually want a person. Until now the
+     inbox was on no tile at all, so a message was invisible until you walked
+     two levels down the menu to find it. */
+  const waitMail = INBOX.filter(m => m.status === 'new').length;
+  const wantsYou = INBOX.filter(m => m.status === 'new'
+                     && ['ready', 'needs-you', 'unread'].includes(m.triage)).length;
 
   // to: which section this number lives in, so pressing it gets you there.
   const tiles = [
@@ -3623,6 +3754,10 @@ function drawHome(){
      warn: waiting > 0},
     {to:'events',     n: unsorted,  t:'Unsorted',         s:'no type yet, so on no type page',
      warn: unsorted > 0},
+    {to:'inbox',      n: waitMail,  t:'In the inbox',
+     s: waitMail ? `${wantsYou} want you · ${emailers} venues have written`
+                 : `${emailers} venues have written in`,
+     warn: wantsYou > 0},
   ];
   $('#home').innerHTML = `<div class="tiles">${tiles.map(x => `
     <a class="tile" href="#${x.to}">
@@ -3782,7 +3917,7 @@ function show(page, tab){
   if (h && t) h.textContent = t.name;
   drawBarNav();
   location.hash = p.id + (t ? '/' + t.id : '');
-  if (t && t.id === 'inbox') loadInbox();
+  if (t && t.id === 'inbox') loadInbox();   // a re-read on entering the tab
   if (p.id === 'listings') section === 'events' ? drawEvents() : drawActivities();
 }
 
@@ -3836,7 +3971,7 @@ wire({'#eq':'q', '#etype':'type', '#erec':'rec', '#ewhen':'when', '#esrc':'src',
 wire({'#aq':'q', '#atype':'type', '#asort':'sort'}, AFILTER, () => drawActivities());
 wire({'#pq':'q', '#pkind':'kind', '#psort':'sort'}, PFILTER, () => drawPlaces());
 wire({'#rsrc':'src'}, RFILTER, () => drawReview());
-wire({'#istatus':'status'}, IFILTER, () => loadInbox());
+wire({'#istatus':'status', '#itriage':'triage'}, IFILTER, () => loadInbox());
 $('#ireload').onclick = loadInbox;
 $('#ipaste').onclick  = () => { $('#ipastebox').hidden = !$('#ipastebox').hidden;
                                 if (!$('#ipastebox').hidden) $('#isubj').focus(); };

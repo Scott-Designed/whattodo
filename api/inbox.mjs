@@ -19,6 +19,7 @@
 // it is a public URL, and an open one would be a spam target within a day.
 
 import crypto from 'node:crypto';
+import {readMessage} from './_read.mjs';
 
 const CAP = 60_000;          // one email's worth; a newsletter is not an event
 
@@ -120,9 +121,40 @@ export default async function handler(req, res) {
       {headers: {apikey: key, Authorization: 'Bearer ' + key}});
     return q.ok ? q.json() : [];
   };
+  // The shape readMessage() expects. Same credentials, one more argument.
+  const dbq = async (method, path, body) => {
+    const q = await fetch(process.env.SUPABASE_URL + path, {method,
+      headers: {apikey: key, Authorization: 'Bearer ' + key,
+                'Content-Type': 'application/json'},
+      body: body === undefined ? undefined : JSON.stringify(body)});
+    return q.ok ? q.json() : [];
+  };
   // Best effort, and never fatal: a message that cannot be matched is still a
   // message, and losing it because a lookup failed would be the worse bug.
   try { row.place_id = await matchPlace(row.from_addr, read); } catch { }
+
+  /* Read the links NOW, so the queue is already triaged by the time anybody
+     looks. Free — there is no model anywhere in readMessage — and it is the
+     difference between a pile to work and a list to skim.
+
+     THE BUDGET IS LOAD-BEARING. Postmark gives an inbound webhook about ten
+     seconds and RETRIES on a timeout, so being slow here does not mean a late
+     answer, it means the same message stored twice. Three links at five
+     seconds each is the common case (one link) comfortably read; anything
+     slower lands `unread` and the Read links button picks it up, which is a
+     worse outcome than being read and a much better one than a duplicate.
+
+     Never fatal, for the same reason the place match is not: a message that
+     could not be read is still a message, and losing it to a failed lookup
+     would be the worse bug by far. */
+  try {
+    const read = await Promise.race([
+      readMessage(row, dbq, {cap: 3}),
+      new Promise(ok => setTimeout(() => ok(null), 8000)),
+    ]);
+    if (read) { row.read = read; row.triage = read.triage; }
+    else row.triage = 'unread';
+  } catch { row.triage = 'unread'; }
 
   const r = await fetch(process.env.SUPABASE_URL + '/rest/v1/inbox', {
     method: 'POST',

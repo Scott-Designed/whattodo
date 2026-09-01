@@ -3154,6 +3154,74 @@ lesson, one file along.
 could make an event it became the sixth write path onto the board. Same hole as
 `sync.py add`, found the same day, by the same invariant.
 
+### The queue triages itself — 1 Sep 2026
+
+Scott: *"what is best path for free inbox monitoring / flagging, understand it
+will need human input"*. Four things, all free, and the point of every one of
+them is to answer **how much work is this message** before a person opens it.
+
+**1. `/api/inbox` reads the links ON ARRIVAL.** By the time anybody looks, the
+links are read, the venues matched and the duplicates flagged. That is the whole
+difference between a pile to work and a list to skim.
+
+**THE TIME BUDGET IS LOAD-BEARING.** Postmark gives an inbound webhook about ten
+seconds and **RETRIES on a timeout** — so being slow here does not mean a late
+answer, it means the same message stored twice. Three links, and a hard 8s race;
+anything slower lands `unread` and the button picks it up. Measured at **0.4s**
+on a real newsletter, so the common case is nowhere near it. Never fatal, for the
+same reason the place match is not: a message that could not be read is still a
+message.
+
+**2. Five triage states**, in `supabase/INBOX_TRIAGE.sql`, checked by the column
+and computed in `_read.mjs`:
+
+    ready       candidates found and nothing we already hold
+    duplicate   everything in it is already a row
+    needs-you   something real that no machine can read — prose, a poster
+    nothing     no links, no dates, no venue we know
+    unread      the reader did not finish
+
+**They say how MUCH work a message is, never what it MEANS.** Whether a thing is
+worth listing is the judgement the queue exists to ask a person for, and nothing
+in this path touches it.
+
+**3. `sniffProse` reads the prose without a model, and it DETECTS rather than
+extracts.** It finds dates by regex and venues by matching the `places` registry,
+then says *"6 dates · 1 known venue"*. That is a question a regex can answer
+honestly; what the events ARE is left to a person. Names shorter than 7
+characters are skipped — `Gather` and `Bloom` are real place rows and also
+ordinary words, and a false venue is worse than a missing one because it makes a
+quiet message look urgent.
+
+Run against the real Geelong Gist it found *Aug 25 · 29th August · 5th September
+· 6 Sept · September 6 · September 4* and *Geelong Arts Centre* — six dates, one
+venue, `needs-you`. Which is right: two of its events were real, two were
+duplicates we already held.
+
+**4. The inbox is on the dashboard.** It was on no tile at all, so a message was
+invisible until you walked two levels down the menu. `loadInbox()` now runs with
+the page rather than on the tab, because a tile with no number is worse than no
+tile.
+
+### What this deliberately does NOT do
+
+**It does not extract events from prose, and no free path can.** A newsletter
+keeps its events in sentences — measured, The Geelong Gist publishes schema.org
+`Article` and `BreadcrumbList` and no `Event` at all. Reading those needs a
+model, and the two routes both fail on something:
+
+- **a model in Vercel** bills `ANTHROPIC_API_KEY`, the meter Autofill is stuck on
+- **the `sample` capability inside an Artifact** is free (the viewer pays) and
+  **cannot reach Supabase**, so it can draft and never save
+
+That second one is worth knowing because this file used to say an Artifact had no
+inference at all, which **stopped being true**. It can ask Claude now. It still
+cannot write. Do not re-litigate without checking both halves.
+
+**And there is no push.** Postmark is inbound only and `events@notice.place` is
+not a mailbox anybody can open, so `/admin` IS the mailbox. Being told rather
+than checking needs a channel that does not exist yet.
+
 ### Capture an event — a link out, not a form
 
 Scott, 31 Aug 2026: *"to start just have a CTA that links to artefact."* The
