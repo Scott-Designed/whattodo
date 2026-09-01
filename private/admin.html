@@ -425,7 +425,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
   <a class="navlink add" id="iartifact"
      href="https://claude.ai/code/artifact/93362d84-79a0-43b9-89e5-65eff75d74e2"
      target="_blank" rel="noopener noreferrer"
-     title="Opens the capture artifact on claude.ai — paste a link or photograph a poster on your phone. Anything can go in: a venue, a shop, a gig. Costs no API credits.">
+     title="Opens Capture on claude.ai — paste a link or photograph a poster on your phone. Anything can go in: a venue, a shop, a gig. Costs no API credits.">
     <svg class="navic"><use href="#i-plus"/></svg>Add</a>
 </nav>
 
@@ -1874,12 +1874,19 @@ function openMail(i){
         <div class="lbl" style="margin-bottom:6px">Links in this message</div>
         ${links.map(u => `<div style="margin-bottom:3px"><a href="${esc(u)}" target="_blank"
            rel="noopener noreferrer" style="font-size:12px;word-break:break-all">${esc(u)}</a></div>`).join('')}
+        <div style="margin-top:9px;display:flex;gap:8px;align-items:center">
+          <button class="btn" data-read style="padding:4px 12px;font-size:12px">Read links</button>
+          <span class="msg" data-readmsg></span>
+        </div>
+        <div data-found></div>
       </div>` : ''}
     <div class="lbl" style="margin-bottom:6px">What it says</div>
     <div style="font-size:12.5px;line-height:1.55;white-space:pre-wrap;color:var(--ink2);
                 max-height:340px;overflow:auto">${esc(m.body || '(nothing readable)')}</div>
   </td>`;
   tr.after(row);
+  const rd = row.querySelector('[data-read]');
+  if (rd) rd.onclick = () => readMail(m, row);
   const sel = row.querySelector('[data-place]'), note = row.querySelector('[data-linkmsg]');
   sel.onchange = async () => {
     note.className = 'msg'; note.textContent = 'Saving…';
@@ -1893,6 +1900,97 @@ function openMail(i){
     // told — otherwise the icon appears only after a reload.
     loadEmailed();
   };
+}
+
+/* Fetch every link in the message SERVER-side and show what a scraper would
+   find in it. Nothing is written — this is a proposal, the same contract
+   /api/enrich has, minus the model and therefore minus the bill.
+
+   It reads schema.org and nothing else, which is the honest limit: a ticket
+   page publishes its own event and a NEWSLETTER does not. When a page comes
+   back "prose, so it needs a person", that is the answer, not a failure. */
+async function readMail(m, row){
+  const box = row.querySelector('[data-found]'), msg = row.querySelector('[data-readmsg]');
+  msg.className = 'msg'; msg.textContent = 'Reading…'; box.innerHTML = '';
+  const [code, out] = await post({action:'inbox_read', id: m.id});
+  if (code !== 200){
+    msg.className = 'msg bad'; msg.textContent = out.message || out.error; return; }
+  msg.className = 'msg good';
+  msg.textContent = `${out.read} of ${out.links} link(s) read`
+    + (out.skipped ? ` · ${out.skipped} not read` : '');   // never a silent cap
+
+  const pages = out.pages.map(p => `<div style="font-size:11.5px;color:var(--ink3);
+      margin-bottom:2px">${esc(p.verdict)} — <span style="word-break:break-all">${esc(p.url)}</span></div>`).join('');
+
+  const cards = out.candidates.map((c, i) => {
+    /* Strongest signal first, and every one of them is a reason NOT to write.
+       `already` is the one that matters most: both halves of the only real
+       duplicate this database has had were HELD rows, so a check that reads
+       only the live board would have found neither. */
+    const bad = c.gate ? `<span class="tag warn">${esc(c.gate)}</span>` : '';
+    const dup = (c.already || []).map(a => `<span class="tag dead">already have #${a.id}`
+      + `${a.published ? '' : ', held'}</span>`).join(' ');
+    const where = c.place_id ? `<span class="tag live">${esc(c.place_name)}</span>`
+      : c.needs_place ? `<span class="tag warn">no place row for “${esc(c.venue)}”</span>` : '';
+    const when = c.starts_on
+      ? `${esc(dmy(c.starts_on))}${c.weekday ? ' · ' + esc(c.weekday) : ''}`
+        + `${c.time_text ? ' · ' + esc(c.time_text) : ''}` : '';
+    return `<div style="border:1px solid var(--rule2);border-radius:8px;padding:10px 12px;
+                margin-top:8px" data-cand="${i}">
+      <div style="font-weight:600;font-size:13px">${esc(c.name || '(no name)')}</div>
+      <div style="font-size:12px;color:var(--ink2);margin-top:2px">
+        ${esc(c.what)}${when ? ' · ' + when : ''}${c.address ? ' · ' + esc(c.address) : ''}</div>
+      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        ${bad}${dup}${where}</div>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+        <button class="btn ghost" data-make style="padding:3px 10px;font-size:11.5px"
+          ${c.gate ? 'disabled title="'+esc(c.gate)+'"' : ''}>Create, held for review</button>
+        <span class="msg" data-makemsg></span>
+      </div></div>`;
+  }).join('');
+
+  box.innerHTML = `<div style="margin-top:10px">${pages}</div>`
+    + (out.candidates.length ? cards
+       : `<div class="empty" style="margin-top:10px">Nothing machine-readable in those
+          links. A newsletter keeps its events in prose, so this one needs a person.</div>`);
+
+  box.querySelectorAll('[data-cand]').forEach(el => {
+    const c = out.candidates[+el.dataset.cand];
+    el.querySelector('[data-make]').onclick = () => makeFromMail(c, m, el);
+  });
+}
+
+/* The candidate becomes a HELD row. `create` forces published:false for a
+   listing, so this cannot put anything on the board — a person still presses
+   Approve in Review, which is the whole point of the gate. */
+async function makeFromMail(c, m, el){
+  const note = el.querySelector('[data-makemsg]');
+  note.className = 'msg'; note.textContent = 'Creating…';
+  const table = c.what === 'event' ? 'events' : 'activities';
+  const src = `Read from ${c.from} — schema.org ${c.schema_type || 'listing'} on the page, `
+    + `no model involved. Arrived as inbox message ${m.id} from ${m.from_addr || 'unknown'}; `
+    + `the message was the tip-off, not the source.`;
+  const payload = c.what === 'event'
+    ? {name: c.name, starts_on: c.starts_on, ends_on: c.ends_on, time_text: c.time_text,
+       venue: c.place_id ? null : c.venue, place_id: c.place_id || null,
+       location: c.address, description: c.description, cost: c.cost,
+       info_url: c.info_url, types: [],
+       /* medium, not high: the date is machine-readable and the page is
+          first-party, but nothing here cross-checks it the way the printed
+          weekday does in scrape_venues. The weekday is shown above so a person
+          can do that check by eye before approving. */
+       date_confidence: 'medium', added_by: 'inbox', source_note: src}
+    : {name: c.name, location: c.address, description: c.description,
+       url: c.url, types: [], kind: 'venue',
+       lat: c.lat, lng: c.lng, added_by: 'inbox', source_note: src};
+  const [code, out] = await post({action:'create', table, payload});
+  if (code !== 200){
+    note.className = 'msg bad';
+    note.textContent = out.message || (out.complaints || []).join('; ') || out.error; return; }
+  note.className = 'msg good';
+  note.textContent = `${table} ${out.row.id} created, held for review.`;
+  el.querySelector('[data-make]').disabled = true;
+  load();      // the Review count and the tiles both move
 }
 
 async function pasteInbox(){

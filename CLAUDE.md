@@ -39,7 +39,7 @@ scripts/              configure.py (keys into notice-data.js), sync.py (seed/exp
                       scrape_venues.py (each venue's own ticketing page),
                       run_log.py (records what a scheduled run did → run_log.json)
 .github/workflows/events.yml  runs that feed Mon + Thu
-tools/event-inbox.html  published Artifact — capture links and poster photos on the go
+tools/capture.html    published Artifact — capture links and poster photos on the go
 ```
 
 Deploy is a push to `main` — GitHub `Scott-Designed/whattodo` is connected to the
@@ -797,12 +797,12 @@ wherever it runs — production, a preview, or `vercel dev` on the laptop. The b
 follows `ANTHROPIC_API_KEY`, not the machine, so there is no free local path.
 
 While this site is still for one person, research here and write with `sync.py add`.
-Capture on the go with the **Event Inbox** artifact
+Capture on the go with the **Capture** artifact
 (https://claude.ai/code/artifact/93362d84-79a0-43b9-89e5-65eff75d74e2, source in
-`tools/event-inbox.html`): paste links or photograph posters. **Read it directly** —
+`tools/capture.html`): paste links or photograph posters. **Read it directly** —
 WebFetch that URL and the queue comes back in a `<script id="queue">` JSON island;
 photos are base64 data URIs you can decode to a file and look at. No export step.
-After filing, clear the queue by republishing `tools/event-inbox.html` (its committed
+After filing, clear the queue by republishing `tools/capture.html` (its committed
 copy always has an empty queue) with the artifact URL. The Export button is only a
 fallback for getting the data out of Claude entirely. It cannot enrich or write to Supabase
 itself — a published artifact has no inference capability and its CSP blocks every
@@ -3084,10 +3084,80 @@ failure for a public URL: an open one is a spam target within a day. It answers
 `501 no_secret` when unconfigured and `401` to a wrong one, compared
 timing-safely on digests like `ADMIN_PASSWORD`.
 
+### The artifact is called **Capture** — renamed 1 Sep 2026
+
+Scott: *"we have already built a event inbox which is a confusing name
+considering we now have an actual inbox"*. Right, and worse than that: it was
+titled *"Jan Juc Event Inbox"*, so it collided with the real Inbox, said
+**Event** when most of what arrives is a business, and said **Jan Juc** two
+renames and one region-expansion out of date.
+
+`tools/capture.html`, title **Capture**, same artifact URL — the URL is the one
+thing that must not change, because it is on Scott's phone. Republishing cleared
+the five captures the live queue still held; all five were checked against the
+database first and every one was already filed (events 744, 745-750, activity
+702), which is the documented workflow rather than a loss.
+
+### Reading the links in a message — 1 Sep 2026
+
+`action: 'inbox_read'` on `/api/admin`, and a **Read links** button on an open
+inbox row. It fetches every URL in the message SERVER-side, parses schema.org,
+and shows what it found. **It reads; it never writes.** A separate press creates
+the row, and `create` forces `published: false`, so nothing can reach the board.
+
+**Why the server, and why it is free.** The function is not a browser, so CORS
+cannot block it, and it is not ClaudeBot, so Humanitix and Coast & Bay are
+readable. And a ticket page publishes its own schema.org, so **no model is
+involved and nothing is billed** — the meter that killed Autofill is not in this
+path at all.
+
+**Its honest limit: a NEWSLETTER cannot be read this way.** Checked against a
+real one — The Geelong Gist carries `Article` and `BreadcrumbList` and no `Event`
+anywhere, because its events are in prose. The page says so in those words
+rather than reporting nothing found. Pulling events out of prose needs a model,
+and the only free route to one is the `sample` capability inside an Artifact,
+which **cannot reach Supabase** — so it can draft and never save. That gap is
+real and unsolved; do not re-litigate it without checking both halves.
+
+**The free gates run before anybody researches anything**, because they kill most
+candidates for nothing: a past date, a missing date, a venue matched against
+`places` (name **plus aliases**, and each comma-separated part, since a trailing
+suburb is what usually stops a match), and a duplicate check on **name AND
+date**.
+
+**The duplicate check does NOT filter on `published`, and that is the point.**
+Both halves of the only real duplicate this database has ever had were held rows,
+so a check reading the live board finds neither. It proved itself on the first
+message: Scott's Humanitix link came back *already have #112*, published — the
+link was a duplicate and nothing was written.
+
+**The extracted date's WEEKDAY is printed** beside it, so a person can run the
+`scrape_venues.py` checksum by eye against whatever the email claimed. An email
+has no field to hold its own claim, so this is the only place that check can
+happen. Rows land `date_confidence: 'medium'` for exactly that reason — the date
+is machine-readable and first-party, but nothing cross-checks it automatically.
+
+**A bare schema.org `Place` is deliberately NOT offered as a business.** On a
+ticket page that is the event's own venue, and proposing it as an activity to
+create is organiser-is-not-the-venue in a third hat — it offered to create "Lake
+Lorne" until it was stopped. A venue reaches us through the event's `venue`
+field, where it is matched against the registry rather than invented.
+
+**`probe` and `inbox_read` share one reader.** `safeUrl`, `getPage`,
+`robotsAllows`, `ldNodes`, `isEventType`, `eventFromLd` and `placeFromLd` are
+module-level; the probe's inline copies are gone (118 lines to 56). Two copies
+would have drifted the first time either was touched — the `automationCell()`
+lesson, one file along.
+
+**`create` now forces `published:false` for a listing.** It was written for
+`places`, which has no such column, so it had never needed to care; the moment it
+could make an event it became the sixth write path onto the board. Same hole as
+`sync.py add`, found the same day, by the same invariant.
+
 ### Capture an event — a link out, not a form
 
 Scott, 31 Aug 2026: *"to start just have a CTA that links to artefact."* The
-Inbox tab's controls carry **Capture an event**, which opens the Event Inbox
+Inbox tab's controls carry **Capture an event**, which opens the Capture
 artifact. That is the whole of it, deliberately — the alternative was building
 a URL-prefill form, and a link costs nothing and works today.
 
@@ -4187,7 +4257,7 @@ count.
 Supabase is unreachable, so it is not urgent, but it is no longer a fallback so
 much as a museum. Regenerating it is its own job and nobody has done it.
 
-## The Event Inbox pull of 30 Aug 2026 — 14 items, 19 rows
+## The Capture pull of 30 Aug 2026 — 14 items, 19 rows
 
 The second inbox pull, and much the largest. Seven photographs, six links and a
 newspaper clipping; Scott sent five more links in the chat while it was running.
@@ -4260,7 +4330,7 @@ Pop Cultcha Gallery (no house number, two road segments 140 m apart), the two
 market growers and the run crew (no premises), and Bellarine Catchment Network
 (no house number on Swan Bay Road, and the road returned is in Marcus Hill).
 
-## The Event Inbox pull of 31 Aug 2026 — 5 items, plus two links in the chat
+## The Capture pull of 31 Aug 2026 — 5 items, plus two links in the chat
 
 Two poster photographs, two links, one `share.google`, and then Scott sent a
 bookshop and a comedy listing while the pull was running. **13 listings, three

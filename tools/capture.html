@@ -1,4 +1,4 @@
-<title>Jan Juc Event Inbox</title>
+<title>Capture</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&display=swap">
@@ -154,9 +154,9 @@ footer{
 
 <div class="wrap">
   <header>
-    <h1>Event inbox</h1>
+    <h1>Capture</h1>
     <div class="sub">
-      <span>Jan Juc &amp; the Surf Coast</span>
+      <span>Notice &middot; the Surf Coast</span>
       <span class="dot" aria-hidden="true"></span>
       <span id="hdr-count">nothing waiting</span>
       <span class="ro-flag" id="ro" hidden>read only</span>
@@ -417,7 +417,7 @@ footer{
       return;
     }
     try{
-      await dl.save({filename:'event-inbox-' + stamp + '.json', data:body});
+      await dl.save({filename:'capture-' + stamp + '.json', data:body});
       say('Exported. Hand that file to Claude to write them up.');
     } catch(err){ say('Export cancelled.') }
   });
