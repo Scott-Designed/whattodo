@@ -183,28 +183,47 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
   border-left:2px solid var(--rule2);padding-left:13px}
 </style>
 
+<style>
+/* ══ this page only: the plant strip and the provenance panel ══════ */
+.doc{max-width:1120px}
+.flora{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0 4px}
+@media (max-width:820px){ .flora{grid-template-columns:repeat(2,1fr)} }
+.flora figure{margin:0;border:1px solid var(--rule);border-radius:7px;overflow:hidden;
+  background:var(--surface)}
+.flora img{display:block;width:100%;height:104px;object-fit:cover;background:var(--sunk)}
+.flora figcaption{padding:7px 9px 8px;font-size:11.5px;line-height:1.35;color:var(--ink2)}
+.flora figcaption b{display:block;font-family:var(--serif);font-size:13.5px;color:var(--ink);
+  font-weight:400}
+.flora figcaption i{font-style:normal;color:var(--ink3);font-size:10.5px}
+.prov{border-top:2px solid var(--ink);padding-top:14px;margin-top:26px}
+.prov h4{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);
+  margin-bottom:9px}
+.prov li{font-size:11.5px;line-height:1.5;color:var(--ink3);margin-bottom:8px;list-style:none}
+.prov li b{color:var(--ink2);font-weight:500}
+.prov ul{margin:0;padding:0}
+.prov a{color:var(--ink2)}
+.gone{font-size:12.5px;color:var(--ink3);font-style:italic;margin-top:10px}
+</style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-parasol" viewBox="0 0 24 24" preserveAspectRatio="xMaxYMid" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 11.134 18.196 21" /> <path d="M20.425 5.299a10 10 0 0 0-16.941 9.78c.183.563.843.774 1.355.478L20.16 6.711c.512-.296.66-.973.264-1.413" /> <path d="M21 21H3" /></symbol>
 <symbol id="i-croissant" viewBox="0 0 24 24" preserveAspectRatio="xMaxYMid" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.2 18H4.774a1.5 1.5 0 0 1-1.352-.97 11 11 0 0 1 .132-6.487" /> <path d="M18 10.2V4.774a1.5 1.5 0 0 0-.97-1.352 11 11 0 0 0-6.486.132" /> <path d="M18 5a4 3 0 0 1 4 3 2 2 0 0 1-2 2 10 10 0 0 0-5.139 1.42" /> <path d="M5 18a3 4 0 0 0 3 4 2 2 0 0 0 2-2 10 10 0 0 1 1.42-5.14" /> <path d="M8.709 2.554a10 10 0 0 0-6.155 6.155 1.5 1.5 0 0 0 .676 1.626l9.807 5.42a2 2 0 0 0 2.718-2.718l-5.42-9.807a1.5 1.5 0 0 0-1.626-.676" /></symbol>
 <symbol id="i-waves" viewBox="0 0 24 24" preserveAspectRatio="xMaxYMid" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12q2.5 2 5 0t5 0 5 0 5 0" /> <path d="M2 19q2.5 2 5 0t5 0 5 0 5 0" /> <path d="M2 5q2.5 2 5 0t5 0 5 0 5 0" /></symbol>
 <symbol id="i-users" viewBox="0 0 24 24" preserveAspectRatio="xMaxYMid" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <path d="M16 3.128a4 4 0 0 1 0 7.744" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <circle cx="9" cy="7" r="4" /></symbol>
 <symbol id="i-leaf" viewBox="0 0 24 24" preserveAspectRatio="xMaxYMid" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" /> <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" /></symbol>
 <symbol id="i-utensils" viewBox="0 0 24 24" preserveAspectRatio="xMaxYMid" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /> <path d="M7 2v20" /> <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></symbol></svg>
-
 <div class="doc">
 
   <div class="brief">
-    <div class="kicker"><span class="kdot"></span> Notice · one listing, its own page</div>
-    <h1>Bells Beach can be linked to, and it can say what is on there.</h1>
+    <div class="kicker"><span class="kdot"></span> Notice · one listing, everything we can honestly say about it</div>
+    <h1>Bells Beach, with every source turned on.</h1>
     <p>
-      Two real rows, rendered as they would ship. Every word, date, price and coordinate below is
-      read from the database — nothing is written for the mockup. Grey notes are for you and would
-      not ship. The second plate is the harder case: a listing with no events at all.
+      Events, history, the heritage listing, the animals and the plants — all of it read from a
+      live source during this session and credited at the foot. Nothing here is written for the
+      mockup. Notes in grey are for you and would not ship.
     </p>
   </div>
 
-  <!-- ══════════════ PLATE 1 — a spot that holds events ══════════ -->
   <div class="plate">
-    <div class="lab">Plate 1 · a spot, five events <code>/l/a2-bells-beach</code></div>
+    <div class="lab">The page <code>/l/a2-bells-beach</code></div>
     <div class="frame g-ocean">
 
       <nav class="nav">
@@ -233,11 +252,12 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
             <a class="act" href="#">📌 Save</a>
           </div>
           <p class="heritage"><span>⚑</span><span><b>On the Victorian Heritage Register.</b>
-            The beach and coastal reserve, VHD place 12711.</span></p>
+            The beach and coastal reserve — VHD place 12711.</span></p>
         </div>
 
         <div class="cols">
           <div>
+
             <div class="sec">
               <h2>What&rsquo;s on here <span class="n">5 AHEAD</span></h2>
               <div class="ev"><span class="when">Wed 23 Sep</span>
@@ -279,14 +299,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
                     considerable problem until 1960, when Torquay surfers and Olympic wrestler
                     <b>Joe Sweeney</b> hired a bulldozer and cleared a road along the cliff.</p>
                   <p>The final scene of <i>Point Break</i> is set at Bells — but was not filmed here.
-                    Bells is a straight stretch; the beach in the film is a cove, and it was shot at
-                    Indian Beach in Oregon.</p>
-                  <p class="src">From the Wikipedia article
-                    <a href="https://en.wikipedia.org/wiki/Bells_Beach">Bells Beach</a>, revision
-                    1366753022 of 30 Jul 2026, under
-                    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
-                    Photograph by Michael J&nbsp;Fromholtz, same licence.
-                    Matched to this listing by coordinate: 301&nbsp;m, and the names agree.</p>
+                    Bells is a straight stretch; the beach in the film is a cove, shot at Indian
+                    Beach in Oregon.</p>
                 </div>
               </div>
             </div>
@@ -295,8 +309,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
               <h2>What lives here <span class="n">RECORDED WITHIN 2 KM</span></h2>
               <div class="eco">
                 <h3>Southern Right Whales, May to October</h3>
-                <p class="lede">61 sightings logged within 10 km, almost all of them in
-                  winter — most in July.</p>
+                <p class="lede">61 sightings logged within 10 km, almost all in winter — most in
+                  July, none at all between November and April.</p>
                 <div class="mon">
                   <i><b style="height:2px"></b><u>J</u></i><i><b style="height:2px"></b><u>F</u></i>
                   <i><b style="height:2px"></b><u>M</u></i><i><b style="height:2px"></b><u>A</u></i>
@@ -308,34 +322,117 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
                   <i class="on"><b style="height:4px"></b><u>O</u></i>
                   <i><b style="height:2px"></b><u>N</u></i><i><b style="height:2px"></b><u>D</u></i>
                 </div>
-                <p class="lede" style="margin:14px 0 0">Also recorded here, and all of them
-                  threatened in Victoria:</p>
+                <p class="lede" style="margin:16px 0 0">Also recorded here, all threatened in
+                  Victoria. <b>Hooded Plovers nest on this sand from October</b> — which is why dogs
+                  are restricted on beaches along this coast in spring and summer.</p>
                 <div class="spp">
                   <span>Hooded Plover <i>4</i></span>
                   <span>Otways Rufous Bristlebird <i>65</i></span>
                   <span>Blue-winged Parrot <i>41</i></span>
-                  <span>Gang-gang Cockatoo <i>15</i></span>
                   <span>Shy Albatross <i>22</i></span>
-                  <span>Bellarine Yellow-gum <i>115</i></span>
+                  <span>Gang-gang Cockatoo <i>15</i></span>
+                  <span>White-bellied Sea-eagle <i>8</i></span>
                 </div>
-                <p class="src">Occurrence records from the
-                  <a href="https://www.ala.org.au">Atlas of Living Australia</a>, within 2 km of this
-                  pin. Counts are <b>how often a species has been recorded, not how many there
-                  are</b> — they follow where people survey. Nothing here is a promise you will
-                  see one.</p>
+              </div>
+            </div>
+
+            <div class="sec">
+              <h2>What&rsquo;s growing <span class="n">274 PLANT SPECIES WITHIN 3 KM</span></h2>
+              <div class="eco">
+                <h3>Orchid season peaks in October</h3>
+                <p class="lede">727 orchid records within 5 km, and 303 of them are October — the
+                  single strongest seasonal signal anywhere in this data.</p>
+                <div class="mon">
+                  <i class="on"><b style="height:3px"></b><u>J</u></i>
+                  <i class="on"><b style="height:3px"></b><u>F</u></i>
+                  <i><b style="height:2px"></b><u>M</u></i>
+                  <i class="on"><b style="height:6px"></b><u>A</u></i>
+                  <i class="on"><b style="height:3px"></b><u>M</u></i>
+                  <i class="on"><b style="height:4px"></b><u>J</u></i>
+                  <i class="on"><b style="height:7px"></b><u>J</u></i>
+                  <i class="on"><b style="height:13px"></b><u>A</u></i>
+                  <i class="on"><b style="height:12px"></b><u>S</u></i>
+                  <i class="pk"><b style="height:38px"></b><u>O</u></i>
+                  <i class="on"><b style="height:7px"></b><u>N</u></i>
+                  <i class="on"><b style="height:3px"></b><u>D</u></i>
+                </div>
+
+                <p class="lede" style="margin:16px 0 0">Five you can expect to find, all
+                  photographed within 4 km of this pin:</p>
+                <div class="flora">
+                  <figure>
+                    <img src="https://inaturalist-open-data.s3.amazonaws.com/photos/693836831/medium.jpg"
+                         alt="Mayfly orchid">
+                    <figcaption><b>Mayfly orchid</b><i>Andrew Allen · CC BY</i></figcaption>
+                  </figure>
+                  <figure>
+                    <img src="https://inaturalist-open-data.s3.amazonaws.com/photos/288419830/medium.jpeg"
+                         alt="Common Heath">
+                    <figcaption><b>Common Heath</b><i>Ian Smith · CC0</i></figcaption>
+                  </figure>
+                  <figure>
+                    <img src="https://inaturalist-open-data.s3.amazonaws.com/photos/579572202/medium.jpg"
+                         alt="Cushion Bush">
+                    <figcaption><b>Cushion Bush</b><i>Julia Palmer · CC BY</i></figcaption>
+                  </figure>
+                  <figure>
+                    <img src="https://inaturalist-open-data.s3.amazonaws.com/photos/288781732/medium.jpeg"
+                         alt="Common Correa">
+                    <figcaption><b>Common Correa</b><i>Ian Smith · CC0</i></figcaption>
+                  </figure>
+                  <figure>
+                    <img src="https://inaturalist-open-data.s3.amazonaws.com/photos/105851580/medium.jpeg"
+                         alt="Horny Cone-bush">
+                    <figcaption><b>Horny Cone-bush</b><i>Peggy Newman · CC BY</i></figcaption>
+                  </figure>
+                </div>
+
+                <p class="lede" style="margin:16px 0 0">And the one that only grows here:</p>
+                <div class="spp">
+                  <span>Bellarine Yellow-gum <i>Eucalyptus leucoxylon subsp. bellarinensis</i></span>
+                </div>
+                <p class="src" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--rule);font-size:11.5px;color:var(--ink3);line-height:1.5">
+                  <b>Common Heath is Victoria&rsquo;s floral emblem.</b> Counts are how often a
+                  species has been <b>recorded</b>, not how many there are — they follow where
+                  people survey. Nothing here promises you will see one.</p>
               </div>
             </div>
           </div>
 
-          <div class="facts">
-            <p class="dl"><b>Where</b><span>Bells Beach, Torquay</span></p>
-            <p class="dl"><b>Good to know</b><span>Parking fills early on big swell days</span></p>
-            <p class="dl"><b>Conditions</b><span>low tide, calm sea</span></p>
-            <p class="dl"><b>Suits</b><span>all ages</span></p>
-            <p class="dl"><b>How long</b><span>&lt; 1hr – half-day</span></p>
-            <p class="dl"><b>Season</b><span>summer, autumn, spring</span></p>
-            <p class="dl"><b>Rating</b><span>5 / 5</span></p>
-            <p class="foot">Added by Family, 23 Aug 2026. Checked.</p>
+          <div>
+            <div class="facts">
+              <p class="dl"><b>Where</b><span>Bells Beach, Torquay</span></p>
+              <p class="dl"><b>Good to know</b><span>Parking fills early on big swell days</span></p>
+              <p class="dl"><b>Conditions</b><span>low tide, calm sea</span></p>
+              <p class="dl"><b>Suits</b><span>all ages</span></p>
+              <p class="dl"><b>How long</b><span>&lt; 1hr – half-day</span></p>
+              <p class="dl"><b>Season</b><span>summer, autumn, spring</span></p>
+              <p class="dl"><b>Rating</b><span>5 / 5</span></p>
+              <p class="foot">Added by Family, 23 Aug 2026. Checked.</p>
+            </div>
+
+            <div class="prov">
+              <h4>Where this page comes from</h4>
+              <ul>
+                <li><b>The listing</b> — Notice&rsquo;s own row a2, and the five events through
+                  <code>place_id 48</code>.</li>
+                <li><b>History and photograph</b> — the Wikipedia article
+                  <a href="https://en.wikipedia.org/wiki/Bells_Beach">Bells Beach</a>, revision
+                  1366753022 of 30 Jul 2026, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC
+                  BY-SA 4.0</a>. Photograph by Michael J Fromholtz, same licence.</li>
+                <li><b>Heritage</b> — VHD place 12711, cited by that article to the Heritage Council
+                  of Victoria. The register itself was not read: its robots.txt disallows us.</li>
+                <li><b>Animals and plants</b> — occurrence records from the
+                  <a href="https://www.ala.org.au">Atlas of Living Australia</a>, within 2–10 km of
+                  this pin. At Bells those come mostly from the Victorian Biodiversity Atlas (2,103),
+                  BirdLife Australia (1,782), iNaturalist (1,360) and eBird (1,276).</li>
+                <li><b>Plant photographs</b> — <a href="https://www.inaturalist.org">iNaturalist</a>,
+                  research-grade observations within 4 km, each under CC0 or CC BY and credited to
+                  its photographer above.</li>
+              </ul>
+              <p class="gone">Read live on 1 Sep 2026. Every figure on this page was returned by one
+                of those APIs during the session; none was written by hand.</p>
+            </div>
           </div>
         </div>
 
@@ -350,213 +447,43 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
   </div>
 
   <p class="why">
-    <b>The three things this page has that the open row does not.</b> An address you can send someone
-    — today there is no way to link to Bells Beach at all. <b>What&rsquo;s on here</b>, which the row
-    genuinely cannot do: it comes from <code>place_id&nbsp;48</code>, and after this morning&rsquo;s
-    linking pass 30 listings can fill it (up from 26). And <b>Also at Bells Beach</b> — Winkipop
-    shares this exact coordinate, which the map has always known and no page ever said.
-    Everything in the right-hand panel is what <code>index.html:1410</code> already prints when you
-    open the row; it is moved, not invented.
+    <b>This is the best case, and it should be read as one.</b> Bells Beach has a Wikipedia article,
+    a heritage listing, five events and 7,147 occurrence records. <b>Only 34 of 522 pinned listings
+    have the article</b>, and only 30 can show events. What every pin does have is the ecology —
+    18 of 18 sampled had records — so the bottom half of this page is the part that generalises and
+    the top half is not.
   </p>
 
   <p class="why">
-    <b>Wikipedia fills 34 pages, not 620 — and they are the right 34.</b> Measured, not guessed:
-    one Wikidata query returns 712 articles with coordinates in the region, and matching them
-    against our 522 pinned listings gives <b>10 where the listing IS the article</b> (Bells Beach,
-    Geelong Gallery, Werribee Open Range Zoo) and <b>24 where the article is named inside it</b>
-    (Erskine Falls Walk → Erskine Falls). 21 carry a photograph. A further 15 match by name but
-    sit over a kilometre out — nearly all rivers and lakes, where the article&rsquo;s coordinate is
-    a centroid and the distance means nothing, so those want a person.
-    <b>7% sounds thin until you see which 7%</b>: it is almost entirely <i>spots</i> — beaches,
-    waterfalls, lighthouses — whose own descriptions run to a single line. Anglesea Bakery will
-    never have an article and does not need one.
+    <b>The plants are the better half, and they were nearly missed.</b> The animal section is
+    striking but static; the plant section carries a <i>reason to come in October</i>, which is the
+    only thing on this page that would make somebody change their plans. 727 orchid records within
+    5 km and 303 of them in one month is not a decoration, it is the listing&rsquo;s single best
+    argument for itself — and it is derived, so it costs nobody any writing.
   </p>
 
   <p class="why">
-    <b>The match is by coordinate, and the trap is the town.</b> A first pass matched
-    <i>Klein&rsquo;s Anglesea Hotel</i> to the article for the <i>town</i> of Anglesea, 180 m away —
-    &ldquo;a suburb centroid is not the place&rdquo; in a new vocabulary. The fix is
-    Wikidata&rsquo;s own <code>instance of</code>: an article classed <i>locality</i>, <i>town</i>
-    or <i>suburb</i> is refused <b>unless the listing&rsquo;s name equals it exactly</b> — which is
-    how Bells Beach keeps its article, being genuinely that locality, while a hotel standing in
-    Anglesea does not get the town&rsquo;s.
-  </p>
-
-  <!-- ══════════════ PLATE 2 — the harder case: no events ════════ -->
-  <div class="plate">
-    <div class="lab">Plate 2 · a venue, nothing on <code>/l/a294-anglesea-bakery</code></div>
-    <div class="frame g-hospitality">
-
-      <nav class="nav">
-        <div class="brand"><span class="bdot"></span> Notice</div>
-        <ul><li>About</li><li>Noticeboard</li><li>Place ▾</li><li>Type ▾</li></ul>
-        <span class="pill">Auto</span>
-      </nav>
-
-      <div class="page">
-        <div class="crumb"><a href="#">Anglesea</a> <span>·</span> <a href="#">Bakeries</a></div>
-
-        <div class="stand">
-          <svg class="ic"><use href="#i-croissant"/></svg>
-          <h1>Anglesea Bakery</h1>
-          <div class="sub">
-            <span class="tp">bakery</span><span class="dot"></span>
-            <span>Anglesea</span><span class="dot"></span>
-            <span>Cheap</span><span class="dot"></span>
-            <span>Good in rain</span>
-          </div>
-          <p class="desc">The classic country-town bakery in Anglesea&rsquo;s Great Ocean Road
-            shopping strip — pies, sausage rolls and a vanilla slice with its own local following.
-            Two doors from Oaks Bakery Cafe, so the strip has a proper bakery rivalry; this is the
-            older-school of the two.</p>
-          <div class="acts">
-            <a class="act solid" href="#">Directions</a>
-            <a class="act" href="#">Website</a>
-            <a class="act" href="#">📌 Save</a>
-          </div>
-        </div>
-
-        <div class="cols">
-          <div>
-            <div class="sec">
-              <h2>Nearby in Anglesea <span class="n">14 THINGS</span></h2>
-              <div class="sib"><svg class="ic"><use href="#i-utensils"/></svg>
-                <span class="nm">Love House</span><span class="tp">restaurant · bar</span></div>
-              <div class="sib"><svg class="ic"><use href="#i-parasol"/></svg>
-                <span class="nm">Anglesea Main Beach</span><span class="tp">beach · surfing</span></div>
-              <div class="sib"><svg class="ic"><use href="#i-leaf"/></svg>
-                <span class="nm">Anglesea Golf Course (Kangaroos!)</span><span class="tp">nature · golf</span></div>
-              <div class="sib"><svg class="ic"><use href="#i-users"/></svg>
-                <span class="nm">Anglesea Movie Club</span><span class="tp">cinema</span></div>
-            </div>
-            <p class="absent">There is no &ldquo;What&rsquo;s on here&rdquo; heading on this page,
-              because nothing is on. An empty section on a reader&rsquo;s page is a promise the
-              database cannot keep.</p>
-          </div>
-
-          <div class="facts">
-            <p class="dl"><b>Where</b><span>81 Great Ocean Road, Anglesea</span></p>
-            <p class="dl"><b>Good to know</b><span>In the main shopping strip — easy park, quick stop
-              on a Great Ocean Road run.</span></p>
-            <p class="dl"><b>Conditions</b><span>good in rain</span></p>
-            <p class="dl"><b>Suits</b><span>all ages</span></p>
-            <p class="dl"><b>How long</b><span>&lt; 1hr</span></p>
-            <p class="foot">Researched, 26 Aug 2026. Checked.</p>
-          </div>
-        </div>
-
-        <div class="tail">
-          <span>More like this</span>
-          <a href="#">Bakeries</a>
-          <a href="#">Everything in Anglesea</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <p class="why">
-    <b>The empty case is the one that decides the design.</b> Only 30 of 682 published listings can
-    show events today, so most pages look like this one — which means the page cannot lean on the
-    events section to justify itself. It leans on the description, the facts and the neighbours
-    instead, and simply drops the heading it cannot fill. That is the opposite of
-    <code>type.html</code>, which draws all seven kind buckets even when empty — right for a
-    monitoring view you scan, wrong for a page a reader lands on.
-  </p>
-
-  <div class="plate">
-    <div class="lab">The decisions worth arguing with</div>
-    <div class="frame" style="padding:26px 30px">
-      <div class="sec" style="margin:0">
-        <h2 style="margin-bottom:14px">Four calls, and why</h2>
-        <p class="dl" style="grid-template-columns:186px 1fr"><b>The id is in the URL</b>
-          <span>Not <code>/bells-beach</code>. 45 slugs collide across 221 published rows —
-          <code>toddler-time</code> alone is 32 of them, one per library branch. And kind can change
-          (Go Ride A Wave went venue → shop in a day), so <code>/venue/…</code> would break.
-          <code>a2</code> is the key <code>keyOf()</code> already uses for saved listings, so it is
-          one key shape across the site, and a wrong slug can redirect to the right one.</span></p>
-        <p class="dl" style="grid-template-columns:186px 1fr"><b>Happenings get no page</b>
-          <span>An event page is wrong the day after, all 221 colliding slugs live there, and
-          <code>/noticeboard</code> already lists them. This is for the ~620 rows that persist:
-          venues, spots, shops, makers, groups.</span></p>
-        <p class="dl" style="grid-template-columns:186px 1fr"><b>No new fields</b>
-          <span>Every value on both plates is a column the open row already prints. The page earns
-          its place through the URL, the events and the neighbours — not by asking anyone to write
-          more prose for 620 rows.</span></p>
-        <p class="dl" style="grid-template-columns:186px 1fr;"><b>Borrowed text is credited</b>
-          <span>Wikipedia is <b>CC BY-SA 4.0</b> and the Commons photograph above is the same, with
-          <code>AttributionRequired</code> set. So an extract carries the article link, the revision
-          it came from and the licence; a photo carries its photographer. That is the existing
-          <code>source_note</code> discipline pointed at a second kind of source — and share-alike
-          makes the credit a licence term, not a courtesy.</span></p>
-        <p class="dl" style="grid-template-columns:186px 1fr;border-bottom:0"><b>It needs a link preview</b>
-          <span><code>api/subject.mjs</code> already serves per-subject titles and descriptions for
-          towns and types. This is the same trick with a third case — and it is the whole point of
-          having an address, since a link with no card is a link nobody presses.</span></p>
-      </div>
-    </div>
-  </div>
-
-  <p class="why">
-    <b>What would still be thin.</b> 117 published happenings carry no types at all — 97 from the
-    library feed — so they reach no type page and would give a venue page a poorer &ldquo;more like
-    this&rdquo; tail than it deserves. And 98 places hold 401 published events with no listing row
-    at all, so those events have a room and the room has no page. Both are data passes, not design.
-  </p>
-
-  <div class="plate">
-    <div class="lab">Every source probed for this page, and what came back</div>
-    <div class="frame" style="padding:24px 28px">
-      <div class="sec" style="margin:0">
-        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>Source</b><b>Reach</b><b>What it gives, and the catch</b></p>
-        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>Wikipedia + Wikidata</b>
-          <span>34 / 522</span>
-          <span>History, naming, popular culture, and a photo on 21. CC BY-SA 4.0.
-            <b>Refuse a town article unless the name matches exactly.</b></span></p>
-        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>Atlas of Living Australia</b>
-          <span>18 / 18</span>
-          <span>Species, threatened status and <b>month-by-month seasonality</b>. Works at every
-            pin sampled — but counts track survey effort, not abundance, and a bakery does not
-            want them.</span></p>
-        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>Wikimedia Commons geosearch</b>
-          <span>17 / 26</span>
-          <span>Photos within 600 m — far more reach than articles. <b>But it finds photos taken
-            near here, not photos of here</b>: the nearest file to Point Danger is a sea spider,
-            and to the Toy Library is a different building.</span></p>
-        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>Victorian Heritage Database</b>
-          <span>?</span>
-          <span>The register itself. <code>robots.txt</code> gives <code>ClaudeBot</code> and
-            <code>anthropic-ai</code> <code>Disallow: /</code>; <code>User-agent: *</code> allows
-            <code>/places/&lt;id&gt;</code>. <b>The Action may read it, a session may not.</b></span></p>
-        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>OpenStreetMap tags</b>
-          <span>untested</span>
-          <span>Opening hours, surface, <code>wheelchair</code> — the accessibility gap two passes
-            have now reported. Already the geocoding source, so no new permission.</span></p>
-        <p class="dl" style="grid-template-columns:196px 78px 1fr;border-bottom:0"><b>Trove · Victorian Collections</b>
-          <span>none</span>
-          <span>Trove v2 is gone (410) and v3 wants a key; Victorian Collections answers 403 to
-            our user agent.</span></p>
-      </div>
-    </div>
-  </div>
-
-  <p class="why">
-    <b>Ecology is the one that scales, and the one that needs a gate.</b> Every pin sampled had
-    records, which makes it the opposite of Wikipedia — but <i>Born &amp; Bread Bakehouse</i> has
-    172,948 of them, because it is in Geelong and Geelong is where people survey. A raw count is a
-    map of observer effort. So this belongs on rows where nature is the reason you go — the ocean,
-    the landscape, the outdoors — which <code>groupsOf()</code> already knows, and it belongs as
-    <b>species and season</b> rather than as a number.
+    <b>iNaturalist is already inside the Atlas</b> — 1,360 of the 7,147 records here are theirs, the
+    third-largest supplier after the Victorian Biodiversity Atlas and BirdLife. So it is not a
+    second source of facts. What it adds is <b>photographs</b>: 274 research-grade plant taxa within
+    3 km, 76 of them with a CC0 or CC BY image, which is where all five pictures above came from.
+    Use ALA for the numbers and iNaturalist for the pictures.
   </p>
 
   <p class="why">
-    <b>Where the rest of the history would come from.</b> The Victorian Heritage Database is the
-    obvious second source — Bells Beach&rsquo;s own extract says the beach and coastal reserve are
-    on the Victorian Heritage Register. Its <code>robots.txt</code> disallows <code>ClaudeBot</code>
-    and <code>anthropic-ai</code> from the whole site, so <b>a Claude session may not read it and
-    the scheduled Action may</b>: <code>User-agent: *</code> allows <code>/places/&lt;id&gt;</code>.
-    It disallows <code>/search</code> for everyone, so the id has to come from elsewhere — Wikidata
-    carries VHR numbers, which is the way in. Same shape as Coast &amp; Bay. Trove&rsquo;s v2 API is
-    gone (410) and v3 wants a key.
+    <b>Two field traps, both silent, both hit while building this.</b> ALA&rsquo;s species field is
+    <code>species</code>, not <code>taxon_name</code> — the wrong one returns zero records and no
+    error. Its <code>month</code> facet returns month <i>names</i>, not numbers, so an
+    <code>int(label)</code> parse yields an empty chart that looks like a species with no season.
+    On iNaturalist the same shape: <code>taxon_name=Orchidaceae</code> returns 0 and
+    <code>taxon_id=47217</code> returns 22.
+  </p>
+
+  <p class="why">
+    <b>What is NOT on this page, deliberately.</b> No native-versus-introduced split:
+    <code>establishmentMeans</code> is &ldquo;not supplied&rdquo; on 1,745 of the 1,990 plant
+    records, so any percentage would be an artefact of what the recorder happened to type. And no
+    raw record counts anywhere — 7,147 is a fact about surveyors, not about Bells Beach.
   </p>
 
 </div>

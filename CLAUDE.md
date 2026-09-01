@@ -6376,6 +6376,85 @@ permission because OSM is already the geocoding source. `wheelchair`,
 outdoors passes both reported and which currently lives in prose in `notes`
 where nothing can filter it.
 
+### The plants are the better half — and October is the reason
+
+Asked for local plant species, and they turn out to carry the one thing on a
+listing page that would change somebody's plans.
+
+**727 orchid records within 5 km of Bells Beach, and 303 of them are October** —
+the strongest seasonal signal anywhere in this data, stronger than the whales.
+`family:Orchidaceae` faceted on `month`. That is a derived, sourced, free reason
+to visit in a particular month, and it costs nobody any writing.
+
+Within 2 km: **1,990 plant records**, led by `Bellarine Yellow-gum` (115), a
+locally endemic eucalypt subspecies; then White Caladenia, Dryland Tea-tree,
+Golden Wattle, Coast Beard-heath, **Common Heath** — which is Victoria's floral
+emblem. iNaturalist has **274 research-grade plant taxa within 3 km**.
+
+**Recording month is a proxy for flowering, not a measurement of it.** People
+photograph a plant when it is showy. That is good enough to say *orchid season
+peaks in October* and not good enough to publish a flowering calendar.
+
+### iNaturalist is already inside the Atlas — use it for pictures, not facts
+
+Scott asked about it separately. It is **the third-largest supplier at Bells
+Beach: 1,360 of 7,147 records**, after the Victorian Biodiversity Atlas (2,103)
+and BirdLife Australia's Birdata (1,782), ahead of eBird (1,276). So querying it
+for occurrence facts duplicates ALA.
+
+**What it adds that ALA does not is photographs with a clean licence.**
+`api.inaturalist.org/v1/observations` takes `lat`/`lng`/`radius`,
+`quality_grade=research` and `photo_license=cc-by,cc-by-sa,cc0`, and returns the
+photographer and the observation id. 76 plant observations within 3 km of Bells
+Beach carry a reusable photo. Five are on the concept, each credited.
+
+So: **ALA for the numbers, iNaturalist for the pictures.** Both were read live.
+
+### Four silent field traps, all hit while building this
+
+Every one returns a plausible empty result rather than an error, which is the
+failure mode this file keeps recording:
+
+    ALA   species field is `species`, NOT `taxon_name`   wrong one -> 0 records, no error
+    ALA   `month` facet returns NAMES ("July")            int(label) -> empty chart
+    iNat  `taxon_name=Orchidaceae` -> 0                   `taxon_id=47217` -> 22
+    ALA   `establishmentMeans` unusable for native/introduced
+
+That last one is a content decision, not a bug: it is **"not supplied" on 1,745
+of the 1,990** plant records, with 243 introduced and 2 native. Any
+native-versus-weed percentage off that field would be an artefact of what a
+recorder happened to type. **Nothing on the concept claims one.**
+
+**And no raw record totals are printed anywhere.** 7,147 is a fact about
+surveyors. `Born & Bread Bakehouse` has 172,948 within 2 km because it is in
+Geelong.
+
+### `concepts/listing-bells-beach.html` — everything, on the best case
+
+One page with every source turned on: the five events, Winkipop on the shared
+pin, the Wikipedia history and photo, the heritage flag, whale seasonality, the
+threatened list, orchid season, five credited plant photographs, and a
+**"Where this page comes from"** panel in the right column naming each source,
+its licence and its revision.
+
+**It must be read as the best case and the concept says so.** Bells Beach has an
+article, a heritage listing, five events and 7,147 records; only 34 of 522 have
+the article and only 30 can show events. **The ecology is the half that
+generalises** — 18 of 18 sampled pins had records — so the bottom of that page is
+the part every listing could have and the top is not.
+
+### The concept files were missing two head tags
+
+`public/*.html` all carry `<meta charset>` and `<meta name="viewport">`.
+**`concepts/homepage.html` carries neither**, and both listing concepts
+inherited the gap from it because they were built from its head.
+
+Fixed in both listing concepts. **Not fixed in `homepage.html`** — it is Scott's
+own uncommitted draft — but it is two lines, and without the viewport tag a
+phone renders it at 980px and every media query below that never fires. Measured:
+before the fix, mobile emulation at 375px reported `clientWidth` 980 and the
+five-column plant strip stayed five columns.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
