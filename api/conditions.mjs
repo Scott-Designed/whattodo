@@ -312,8 +312,14 @@ export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   // Overrides vercel.json's blanket max-age=0. Checked against the live
   // deploy: a function's own Cache-Control wins.
+  // `max-age=0` is for the BROWSER and `s-maxage` is for the edge. Vercel
+  // consumes s-maxage for its own cache and forwards the rest, so without the
+  // max-age the client sees a bare `public` and may hold a copy indefinitely
+  // on its own heuristic — measured on the deploy, which is the only place
+  // this is observable. Confirmed working: x-vercel-cache HIT with a rising
+  // age, so one upstream gather serves everybody for CACHE seconds.
   res.setHeader('Cache-Control',
-                `public, s-maxage=${CACHE}, stale-while-revalidate=${SWR}`);
+                `public, max-age=0, s-maxage=${CACHE}, stale-while-revalidate=${SWR}`);
   // Open-Meteo is CC-BY 4.0 and the attribution is owed somewhere a person
   // can find it. The page carries it too; this is the machine-readable half.
   res.setHeader('X-Data-Sources',
