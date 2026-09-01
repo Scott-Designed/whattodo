@@ -459,6 +459,13 @@ def main(argv):
             'info_url': event_url(e['uid']),
             'date_confidence': 'high',       # the library's own calendar
             'added_by': 'grlc',
+            # NOTHING FROM AN AUTOMATION GOES ON THE SITE UNTIL A PERSON SAYS
+            # SO. Scott's rule, 1 Sep 2026: "Anything from scrapers goes in for
+            # review, and doesn't go on site until I approve." Before this a
+            # scraped row was live the moment it was written and merely wore an
+            # `unverified` badge, so the queue reviewed what readers could
+            # already see.
+            'published': False,
         }
 
     for s in fresh_rep:

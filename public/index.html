@@ -222,11 +222,15 @@ option{background:var(--ground);color:var(--ink)}
 .fld.lead{order:-1;grid-column:1/-1;max-width:74ch}
 .acts{display:flex;flex-wrap:wrap;gap:22px;align-items:center;margin-top:26px}
 .acts .msg{font-family:var(--util);font-size:12px;color:var(--ink3);flex:1 1 200px;line-height:1.6}
-.mine{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);
-  border:1px solid var(--rule2);padding:1px 5px;margin-left:8px;white-space:nowrap}
-/* ON NOW is the one badge on a row that is good news, so it is filled and
-   rounded where `unverified` is outlined and square — same size and setting,
-   opposite everything else, and the two read as a pair when a row carries both.
+/* The `unverified` badge was here — an outlined square beside ON NOW — and it
+   went on 1 Sep 2026 with Scott's rule that nothing reaches the board until he
+   has approved it. It cannot fire any more: `published` gates the query, every
+   scraper writes false, and RLS refuses a community insert that sets either
+   flag true, so a row a reader can see has been looked at by definition. A
+   badge that can never render is worse than none — it teaches whoever reads
+   this file that a state exists which does not.
+   ON NOW is the one badge left on a row, and it is good news, so it is filled
+   and rounded.
    `--live` is a token in all three theme states rather than one green, because
    a green dark enough to carry white text in the light scheme goes muddy
    against #14170F. The white on it IS a literal: both greens are chosen to
@@ -399,15 +403,16 @@ option{background:var(--ground);color:var(--ink)}
 .c-name{font-size:20px;letter-spacing:-.01em;line-height:1.2}
 .c-type,.c-where,.c-when,.c-cost,.c-extra,.tm,.c-name .nm{
   min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-/* the name clips, the badges do not — ON NOW and unverified are the two things
-   on a row that cannot wait for the reader to widen the window.
-   The spacing is the badges' own margin and NOT a gap here, because below 700px
+/* the name clips, ON NOW does not — it is the one thing on a row that cannot
+   wait for the reader to widen the window. (It had a companion, `unverified`,
+   until nothing unapproved could reach the board any more.)
+   The spacing is the badge's own margin and NOT a gap here, because below 700px
    this turns into a plain block and a gap stops applying — which is where the
    two ran into the name. One rule, both layouts. It was gap AND margin while
    there was one badge, so the doubling went unnoticed; two badges cost the name
    32px of a column it already clips in, which is what found it. */
 .c-name{display:flex;align-items:center;gap:0;min-width:0}
-.c-name .mine,.c-name .live{flex:none}
+.c-name .live{flex:none}
 .c-type,.c-where,.c-when,.c-cost{font-size:14px;color:var(--ink2);line-height:1.22}
 .c-extra{font-size:14px;color:var(--ink2);line-height:1.22;min-width:0}
 .est{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-top:3px}
@@ -929,7 +934,7 @@ document.getElementById('addtoggle').addEventListener('click',async()=>{
     if(!ARTCHECKED){ ARTCHECKED=true;
       try{ ART = window.claude ? await claude.use('artifact') : null }catch(e){ ART=null }
       lede.textContent = REMOTE_OK
-        ? "Goes straight into the database and onto the site for everyone. It'll show as unverified until someone checks it."
+        ? "Goes to the person who runs Notice. Nothing appears on the site until they've had a look." 
         : ART
         ? "Saved to this page for everyone who opens it. It won't reach the spreadsheet on its own — export when you're ready to fold these in."
         : "Saved on this device only — this copy of the page can't write to itself. Export to keep what you add.";
@@ -970,16 +975,21 @@ document.getElementById('addform').addEventListener('submit',async e=>{
             starts_on:item.date||null, time_text:item.time||null, recurrence:'none',
             venue:item.loc||null, location:item.loc||null, km:item.km,
             cost:item.cost||null, description:item.desc||null, info_url:item.url||null,
-            conditions:['any-weather'], date_confidence:'low', added_by:who, verified:false})
+            conditions:['any-weather'], date_confidence:'low', added_by:who,
+            /* Held back, the same as everything a scraper writes. RLS REFUSES an
+               insert that sets either of these true, so this is a courtesy to
+               the endpoint rather than the thing enforcing it — a public form
+               cannot be trusted to have run its own rules. */
+            verified:false, published:false})
         : await insertRemote('activities', {name:item.name, type:type||null,
             location:item.loc||null, km:item.km, cost:item.cost||null,
             duration:item.dur||null, description:item.desc||null, url:item.url||null,
             conditions:['any-weather'],
             daypart: item.anyTime?'both':(item.nightOnly?'night':'day'),
-            added_by:who, verified:false});
+            added_by:who, verified:false, published:false});
       await refreshFromDb();
       document.getElementById('addform').reset(); fillTypes(); clearSuggestions();
-      msg(`"${saved.name}" is on the site. It shows as unverified until it's checked.`);
+      msg(`Thanks — "${saved.name}" has gone through for review. It'll appear once it's been looked at.`);
     }catch(err){
       msg('Could not save: '+String(err.message||err).slice(0,140));
     }
@@ -1362,7 +1372,7 @@ function render(){
       <div class="rowhead${kept?' saved':''}"${(i.groups||[])[0]?` data-tint="${i.groups[0]}"`:''}>
       <button class="rowline" aria-expanded="false">
         <span class="c-icon" aria-hidden="true">${ICON_OF[i.type]?`<svg><use href="#i-${ICON_OF[i.type]}"/></svg>`:''}</span>
-        <span class="c-name"><span class="nm">${esc(i.name)}</span>${onNow(i,NOW,SUNSET)?`<span class="live" title="On right now &middot; ${esc(i.time||'')}">on now</span>`:''}${g.some(x=>x.added)?`<span class="mine" title="${i.by?esc(i.by)+' added this — ':''}not checked yet">unverified</span>`:''}</span>
+        <span class="c-name"><span class="nm">${esc(i.name)}</span>${onNow(i,NOW,SUNSET)?`<span class="live" title="On right now &middot; ${esc(i.time||'')}">on now</span>`:''}</span>
         <span class="c-type">${i.type?esc(i.type):'<span class="est" style="display:inline">unsorted</span>'}</span>
         <span class="c-where"${many?` title="${esc(placeNames(g).join(' \u00b7 '))}"`:''}>${esc(wVenue)}${wSuburb?`<span class="tm">${esc(wSuburb)}</span>`:''}</span>
         <span class="c-when">${whenText(i)}</span>

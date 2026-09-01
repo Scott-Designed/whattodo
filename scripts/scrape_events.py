@@ -277,6 +277,13 @@ def build(src, slug, instances):
         'conditions'     : None,
         'date_confidence': 'medium',
         'added_by'       : src['key'],
+        # NOTHING FROM AN AUTOMATION GOES ON THE SITE UNTIL A PERSON SAYS SO.
+        # Scott's rule, 1 Sep 2026, generalised from the one source it was
+        # written for: "Anything from scrapers goes in for review, and doesn't
+        # go on site until I approve." Before this, a scraped row was live from
+        # the moment it was written and merely wore an `unverified` badge — so
+        # the review queue was reviewing things readers could already see.
+        'published'      : False,
         'source_note'    : note,
     }
     if rec: row['recurrence'] = rec

@@ -1018,6 +1018,82 @@ K new, D already held`, and that is what the Automations tab reads back. A site
 aggregator matches on `s.name === a.src`, so both rows appear with no change to
 the page beyond the `AGGREGATORS` prose.
 
+## Nothing reaches the board unapproved — 1 Sep 2026
+
+Scott, hours after the gate was built for one source: *"Anything that comes from
+an automation, doesn't get published as 'unverified' on site. Anything from
+scrapers goes in for review, and doesn't go on site until I approve."*
+
+`supabase/NOTHING_UNAPPROVED.sql`. **All four scrapers now write
+`published: false`**, the public Add form does too, and RLS refuses an insert
+that says otherwise.
+
+**The invariant, and it is worth checking after any change here:**
+
+    select count(*) from listings where published and not verified;   -- must be 0
+
+**That is what killed the public `unverified` badge.** It was an outlined square
+beside ON NOW, and it had been the only thing telling a reader a row was
+unchecked — because a scraped row was live from the moment it was written and
+the review queue was reviewing things people could already see. With the gate
+closed the badge can never fire, and a badge that can never render is worse than
+none: it teaches the next reader that a state exists which does not. Gone, with
+its CSS and both comments that described it.
+
+**One queue, one button.** The Review tab was briefly two — *Not checked* and
+*Not published* — which was right about the flags and wrong about the gesture.
+There is one decision, "does this go on the site", so `reviewRows()` is
+`published === false` and **Approve publishes**. The endpoint sets `verified`
+alongside, because a person putting a row in front of readers IS the judgement
+that flag was always meant to record.
+
+**Unpublishing does NOT clear `verified`.** Taking a row off the board says
+nothing about whether it is true.
+
+**The two flags still mean different things and both are still needed:** a
+scraper MAY set `verified` itself when its four mechanical checks pass, and it
+may NEVER set `published`. That asymmetry is the whole reason one flag could not
+do both jobs — see `supabase/PUBLISHED.sql`.
+
+**41 rows were held retrospectively** — 28 from scrapers, 13 written by hand and
+never checked off. Nothing was deleted or edited; they are in the queue and one
+press each puts them back. The board went 1246 → 1205.
+
+**The community form changed with it, and that was not optional.** While a
+stranger's submission could still publish itself there were unverified rows on
+the site and the rule was simply not true. It sends `published: false`, its copy
+says *"Goes to the person who runs Notice"* rather than *"straight onto the
+site"*, and **RLS is what actually enforces it** — a public form is a request,
+not a guarantee. Same lesson this file keeps relearning: a rule the tooling does
+not enforce is a rule that gets broken, and it gets reported as a decision.
+
+**`base()` in `scrape_library.py` was checked before this shipped.** It feeds
+only the insert path; the per-run update PATCHes `info_url` and `source_note`
+alone, so a re-run cannot un-publish a row you have already approved. That was
+the one way this change could have done real damage.
+
+### Batch actions — Publish and Hold on the pick bar
+
+The multi-select was already there — checkbox column on all four tables,
+shift-range, select-all, a bar that counts what the filter is hiding, bulk edit
+and bulk delete. What it lacked was the new verb.
+
+**Publish and Hold appear only on `events` and `activities`**, the two tables
+that have the column. `places` is a registry, not a listing; nothing about a
+venue is on or off the board.
+
+**They are buttons rather than an entry in `BULK`.** `published` is the one
+field a reader can see, so publishing is worth a confirm — and holding is the
+safe direction and gets none.
+
+**The Review tab still has NO multi-select, and that is a real gap.** Its rows
+mix `events` and `activities` in one table, and `PICK.ids` is a bare Set of
+numbers — ids collide across the two tables, which is the same collision
+`sync.py reject` still has and the reason the board's saved keys are `e13`/`a90`.
+A mixed selection is genuinely unsafe with that design, so it was not bolted on.
+Approve-all-by-source covers the bulk case; approving 12 of 115 is still 12
+clicks. Fixing it means keying `PICK` by table too.
+
 ## Nobody should have to read `vgb` — 1 Sep 2026
 
 Scott, on the Review tab's source filter offering *vgb · 115* and *grlc · 25*:

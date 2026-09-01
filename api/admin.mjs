@@ -583,8 +583,14 @@ export default async function handler(req, res) {
         names: undated.slice(0, 5).map(r => r.name)});
     }
 
+    // Publishing sets `verified` with it. A person putting a row in front of
+    // readers IS the human judgement that flag was always meant to record, and
+    // leaving it behind would mean the site could show rows marked unchecked —
+    // the exact thing this rule exists to stop. Unpublishing does NOT clear it:
+    // taking a row off the board says nothing about whether it is true.
     const done = await db('PATCH', `/rest/v1/${table}?id=in.${inList}`,
-                          {published: on}, {Prefer: 'return=representation'});
+                          on ? {published: true, verified: true} : {published: false},
+                          {Prefer: 'return=representation'});
     return res.status(200).json({ok: true, published: done.length, on});
   }
 

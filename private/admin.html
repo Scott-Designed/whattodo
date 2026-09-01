@@ -1932,10 +1932,20 @@ async function markInbox(id, status){
    five hundred. */
 let RFILTER = {src: ''};
 
+/* The queue is NOT PUBLISHED, not `not verified` — 1 Sep 2026, Scott's rule:
+   "Anything from scrapers goes in for review, and doesn't go on site until I
+   approve." Before that, `verified` was only a badge and a scraped row was live
+   from the moment it was written, so this queue was reviewing things readers
+   could already see.
+
+   `published === false` and not `!published`: the column defaults to true, and
+   a row loaded from a cache written before it existed has the field UNDEFINED,
+   which `!published` would read as held back. An absent flag is not a decision. */
 function reviewRows(){
+  const held = r => r.published === false;
   return [
-    ...DATA.events.filter(r => !r.verified).map(r => ({...r, __t:'events'})),
-    ...DATA.activities.filter(r => !r.verified).map(r => ({...r, __t:'activities'})),
+    ...DATA.events.filter(held).map(r => ({...r, __t:'events'})),
+    ...DATA.activities.filter(held).map(r => ({...r, __t:'activities'})),
   ];
 }
 
@@ -2069,18 +2079,24 @@ function drawReview(){
 
 function rsay(html, cls){ $('#rmsg').className = 'msg ' + (cls||''); $('#rmsg').innerHTML = html; }
 
+/* Approving PUBLISHES. It is one gesture because it is one decision — the row
+   goes on the site — and the endpoint sets `verified` alongside it, because a
+   person putting something in front of readers is exactly what that flag was
+   always meant to record. Two flags remain and they still mean different
+   things: a scraper may set `verified` itself when its mechanical checks pass,
+   and it may never set `published`. */
 async function approve(t1, ids1, t2, ids2){
   if (!PASS) return rsay('Unlock first — the button at the top right.', 'bad');
   const jobs = [[t1, ids1], [t2, ids2]].filter(([t, ids]) => t && ids && ids.length);
   rsay('Approving…');
   let done = 0;
   for (const [table, ids] of jobs){
-    const [code, out] = await post({action:'verify', table, ids});
+    const [code, out] = await post({action:'publish', table, ids, on:true});
     if (code !== 200) return rsay(esc(out.message || out.error || ('error ' + code)), 'bad');
-    done += out.verified || 0;
-    for (const r of DATA[table]) if (ids.includes(r.id)) r.verified = true;
+    done += out.published || 0;
+    for (const r of DATA[table]) if (ids.includes(r.id)){ r.published = true; r.verified = true; }
   }
-  rsay(`Approved ${done}.`, 'good');
+  rsay(`Approved ${done} — ${done === 1 ? 'it is' : 'they are'} on the site now.`, 'good');
   drawReview(); redrawAll();
 }
 
@@ -2792,14 +2808,46 @@ function drawPickbar(){
                         .map(b => +b.dataset.pick));
   const off = [...PICK.ids].filter(id => !shown.has(id)).length;
   const noun = PICK_NOUN[PICK.view] || 'row';
+  // Only the two tables that HAVE a published column get these. `places` is a
+  // registry, not a listing — nothing about a venue is on or off the board.
+  const pub = PICK.table === 'events' || PICK.table === 'activities';
   bar.innerHTML = `<span><b>${n}</b> ${esc(noun)}${n === 1 ? '' : 's'} selected</span>
     ${off ? `<span class="off">${off} not in this view</span>` : ''}
+    ${pub ? `<button class="btn" id="pkpub">Publish</button>
+             <button class="btn ghost" id="pkhold">Hold</button>` : ''}
     <button class="btn" id="pkedit">Edit…</button>
     <button class="btn danger" id="pkdel">Delete</button>
     <button class="btn ghost" id="pkclear">Clear</button>`;
+  if (pub){
+    $('#pkpub').onclick  = () => bulkPublish(true);
+    $('#pkhold').onclick = () => bulkPublish(false);
+  }
   $('#pkedit').onclick  = openBulk;
   $('#pkdel').onclick   = bulkDelete;
   $('#pkclear').onclick = clearPick;
+}
+
+/* Put a selection on the board or take it off. The gesture the Review tab
+   makes, available from whichever table you happen to be looking at — you find
+   a held row by its `not published` chip on Events or Listings, and this is how
+   you act on it without changing tab.
+
+   It is NOT in BULK below, deliberately: `published` is the one field where a
+   confirm is worth the friction, because publishing is the only thing here a
+   reader can see. Holding is the reverse and needs no confirm — it takes
+   something off the site, which is the safe direction. */
+async function bulkPublish(on){
+  if (!PASS) return alert('Unlock first — the button at the top right.');
+  const ids = [...PICK.ids], n = ids.length, table = PICK.table;
+  const noun = (PICK_NOUN[PICK.view] || 'row') + (n === 1 ? '' : 's');
+  if (on && !confirm(`Put ${n} ${noun} on the site? This is what readers will see.`))
+    return;
+  const [code, out] = await post({action:'publish', table, ids, on});
+  if (code !== 200) return alert(out.message || out.error || ('error ' + code));
+  for (const r of DATA[table]) if (PICK.ids.has(r.id)){
+    r.published = on; if (on) r.verified = true;
+  }
+  clearPick(); drawReview(); redrawAll();
 }
 
 /* What may be changed on many rows at once. Deliberately short: a field is
@@ -3458,7 +3506,7 @@ function drawHome(){
   const upcoming = ev.filter(e => (e.ends_on || e.starts_on) >= TODAY).length;
   const onToday  = ev.filter(e => e.starts_on <= TODAY && (e.ends_on || e.starts_on) >= TODAY).length;
   const past     = ev.length - upcoming;
-  const waiting  = [...DATA.activities, ...ev].filter(r => !r.verified).length;
+  const waiting  = reviewRows().length;   // the SAME rows the tab lists
   const unsorted = [...DATA.activities, ...ev].filter(r => !(r.types || []).length).length;
   const groups   = DATA.places.filter(isGroup).length;
   const venues   = DATA.places.length - groups;
@@ -3473,7 +3521,7 @@ function drawHome(){
      s: 'the evergreen half of the board'},
     {to:'places',     n: venues,    t:'Venues',           s: `${pinned} pinned · ${noPin} without`},
     {to:'groups',     n: groups,    t:'Groups',           s:'organisations, not rooms'},
-    {to:'review',     n: waiting,   t:'In the review queue', s:'unverified, waiting to be approved',
+    {to:'review',     n: waiting,   t:'In the review queue', s:'held back, waiting for you to approve',
      warn: waiting > 0},
     {to:'events',     n: unsorted,  t:'Unsorted',         s:'no type yet, so on no type page',
      warn: unsorted > 0},

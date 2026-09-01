@@ -584,6 +584,13 @@ def build(venue, g, registry):
         'conditions'     : None,
         'date_confidence': conf,
         'added_by'       : 'venue-feed',
+        # NOTHING FROM AN AUTOMATION GOES ON THE SITE UNTIL A PERSON SAYS SO.
+        # Scott's rule, 1 Sep 2026, generalised from the one source it was
+        # written for: "Anything from scrapers goes in for review, and doesn't
+        # go on site until I approve." Before this, a scraped row was live from
+        # the moment it was written and merely wore an `unverified` badge — so
+        # the review queue was reviewing things readers could already see.
+        'published'      : False,
         'verified'       : auto,
         'source_note'    : (f"read from {urllib.parse.urlsplit(g.get('url') or '').netloc} "
                             f"for {venue['name']}; imported {E.today().isoformat()}"
