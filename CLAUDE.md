@@ -5357,6 +5357,52 @@ registered feed read as manual work. The pattern: **when the log and the row
 disagree about whether something exists, the row wins.** A log only knows what
 happened; the row knows what was decided.
 
+### …and "read it, found nothing" is not "not read yet" either — 1 Sep 2026
+
+Scott, on the freshly registered Geelong Gallery: *"it's saying automation is
+registered and not yet read. Shouldn't it say 'check website'"*. Right — and the
+same cell was lying about **five other venues that had been read days ago**.
+
+The fix above put the `events_url` branch of `automationCell()` **above** the
+fallback and gated it on nothing at all, so it answered *registered · not read
+yet* for any registered row the run log did not list as `read`/`skipped`. That
+covers `untried`, which is what it was written for — and also `nothing`, `dead`,
+`refused`, `failed` and `shared`, which it was not. **A source the scrapers have
+already read and found nothing in is not waiting to be read.** Measured against
+the live log on 1 Sep 2026, five rows were sitting in that state:
+
+    1   Aireys Pub                  nothing   aireyspub.com.au/events
+    14  Flying Brick Cider Co       nothing   eventbrite.com.au/o/13650270681
+    17  Grand Hotel Portarlington   nothing   portarlingtongrandhotel.com.au/whats-on
+    18  Great Ocean Road Brewhouse  nothing   greatoceanroadbrewhouse.com.au/whats-on
+    35  Torquay Bowls Club          nothing   eventbrite.com.au/o/120974864489
+
+**It is the same fault as the one it was written to fix, pointing the other
+way.** *Check website* on a working feed sends a person to do by hand what is
+already automated; *not read yet* on a feed that has been read and is empty
+promises a read that has already happened, so nobody ever goes and looks. Both
+are the cell being honest about the log and wrong about the world.
+
+The branch now fires **only while a run genuinely has not tried it** — no state,
+or `untried`. Every other non-reading state falls through to the hand and
+**check website**, because whatever the reason, the human job is the same: go and
+open the page. Which reason it was is on the cell's own `title` (the state label)
+and spelled out in the source drawer's *What to do*. The fallback also counts an
+`events_url` as a page worth opening, not just `website`, or a registered source
+with no separate homepage would read *no website to check*.
+
+**Verified by running the function**, not by reading it — six cases through a
+node harness: registered-and-untried still says *registered · not read yet*,
+registered-but-`nothing` and registered-but-`refused` both say *check website*,
+a reading source is unchanged, and the two no-feed cases are unchanged.
+
+**Geelong Gallery itself will keep saying *not read yet* until a run covers it**,
+and that is correct rather than a leftover: no run has touched it since it was
+registered. Thursday's Action will read it, record `nothing`, and the row flips
+to the hand by itself. **Run the scrapers now** on the Automations tab does it
+today — and that button is the honest way, because the job runs as itself and may
+read Humanitix, which a session driven from here may not.
+
 ### Registering 20 gig pages produced ONE working feed — 31 Aug 2026
 
 The run, read-only, `--skip humanitix`: **5 new events, 2 already held, 98

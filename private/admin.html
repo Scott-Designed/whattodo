@@ -2663,7 +2663,19 @@ function automationCell(p, s){
              // a deliberate claim that this page belongs to this place, so it
              // outranks the run log, which is only a snapshot and cannot know
              // about a source registered after it was written.
-             if (p.events_url || p.ticketing_url)
+             // ...but only while a run genuinely has not TRIED it. A source the
+             // scrapers have read and found nothing in is not "not read yet",
+             // and saying so is the same lie in the other direction: it
+             // promises a read that has already happened and produced nothing,
+             // so nobody ever goes and looks. Five registered venues were
+             // sitting in that state on 1 Sep 2026 — Aireys Pub, Flying Brick,
+             // the Grand Hotel Portarlington, GOR Brewhouse and Torquay Bowls
+             // Club — all read, all empty, all reading "not read yet" for days.
+             // Anything with a known non-reading state falls through to the
+             // hand below, where the job is the same whatever the reason: go
+             // and look. Which reason it was is on the cell's own tooltip and
+             // spelled out in the source drawer.
+             if ((p.events_url || p.ticketing_url) && (!s.state || s.state === 'untried'))
                return icon('i-sync')
                     + `<span class="autopill" style="opacity:.65"><span>·</span>registered</span>`
                     + ` <span style="color:var(--ink3)">not read yet</span>`
@@ -2676,7 +2688,10 @@ function automationCell(p, s){
              // Nothing reads this one, so the useful thing is not how stale it
              // is but what to DO — go and look. The staleness stays on the
              // tooltip, and the page it wants is in the Link column.
-             if (p.website) return icon('i-hand') + 'check website';
+             // A registered feed that is not reading still has a page to open,
+             // so it counts here as much as a plain website does.
+             if (p.website || p.events_url || p.ticketing_url)
+               return icon('i-hand') + 'check website';
              if (!when) return '<span style="color:var(--ink3)">nothing to read</span>';
              const cold = (Date.now() - new Date(lastAdded)) > 180 * 86400000;
              // A hand means a person is keeping this one up: it has listings and
