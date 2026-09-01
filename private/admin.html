@@ -2709,10 +2709,11 @@ function automationCell(p, s){
              // scrapers have read and found nothing in is not "not read yet",
              // and saying so is the same lie in the other direction: it
              // promises a read that has already happened and produced nothing,
-             // so nobody ever goes and looks. Five registered venues were
-             // sitting in that state on 1 Sep 2026 — Aireys Pub, Flying Brick,
-             // the Grand Hotel Portarlington, GOR Brewhouse and Torquay Bowls
-             // Club — all read, all empty, all reading "not read yet" for days.
+             // so nobody ever goes and looks. 29 registered venues were
+             // sitting in that state on 1 Sep 2026, 20 of them the pages the
+             // music pass registered on 31 Aug — all read, all empty, and all
+             // reading "not read yet". (Counted off runs[0]: run_log.json is
+             // NEWEST FIRST, and reading runs[-1] gets the oldest run in it.)
              // Anything with a known non-reading state falls through to the
              // hand below, where the job is the same whatever the reason: go
              // and look. Which reason it was is on the cell's own tooltip and

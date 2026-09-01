@@ -5369,13 +5369,24 @@ yet* for any registered row the run log did not list as `read`/`skipped`. That
 covers `untried`, which is what it was written for — and also `nothing`, `dead`,
 `refused`, `failed` and `shared`, which it was not. **A source the scrapers have
 already read and found nothing in is not waiting to be read.** Measured against
-the live log on 1 Sep 2026, five rows were sitting in that state:
+the newest run on 1 Sep 2026, **29 rows** were sitting in that state — 26
+`nothing` and 3 `refused` — and **20 of them are the venues the music pass
+registered on 31 Aug**, which is the very set whose *check website* wording
+Scott objected to that day. They had not been read then; they have now, and they
+are empty, so *check website* is the right answer for them today. The state is
+what changed, not the rule.
 
-    1   Aireys Pub                  nothing   aireyspub.com.au/events
-    14  Flying Brick Cider Co       nothing   eventbrite.com.au/o/13650270681
-    17  Grand Hotel Portarlington   nothing   portarlingtongrandhotel.com.au/whats-on
-    18  Great Ocean Road Brewhouse  nothing   greatoceanroadbrewhouse.com.au/whats-on
-    35  Torquay Bowls Club          nothing   eventbrite.com.au/o/120974864489
+### `run_log.json` IS NEWEST FIRST, and this was reported as five rows before it was 29
+
+Worth its own heading, because the first version of the paragraph above named
+five venues and was wrong. `runs[-1]` looks like the latest run and is the
+**oldest** — 25 Aug, 35 venue sources, from before the music pass existed. The
+newest is `runs[0]`, and it carries **112** venue sources. Sort on
+`recorded_at`; never index the ends of that list.
+
+The same read is why an earlier note in this file put the last run at 25 Aug
+while `gh run list` showed successful runs on 30 and 31 Aug. The Action is
+committing the log fine.
 
 **It is the same fault as the one it was written to fix, pointing the other
 way.** *Check website* on a working feed sends a person to do by hand what is
