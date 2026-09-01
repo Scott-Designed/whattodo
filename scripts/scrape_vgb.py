@@ -239,8 +239,14 @@ def build(h, today, horizon):
         'published'      : False,
         'verified'       : False,
     }
-    if kind == 'run':                       row['ends_on']    = days[-1].isoformat()
-    if kind in ('weekly', 'fortnightly'):   row['recurrence'] = kind
+    # EVERY row carries BOTH keys, null included. PostgREST refuses a batch
+    # insert whose objects have different key sets — a bare 400, PGRST102 "All
+    # object keys must match", naming no field. A run of 115 where some have an
+    # end date and some have a recurrence is exactly that shape, and this file
+    # already records the same failure from a places batch where one row had a
+    # `kind` and the other did not.
+    row['ends_on']    = days[-1].isoformat() if kind == 'run' else None
+    row['recurrence'] = kind if kind in ('weekly', 'fortnightly') else None
     return row
 
 # ── main ────────────────────────────────────────────────────────────────────

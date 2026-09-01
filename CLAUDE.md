@@ -1018,6 +1018,165 @@ K new, D already held`, and that is what the Automations tab reads back. A site
 aggregator matches on `s.name === a.src`, so both rows appear with no change to
 the page beyond the `AGGREGATORS` prose.
 
+## A publish gate — `published`, 1 Sep 2026
+
+Scott, registering the tourism board's calendar: *"I would like for events not to
+appear until they have been published by me. not to appear as unverified."*
+
+**Until now nothing gated the board.** `verified` was only ever a BADGE — the row
+rendered an `unverified` pill and appeared exactly like everything else. So every
+scraped row has been live on notice.place from the moment it was written, and
+"the review queue" reviewed things that were already published.
+
+`supabase/PUBLISHED.sql` adds `published boolean not null default true` to both
+tables and carries it into `listings`.
+
+**Why this could not be `verified`, which is the whole design.** It looks like
+the flag for this and it stopped being one on 28 Aug 2026, when
+`scrape_venues.py` started AUTO-VERIFYING a row whose four mechanical checks
+pass. `verified` is now partly machine-set, so gating the board on it would
+publish exactly the rows a person most wants to look at. Two flags, two
+meanings, both worth keeping:
+
+    verified    somebody — or a mechanical check — established this is TRUE
+    published   a PERSON decided this belongs on the board
+
+This file already records that `verified` was conflating two things and that the
+25 Aug bulk accept left it saying very little. A third meaning would have
+finished it off.
+
+**DEFAULT TRUE, and the backfill is the point.** All 1246 rows stayed on the
+board; nothing moved on the day it shipped. That is what made it safe to deploy
+the page filter BEFORE the scraper that needs it — the ordering this file already
+demands and has broken once.
+
+**The gate is one line, in the QUERY, not in `ok()`.** `notice-data.js` asks for
+`listings?select=*&published=is.true`, so a held row never reaches the browser at
+all: not in the list, not in a facet count, not in the tally, not on the map, not
+reachable by a saved key or a search. Filtering in `ok()` would have left it in
+every one of those, because `ok()` is also what `pass()` counts with. All three
+readers — the board, `place.html` and `type.html` — go through `loadRemote()`, so
+there is exactly one choke point.
+
+**Only `/admin` ever sets it true.** `action: 'publish'` on `api/admin.mjs`,
+batched like `verify`, and it applies the same bar: a row with no `source_note` is
+refused, and an event with no `starts_on` is refused, because the board is sorted
+by when things are on. A scraper may write `false`; nothing but a person writes
+`true`.
+
+**The Review tab has two queues now** — *Not checked* and *Not published* — with
+their own counts, because they answer different questions and a row can want
+both. One `act()` runs both; two copies would have drifted the first time either
+was touched. The tab's own count is the two added together, since the tab means
+"what wants you". `published === false`, never `!published`: a row read before
+the column existed has the field undefined, and an absent flag is not a decision.
+
+`not published` is also a flag, so it drives a chip on the Events and Listings
+tables — that is how you find a held row from whatever list you are already
+looking at.
+
+**What is deliberately NOT done:** the public Add form still writes rows that
+publish immediately. It was out of scope and it is worth a decision — an open
+form that puts things straight on the site is the one place this gate would earn
+its keep next.
+
+## Visit Geelong & The Bellarine — the third feed, 1 Sep 2026
+
+`scripts/scrape_vgb.py`. **119 What's On products, 115 of them things we did not
+hold**, every one landing `published = false`. On the Mon/Thu Action.
+
+**The URL a person sends you cannot be scraped.** `/search/What's+On/` is 139KB
+of chrome with no events in it, drawn client-side; `/Whats-On` is 250KB of the
+same. The site is built on Roam and its search is Algolia, so the listings exist
+only in the index — app `C8OQZFNOEK` with a **search-only key published in the
+page's own HTML** for the browser to use. This asks that index the same way the
+page does. The key is not a documented API and can be rotated; a 401 exits
+saying so and naming where to read a fresh one, rather than reading as a region
+with nothing on in it.
+
+**robots.txt allows it and names no AI crawler** — its Content-Signal says
+`ai-input=yes` — so unlike Coast & Bay a Claude session may read this one.
+
+### The product pages carry schema.org Event and it MUST NOT be used
+
+Every `/products/…` page has one JSON-LD block containing `"@type": "Event"`. It
+is exactly the shape `eventlib.jsonld_events` parses and it has **no
+`startDate`** — only `datePublished` and `dateModified`, which are when the PAGE
+was written. The parser correctly returns zero because it requires a start date;
+anything looser would file every event on its publication day.
+
+**That is the GMBC `wp/v2/mec-events` failure a second time**, and two sightings
+make it a rule rather than a quirk: *a first-party-looking page is authoritative
+about intent, not about correctness.* The dates are only in the index.
+
+### The dates are Melbourne instants and carry a real start time
+
+`roam_products_eventDates` is a list of unix timestamps that must be read in
+Australia/Melbourne. Measured: Dave Hughes reads **7pm** Melbourne and 9am UTC; a
+Father's Day lunch reads **12pm** Melbourne and **2am** UTC. 251 of 1312 are
+exact UTC midnight, which looks like a day-only convention and is not — those are
+simply the 10am starts.
+
+A Melbourne 00:00 means no time was published, and lands `time_text` null rather
+than *All day*: the two cannot be told apart, and a null is honest.
+
+**`roam_products_next_event` uses a DIFFERENT convention in the same record** —
+Melbourne midnight, all 117 of them, so it is a day and not an instant. It is not
+used. Two time conventions in one document is the sort of thing that shifts every
+date by one day and never announces itself.
+
+### One product is one row
+
+A naive import is **556 rows for 119 things**: an art exhibition carries 93 dates
+and *Dinos at the Zoo* carries 258. Measured shape, future dates only:
+
+    single date  83   consecutive run  18   irregular  13   weekly  4   fortnightly  1
+
+    consecutive   every gap exactly 1 day -> ONE row, starts_on + ends_on.
+                  That is a season or an exhibition, not a series.
+    weekly        >= 3 dates, every gap exactly 7   -> recurrence
+    fortnightly   >= 3 dates, every gap exactly 14  -> recurrence
+    irregular     one row at the next date, every date written into source_note,
+                  NO recurrence claimed
+
+Weekly needs three because two dates a week apart is a coincidence — the same
+call `scrape_library.py` makes. **Monthly is deliberately not offered**:
+`nextDate()` does not roll it, so claiming it would promise a date the page
+cannot show.
+
+### What this source cannot give
+
+**No venue name and no address, anywhere** — not in the index, not in the page,
+not in its JSON-LD. So no `place_id`, no pin, and `venue` null. The index does
+carry a coordinate per product and it goes into `source_note` rather than being
+dropped, for whoever wants to build a places row from it.
+
+`km` is not set. `date_confidence` is `medium`: a tourism board republishing ATDW
+is a curated calendar, the same standing as surfcoastevents.
+
+### Three towns had to be added to the vocabulary
+
+The run reports every town `suburbOf()` cannot file, because a town the
+vocabulary does not know resolves to null and the symptom is **a row that
+reaches no filter and no town page** rather than an error — the Mt Duneed lesson,
+which this importer now checks for itself every run.
+
+`Breakwater` and `Newtown` joined the `GEELONG` fold, `Shelford` became a town of
+its own. **A Geelong suburb has to be in BOTH lists** — `suburbOf` only ever
+folds a name `SUBURBS` already matched, so adding one to `GEELONG` alone does
+nothing. `/shelford` was collision-checked against every type slug, every other
+town, every file in `public/` and `RESERVED` before it went in.
+
+`Werribee` already resolved, so the eight Werribee products file correctly.
+Scott's call on those: *"those locations are close enough to our region, still
+only an hour away."*
+
+### Worth knowing next
+
+The same Algolia app holds **182 See & Do** and **124 Eat & Drink** products, all
+geocoded. That is an ACTIVITIES source, not an events one, and it is probably the
+bigger prize — `products_default`, same key, a different facet.
+
 ## The mountain bike clubs, and EntryBoss — 28 Aug 2026
 
 Four clubs added as **groups** at Scott's request. None carries a coordinate:

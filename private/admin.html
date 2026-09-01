@@ -837,6 +837,16 @@ const dupesOf = r => DUPES.get(r.id) || [];
    telling you to fix the thing nobody intends to fix by hand. */
 function flagsFor(r, kind){
   const f = [];
+  /* Not a fault — a state, and the most important one on the row, because it is
+     the difference between a listing being on the site and not. It leads the
+     list for that reason. `=== false` because the column defaults to true and an
+     undefined flag is an absent decision, not a held row.
+
+     Like every other flag it drives a CHIP and is not drawn on the row — so
+     "not published 115" sits above the table and pressing it gives you exactly
+     those rows. The Review tab's Not published queue is where you act on them;
+     this is how you find one from the list you happen to be looking at. */
+  if (r.published === false)                         f.push('not published');
   if (kind === 'events'){
     if (!r.place_id)                                 f.push('no place');
     if (r.starts_on && r.starts_on < TODAY &&
@@ -1290,6 +1300,11 @@ const AGGREGATORS = [
    how:'Reads the iCal feed, not the RSS — iCal alone carries LOCATION and GEO, so every event knows its branch and arrives with the library\u2019s own published pin. Repeating sessions are collapsed on the way in: one row with a recurrence, not one row per occurrence.',
    auto:'full',
    note:'On the Mon/Thu schedule since 31 Aug 2026. The feed hands back at most 500 items whatever you ask it for — a rolling window of about 21 days — and no parameter widens it: days, a start/end pair and a limit were all probed and all ignored. The date range on the library\u2019s own site is widget state that never reaches the feed, and the page carries no events in its HTML at all. So it is polled rather than asked, and twice a week against 21 days means nothing is missed and everything is seen at least 17 days out. The cap used to be spent on repeats — 500 occurrences were only 250 real series, 119 of them weekly — so a standing session is now one row carrying its recurrence and nextDate() keeps its date right. A series the feed stops carrying is REPORTED, never stood down automatically: telling a finished term from a school holiday is a judgement. Still open: 161 rows landed with no type, because types are only ever proposed from what a title actually says. The only route past 500 is Communico\u2019s own API at api.communico.co, which needs credentials from the library.'},
+  {name:'Visit Geelong & The Bellarine', host:null, src:'visitgeelongbellarine.com.au',
+   what:'The regional tourism board\u2019s What\u2019s On',
+   how:'Reads the site\u2019s own Algolia search index — the only place the dates exist. The page a person would send you (/search/What\u2019s+On/) has no events in its HTML at all: 139KB of chrome, drawn client-side. Every row lands UNPUBLISHED and waits in Review.',
+   auto:'full',
+   note:'Registered and automated 1 Sep 2026, on the Mon/Thu schedule. EVERY ROW IS HELD BACK — Scott\u2019s instruction for this source: nothing appears on the board until he publishes it. That is the `published` column, which is not `verified`: verified says somebody established this is true and a scraper can now set it itself, published says a person decided this belongs on the board and only /admin ever sets it. ▸ The product pages DO carry schema.org "@type":"Event" and it MUST NOT be used — there is no startDate on it, only datePublished, so a reader would file every event on the day its page was written. That is the GMBC wp/v2 failure a second time: a first-party-looking page is authoritative about intent, not correctness. ▸ Dates are Melbourne instants carrying a real start time and must be read in Melbourne; in UTC a 7pm gig becomes 9am and a midday lunch becomes 2am. ▸ One product is one row: a naive import is 556 rows for 119 things, because an exhibition carries 93 dates and Dinos at the Zoo carries 258. A consecutive run becomes starts_on + ends_on, weekly and fortnightly become a recurrence, and an irregular set keeps its dates in source_note with no recurrence claimed. ▸ It names no venue and no address anywhere, so no place row and no pin; the coordinate it does give goes in source_note for a person. ▸ The Algolia key is the public search-only one published in the site\u2019s HTML — it can be rotated without notice, and the run says so plainly rather than reading as a region with nothing on.'},
   {name:'Moshtix', host:'moshtix', what:'Ticketing platform',
    how:'Read from the venue page\u2019s own schema.org, not by following its ticket links.',
    auto:'full',

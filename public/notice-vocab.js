@@ -24,19 +24,25 @@
    place". A Geelong suburb answers as Geelong: nobody planning a Saturday
    distinguishes Grovedale from Waurn Ponds, and eleven suburbs holding one
    listing each is a longer menu that finds less. */
+/* Breakwater and Newtown joined 1 Sep 2026 with the visitgeelongbellarine
+   import, which files events at both. A town suburbOf() does not know resolves
+   to null, and the symptom is a row that reaches no filter and no town page
+   rather than an error — the Mt Duneed lesson. That importer reports its own
+   unknown towns every run for exactly this reason. */
 const GEELONG=new Set(['Geelong','Geelong West','South Geelong','Belmont','Grovedale',
-  'Waurn Ponds','Norlane','Corio','Fyansford','Ceres','Highton','Newcomb']);
+  'Waurn Ponds','Norlane','Corio','Fyansford','Ceres','Highton','Newcomb',
+  'Breakwater','Newtown']);
 const SUBURBS=['Aireys Inlet','Anglesea','Apollo Bay','Armstrong Creek','Barwon Heads',
  'Bannockburn','Beech Forest','Bellarine','Bellbrae','Bells Beach','Belmont',
- 'Birregurra','Breamlea',
+ 'Birregurra','Breakwater','Breamlea',
  'Cape Otway','Ceres','Colac','Connewarre','Corio','Cumberland River','Curlewis',
  'Deans Marsh',
  'Drysdale','Eastern View','Fairhaven','Forrest','Freshwater Creek','Fyansford','Geelong',
  'Geelong West','Grovedale','Highton','Indented Head','Inverleigh','Jan Juc',
  'Kennett River','Lara',
  'Lavers Hill','Leopold','Little River','Lorne','Moggs Creek','Moriac','Mt Duneed','Norlane',
- 'Newcomb','Ocean Grove','Point Addis','Point Lonsdale','Portarlington','Queenscliff',
- 'Skenes Creek',
+ 'Newcomb','Newtown','Ocean Grove','Point Addis','Point Lonsdale','Portarlington','Queenscliff',
+ 'Shelford','Skenes Creek',
  'South Geelong','St Leonards','Torquay','Wallington','Waurn Ponds','Werribee',
  'Winchelsea','Wye River','You Yangs'];
 const SUB_BY_LEN=[...SUBURBS].sort((a,b)=>b.length-a.length);
