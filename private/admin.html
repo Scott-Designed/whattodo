@@ -300,13 +300,36 @@ h2[id]{scroll-margin-top:60px}
    A source that answers 200 with nonsense is the failure this project keeps
    paying for, so every reading carries a plausible range and says when it
    falls outside it. Colour is the signal; there are no chips in the table. */
-.rd{display:grid;grid-template-columns:200px 130px 140px minmax(0,1fr);gap:0 20px;
+/* ── Conditions, in two columns ────────────────────────────────────────
+   Seven sections down one 1640px page left most of the width empty and made
+   the tab a scroll. They are blocks in a two-column grid now; the beach table
+   spans both because 28 rows in half a column is a periscope.
+
+   `align-items:start` or a short block stretches to its neighbour's height
+   and its rule floats away from its own last row. */
+.condgrid{display:grid;grid-template-columns:1fr 1fr;gap:34px 44px;
+  align-items:start;margin-top:26px}
+.cbox{min-width:0}
+.cbox.full{grid-column:1 / -1}
+/* The heading is the site's own section treatment — serif, sentence case, at
+   a size you can find by scanning. The old 11px all-caps label read as a form
+   field name rather than the name of a list. */
+.cbox > h3{margin:0 0 5px;font-family:var(--serif);font-weight:400;font-size:22px;
+  letter-spacing:-.012em;text-transform:none;color:var(--ink);
+  padding-bottom:9px;border-bottom:1px solid var(--rule2)}
+.cbox > .note{margin:9px 0 13px}
+.cbox table{width:100%}
+@media (max-width:1180px){.condgrid{grid-template-columns:1fr;gap:30px}}
+
+.rd{display:grid;grid-template-columns:minmax(0,1fr) 96px 96px;gap:0 14px;
   align-items:baseline;padding:8px 0;border-bottom:1px solid var(--rule)}
 .rd .k{font-family:var(--util);font-size:12.5px;color:var(--ink2)}
 .rd .v{font-family:var(--util);font-size:13.5px;color:var(--ink);
-  font-variant-numeric:tabular-nums}
+  font-variant-numeric:tabular-nums;text-align:right}
 .rd .n{font-family:var(--util);font-size:11.5px;color:var(--ink3)}
-.rd .w{font-family:var(--util);font-size:12px;color:var(--ink3)}
+.rd .w{font-family:var(--util);font-size:12px;color:var(--ink3);text-align:right}
+/* only drawn when a value is outside its range */
+.rd .n{grid-column:1 / -1;margin-top:3px}
 /* what is growing */
 .grow{padding:13px 0;border-bottom:1px solid var(--rule)}
 .gh{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
@@ -321,7 +344,7 @@ h2[id]{scroll-margin-top:60px}
 .gt .sp2 b{font-weight:600;color:var(--ink2)}
 .rd.odd .v{color:var(--bad)}
 .rd.odd .n{color:var(--bad)}
-.condhead{display:grid;grid-template-columns:200px 130px 140px minmax(0,1fr);gap:0 20px;
+.condhead{display:grid;grid-template-columns:minmax(0,1fr) 96px 96px;gap:0 14px;
   font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.12em;
   text-transform:uppercase;color:var(--ink3);padding-bottom:8px;
   border-bottom:1px solid var(--rule2)}
@@ -4024,9 +4047,15 @@ function drawConditions(){
         (JSON.stringify(d).length / 1024).toFixed(1)} KB out</div></div>
   </div>`;
 
-  B.innerHTML =
-    sourcesTable(d) + readingsTable(d) + growingBlock(d) + tideBlock(d) +
-    beachTable(d) + burnsBlock(d) + fireBlock(d) + footNote(d);
+  /* Paired so each row of the grid holds two things you would read together:
+     what answered beside what is out, then the numbers beside the tide. The
+     beach table spans both columns — 28 rows in half a column is a periscope. */
+  B.innerHTML = '<div class="condgrid">' +
+    sourcesTable(d) + growingBlock(d) +
+    readingsTable(d) + tideBlock(d) +
+    beachTable(d) +
+    burnsBlock(d) + fireBlock(d) +
+    '</div>' + footNote(d);
 }
 
 /* Every reading whose value falls outside its plausible range. Missing is not
@@ -4048,6 +4077,14 @@ const COND_STATE = {
   bad_url: {label:'refused before asking', cls:'bad'},
 };
 
+
+/* Each section is a block so the grid can lay them out. It also puts the
+   heading and its note in one place instead of seven. */
+function box(title, note, body, full){
+  return `<section class="cbox${full ? ' full' : ''}"><h3>${title}</h3>` +
+         (note ? `<p class="note">${note}</p>` : '') + body + `</section>`;
+}
+
 function sourcesTable(d){
   const rows = (d.sources || []).map(s => {
     const st = COND_STATE[s.state] || {label: s.state, cls:''};
@@ -4057,11 +4094,10 @@ function sourcesTable(d){
       <td class="num">${s.bytes == null ? '—' : (s.bytes / 1024).toFixed(1) + ' KB'}</td>
       <td>${s.error ? esc(s.error) : ''}</td></tr>`;
   }).join('');
-  return `<div class="subhead">Each source, on its own</div>
-    <p class="note">One being down never takes the others with it — the reply is
-      always 200 and says what happened.</p>
-    <table><thead><tr><th>Source</th><th>State</th><th>Took</th><th>Raw</th>
-      <th>Error</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return box('Each source, on its own',
+    'One being down never takes the others with it — the reply is always 200 and says what happened.',
+    `<table><thead><tr><th>Source</th><th>State</th><th>Took</th><th>Raw</th>
+      <th>Error</th></tr></thead><tbody>${rows}</tbody></table>`);
 }
 
 function readingsTable(d){
@@ -4070,26 +4106,25 @@ function readingsTable(d){
     const v = dig(d, k), [lo, hi, unit] = SANE[k];
     const block = k.split('.')[0];
     const where = at[block]?.name || '—';
+    const range = `${lo} to ${hi}${unit ? ' ' + unit : ''}`;
     if (v == null) return `<div class="rd"><span class="k">${esc(LABEL[k] || k)}</span>
       <span class="v" style="color:var(--ink3)">—</span>
       <span class="w">${esc(where)}</span>
       <span class="n">source did not answer</span></div>`;
     const bad = Number(v) < lo || Number(v) > hi;
-    return `<div class="rd${bad ? ' odd' : ''}">
+    return `<div class="rd${bad ? ' odd' : ''}" title="plausible ${range}">
       <span class="k">${esc(LABEL[k] || k)}</span>
       <span class="v">${esc(String(v))}${unit ? ' ' + unit : ''}</span>
       <span class="w">${esc(where)}</span>
-      <span class="n">${bad ? 'OUTSIDE ' : 'plausible '}${lo} to ${hi}${unit ? ' ' + unit : ''}</span></div>`;
+      ${bad ? `<span class="n">OUTSIDE the plausible ${range}</span>` : ''}</div>`;
   }).join('');
-  return `<div class="subhead">What it is saying, where, and whether that is believable</div>
-    <p class="note">Three different places answer this. The air is measured at
-      <b>Jan Juc</b>, the sea at <b>Bells Beach</b>, and Kp is planet-wide —
-      wind per beach is its own table below. The ranges are deliberately wide:
-      they are here to catch a field being read wrong or a unit changing, not to
-      second-guess the weather.</p>
-    <div class="condhead"><span>Reading</span><span>Now</span><span>Taken at</span>
-      <span>Plausible range</span></div>
-    ${rows}`;
+  return box('What it is saying, and where',
+    'Three different places answer this. The air is measured at <b>Jan Juc</b>, ' +
+    'the sea at <b>Bells Beach</b>, and Kp is planet-wide — wind per beach is ' +
+    'its own table below. Each value is checked against a deliberately wide ' +
+    'range; the range shows only when something falls outside it.',
+    `<div class="condhead"><span>Reading</span><span>Now</span><span>Taken at</span></div>
+    ${rows}`);
 }
 
 /* ── what is growing ───────────────────────────────────────────────────────
@@ -4119,14 +4154,13 @@ function growingBlock(d){
     </div>`;
   }).join('');
   const n = d.growing_note || {};
-  return `<div class="subhead">What is growing</div>
-    <p class="note">Research-grade observations over the last 30 days. The season
-      verdict compares this month against a twelve-month baseline measured
-      ${esc(n.baseline_taken || '—')} and stored — re-measure it yearly.</p>
-    ${g}
-    <p class="note" style="margin-top:14px">${esc(n.caveat || '')}
+  return box('What is growing',
+    'Research-grade observations over the last 30 days. The season verdict ' +
+    'compares this month against a twelve-month baseline measured ' +
+    esc(n.baseline_taken || '—') + ' and stored — re-measure it yearly.',
+    g + `<p class="note" style="margin-top:14px">${esc(n.caveat || '')}
       <b>Nothing here is an animal</b>, on purpose: the method works where the
-      organism's visibility IS the phenomenon, and fails where it is not.</p>`;
+      organism's visibility IS the phenomenon, and fails where it is not.</p>`);
 }
 
 function tideBlock(d){
@@ -4134,10 +4168,9 @@ function tideBlock(d){
   const rows = d.tide.next.map(p =>
     `<tr><td>${esc(p.kind)}</td><td>${esc(clockish(p.at))}</td>
        <td class="num">${p.m > 0 ? '+' : ''}${p.m.toFixed(2)} m</td></tr>`).join('');
-  return `<div class="subhead">Tide, next four turns</div>
-    <p class="note">${esc(d.tide.note)}</p>
-    <table><thead><tr><th>Turn</th><th>About</th><th>Height</th></tr></thead>
-      <tbody>${rows}</tbody></table>`;
+  return box('Tide, next four turns', esc(d.tide.note),
+    `<table><thead><tr><th>Turn</th><th>About</th><th>Height</th></tr></thead>
+      <tbody>${rows}</tbody></table>`);
 }
 
 /* The stored value is an hour from an hourly model, so it is printed as an
@@ -4164,27 +4197,28 @@ function beachTable(d){
       <td class="num">${Math.round(b.wind_kmh)} km/h ${esc(b.wind_sector)}</td>
       <td style="color:var(--${col})">${esc(b.relation)}</td></tr>`;
   }).join('');
-  return `<div class="subhead">Every beach, most sheltered first</div>
-    <p class="note">The bearings are measured from OpenStreetMap coastline and live
-      in <code>api/conditions.mjs</code> because <b>the column does not exist yet</b>.
-      Offshore means the wind is coming off the land behind the beach.</p>
-    <div class="scrollbox"><table><thead><tr><th>Beach</th><th>Faces</th>
-      <th>Wind</th><th>Today</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  return box('Every beach, most sheltered first',
+    'The bearings are measured from OpenStreetMap coastline and live in ' +
+    '<code>api/conditions.mjs</code> because <b>the column does not exist yet</b>. ' +
+    'Offshore means the wind is coming off the land behind the beach.',
+    `<div class="scrollbox"><table><thead><tr><th>Beach</th><th>Faces</th>
+      <th>Wind</th><th>Today</th></tr></thead><tbody>${rows}</tbody></table></div>`,
+    true);
 }
 
 function burnsBlock(d){
   if (!d.burns) return '';
-  if (!d.burns.length) return `<div class="subhead">Fires and planned burns</div>
-    <p class="note">Nothing within 120 km right now.</p>`;
+  if (!d.burns.length) return box('Fires and planned burns',
+    'Nothing within 120 km right now.', '');
   const rows = d.burns.map(b =>
     `<tr><td>${esc(b.what)}</td><td class="cap">${esc(b.where || '—')}</td>
        <td class="num">${b.km} km</td><td>${esc(b.size || '—')}</td>
        <td>${esc(b.status || '—')}</td></tr>`).join('');
-  return `<div class="subhead">Fires and planned burns within 120 km</div>
-    <p class="note">From the VicEmergency feed, which carries a real coordinate for
-      each one — so the distance is measured, not estimated.</p>
-    <table><thead><tr><th>What</th><th>Where</th><th>From Jan Juc</th>
-      <th>Size</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return box('Fires and planned burns within 120 km',
+    'From the VicEmergency feed, which carries a real coordinate for each one — ' +
+    'so the distance is measured, not estimated.',
+    `<table><thead><tr><th>What</th><th>Where</th><th>From Jan Juc</th>
+      <th>Size</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`);
 }
 
 /* A status that asks for a person and does not say what they should do is a
@@ -4195,8 +4229,8 @@ function fireBlock(d){
   const dl = Object.entries(d.fire.districts || {})
     .map(([k, v]) => `<b style="display:inline;letter-spacing:0;text-transform:none;font-size:13px;color:var(--ink2)">${esc(k)}</b> — ${esc(v.join(' · '))}`)
     .join('<br>');
-  return `<div class="subhead">Fire bans — not switched on</div>
-    <div class="blocked">
+  return box('Fire bans — not switched on', '',
+    `<div class="blocked">
       <b>What to do</b>
       <p class="todo">${esc(d.fire.todo)}</p>
       <p>${esc(d.fire.why)}</p>
@@ -4205,7 +4239,7 @@ function fireBlock(d){
         districts, so there can never be one site-wide answer. Nothing is fetched
         while this is blocked — a parser built against an empty endpoint is how a
         source reads green while returning nothing.</p>
-    </div>`;
+    </div>`);
 }
 
 function footNote(d){
