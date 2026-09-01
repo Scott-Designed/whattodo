@@ -357,7 +357,8 @@ const PLACE_TYPES=['beach','surfing','swimming','paddling','water',
   'parks & playgrounds','camping ground','night','at-home',
   'cafe','bakery','restaurant','bar','pub','winery','brewery',
   'produce','farm life','nursery',
-  'art gallery','theatre','museum','cinema','cultural','volunteering'];
+  'art gallery','theatre','museum','cinema','cultural','volunteering',
+  'kids'];
 
 /* A type is stored lower-case and hyphenated because the database checks it
    against a vocabulary. That is the right shape for a column and the wrong one

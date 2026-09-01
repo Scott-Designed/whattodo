@@ -94,14 +94,27 @@ KIND_OF = {
   # dated types, which only ever reach an activity by mistake
   'music':'venue', 'festival':'venue', 'workshop':'group', 'comedy':'venue',
   'party':'venue', 'reading':'group',
-  # `kids` arrived with the 500 library events on 27 Aug 2026 and nothing
-  # taught this map the word, so the exhaustiveness guard exited and NOBODY
-  # SAW THE DISAGREEMENT REPORT FOR THREE DAYS — including the twelve bike-pass
-  # hand decisions, which went in unverified. It is a story-time type and
-  # reaches an activity only by mistake; a room that runs story times is a
-  # library, which is a venue.
-  'kids':'venue',
 }
+
+# `kids` arrived with the 500 library events on 27 Aug 2026 and nothing taught
+# this map the word, so the exhaustiveness guard exited and NOBODY SAW THE
+# DISAGREEMENT REPORT FOR THREE DAYS — including the twelve bike-pass hand
+# decisions, which went in unverified.
+#
+# It was filed above with the dated types on the premise that it reaches an
+# activity only by mistake: a room that runs story times is a library, which is
+# a venue. **That premise died on 31 Aug 2026**, when `kids` was added to the
+# 19 playgrounds. A playground is the clearest `spot` in the database — no
+# door, no hours, nobody owns it — and mapped to venue it outranked
+# `parks & playgrounds` on PRECEDENCE, so every one of the 19 became a
+# disagreement and `--reclassify` would have turned Jan Juc Creek Reserve
+# Playground into a venue.
+#
+# `kids` says who a thing is FOR, not what it is, so it has nothing honest to
+# vote with. It maps to the weakest kind its real rows take — spot — which
+# means it never overrides a type that does know. An indoor play centre will
+# carry `cafe` or need a BY_ID line, the same as every shop.
+KIND_OF['kids'] = 'spot'
 
 # weakest first — the last one standing wins a row with several types.
 # venue above shop is what keeps `cafe · shop` a venue: if you can sit down,
@@ -131,6 +144,11 @@ BY_ID = {
   # /running as a stockist, off the board. A shop cannot be inferred since the
   # type was retired, so this line is the only thing keeping it one.
   681: ('shop', 'The Happy Runner is a running shop, not a place you run'),
+
+  # 31 Aug 2026, Scott's ask: "add this store". `reading` is a thing you go and
+  # DO, so the rules make an independent bookshop a spot. Same shape as every
+  # shop since the type was retired — the line is the only thing keeping it one.
+  704: ('shop', 'The Book Bird sells books; `reading` is what you do with them'),
 
   # The three rows added by hand on 27 Aug 2026, all of which the rules would
   # make spots — a maker, a shop and a group whose types are all activity types

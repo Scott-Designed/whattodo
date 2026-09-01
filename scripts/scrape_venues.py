@@ -647,7 +647,12 @@ def main(argv):
     organisers = {venue_key(v['name']) for v in venues
                   if (v.get('kind_legacy') or '').lower() == 'organiser'}
     made = []
-    existing = E.db('GET', '/rest/v1/events?select=id,name,starts_on,place_id,verified,source_note')
+    # all_rows, or PostgREST caps this at 1000 and says nothing about it — and
+    # this is the duplicate check, so a short read does not fail, it silently
+    # re-offers things the database already holds. Same fault as the one in
+    # scrape_events.py; events was 502 when both were fixed, 1 Sep 2026.
+    existing = E.db('GET', '/rest/v1/events?select=id,name,starts_on,place_id,'
+                           'verified,source_note', None, None, all_rows=True)
     # Name AND date. Name alone silently swallowed every later occurrence of a
     # recurring thing: Mt Rothwell publishes "Into the Woodlands X Creatures of
     # the Night" on 12 Sep and again on 10 Oct, and the October one matched the

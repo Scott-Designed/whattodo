@@ -25,11 +25,11 @@ import crypto from 'node:crypto';
 const WRITABLE = {
   activities: new Set(['name','kind','types','tags','ages','cost','location','km','season',
     'duration','description','url','rating','notes','conditions','lat','lng',
-    'daypart','added_by','verified','source_note','place_id']),
+    'daypart','added_by','verified','source_note','place_id','published']),
   events: new Set(['name','types','starts_on','ends_on','time_text','recurrence',
     'venue','location','km','cost','ages','artist','genre','description',
     'ticket_url','info_url','conditions','date_confidence','added_by','verified',
-    'source_note','place_id']),
+    'source_note','place_id','published']),
   places: new Set(['name','suburb','address','kind','offers','aliases','website',
     'events_url','ticketing_url','facebook','instagram','lat','lng','source_note',
     'kind_legacy']),
@@ -57,8 +57,16 @@ async function db(method, path, body, extra = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-const names = async table =>
-  new Set((await db('GET', `/rest/v1/${table}?select=name`)).map(r => r.name));
+// The cache is REQUEST-scoped and passed in, never module-scoped: a warm
+// lambda would hold a vocabulary across invocations and go on refusing a type
+// that was added minutes ago. A bulk edit validates every row, so without it
+// the same three vocabularies are fetched once per row.
+const names = async (table, cache) => {
+  if (cache && cache[table]) return cache[table];
+  const set = new Set((await db('GET', `/rest/v1/${table}?select=name`)).map(r => r.name));
+  if (cache) cache[table] = set;
+  return set;
+};
 
 // ── is it you ─────────────────────────────────────────────────────────────
 // Digest both sides first: timingSafeEqual throws on a length mismatch, which
@@ -72,7 +80,7 @@ function passwordOk(given) {
 
 // ── the rules ─────────────────────────────────────────────────────────────
 // Returns a list of complaints. Empty means the patch may be written.
-async function complaints(table, patch, current) {
+async function complaints(table, patch, current, cache = null) {
   const bad = [];
   const has = f => Object.prototype.hasOwnProperty.call(patch, f);
   const val = f => (has(f) ? patch[f] : current?.[f]);
@@ -90,7 +98,7 @@ async function complaints(table, patch, current) {
     if (!Array.isArray(patch.types)) {
       bad.push('types must be a list, even for one type');
     } else {
-      const types = await names('types');
+      const types = await names('types', cache);
       for (const t of patch.types)
         if (!types.has(t)) bad.push(`type '${t}' is not one of the ${types.size} allowed`);
     }
@@ -101,11 +109,11 @@ async function complaints(table, patch, current) {
   // group, maker, idea). Same word, two vocabularies, one of which would
   // silently accept the other's values if this checked only one.
   if (table === 'places' && has('kind') && patch.kind !== null) {
-    const kinds = await names('place_kinds');
+    const kinds = await names('place_kinds', cache);
     if (!kinds.has(patch.kind)) bad.push(`kind '${patch.kind}' is not a place kind`);
   }
   if (table === 'activities' && has('kind') && patch.kind !== null) {
-    const kinds = await names('kinds');
+    const kinds = await names('kinds', cache);
     if (!kinds.has(patch.kind))
       bad.push(`kind '${patch.kind}' is not a listing kind`);
     if (patch.kind === 'happening')
@@ -245,7 +253,7 @@ export default async function handler(req, res) {
       message: 'Set ADMIN_PASSWORD in the Vercel project to enable editing.'});
 
   const {password, action = 'check', table, id, ids, patch = {}, row: payload,
-         force = false} = req.body || {};
+         add = null, remove = null, force = false} = req.body || {};
   // Either proof is enough: the password in the body, or the signed cookie the
   // /admin gate set when it was given the password. One login should not have
   // to be performed twice, and the cookie is HttpOnly, so it is the stronger
@@ -527,6 +535,59 @@ export default async function handler(req, res) {
     return res.status(200).json({ok: true, verified: done.length});
   }
 
+  // ── put rows on the board, or take them off ─────────────────────────────
+  // `published` is NOT `verified` and the difference is the point. Verified says
+  // somebody established this is true — and since 28 Aug 2026 a scraper can set
+  // it itself when four mechanical checks pass. Published says a PERSON decided
+  // this belongs on the board, which no check can decide and no scraper may set
+  // to true. A source can hand its rows in unpublished; only this endpoint,
+  // behind the password, ever releases them.
+  //
+  // Batched for the same reason verify is: a feed arrives as a hundred things
+  // and reviewing them is one gesture, not a hundred round trips.
+  if (action === 'publish') {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY)
+      return res.status(501).json({error: 'not_configured'});
+    if (!['activities', 'events'].includes(table))
+      return res.status(400).json({error: 'bad_table',
+        message: 'publish works on activities or events'});
+    const list = (Array.isArray(ids) ? ids : []).map(Number)
+      .filter(n => Number.isInteger(n) && n > 0);
+    if (!list.length)      return res.status(400).json({error: 'no_ids'});
+    if (list.length > 600) return res.status(400).json({error: 'too_many',
+      message: 'publish at most 600 rows at a time'});
+
+    // `on` is explicit rather than a toggle: a toggle over a batch would flip
+    // rows in both directions at once, and "publish these" has to mean one thing.
+    const on = req.body?.on !== false;
+    const inList = `(${list.join(',')})`;
+
+    if (on) {
+      // The same bar `verify` sets, and for the same reason: putting a row in
+      // front of readers with nothing recording where it came from is how this
+      // database filled up with facts nobody can check. A date is the other
+      // half — an event with no starts_on cannot be placed on a board that is
+      // sorted by when things are on.
+      const cols = table === 'events' ? 'id,name,source_note,starts_on'
+                                      : 'id,name,source_note';
+      const rows = await db('GET', `/rest/v1/${table}?select=${cols}&id=in.${inList}`);
+      const bare = rows.filter(r => !String(r.source_note || '').trim());
+      if (bare.length) return res.status(400).json({error: 'no_source_note',
+        message: `${bare.length} row(s) have no source_note — publishing those ` +
+                 `would put something on the site with nothing saying where it came from.`,
+        names: bare.slice(0, 5).map(r => r.name)});
+      const undated = table === 'events' ? rows.filter(r => !r.starts_on) : [];
+      if (undated.length) return res.status(400).json({error: 'no_date',
+        message: `${undated.length} event(s) have no date. Give them one or leave ` +
+                 `them held — the board is sorted by when things are on.`,
+        names: undated.slice(0, 5).map(r => r.name)});
+    }
+
+    const done = await db('PATCH', `/rest/v1/${table}?id=in.${inList}`,
+                          {published: on}, {Prefer: 'return=representation'});
+    return res.status(200).json({ok: true, published: done.length, on});
+  }
+
   // Everything past here reads or writes the database.
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY)
     return res.status(501).json({error: 'not_configured',
@@ -593,6 +654,123 @@ export default async function handler(req, res) {
                             {Prefer: 'return=representation'});
     return res.status(200).json({ok: true, row: made});
   }
+
+  /* ── bulk: one field, many rows ────────────────────────────────────────────
+     The back office could edit one row at a time and approve a whole queue at
+     once, and nothing in between — so retyping 19 playgrounds meant a terminal.
+
+     Three things make this safe enough to expose:
+
+     * ALL OR NOTHING. Every row's own patch is validated before any row is
+       written. A half-applied bulk edit is the worst outcome available here:
+       you cannot see which half it got to, and `add`/`remove` are not
+       idempotent to re-run against a partly-changed set.
+     * A TYPE IS APPENDED, NEVER INSERTED. types[0] is the primary — the word
+       the row prints, the icon it draws, the colour it tints — and this
+       endpoint has already been the thing that silently re-ordered 215 rows'
+       types once. `add` puts the new type on the END. `remove` is the only
+       operation that may change a primary, and only by taking it away, which
+       is the single thing removing it can mean.
+     * IT SHARES complaints(). Every rule the one-row editor enforces — the
+       vocabularies, the maker's source_note, verified-needs-a-source_note —
+       runs per row against that row's own current values.
+
+     Capped at 200. Higher is a script's job, where a dry run exists. */
+  // Both of these touch the database, so they take the same failure shape as
+  // the one-row paths below: a thrown query comes back as JSON the page can
+  // read rather than a 500 with no body.
+  if (action === 'bulk' || action === 'delete_many') try {
+    if (action === 'bulk') {
+      const list = (Array.isArray(ids) ? ids : []).map(Number)
+        .filter(n => Number.isInteger(n) && n > 0);
+      if (!list.length)      return res.status(400).json({error: 'no_ids'});
+      if (list.length > 200) return res.status(400).json({error: 'too_many',
+        message: 'bulk edit at most 200 rows at a time'});
+
+      const body  = clean(patch);
+      const addT  = typeof add    === 'string' && add    ? add    : null;
+      const remT  = typeof remove === 'string' && remove ? remove : null;
+      if (!Object.keys(body).length && !addT && !remT)
+        return res.status(400).json({error: 'empty_patch'});
+      if (table === 'places' && (addT || remT))
+        return res.status(400).json({error: 'invalid',
+          complaints: ['places have no types — that column is on activities and events']});
+      if (Object.prototype.hasOwnProperty.call(body, 'types'))
+        return res.status(400).json({error: 'invalid',
+          complaints: ['set types one row at a time, or use add/remove — writing the ' +
+                       'whole list over many rows would give them all one primary']});
+
+      const inList = `(${list.join(',')})`;
+      const rows = await db('GET', `/rest/v1/${table}?select=*&id=in.${inList}`);
+      if (rows.length !== list.length)
+        return res.status(404).json({error: 'no_such_row',
+          message: `asked for ${list.length} rows in ${table} and found ${rows.length}`});
+
+      const cache = {};
+      const plan  = [];
+      for (const r of rows) {
+        const one = {...body};
+        if (addT || remT) {
+          let types = Array.isArray(r.types) ? [...r.types] : [];
+          if (remT) types = types.filter(x => x !== remT);
+          if (addT && !types.includes(addT)) types.push(addT);
+          if (JSON.stringify(types) !== JSON.stringify(r.types || [])) one.types = types;
+        }
+        if (!Object.keys(one).length) continue;         // this row is already there
+        const bad = await complaints(table, one, r, cache);
+        if (bad.length) return res.status(400).json({error: 'invalid',
+          complaints: bad.slice(0, 4).map(b => `${r.name}: ${b}`)});
+        plan.push([r.id, one]);
+      }
+      if (!plan.length) return res.status(200).json({ok: true, changed: 0, rows: []});
+
+      // Rows sharing a patch go in one request. With no array operation that is
+      // every row in a single PATCH; with one it is usually two or three groups,
+      // which is what keeps 200 rows inside a function's timeout.
+      const groups = new Map();
+      for (const [rid, one] of plan) {
+        const k = JSON.stringify(one);
+        if (!groups.has(k)) groups.set(k, {one, ids: []});
+        groups.get(k).ids.push(rid);
+      }
+      const out = [];
+      for (const g of groups.values())
+        out.push(...await db('PATCH', `/rest/v1/${table}?id=in.(${g.ids.join(',')})`,
+                             g.one, {Prefer: 'return=representation'}));
+      return res.status(200).json({ok: true, changed: out.length, rows: out});
+    }
+
+    /* ── delete_many ───────────────────────────────────────────────────────────
+       The same guard the one-row delete has, counted: a verified row is one a
+       person vouched for, so a selection containing any of them takes a second,
+       deliberate press. `places` has no `verified` column, so it is never asked
+       for one — selecting it there would 400 on the read and read as a bug. */
+    if (action === 'delete_many') {
+      const list = (Array.isArray(ids) ? ids : []).map(Number)
+        .filter(n => Number.isInteger(n) && n > 0);
+      if (!list.length)      return res.status(400).json({error: 'no_ids'});
+      if (list.length > 200) return res.status(400).json({error: 'too_many',
+        message: 'delete at most 200 rows at a time'});
+
+      const inList = `(${list.join(',')})`;
+      const cols = table === 'places' ? 'id,name' : 'id,name,verified';
+      const rows = await db('GET', `/rest/v1/${table}?select=${cols}&id=in.${inList}`);
+      if (!rows.length) return res.status(404).json({error: 'no_such_row'});
+
+      const vouched = rows.filter(r => r.verified);
+      if (vouched.length && !force)
+        return res.status(409).json({error: 'verified',
+          message: `${vouched.length} of ${rows.length} are verified — somebody ` +
+                   `vouched for those. Deleting them needs a confirm.`,
+          names: vouched.slice(0, 5).map(r => r.name)});
+
+      await db('DELETE', `/rest/v1/${table}?id=in.${inList}`);
+      return res.status(200).json({ok: true, deleted: rows.length});
+    }
+  } catch (e) {
+    return res.status(500).json({error: 'failed', detail: String(e).slice(0, 300)});
+  }
+
 
   const rowId = Number(id);
   if (!Number.isInteger(rowId) || rowId <= 0)

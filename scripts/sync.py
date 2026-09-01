@@ -218,6 +218,13 @@ URL_FIELDS    = ('url','ticket_url','info_url')
 # table to check against, so the list lives here — five words, and the sentence
 # about when a season actually runs goes in `notes` where it can be read.
 SEASONS       = {'any','spring','summer','autumn','winter'}
+# `ages` is a text[] too, and these five are every value in the two tables. It
+# had no check, so the 31 Aug 2026 inbox pull wrote ages "6-12" — a published
+# range, which is a perfectly sensible thing to write and not a value — and got
+# a raw Postgres 22P02 AFTER three rows of the batch were already in. Exactly
+# the failure the `season` check above was added for, in a different column.
+# A published range goes in the description; this column says who it is for.
+AGES          = {'all-ages','adults','teens','kids','toddler'}
 
 def vocab(table):
     return {r['name'] for r in req('GET', f'/rest/v1/{table}?select=name')}
@@ -306,6 +313,16 @@ def check(row, i, types, conds, kinds, places=None):
     # a raw Postgres 22P02 malformed-array-literal — AFTER three rows of the batch
     # had already been written. A validation error costs nothing; a write error
     # halfway through a batch leaves the database in a state nobody chose.
+    if 'ages' in row:
+        if isinstance(row['ages'], str):
+            bad.append(f"{where}: ages must be a list of {sorted(AGES)} — "
+                       f"write [\"kids\"], not \"{row['ages']}\". A published age range "
+                       f"like 6-12 belongs in the description.")
+        else:
+            for av in (row['ages'] or []):
+                if av not in AGES:
+                    bad.append(f"{where}: age '{av}' is not one of {sorted(AGES)} — "
+                               f"a published range belongs in the description")
     if 'season' in row:
         if isinstance(row['season'], str):
             bad.append(f"{where}: season must be a list of {sorted(SEASONS)} — "

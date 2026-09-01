@@ -222,6 +222,33 @@ th{text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.1em;
 td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule);vertical-align:top}
 tr.clickable{cursor:pointer}
 tr.clickable:hover td{background:var(--surface)}
+/* ── picking rows ──
+   A checkbox in the first cell of every data table, invisible until the row is
+   hovered, so a table you are only reading is still a table. The cell is
+   always in the DOM at full width — a column that appeared on hover would
+   shift ten others sideways every time the mouse moved.
+   Once anything IS picked, every box shows: a selection whose extent you
+   cannot see is worse than no selection, and the next thing you do to it is
+   a delete. */
+th.pick,td.pick{width:24px;padding-right:0}
+td.pick{vertical-align:middle}
+th.pick input,td.pick input{margin:0;display:block;cursor:pointer;
+  accent-color:var(--ink);opacity:0;transition:opacity .12s}
+tr:hover td.pick input, th.pick:hover input,
+tr.picked td.pick input,
+body.picking td.pick input, body.picking th.pick input{opacity:1}
+tr.picked td{background:var(--surface)}
+/* Fixed, not sticky: the bar belongs to the selection, and the table it was
+   made in may well have been scrolled past. */
+#pickbar{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:55;
+  display:none;align-items:center;gap:13px;padding:10px 12px 10px 17px;
+  border-radius:13px;background:var(--ground);border:1px solid var(--rule2);
+  box-shadow:0 8px 26px rgba(0,0,0,.24);
+  font-family:var(--util);font-size:13px;color:var(--ink2)}
+#pickbar.on{display:flex}
+#pickbar b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+#pickbar .btn{padding:7px 14px}
+#pickbar .off{color:var(--ink3);font-size:12px}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
 pre.out{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
   line-height:1.5;background:var(--surface);border:1px solid var(--rule);
@@ -596,6 +623,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 
 </div>
 <div id="editor"></div>
+<div id="pickbar"></div>
 
 <!-- The site's own vocabulary: suburbOf, townOf, typeLabel. Loaded rather than
      reimplemented, because a back office that disagreed with the board about
@@ -670,6 +698,138 @@ const mapsSearch = u => {
   return !!q && !/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(decodeURIComponent(q[1]));
 };
 
+/* ── the same thing, arriving twice ─────────────────────────────────────────
+   Two sources carry the same event and neither scraper can see the other's
+   work. `scrape_library.py` only ever read its own `added_by=grlc` rows, which
+   is how "Holly Ringland - The World Beneath Her Feet" landed twice on 17 Sep
+   — once from TryBooking as place 143, once from the iCal feed as place 128,
+   and 143 is a room INSIDE 128.
+
+   Every pair sharing a name AND a date, measured over all 562 events before
+   this was written, because a flag that is mostly wrong is worse than no flag:
+
+     cross-source                       1   Holly Ringland, and correct
+     same place + same time             0   nothing here is a true clone
+     one side's venue unlinked          0   possible, has not happened yet
+     same time, another place          53   one story time at five branches
+     same place, another time          57   library booking slots, 20 min apart
+     another place, another time       72   branches again
+
+   THE LAST THREE ARE NOT FLAGGED. Scott's question was "why does same day,
+   another place matter?" and the answer is that it doesn't: it is the library
+   publishing one session at five branches, and the board already clusters
+   those into a single line. Flagging them put 93 rows on a worklist to fix one.
+
+   What DOES matter is a pair that could not both be true — the same room at
+   the same time — and, his own case, "the scraper might not find the venue ID
+   and just put it in open text", where two rows read as different places only
+   because one of them was never linked. Both are zero today. They are states
+   worth watching for rather than a backlog, which is why they are in here.
+
+   NOTHING HERE EVER BLOCKS OR DELETES. Dropping a row on a name match is what
+   swallowed every later night of a recurring gig in scrape_venues.py, and two
+   rows disagreeing is a better bug report than one row quietly missing. */
+const dupeName = s => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+
+/* One name contained in the other counts, so "FINAL TICKETS Spiderbait – Ivy
+   & The Big Apples" matches "Spiderbait – Ivy & The Big Apples". The 12-char
+   floor is what stops "Quiz" matching every name with a quiz in it. */
+const sameThing = (x, y) => {
+  if (!x || !y) return false;
+  if (x === y) return true;
+  const [lo, hi] = x.length < y.length ? [x, y] : [y, x];
+  return lo.length >= 12 && hi.includes(lo);
+};
+
+/* Where a row really is. A linked place is the answer; a row the scraper could
+   not resolve carries its venue as free text, and that text is matched against
+   the same registry scrape_venues.py builds — every place's name plus every
+   alias. A trailing suburb is what usually stops a match ("Blackman's Brewery,
+   Torquay" against a row called "Blackmans Brewery"), so each comma-separated
+   part is tried on its own too.
+
+   Only 2 of the 32 unlinked events resolve this way today; the other 30 name
+   no single place you can stand at — "Torquay", "Surf Coast Shire", "Various
+   venues" — and are deliberately unlinked. That is the point: a null here
+   means WE CANNOT TELL, which is a reason to ask a person, not to stay quiet. */
+let PLACEKEY = new Map();
+function indexPlaces(){
+  PLACEKEY = new Map();
+  for (const p of DATA.places){
+    const put = s => { const k = dupeName(s); if (k && !PLACEKEY.has(k)) PLACEKEY.set(k, p.id); };
+    put(p.name); (p.aliases || []).forEach(put);
+  }
+}
+function placeOf(e){
+  if (e.place_id) return e.place_id;
+  const v = e.venue || '';
+  if (PLACEKEY.has(dupeName(v))) return PLACEKEY.get(dupeName(v));
+  for (const part of v.split(',')){
+    const k = dupeName(part);
+    if (PLACEKEY.has(k)) return PLACEKEY.get(k);
+  }
+  return null;
+}
+
+/* Strongest first — this order is what the Already-have column prints and
+   what the chip tests for. */
+const DUP_RANK = ['clone', 'source', 'unsure', 'date'];
+const DUP_SAYS = {
+  clone:  'same place, same time',
+  source: 'also from another source',
+  unsure: 'same day, venue not linked',
+  date:   'same name, another date',
+};
+function dupeHow(a, b){
+  if (!a.starts_on || !b.starts_on) return null;
+  // Same name, same room, another day is a SERIES running again — the six Kids
+  // Baking Class sessions at Paddock Bakery, the Makers Room induction every
+  // Thursday. Never a duplicate. A DIFFERENT room on another day is still
+  // printed, because that is the Diesel case: one act, two venues, two nights,
+  // and only a person can call it.
+  if (a.starts_on !== b.starts_on)
+    return (a.place_id && a.place_id === b.place_id) ? null : 'date';
+  const pa = placeOf(a), pb = placeOf(b);
+  // Two rows that could not both be true.
+  if (pa && pb && pa === pb && a.time_text && a.time_text === b.time_text)
+    return 'clone';
+  if ((a.added_by || '') !== (b.added_by || '')) return 'source';
+  // We cannot prove these are different rooms, because at least one of them
+  // was never linked to a place. This is the case Scott named.
+  if (!pa || !pb) return 'unsure';
+  // Two linked places, and they differ: five branches, one story time. Real.
+  return null;
+}
+
+/* id -> [{row, how}], strongest first. Rebuilt by redrawAll, so approving or
+   editing a row re-answers the question rather than leaving a stale badge.
+
+   The pass is O(n²) on purpose: containment cannot be bucketed by a hash the
+   way an exact match can, and at 562 events the whole thing is a few
+   milliseconds because the normalising happens once per row rather than once
+   per pair. If `events` ever reaches five figures, bucket by date first — the
+   chip only ever cares about same-day matches. */
+let DUPES = new Map();
+function indexDupes(){
+  indexPlaces();
+  DUPES = new Map();
+  const rows = DATA.events.map(r => ({r, n: dupeName(r.name)})).filter(x => x.n);
+  for (let i = 0; i < rows.length; i++){
+    for (let j = i + 1; j < rows.length; j++){
+      if (!sameThing(rows[i].n, rows[j].n)) continue;
+      const how = dupeHow(rows[i].r, rows[j].r);
+      if (!how) continue;
+      if (!DUPES.has(rows[i].r.id)) DUPES.set(rows[i].r.id, []);
+      if (!DUPES.has(rows[j].r.id)) DUPES.set(rows[j].r.id, []);
+      DUPES.get(rows[i].r.id).push({row: rows[j].r, how});
+      DUPES.get(rows[j].r.id).push({row: rows[i].r, how});
+    }
+  }
+  for (const list of DUPES.values())
+    list.sort((a, b) => DUP_RANK.indexOf(a.how) - DUP_RANK.indexOf(b.how));
+}
+const dupesOf = r => DUPES.get(r.id) || [];
+
 /* `km` is deliberately NOT a flag. Distance is left null on every import until
    there is a way to compute a driving distance, which is a standing decision
    rather than an omission — flagging it put "no distance 643" at the head of
@@ -685,6 +845,10 @@ function flagsFor(r, kind){
     if (!r.info_url && !r.ticket_url)                f.push('no link');
     if (!r.verified)                                 f.push('unverified');
     if (!r.starts_on)                                f.push('no date');
+    // Everything except `date`, which is a tour or a series and is information
+    // rather than a fault. The branch matches never reach here at all — see
+    // the measurement above dupeName().
+    if (dupesOf(r).some(d => d.how !== 'date'))       f.push('duplicate?');
   } else {
     const home = (r.types || []).includes('at-home');
     if (!home && (r.lat === null || r.lng === null))  f.push('no pin');
@@ -1118,9 +1282,9 @@ const AGGREGATORS = [
    note:'Needs EVENTBRITE_TOKEN in the GitHub Action. Without a valid one every organiser answers 401 and the source reads perfectly while importing nothing — which is what \u201Cerror\u201D in the status means here. The organiser page is what gets registered, never a single /e/ link, and the venue comes off each event\u2019s own location rather than from whoever sells the tickets.'},
   {name:'Coast & Bay', host:null, src:'coastandbay.com.au',
    what:'Local publication — its “what’s on this weekend” page',
-   how:'WordPress with The Events Calendar — CONFIRMED 28 Aug 2026 by the Test-this-source button, which got a JSON feed back with the same field shape surfcoastevents has. It is the second real feed this project has found.',
-   auto:'none',
-   note:'Two things stand in the way. The check needs one request that CANNOT come from a Claude session — coastandbay.com.au names ClaudeBot and disallows the whole site, exactly like Humanitix, so a person or the Action has to run it: curl -s "https://coastandbay.com.au/wp-json/tribe/events/v1/events?per_page=3". And scrape_events.py is hardwired to one source — the URL, the provenance note, the added_by, the drift regex and the slug-keyed seen ledger all say surfcoastevents — so a second site is a refactor, not a config line. Slugs would collide across sites; the ledger needs keying by source too.'},
+   how:'WordPress with The Events Calendar, on the same JSON API path as Surf Coast Events — confirmed 28 Aug 2026 by the Test-this-source button, automated 1 Sep 2026. One parser reads both; a source is a row in SOURCES in scrape_events.py.',
+   auto:'full',
+   note:'On the Mon/Thu schedule since 1 Sep 2026. Making the scraper carry two feeds was not a config line — the provenance note, added_by, the regex that finds a row\u2019s own slug again and the seen ledger were all written as if there could only be one. The ledger was the sharp one: keyed on SLUG ALONE, so a series called spring-market on both sites would have been read, matched against the other\u2019s entry, and silently never offered. Keys are <site>/<slug> now. The other thing to watch is overlap — this is a Surf Coast publication, so it carries the same markets and festivals as the shire\u2019s own calendar; a thing on both is kept ONCE, matched on name, with the loser written into the winner\u2019s source_note, and the run prints them under CARRIED BY MORE THAN ONE SOURCE. Note a Claude session still cannot read this site: coastandbay.com.au names ClaudeBot and disallows the whole domain, exactly like Humanitix, so the run has to come from the Action or a terminal. robots.txt is checked per source before every fetch rather than left as a note somebody has to remember.'},
   {name:'Geelong Regional Libraries', host:null, src:'events.grlc.vic.gov.au',
    what:'Every GRLC branch — one calendar feed',
    how:'Reads the iCal feed, not the RSS — iCal alone carries LOCATION and GEO, so every event knows its branch and arrives with the library\u2019s own published pin. Repeating sessions are collapsed on the way in: one row with a recurrence, not one row per occurrence.',
@@ -1766,6 +1930,33 @@ function reviewRows(){
 const clock = ts => new Date(ts).toLocaleTimeString('en-AU',
   {timeZone: 'Australia/Melbourne', hour: 'numeric', minute: '2-digit'}).toLowerCase();
 
+/* What we already hold under this name, for the row you are about to approve.
+   Blank for nearly everything, which is the point — the column earns its width
+   by being empty until it isn't. `source` is red because a second source
+   carrying the same night is a real duplicate; the rest is amber or grey
+   because it is usually a tour, a series, or the same session at another
+   branch, and only a person can tell those apart. Activities have no dates, so
+   they get nothing rather than a match nobody could act on. */
+function dupeCell(r){
+  if (r.__t !== 'events') return '';
+  const hits = dupesOf(r);
+  if (!hits.length) return '';
+  const top  = hits[0];
+  const col  = top.how === 'date'  ? 'var(--ink3)'
+             : top.how === 'unsure' ? 'var(--accent)' : 'var(--bad)';
+  const where = p => (DATA.places.find(x => x.id === p.place_id) || {}).name
+                     || p.venue || p.added_by || '';
+  // Every match on the tooltip, so a row with five of them hides none of them.
+  const all = hits.map(h => `${DUP_SAYS[h.how]} — #${h.row.id} ${dmy(h.row.starts_on)
+                             } ${where(h.row)} (${h.row.added_by || 'by hand'})`).join('\n');
+  return `<span title="${esc(all)}">
+      <a href="#" data-dup="${top.row.id}" style="color:${col};text-decoration:none;border-bottom:1px dotted"
+        >${esc(DUP_SAYS[top.how])}</a>
+      <br><span style="color:var(--ink3);font-size:11px">#${top.row.id} · ${
+        esc(dmy(top.row.starts_on))} · ${esc(where(top.row))}${
+        hits.length > 1 ? ` · +${hits.length - 1} more` : ''}</span></span>`;
+}
+
 function drawReview(){
   const all = reviewRows();
   $('#t-review').textContent = all.length || '';
@@ -1800,7 +1991,7 @@ function drawReview(){
           data-approve="${esc(src)}">Approve all ${rows.length}</button>
       </h3>
       <div style="overflow-x:auto"><table><thead><tr>
-        <th>Name</th><th>Type</th><th>When</th><th>Town</th><th>Submitted</th><th></th>
+        <th>Name</th><th>Type</th><th>When</th><th>Town</th><th>Already have</th><th>Submitted</th><th></th>
       </tr></thead><tbody>${rows.slice(0, 400).map(r => {
         const place = DATA.places.find(p => p.id === r.place_id);
         const venue = place?.name || r.venue || '';
@@ -1823,6 +2014,7 @@ function drawReview(){
               ${past ? '<br><span style="font-size:11px">in the past</span>' : ''}</td>
           <td><b style="font-weight:500">${esc(town || '—')}</b>
               ${venue && venue !== town ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(venue)}</span>` : ''}</td>
+          <td class="cap" style="max-width:22ch">${dupeCell(r)}</td>
           <td style="white-space:nowrap">${r.created_at
                 ? `${esc(dmy(r.created_at.slice(0, 10)))}<br><span style="color:var(--ink3);font-size:11px">${
                     esc(clock(r.created_at))}</span>`
@@ -1851,6 +2043,10 @@ function drawReview(){
     // singular form wired the name and left the new button dead.
     tr.querySelectorAll('[data-open]').forEach(el =>
       el.onclick = () => openEditor(t, DATA[t].find(x => x.id === id)));
+    tr.querySelectorAll('[data-dup]').forEach(el => el.onclick = ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      openEditor('events', DATA.events.find(x => x.id === +el.dataset.dup));
+    });
     tr.querySelector('[data-ok]').onclick   = () => approve(t, [id]);
     tr.querySelector('[data-no]').onclick   = () => rejectRow(t, id);
   });
@@ -1964,10 +2160,11 @@ function drawEvents(){
   }[EFILTER.sort]);
 
   $('#t-events').textContent = DATA.events.length;
-  if (!out.length){ $('#elist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
+  if (!out.length){ $('#elist').innerHTML = '<p class="empty">Nothing matches.</p>';
+    wirePick('#elist', 'events', 'events'); return; }
 
   $('#elist').innerHTML = `<table><thead><tr>
-      <th>Name</th><th>Type</th><th>When</th><th>Time</th><th>How often</th>
+      ${pickHead()}<th>Name</th><th>Type</th><th>When</th><th>Time</th><th>How often</th>
       <th>Venue</th><th>Town</th><th>Source</th><th>Link</th><th></th>
     </tr></thead><tbody>${out.map(r => {
       const place = DATA.places.find(p => p.id === r.place_id);
@@ -1978,6 +2175,7 @@ function drawEvents(){
       const town = place?.suburb || townOf(r.location) || '';
       const venue = place?.name || r.venue || '';
       return `<tr class="clickable" data-id="${r.id}">
+        ${pickCell(r.id)}
         <td title="${esc(r.name)}"><div class="rowname">${esc(r.name)}</div></td>
         <td class="cap" title="${esc((r.types || []).join(' · '))}">${esc((r.types || []).join(' · ') || '—')}</td>
         <td${past ? ' style="color:var(--ink3)"' : ''} style="white-space:nowrap">${esc(dmy(r.starts_on) || '—')}</td>
@@ -2003,6 +2201,7 @@ function drawEvents(){
     }).join('')}</tbody></table>`;
   $('#elist').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
     openEditor('events', DATA.events.find(x => x.id === +tr.dataset.id)));
+  wirePick('#elist', 'events', 'events');
 }
 
 /* ── activities: the evergreen half ────────────────────────────────────────*/
@@ -2031,7 +2230,8 @@ function drawActivities(){
   }[AFILTER.sort]);
 
   $('#t-activities').textContent = DATA.activities.length;
-  if (!out.length){ $('#alist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
+  if (!out.length){ $('#alist').innerHTML = '<p class="empty">Nothing matches.</p>';
+    wirePick('#alist', 'activities', 'activities'); return; }
 
   /* The Listings tabs each pick one kind, so a Kind column on them says
      "venue" 315 times — the badge-that-repeats-its-own-row rule, as a whole
@@ -2043,10 +2243,11 @@ function drawActivities(){
      question with no possible answer, which is worse than a blank column. */
   const showPlace = AFILTER.kind !== 'idea';
   $('#alist').innerHTML = `<table><thead><tr>
-      <th>Name</th>${showKind ? '<th>Kind</th>' : ''}<th>Type</th><th>Where</th>
+      ${pickHead()}<th>Name</th>${showKind ? '<th>Kind</th>' : ''}<th>Type</th><th>Where</th>
 ${showPlace ? '<th>Location</th><th>Events</th>' : ''}<th>Km</th><th>Pinned</th><th>Cost</th><th>To fix</th><th></th>
     </tr></thead><tbody>${out.map(r => `
       <tr class="clickable" data-id="${r.id}">
+        ${pickCell(r.id)}
         <td class="cap wide" title="${esc(r.name)}"><div class="rowname">${esc(r.name)}</div></td>
         ${showKind ? `<td>${r.kind ? esc(r.kind) : '<span style="color:var(--ink3)">—</span>'}</td>` : ''}
         <td class="cap" title="${esc((r.types || []).join(' · '))}">${esc((r.types || []).join(' · ') || '—')}</td>
@@ -2088,6 +2289,7 @@ ${showPlace ? '<th>Location</th><th>Events</th>' : ''}<th>Km</th><th>Pinned</th>
     e.preventDefault(); e.stopPropagation();
     openEditor('places', DATA.places.find(x => x.id === +a.dataset.place));
   });
+  wirePick('#alist', 'activities', 'activities');
 }
 
 /* `ago` stops at days, which is right for a run and useless for a venue: the
@@ -2275,7 +2477,8 @@ function drawGroups(){
   const list = DATA.places.filter(isGroup)
     .sort((a, b) => a.name.localeCompare(b.name));
   $('#t-groups').textContent = list.length || '';
-  if (!list.length){ $('#glist').innerHTML = '<p class="empty">No groups yet.</p>'; return; }
+  if (!list.length){ $('#glist').innerHTML = '<p class="empty">No groups yet.</p>';
+    wirePick('#glist', 'groups', 'places'); return; }
 
   // sourceRows(), not SRC_LIST — that holds only the 8 aggregators since the
   // venue list came off the Automations tab. Same call the Places tab makes, so
@@ -2283,7 +2486,7 @@ function drawGroups(){
   const srcByName = {};
   for (const r of sourceRows()) if (r.kind === 'venue') srcByName[r.name] = r;
   $('#glist').innerHTML = `<div style="overflow-x:auto"><table><thead><tr>
-      <th>Group</th><th>Kind</th><th>Town</th><th>Automation</th>
+      ${pickHead()}<th>Group</th><th>Kind</th><th>Town</th><th>Automation</th>
       <th>Last added</th><th>Link</th><th>Events</th><th></th>
     </tr></thead><tbody>${list.map(p => {
       const s  = srcByName[p.name] || {};
@@ -2296,7 +2499,8 @@ function drawGroups(){
       const u = p.events_url || p.ticketing_url || p.website || p.facebook;
       // The same automation renderer the Places tab uses, so the two can never
       // disagree about whether a source is reading.
-      return `<tr>
+      return `<tr data-id="${p.id}">
+        ${pickCell(p.id)}
         <td class="cap wide"><a href="#" class="rowname" data-edit="${p.id}">${esc(p.name)}</a></td>
         <td>${esc(p.kind || '—')}</td>
         <td>${esc(p.suburb || '—')}</td>
@@ -2320,6 +2524,9 @@ function drawGroups(){
     e.preventDefault();
     openEditor('places', DATA.places.find(x => x.id === +a.dataset.edit));
   });
+  // The view is `groups` and the table is `places`: the selection is cleared
+  // when you cross to Locations, but a write goes to the table that holds them.
+  wirePick('#glist', 'groups', 'places');
 }
 
 function drawPlaces(){
@@ -2385,9 +2592,10 @@ function drawPlaces(){
   if ($('#quietbtn')) $('#quietbtn').onclick = () => {
     PFILTER.showQuiet = !PFILTER.showQuiet; drawPlaces();
   };
-  if (!list.length){ $('#plist').innerHTML = '<p class="empty">Nothing matches.</p>'; return; }
+  if (!list.length){ $('#plist').innerHTML = '<p class="empty">Nothing matches.</p>';
+    wirePick('#plist', 'places', 'places'); return; }
   $('#plist').innerHTML = `<table><thead><tr>
-      <th>Venue</th><th>Kind</th><th>Town</th><th>Automation</th>
+      ${pickHead()}<th>Venue</th><th>Kind</th><th>Town</th><th>Automation</th>
       <th>Last added</th><th>Link</th><th>Events</th><th>Pinned</th><th></th>
     </tr></thead><tbody>${list.map(p => {
       const s  = srcByName[p.name] || {};
@@ -2399,6 +2607,7 @@ function drawPlaces(){
         .map(x => x.created_at).filter(Boolean).sort();
       const lastAdded = stamps[stamps.length - 1] || null;
       return `<tr class="clickable" data-id="${p.id}">
+        ${pickCell(p.id)}
         <td><div class="rowname">${esc(p.name)}</div>
 </td>
         <td>${esc(p.kind || '—')}</td>
@@ -2434,9 +2643,265 @@ function drawPlaces(){
     }).join('')}</tbody></table>`;
   $('#plist').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
     openEditor('places', DATA.places.find(x => x.id === +tr.dataset.id)));
+  wirePick('#plist', 'places', 'places');
 }
 
 /* ── the editor ────────────────────────────────────────────────────────────*/
+/* ── picking rows: batch edit and batch delete ─────────────────────────────
+   Scott, 31 Aug 2026. The back office could edit one row and approve a whole
+   queue, and nothing in between — so retyping nineteen playgrounds meant a
+   terminal and the service key.
+
+   The checkbox is a cell in every data table and is invisible until the row is
+   hovered; the CSS note says why it is a permanent cell rather than one that
+   appears. Four tables share it, which is the point — `automationCell()` and
+   `evState()` are here for the same reason, and two copies of a selection
+   would be two selections.
+
+   A row the filter has hidden STAYS PICKED. Narrowing a search must not
+   quietly drop things out of a set you are about to delete, so the bar counts
+   what is off screen and says so out loud instead.
+
+   The identity is the VIEW, not the table: Groups and Locations are both
+   `places`, and a selection made among the groups has no business surviving
+   into a table that deliberately excludes them. */
+let PICK = {view:'', table:'', sel:'', ids:new Set(), last:null};
+
+const PICK_NOUN = {events:'event', activities:'listing',
+                   places:'location', groups:'group'};
+
+const pickHead = () => '<th class="pick"><input type="checkbox" class="pickall"></th>';
+const pickCell = id => `<td class="pick"><input type="checkbox" data-pick="${id}"></td>`;
+
+/* Called at the end of every draw: the table has just been rebuilt from
+   scratch, so the boxes have to be re-ticked from PICK and re-wired. */
+/* Point the selection at one table, dropping anything picked in another.
+   It has to run from the CLICK as well as from the draw: every table is in the
+   DOM at once, so a box in Locations still carries a live handler while
+   Listings is the view — and without this the first click over there added to
+   the old selection and was then wiped by the guard that noticed. */
+function focusPick(sel, view, table){
+  if (PICK.view !== view && PICK.ids.size) clearPick();
+  PICK.view = view; PICK.table = table; PICK.sel = sel;
+}
+
+function wirePick(sel, view, table){
+  const root = $(sel);
+  if (!root) return;
+  focusPick(sel, view, table);
+
+  const boxes = [...root.querySelectorAll('input[data-pick]')];
+  boxes.forEach(b => {
+    const id = +b.dataset.pick;
+    b.checked = PICK.ids.has(id);
+    b.closest('tr').classList.toggle('picked', b.checked);
+    // The checkbox sits inside a row whose own click opens the editor, so it
+    // has to stop that or every pick opens a drawer over the table.
+    b.onclick = e => {
+      e.stopPropagation();
+      // Read the box BEFORE focusPick, which may clear the selection and untick
+      // every box in the document — including this one, which the browser has
+      // already toggled for us.
+      const on = b.checked, i = boxes.indexOf(b);
+      focusPick(sel, view, table);
+      // Shift fills the range from the last box touched — the only way to take
+      // forty rows without forty clicks, and the gesture every table has.
+      // PICK.last is null after a clear, so a range never crosses a view.
+      if (e.shiftKey && PICK.last !== null){
+        const [a, z] = [Math.min(i, PICK.last), Math.max(i, PICK.last)];
+        for (let k = a; k <= z; k++) setPick(+boxes[k].dataset.pick, on);
+      } else setPick(id, on);
+      PICK.last = i;
+      wirePick(sel, view, table);
+    };
+  });
+
+  // The header box speaks for what is ON SCREEN, which is why it is ticked
+  // from the visible rows rather than from the size of the selection.
+  const all = root.querySelector('.pickall');
+  if (all){
+    all.checked = boxes.length > 0 && boxes.every(b => b.checked);
+    all.onclick = e => {
+      e.stopPropagation();
+      const on = all.checked;
+      focusPick(sel, view, table);
+      boxes.forEach(b => setPick(+b.dataset.pick, on));
+      PICK.last = null;
+      wirePick(sel, view, table);
+    };
+  }
+  drawPickbar();
+}
+
+const setPick = (id, on) => { on ? PICK.ids.add(id) : PICK.ids.delete(id); };
+
+/* Clears without a redraw. Every table is in the DOM at once — the tabs only
+   hide sections — so untick the boxes directly rather than rebuilding four
+   tables to change a checked attribute. */
+function clearPick(){
+  PICK.ids.clear(); PICK.last = null;
+  document.querySelectorAll('tr.picked').forEach(tr => tr.classList.remove('picked'));
+  document.querySelectorAll('td.pick input, th.pick input')
+          .forEach(b => { b.checked = false; });
+  drawPickbar();
+}
+
+function drawPickbar(){
+  const bar = $('#pickbar'), n = PICK.ids.size;
+  document.body.classList.toggle('picking', n > 0);
+  bar.classList.toggle('on', n > 0);
+  if (!n) return;
+  // How many of the picked rows the current filter is not showing. Printing it
+  // is the price of letting a selection survive a search.
+  const shown = new Set([...($(PICK.sel)?.querySelectorAll('td.pick input') || [])]
+                        .map(b => +b.dataset.pick));
+  const off = [...PICK.ids].filter(id => !shown.has(id)).length;
+  const noun = PICK_NOUN[PICK.view] || 'row';
+  bar.innerHTML = `<span><b>${n}</b> ${esc(noun)}${n === 1 ? '' : 's'} selected</span>
+    ${off ? `<span class="off">${off} not in this view</span>` : ''}
+    <button class="btn" id="pkedit">Edit…</button>
+    <button class="btn danger" id="pkdel">Delete</button>
+    <button class="btn ghost" id="pkclear">Clear</button>`;
+  $('#pkedit').onclick  = openBulk;
+  $('#pkdel').onclick   = bulkDelete;
+  $('#pkclear').onclick = clearPick;
+}
+
+/* What may be changed on many rows at once. Deliberately short: a field is
+   here only if ONE value can honestly be true of a whole selection. A name, a
+   coordinate, a description, a source_note are per-row by nature — the only
+   value they could take across forty rows is a wrong one — so they are not
+   offered, and the endpoint would refuse `types` outright besides. */
+const BULK = {
+  activities: [
+    {f:'+type',    label:'Add a type',     vocab:'types'},
+    {f:'-type',    label:'Remove a type',  vocab:'types'},
+    {f:'kind',     label:'Kind',           vocab:'kinds', blank:'— none —'},
+    {f:'cost',     label:'Cost',           opts:['Free','Cheap','Moderate','Splurge']},
+    {f:'verified', label:'Verified',       opts:['true','false']},
+  ],
+  events: [
+    {f:'+type',    label:'Add a type',     vocab:'types'},
+    {f:'-type',    label:'Remove a type',  vocab:'types'},
+    {f:'place_id', label:'Location',       vocab:'places', blank:'— none —'},
+    {f:'recurrence', label:'How often',    opts:['none','weekly','fortnightly','monthly','annual']},
+    {f:'date_confidence', label:'Date from', opts:['high','medium','low']},
+    {f:'verified', label:'Verified',       opts:['true','false']},
+  ],
+  places: [
+    {f:'kind',   label:'Kind', vocab:'place_kinds', blank:'— none —'},
+    {f:'suburb', label:'Town', text:1},
+  ],
+};
+
+function bulkValue(spec){
+  if (spec.text)
+    return `<input id="bv" type="text" value="" placeholder="leave empty to clear">`;
+  let opts;
+  if (spec.vocab === 'places')
+    opts = [...DATA.places].sort((a, b) => a.name.localeCompare(b.name))
+      .map(p => `<option value="${p.id}">${esc(p.name)}${p.suburb ? ' — ' + esc(p.suburb) : ''}</option>`);
+  else if (spec.vocab)
+    // `happening` is what an event IS, so it is never a value an activity can
+    // take — the same filter the one-row editor applies.
+    opts = [...DATA[spec.vocab]].map(o => o.name)
+      .filter(nm => !(spec.vocab === 'kinds' && nm === 'happening'))
+      .sort((a, b) => a.localeCompare(b))
+      .map(nm => `<option>${esc(nm)}</option>`);
+  else
+    opts = spec.opts.map(o => `<option>${esc(o)}</option>`);
+  return `<select id="bv">${spec.blank ? `<option value="">${esc(spec.blank)}</option>` : ''}${opts.join('')}</select>`;
+}
+
+function openBulk(){
+  if (!PASS) return alert('Unlock first — the button at the top right.');
+  const t = PICK.table, n = PICK.ids.size, specs = BULK[t];
+  if (!specs) return;
+  $('#editor').innerHTML = `<div class="scrim"><div class="drawer">
+    <header>
+      <div class="sub">${esc(t)} · ${n} row${n === 1 ? '' : 's'}</div>
+      <h2>Change one field</h2>
+    </header>
+    <p style="font-size:13px;color:var(--ink2);margin:0 0 20px;max-width:52ch">
+      One field, one value, applied to every selected row — and nothing is
+      written unless it is valid on all of them. A type is added to the END of
+      each row's list, so no row's primary changes.</p>
+    <div class="fields">
+      <div><label class="fieldlab">Field</label>
+        <select id="bfield">${specs.map((s, i) =>
+          `<option value="${i}">${esc(s.label)}</option>`).join('')}</select></div>
+      <div id="bvwrap"><label class="fieldlab">Value</label>${bulkValue(specs[0])}</div>
+    </div>
+    <div class="drawerbar">
+      <button class="btn" id="bapply">Apply to ${n}</button>
+      <button class="btn ghost" id="bcancel">Cancel</button>
+      <span class="msg" id="bmsg"></span>
+    </div>
+  </div></div>`;
+  $('#bfield').onchange = () => {
+    $('#bvwrap').innerHTML = '<label class="fieldlab">Value</label>' +
+                             bulkValue(specs[+$('#bfield').value]);
+  };
+  $('#bapply').onclick  = applyBulk;
+  $('#bcancel').onclick = closeEditor;
+  $('.scrim').onclick = e => { if (e.target === e.currentTarget) closeEditor(); };
+  document.addEventListener('keydown', onEsc);
+}
+
+const bsay = (html, cls) => {
+  const m = $('#bmsg'); if (!m) return;
+  m.className = 'msg ' + (cls || ''); m.innerHTML = html;
+};
+
+async function applyBulk(){
+  const t = PICK.table, spec = BULK[t][+$('#bfield').value];
+  const raw = $('#bv').value;
+  const body = {action:'bulk', table:t, ids:[...PICK.ids]};
+
+  if (spec.f === '+type' || spec.f === '-type'){
+    if (!raw) return bsay('Pick a type.', 'bad');
+    body[spec.f === '+type' ? 'add' : 'remove'] = raw;
+  } else {
+    let v = raw === '' ? null : raw;
+    if (spec.f === 'verified') v = raw === 'true';
+    if (spec.f === 'place_id') v = raw === '' ? null : +raw;
+    body.patch = {[spec.f]: v};
+  }
+
+  bsay('Applying…');
+  const [code, out] = await post(body);
+  if (code === 200){
+    (out.rows || []).forEach(r => {
+      const i = DATA[t].findIndex(x => x.id === r.id);
+      if (i > -1) DATA[t][i] = r;
+    });
+    bsay(`${out.changed} row${out.changed === 1 ? '' : 's'} changed.`, 'good');
+    redrawAll();
+  } else if (out.complaints){
+    bsay('Not applied — nothing was written:<ul>' +
+         out.complaints.map(c => `<li>${esc(c)}</li>`).join('') + '</ul>', 'bad');
+  } else bsay(why(code, out), 'bad');
+}
+
+async function bulkDelete(){
+  if (!PASS) return alert('Unlock first — the button at the top right.');
+  const t = PICK.table, ids = [...PICK.ids];
+  if (!confirm(`Delete ${ids.length} row${ids.length === 1 ? '' : 's'} from ${t}?` +
+               `\n\nThis cannot be undone here.`)) return;
+  let [code, out] = await post({action:'delete_many', table:t, ids});
+  if (code === 409){
+    if (!confirm(out.message + '\n\n' + (out.names || []).join('\n') +
+                 '\n\nDelete them anyway?')) return;
+    [code, out] = await post({action:'delete_many', table:t, ids, force:true});
+  }
+  if (code !== 200)
+    return alert(out.message || out.detail || out.error || ('error ' + code));
+  DATA[t] = DATA[t].filter(x => !PICK.ids.has(x.id));
+  clearPick();
+  redrawAll();
+}
+
+/* ── the one-row editor ───────────────────────────────────────────────────*/
 let OPEN = null;
 
 /* ── the order of a multi is the data ──────────────────────────────────────
@@ -3096,7 +3561,7 @@ const TAB_NAME = Object.fromEntries(PAGES.map(p => [p.id, p.name]));
 // Which real <section> each page and tab actually shows.
 const SECTION_OF = {home:'home', sources:'autos', inbox:'inbox', review:'review',
                     happenings:'events', locations:'places'};
-const redrawAll = () => { drawEvents(); drawActivities(); drawPlaces(); drawGroups();
+const redrawAll = () => { indexDupes(); drawEvents(); drawActivities(); drawPlaces(); drawGroups();
                           drawSources(); drawOverview(); drawReview(); drawHome(); drawChart(); drawKindRoll(); };
 
 /* A page, and which tab within it. The hash carries both — #listings/venues —
@@ -3115,6 +3580,11 @@ function show(page, tab){
   let section = SECTION_OF[t ? t.id : p.id] || (t ? 'activities' : p.id);
   if (p.id === 'listings' && t && t.kind){ AFILTER.kind = t.kind; section = 'activities'; }
   if (p.id === 'listings' && t && !t.kind) AFILTER.kind = '';
+
+  // Leaving the table a selection was made in drops it. The bar is fixed to
+  // the window, so a selection left behind would hover over a page that has
+  // nothing to do with it — and Delete would still be live.
+  if (PICK.ids.size && PICK.view !== section) clearPick();
 
   for (const id of TABS) $('#tab-' + id).hidden = id !== section;
   drawSubtabs(p);

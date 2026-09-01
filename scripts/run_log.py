@@ -61,21 +61,42 @@ def read_events(text):
         'added':     len(re.findall(r'^added event \d+:', text, re.M)),
         'moved':     len(re.findall(r'^moved event \d+:', text, re.M)),
         'drift':     drift,
-        # One source, shaped like the venue ones so the page can list them all
-        # together. It is the only real feed anywhere in this project.
-        'sources':   [{
-            'name':  'surfcoastevents.com.au',
-            'how':   f'WordPress JSON API ({listings} listings → {series} series)'
-                     if listings else 'WordPress JSON API',
+        # One entry per feed, shaped like the venue ones so the page can list
+        # them all together. This was a single hardcoded source until the
+        # scraper learned to carry more than one — the count lines it prints
+        # are the record, so a feed that stops appearing here has stopped
+        # being read rather than quietly reading as the other one's numbers.
+        'sources':   read_feeds(text),
+    }
+
+
+FEED = re.compile(r'^\s+source (\S+) — (.+?)\s*$', re.M)
+
+
+def read_feeds(text):
+    """One row per event feed, off the `source <site> — …` lines.
+
+    The state is set here rather than through source_state(), which defaults to
+    success: a feed that could not be read prints `failed: <why>` and has to
+    come out red, not green. Same rule the library reader already follows.
+    """
+    out = []
+    for site, rest in FEED.findall(text):
+        bad = rest.startswith('failed')
+        m = re.match(r'(\d+) listings, (\d+) series, (\d+) new, (\d+) already held', rest)
+        out.append({
+            'name':  site,
+            'how':   rest if bad else
+                     (f"WordPress JSON API ({m.group(1)} listings → {m.group(2)} series)"
+                      if m else f"WordPress JSON API ({rest})"),
             'hint':  None,
-            'state': 'read' if listings else 'nothing',
+            'state': 'failed' if bad else ('read' if m and int(m.group(1)) else 'nothing'),
             'via':   ['The Events Calendar'],
             'own':   False,
-            # The calendar is one source, so the run's own counts are its counts.
-            'new':   _int(r'^NEW — (\d+)', text) or 0,
-            'dupe':  _int(r'^SAME NAME already in the database — (\d+)', text) or 0,
-        }],
-    }
+            'new':   int(m.group(3)) if m else 0,
+            'dupe':  int(m.group(4)) if m else 0,
+        })
+    return out
 
 
 def source_state(how):

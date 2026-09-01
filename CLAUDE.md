@@ -790,10 +790,12 @@ creating a `places` row for Bellbrae Clay and repointing activity 462 at it with
 `place_id`, rather than leaving it with its own coordinate; that is a decision
 for Scott, and doing it carelessly is how 32 things ended up in both tables.
 
-## The events feed runs itself
+## The events feeds run themselves
 
-`surfcoastevents.com.au` is WordPress with The Events Calendar, so it publishes
-a JSON API and **nothing here parses HTML**:
+**Two sources, one parser.** `surfcoastevents.com.au` and (since 1 Sep 2026)
+`coastandbay.com.au` both run WordPress with The Events Calendar, so both
+publish a JSON API at the same path and **nothing here parses HTML**. See the
+Coast & Bay section for what carrying two of them actually cost:
 
     https://www.surfcoastevents.com.au/wp-json/tribe/events/v1/events
 
@@ -805,6 +807,12 @@ Autofill is dead. robots.txt allows it (`Disallow:` is empty).
     python3 scripts/scrape_events.py            # look and report, writes nothing
     python3 scripts/scrape_events.py --write    # insert the new ones, unverified
     python3 scripts/scrape_events.py --json f   # rows for `sync.py add` instead
+    python3 scripts/scrape_events.py --only surfcoastevents   # one source
+
+**`--only` is what an assistant has to use.** Coast & Bay disallows ClaudeBot
+for the whole domain, so a Claude session may run the surfcoastevents half and
+must not run the other — the same shape as `--skip humanitix` on the venue
+scraper. The Action and Scott's terminal read both.
 
 Three things about that source, each of which the script exists to handle:
 
@@ -929,50 +937,86 @@ honours robots.txt. Humanitix permits that crawler but disallows `ClaudeBot`, so
 **an assistant must not run the Humanitix path on your behalf** — pass
 `--skip humanitix` when Claude is driving. Your GitHub Action is fine.
 
-## Coast & Bay — registered, not yet automated
+## Coast & Bay — the second feed, automated 1 Sep 2026
 
 `coastandbay.com.au/this-weekend/` — a local publication's what's-on page,
-added to the aggregator list 27 Aug 2026 at Scott's request. It shows on the
-Automations tab as **not automated**, which is the honest state: nothing reads
-it and two things stand in the way.
+registered 27 Aug 2026 and read by the Mon/Thu Action since 1 Sep 2026. It is
+the **second real feed this project has ever had**, and it needed no new parser:
+it runs WordPress with The Events Calendar, same as surfcoastevents, so it
+publishes the same JSON at the same path.
 
-**1. A Claude session cannot check it.** Its robots.txt names `ClaudeBot` and
-disallows the entire site — the Humanitix rule again, and this time for the
-whole domain rather than one path. `whattodo-janjuc` falls under `User-agent: *`
-which says `Allow: /`, so **the scheduled Action and Scott's own terminal are
-fine**; an assistant is not. Nine crawlers are blocked, which is a stock
-Cloudflare AI-bot list, not a judgement about this project.
+    https://coastandbay.com.au/wp-json/tribe/events/v1/events
 
-Its Content Signals say `search=yes, ai-train=no, use=reference`. Nothing here
-trains anything, and referencing is permitted.
+**A Claude session still cannot read it.** Its robots.txt names `ClaudeBot` and
+disallows the entire site — the Humanitix rule, one domain wider.
+`whattodo-janjuc` falls under `User-agent: *` which says `Allow: /`, so **the
+scheduled Action and Scott's own terminal are fine**; an assistant is not. Nine
+crawlers are blocked, which is a stock Cloudflare AI-bot list, not a judgement
+about this project. Its Content Signals say `search=yes, ai-train=no,
+use=reference`; nothing here trains anything, and referencing is permitted.
 
-**ANSWERED 28 Aug 2026 — it does publish the feed.** The back-of-house "Test
-this source" button ran it and got *"a JSON feed with 3 items"*, with the same
-field shape as surfcoastevents (`id, global_id, global_id_lineage, author,
-status, date, date_utc…`). So this is **the second real feed this project has
-ever had**, and the only thing left is point 2 below: `scrape_events.py` has to
-learn to carry more than one source.
-
-    https://coastandbay.com.au/wp-json/tribe/events/v1/events?per_page=3
-
-The check could not come from a Claude session — that site disallows ClaudeBot —
-and it did not: it came from the Vercel function, which is neither a browser nor
-ClaudeBot, identifies as `whattodo-janjuc`, and reads robots.txt first.
-
-**2. `scrape_events.py` is hardwired to one source, and that is deeper than a
-constant.** `SOURCE`/`API` are module-level, but so is the rest: the
-`source_note` is written as `surfcoastevents.com.au/<slug>`, `added_by` is the
-literal `'surfcoastevents'`, the drift check matches rows with a regex on that
-domain, and the header line prints it. **The seen ledger is keyed on `slug`
-alone**, so two sites could both publish `spring-market` and the second would be
-silently treated as already offered. A second feed means keying provenance and
-the ledger by source, not adding a URL.
+**`fetch_all` now asks robots.txt per source before it reads**, so that rule is
+enforced by the code rather than by a note somebody has to remember. It is one
+cached request per host per run.
 
 **Do not register an aggregator in `places`.** `scrape_venues.py` sets
 `place_id` to the row it read from, so every event from a Coast & Bay row would
 be filed with "Coast & Bay" as its venue — the organiser-is-not-the-venue trap
 at its worst. That is exactly why surfcoastevents lives in `scrape_events.py`
 instead, and why that scraper deliberately sets no `place_id`.
+
+### What "one source" actually cost, and why it was never a config line
+
+`SOURCE`/`API` were module-level, but so was everything else: the `source_note`
+was written as `surfcoastevents.com.au/<slug>`, `added_by` was the literal
+`'surfcoastevents'`, the drift check matched rows with a regex on that domain,
+and the header line printed it.
+
+**The seen ledger was the sharp one — it was keyed on `slug` alone.** Two
+WordPress sites can each publish a series called `spring-market`, and the second
+one would have been read, matched against the first's ledger entry, and
+**silently never offered**. No error, no row, nothing to notice. That is the
+same family as every other silent-drop this file records.
+
+Keys are `<site>/<slug>` now, and `events_seen.json` was migrated in the same
+commit — all 52 entries prefixed `surfcoastevents.com.au/`. A bare key is still
+read as surfcoastevents on load, which is the only source there has ever been,
+so a revert or a hand-edited line cannot re-offer 52 series.
+
+**Adding a WordPress/Events Calendar site is now a row in `SOURCES` and nothing
+else.** `key` lands in `added_by`, `site` lands in `source_note` and keys the
+ledger — both outlive the file, so neither may be renamed without migrating the
+database and the ledger with it. `SLUG_RE` is built from `SOURCES`, so a new
+site cannot be left out of the drift check.
+
+### Overlap is the expected case, not the edge case
+
+Coast & Bay is a **Surf Coast publication**, so it carries the same markets and
+the same festivals as the shire's own calendar. `merge()` keeps a thing carried
+by two sources **once** — the earlier entry in `SOURCES` wins, the loser is
+written into the winner's `source_note` (*"also listed by coastandbay.com.au/…"*),
+and the run prints them all under **CARRIED BY MORE THAN ONE SOURCE** whether or
+not anything is written.
+
+**It matches on the NAME, not the slug.** The two sites have separate slug
+spaces and will never agree on one, so a slug match would catch nothing. Within
+a source, `collapse` had already been settling a name carried under two slugs;
+this is the same rule one level up.
+
+### A source that is down does not take the run with it
+
+`fetch_all` raises `SourceDown` instead of exiting, so one site having a bad
+morning still leaves the other imported. **The run still exits non-zero**, so
+the Action goes red and somebody looks — and the report prints
+`source <site> — failed: <why>`, with the word *failed* in it deliberately:
+`run_log.py`'s classifier defaults to success, so a failure phrase it has never
+been taught reads as green. `read_feeds()` sets that state itself rather than
+going through `source_state()`, the rule `scrape_library.py` already follows.
+
+The report prints **one line per feed**, `source <site> — N listings, M series,
+K new, D already held`, and that is what the Automations tab reads back. A site
+aggregator matches on `s.name === a.src`, so both rows appear with no change to
+the page beyond the `AGGREGATORS` prose.
 
 ## The mountain bike clubs, and EntryBoss — 28 Aug 2026
 
@@ -1075,12 +1119,12 @@ still open:
   **Do not put the EntryBoss URL in a GMBC `places` row.** The venue is in the
   data instead: `.fixture-course` per row, and a coordinate on the race page —
   the same shape as reading Eventbrite's `location.name` off the events.
-- **`scrape_events.py` is hardwired to one source.** `SOURCE`/`API`, the
-  `source_note` string, the literal `added_by = 'surfcoastevents'`, the drift
-  regex, and **a seen ledger keyed on `slug` alone**. The Coast & Bay note
-  already says what this costs: a second feed means keying provenance and the
-  ledger by source, not adding a URL. That work is shared between the two, so
-  whichever lands first pays for both.
+- **`scrape_events.py` carries several sources now** (1 Sep 2026) and still
+  does not fit. It reads **The Events Calendar's JSON API** and nothing else —
+  one parser, one API path, a row in `SOURCES` per site. EntryBoss is regular
+  HTML with no feed behind it, so it needs a reader of its own; what the
+  multi-source work removed was the provenance and ledger problem, which that
+  reader would otherwise have hit too.
 
 ### The eight fixtures are in — events 172-179, 28 Aug 2026
 
@@ -1606,6 +1650,107 @@ list of ids, `id=in.(…)`), capped at 600. **It refuses a batch where any row h
 no `source_note`** — verifying those would record that somebody looked when
 nothing says what they checked, which is the exact failure this file already
 notes about the 25 Aug bulk accept.
+
+### The same thing arriving twice — 1 Sep 2026
+
+Scott, off the review queue: *"when we scrape, it's picking up events we
+already have which have come from a different source. We need to work out a
+way to either reduce duplicates, or flag them in the review section."*
+
+**Every pair sharing a name AND a date was measured across all 562 events
+before anything was built**, because a flag that is mostly wrong is worse than
+no flag:
+
+    cross-source                       1   Holly Ringland, and correct
+    same place + same time             0   nothing here is a true clone
+    one side's venue unlinked          0   possible, has not happened yet
+    same time, another place          53   one story time at five branches
+    same place, another time          57   library booking slots, 20 min apart
+    another place, another time       72   branches again
+
+**The last three are not flagged**, and that was Scott's second message:
+*"why does 'same day, another place' matter?"* It doesn't. It is the library
+publishing one session at five branches, and the board already clusters those
+into a single line. The first version flagged them and put 93 rows on a
+worklist to fix one.
+
+**What matters is a pair that could not both be true** — the same room at the
+same time — and Scott's own case: *"the scraper might not find the venue ID and
+just put it in open text"*, where two rows read as different places only
+because one of them was never linked. **Both are zero today.** They are states
+worth watching for, not a backlog, and they are in the code for that reason.
+
+**The one real duplicate is `Holly Ringland - The World Beneath Her Feet`,
+17 Sep — events 690 and 730.** 690 came from TryBooking through
+`scrape_venues.py` on 30 Aug at **place 143**; 730 came off the iCal feed
+through `scrape_library.py` on 31 Aug at **place 128** — and 143 is
+*"Wurdi Youang, Level 5, Geelong Library & Heritage Centre"*, a **room inside**
+128, The Dome. Both are verified, so neither has ever appeared in the review
+queue. **Left for Scott**: deleting a verified row is a two-press decision, and
+places 143/128 want the three-step alias merge on top of it.
+
+### The hole: `scrape_library.py` could only see its own rows
+
+`read_rows()` reads `added_by=eq.grlc`, because it answers a different
+question — *is this feed's own series already a row here*. Nothing asked
+whether **another source had got there first**, so 730 was written straight
+past a row that had existed for a day. `scrape_venues.py` has checked name+date
+across every source since the day it was written; the library importer now runs
+that same check from the other side, skips the match, and prints
+**ALREADY HERE FROM ANOTHER SOURCE** every run.
+
+**Name AND date, never name alone.** Dropping on a bare name match is what
+swallowed every later night of a recurring gig in `scrape_venues.py` and
+reported the gap as duplicates rather than as anything missing. The branch case
+is what proves the scope has to be this narrow too: one story time runs at five
+libraries on one date, but all five are `grlc`, so they are never in the map
+this check reads.
+
+### What the reader sees — an "Already have" column in Review
+
+`dupeName` / `sameThing` / `placeOf` / `dupeHow` / `indexDupes` / `dupesOf` in
+`admin.html`, rebuilt by `redrawAll`, so approving a row re-answers the question
+rather than leaving a stale badge. Four states, strongest first:
+
+    clone    same place, same time         red     could not both be true
+    source   also from another source      red     the Holly Ringland case
+    unsure   same day, venue not linked    amber   cannot prove they differ
+    date     same name, another date       grey    a tour — information, not a fault
+
+- **The Events tab gets a `duplicate?` chip** carrying everything but `date` —
+  2 rows today, both halves of the Holly Ringland pair. It works on every
+  event, verified or not, which is the half that matters: an auto-verified
+  duplicate never reaches the review queue at all.
+- **The review queue gets an `Already have` column**, blank for most rows, with
+  the matched row's id, date and venue under the words, every match on the
+  tooltip, and the label clicking through to that row's editor.
+
+**`placeOf` is what makes `unsure` and `clone` honest.** A row with no
+`place_id` carries its venue as free text, and that text is matched against the
+same registry `scrape_venues.py` builds — every place's name plus every alias,
+and each comma-separated part on its own, because a trailing suburb is what
+usually stops a match. Only **2 of the 32** unlinked events resolve that way;
+the other 30 name no single place you can stand at ("Torquay", "Surf Coast
+Shire", "Various venues") and are deliberately unlinked. A null is therefore
+*we cannot tell*, which is a reason to ask a person rather than to stay quiet.
+
+**NOTHING BLOCKS OR DELETES.** The column exists because the question is a
+judgement. `DIESEL BY REQUEST SPRING '26` at Lorne on 20 Nov reads *"same name,
+another date — #105 9 Oct 2026 Barwon Heads Hotel"*, and Scott's own answer was
+**"actually Diesel is different, diff locations"** — one act, two venues, two
+nights. That is what this column is for: it hands over what we hold and a
+person calls it in ten seconds.
+
+**Same name, same place, another day is a SERIES running again** and is not
+shown — the six Kids Baking Class sessions at Paddock Bakery, the Makers Room
+induction every Thursday. It was 60% of the other-date matches and never once a
+duplicate. A *different* room on another day is still printed, because that is
+the Diesel case.
+
+**`indexDupes` is O(n²) on purpose** — containment cannot be bucketed by a hash
+the way an exact match can, and the normalising happens once per row rather
+than once per pair, so 562 events is a few milliseconds. If `events` reaches
+five figures, bucket by date first: every state except `date` is same-day only.
 
 ## A group is not a room — the Groups tab, 31 Aug 2026
 
@@ -3714,6 +3859,151 @@ Church Geelong (OSM's only "71" is on Little Ryrie Street, a different road),
 Pop Cultcha Gallery (no house number, two road segments 140 m apart), the two
 market growers and the run crew (no premises), and Bellarine Catchment Network
 (no house number on Swan Bay Road, and the road returned is in Marcus Hill).
+
+## The Event Inbox pull of 31 Aug 2026 — 5 items, plus two links in the chat
+
+Two poster photographs, two links, one `share.google`, and then Scott sent a
+bookshop and a comedy listing while the pull was running. **13 listings, three
+new places, two existing places repaired.**
+
+    702  Flowstate Brewers & Distillers  venue      brewery·bar·produce   Torquay
+    703  Paddock Bakery                  venue      bakery·cafe           (place 196)
+    704  The Book Bird                   shop       reading               (place 199)
+    744  Pizza Masterclass       20 Sep   workshop                        (place 195)
+    745-750  Kids Baking Class   23 Sep – 2 Oct, six sessions             (place 196)
+    751  Life Drawing Term 3      8 Sep   arts·workshop                   (place 98)
+    752  Tacos & Trivia           weekly  night·pub                       (place 97)
+    753  The Debrief Podcast     25 Oct   comedy                          (place 13)
+
+    195  Pizzeria Adamo          86 Yarra Street, Geelong
+    196  Paddock Bakery – Geelong  Tenancy W4, Federal Mills, 33 Mackey St
+
+**Every date carries a printed weekday and every one was checked.** The HOOP
+poster is the case worth keeping: its five fortnightly Tuesdays — 14, 28 Jul,
+11, 25 Aug, 8 Sep — are Tuesdays in 2026 and **Mondays in 2025**, so the
+checksum dates the poster as well as validating it. Only 8 Sep is still ahead,
+so that is the one row.
+
+**`recurrence` on that row is deliberately null although the series is
+fortnightly.** The term ends on this date, so rolling it forward would promise a
+session nobody has announced — the Arts Trail rule applied to the mechanism that
+would otherwise do the inventing for us.
+
+**Six sessions, six rows.** Paddock Bakery's page collapses its school-holiday
+run into a single schema.org Event spanning 23 Sep – 2 Oct, which is not what
+the sessions are: the page publishes six separately bookable dates, each with
+its own nowbookit link carrying its own date in the URL. One row per session is
+what the venue actually publishes, and `listings` has no `ends_on` to print a
+span with anyway. The slug still says `july-school-holidays` and the heading
+says September; the heading is the later edit and the six dates agree with it.
+
+**Tacos & Trivia is a standing promo with no announced start**, so `starts_on`
+is the next Tuesday after it was written and `recurrence` is weekly, which
+preserves the weekday. It was confirmed first-party in a way worth recording:
+the venue's own What's On panel carries the identical artwork under the alt
+text *"What's On - Tuesday - 4 Pines Torquay"* (`TQ.POS - TACO TRIVIA.jpg`).
+The tab content is images, so the **alt text was the only readable statement of
+the day** — worth trying before giving up on a JS-rendered promo panel.
+
+**`ages` had no check and it fired mid-batch — now fixed.** The kids class
+publishes "aged 6-12", which went in as `ages: "6-12"` and got a raw Postgres
+`22P02` **after three rows of the batch were already written**. That is the
+`season` failure exactly, in the column this file had already named as
+unenforced. `AGES` is in `sync.py` now — `all-ages · adults · teens · kids ·
+toddler`, every value in the two tables — and both wrong shapes are refused with
+the sentence that matters: *a published range belongs in the description*.
+
+**PostgREST refuses a batch insert whose objects have different key sets**, with
+a bare 400 and no message naming the field. Two `places` rows where one carried
+`kind` and the other did not was enough. Give every object in a batch the same
+keys, `None` included.
+
+### The Book Bird, and a collision inside one minute
+
+Scott registered `The Book Bird (store)` from /admin as an Eventbrite source at
+13:17; this session created a fully researched `The Book Bird` at 13:18, having
+read the table before he wrote. **Merged onto 199, the lower id and his.** The
+unique constraint on `name` is what surfaced it — the merge had to delete 200
+before renaming 199, or the PATCH 409s against the row it is about to replace.
+
+Both halves survived because they were different facts: his `events_url` is the
+shop's **Eventbrite organiser page**, verified here as titled *"The Book Bird —
+The Book Bird, Pakington Street, Geelong West VIC"*, so organiser and venue are
+one business. The shop **also** publishes its own events page at
+`thebookbird.com.au/pages/15252-EVENTS`, which `eventlib.fetch` reads fine and
+which today says *"There are no upcoming events at this time"* — no JSON-LD, so
+the Eventbrite page is the better of the two and is the one registered. The
+/admin-generated name is kept as an alias.
+
+**704 is in `BY_ID`.** `reading` is a thing you go and DO, so the rules make a
+bookshop a spot; a shop cannot be inferred since the type was retired.
+
+**Re-read the table immediately before writing, not at the start of the pass.**
+This file already records another session renaming an event mid-plan on 31 Aug;
+this is the same hazard reaching a `places` insert.
+
+### The Eureka Hotel finally has a pin, and an event listing gave it one
+
+Place 13 is one of the two rows this file records as deliberately unpinned since
+August — *"neither resolves in OpenStreetMap and neither has a usable address on
+file."* Still true by name: **"Eureka Hotel, Geelong" resolves to nothing.**
+
+The Debrief listing's schema.org `location` block supplies **98 Little Malop
+Street**, and with the address in hand the structured query resolves at once —
+`amenity=restaurant` **"Eureka! Pub&Rooftop, 98, Little Malop Street, Geelong"**,
+the same venue under its trading name, house-number level. The trading name is
+now an alias.
+
+**The generalisable bit: a venue that cannot be geocoded is often a venue with
+no address on file, not a venue that is unmappable.** An event listing at that
+venue carries the address, so the 8 places with no pin are worth re-checking
+against their own events before being written off. Note the reverse lookup on
+that point returns *"Shorts Place Events"*, a second amenity ~17 m away at the
+same street number — two things in one complex, the HOOP-and-surfing-museum
+case, not a wrong pin. The house number and street are what were checked.
+
+**Geelong Comedy Festival is the organiser and was NOT registered.** It is a
+festival whose events happen in other people's rooms, so a `places` row for it
+would file this gig at the festival. That is the fifth time this file has
+recorded *an organiser worth watching that is not a room* with nowhere to put
+it — after The Sound Doctor, Geelong Sustainability, GMBC and Fever.
+
+### HOOP Gallery is a registered source now
+
+Place 98 has `events_url` = its own **Eventbrite organiser page**. Its website is
+Wix and renders What's On client-side, so `eventlib.fetch` gets nav chrome and no
+dates — but the gallery's own events page links three Eventbrite listings and
+every one gives organiser AND location as *"Hoop Gallery, 77 Beach Road,
+Torquay"*. Organiser and venue are the same body, so this is not the Creative
+Geelong trap. Two more of its events are live and were not written by hand,
+because a registered source should bring them in: **Artist Shared Practice
+Masterclass** (to 29 Sep) and a **masterclass series with Dr Bonna Jones** (last
+session 18 Aug, past). Reading any of it needs `EVENTBRITE_TOKEN`, still 401ing.
+
+**The five existing life-drawing events are Creative Geelong Makers Hub, not
+HOOP** — a different organiser entirely, which is why the poster was new rather
+than a duplicate. They are also still typed `music`: [d16f02c](https://github.com/Scott-Designed/whattodo/commit/d16f02c)
+fixed the scraper but not the **83 rows it had already written**. That backfill
+is outstanding and is the largest known typing error in the database.
+
+### Two more vocabulary gaps, both hit in one pull
+
+- **`restaurant` is a type but not a `place_kind`.** Pizzeria Adamo is a
+  pizzeria, and `place_kinds` offers cafe, bar, pub, brewery, winery, distillery
+  and cidery — none of them honest. Its `kind` is null, which puts it in the
+  back-of-house "no kind" flag, the same resting place as Creative Geelong.
+- **`distillery` is a `place_kind` and still not a type**, so Flowstate is typed
+  `brewery` first — they do brew, and `/brewery` is the page a reader would look
+  at. The Whiskery precedent (`bar · produce`) is the alternative. Their own Our
+  Story says *"a family distillery in Torquay"*, so the two vocabularies
+  disagree about this row on purpose.
+
+Flowstate's site is a JS-rendered Shopify storefront: `eventlib.fetch` gets the
+homepage and nothing else, `/venue/` 404s, and the address, phone and trading
+hours are only in a browser-rendered footer and Our Story page. **No
+`events_url`** — `/pages/events-bookings` is a venue-hire enquiry form, not a
+what's-on. **And no `places` row**, because nothing about it needs a pin twice;
+it carries its own coordinate like the other 438 activities.
 
 ## Two running events, and a past one kept on purpose — 30 Aug 2026
 

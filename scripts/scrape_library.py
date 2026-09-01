@@ -328,6 +328,48 @@ def main(argv):
     fresh_rep = [s for s in repeat  if not known(s) and not offered(s)]
     fresh_one = [e for s in singles for e in s['evs']
                  if e['uid'] not in by_uid and e['uid'] not in seen]
+
+    # ── does anybody ELSE already have this night ──
+    # read_rows() reads `added_by=eq.grlc` because it answers a different
+    # question: is this feed's own series already a row. Nothing asked whether
+    # another source had got there first, so "Holly Ringland - The World
+    # Beneath Her Feet" was imported on 31 Aug 2026 against a row
+    # scrape_venues.py had written off TryBooking the day before — same name,
+    # same date, two place rows, and 143 is a ROOM INSIDE 128. scrape_venues.py
+    # has checked name+date across every source since the day it was written;
+    # this is that same check from the other side.
+    #
+    # Name AND date, never name alone. Dropping on a bare name match is what
+    # swallowed every later night of a recurring gig in scrape_venues.py, and
+    # reported the gap as duplicates rather than as anything missing.
+    #
+    # The branch case is safe and is why this cannot be name-only either way:
+    # one story time runs at five libraries on one date, but all five are grlc,
+    # so they never reach this map.
+    elsewhere = {(E.norm(r['name']), r.get('starts_on')): r
+                 for r in E.db('GET', '/rest/v1/events?select=id,name,starts_on,'
+                                      'added_by,place_id', all_rows=True)
+                 if (r.get('added_by') or '') != 'grlc'}
+    held = []
+    def elsewhere_has(title, date):
+        hit = elsewhere.get((E.norm(title), date))
+        if hit: held.append((hit, title, date))
+        return hit
+    fresh_rep = [s for s in fresh_rep
+                 if not elsewhere_has(s['evs'][0]['title'],
+                                      s['evs'][0]['start'].date().isoformat())]
+    fresh_one = [e for e in fresh_one
+                 if not elsewhere_has(e['title'], e['start'].date().isoformat())]
+    if held:
+        # Reported every run, never remembered — the same standing report
+        # scrape_events.py prints for a name clash. A row that keeps appearing
+        # here is telling you two sources are both carrying one thing, which is
+        # worth knowing more than once.
+        print(f"\nALREADY HERE FROM ANOTHER SOURCE — {len(held)}, skipped")
+        for hit, title, date in held:
+            print(f"  {hit['id']:>6}  {title[:44]:46} {date}  "
+                  f"{hit.get('added_by') or 'by hand'}")
+
     total = len(fresh_rep) + len(fresh_one)
     print(f"\n{total} to import — {len(fresh_rep)} recurring series, "
           f"{len(fresh_one)} one-off occurrences")

@@ -80,7 +80,19 @@ async function fetchAll(path){
 async function loadRemote(){
   if(!REMOTE) return null;
   try{
-    const rows = await fetchAll('listings?select=*');
+    /* `published=is.true` is the publish gate, and it is applied HERE — in the
+       query — rather than in ok(), on purpose. An unheld row must not exist for
+       a reader at all: not in the list, not in a facet count, not in the tally,
+       not on the map, not reachable by a saved key or a search. Filtering in
+       ok() would have left it in every one of those, because ok() is also what
+       pass() counts with. Nothing unpublished should ever reach the browser.
+
+       Added 1 Sep 2026 with the `published` column, which defaults TRUE — so
+       this changed nothing on the day it shipped, and that is what made it safe
+       to deploy before the scraper that needs it. Deploy the page first; this
+       project has already shipped a rename ahead of the page that could print
+       it, and watched the live site say the wrong thing for a few minutes. */
+    const rows = await fetchAll('listings?select=*&published=is.true');
     if(!Array.isArray(rows)||!rows.length) throw new Error('empty');
     REMOTE_OK=true;
     return rows.map(fromRow);
