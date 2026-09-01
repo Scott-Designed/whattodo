@@ -156,6 +156,28 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
 .wiki .src{margin-top:12px;padding-top:10px;border-top:1px solid var(--rule);
   font-size:11.5px;color:var(--ink3);line-height:1.5}
 .wiki .src a{color:var(--ink2)}
+/* ══ what lives here — Atlas of Living Australia ══════════════════ */
+.eco{border:1px solid var(--rule);border-radius:8px;background:var(--surface);padding:15px 17px}
+.eco h3{font-size:17px;margin-bottom:4px}
+.eco .lede{font-size:14.5px;color:var(--ink2);margin-bottom:13px}
+.mon{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin:11px 0 4px}
+/* each column is a fixed track that fills from the bottom, so twelve bars
+   share one baseline however tall they are */
+.mon i{font-style:normal;display:flex;flex-direction:column;justify-content:flex-end;
+  align-items:stretch;height:52px;gap:5px}
+.mon i u{text-decoration:none;text-align:center;font-size:10px;color:var(--ink3);line-height:1}
+.mon b{display:block;border-radius:2px;background:var(--rule2);font-weight:400}
+.mon .on b{background:var(--ink2)}
+.mon .pk  b{background:var(--accent)}
+.mon .on u,.mon .pk u{color:var(--ink2)}
+.spp{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.spp span{font-size:12.5px;border:1px solid var(--rule2);border-radius:999px;padding:4px 11px;color:var(--ink2)}
+.spp span i{font-style:italic;color:var(--ink3)}
+.eco .src{margin-top:13px;padding-top:10px;border-top:1px solid var(--rule);
+  font-size:11.5px;color:var(--ink3);line-height:1.5}
+.eco .src a{color:var(--ink2)}
+.heritage{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--ink2);
+  border-left:2px solid var(--accent);padding:2px 0 2px 12px;margin-top:14px}
 .absent{font-size:13.5px;color:var(--ink3);font-style:italic;
   border-left:2px solid var(--rule2);padding-left:13px}
 </style>
@@ -209,6 +231,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
             <a class="act" href="#">Open in Maps</a>
             <a class="act" href="#">📌 Save</a>
           </div>
+          <p class="heritage"><span>⚑</span><span><b>On the Victorian Heritage Register.</b>
+            The beach and coastal reserve, VHD place 12711.</span></p>
         </div>
 
         <div class="cols">
@@ -263,6 +287,41 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
                     Photograph by Michael J&nbsp;Fromholtz, same licence.
                     Matched to this listing by coordinate: 301&nbsp;m, and the names agree.</p>
                 </div>
+              </div>
+            </div>
+
+            <div class="sec">
+              <h2>What lives here <span class="n">RECORDED WITHIN 2 KM</span></h2>
+              <div class="eco">
+                <h3>Southern Right Whales, May to October</h3>
+                <p class="lede">61 sightings logged within 10 km, almost all of them in
+                  winter — most in July.</p>
+                <div class="mon">
+                  <i><b style="height:2px"></b><u>J</u></i><i><b style="height:2px"></b><u>F</u></i>
+                  <i><b style="height:2px"></b><u>M</u></i><i><b style="height:2px"></b><u>A</u></i>
+                  <i class="on"><b style="height:5px"></b><u>M</u></i>
+                  <i class="on"><b style="height:13px"></b><u>J</u></i>
+                  <i class="pk"><b style="height:38px"></b><u>J</u></i>
+                  <i class="on"><b style="height:20px"></b><u>A</u></i>
+                  <i class="on"><b style="height:9px"></b><u>S</u></i>
+                  <i class="on"><b style="height:4px"></b><u>O</u></i>
+                  <i><b style="height:2px"></b><u>N</u></i><i><b style="height:2px"></b><u>D</u></i>
+                </div>
+                <p class="lede" style="margin:14px 0 0">Also recorded here, and all of them
+                  threatened in Victoria:</p>
+                <div class="spp">
+                  <span>Hooded Plover <i>4</i></span>
+                  <span>Otways Rufous Bristlebird <i>65</i></span>
+                  <span>Blue-winged Parrot <i>41</i></span>
+                  <span>Gang-gang Cockatoo <i>15</i></span>
+                  <span>Shy Albatross <i>22</i></span>
+                  <span>Bellarine Yellow-gum <i>115</i></span>
+                </div>
+                <p class="src">Occurrence records from the
+                  <a href="https://www.ala.org.au">Atlas of Living Australia</a>, within 2 km of this
+                  pin. Counts are <b>how often a species has been recorded, not how many there
+                  are</b> — they follow where people survey. Nothing here is a promise you will
+                  see one.</p>
               </div>
             </div>
           </div>
@@ -441,6 +500,51 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
     library feed — so they reach no type page and would give a venue page a poorer &ldquo;more like
     this&rdquo; tail than it deserves. And 98 places hold 401 published events with no listing row
     at all, so those events have a room and the room has no page. Both are data passes, not design.
+  </p>
+
+  <div class="plate">
+    <div class="lab">Every source probed for this page, and what came back</div>
+    <div class="frame" style="padding:24px 28px">
+      <div class="sec" style="margin:0">
+        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>Source</b><b>Reach</b><b>What it gives, and the catch</b></p>
+        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>Wikipedia + Wikidata</b>
+          <span>34 / 522</span>
+          <span>History, naming, popular culture, and a photo on 21. CC BY-SA 4.0.
+            <b>Refuse a town article unless the name matches exactly.</b></span></p>
+        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>Atlas of Living Australia</b>
+          <span>18 / 18</span>
+          <span>Species, threatened status and <b>month-by-month seasonality</b>. Works at every
+            pin sampled — but counts track survey effort, not abundance, and a bakery does not
+            want them.</span></p>
+        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>Wikimedia Commons geosearch</b>
+          <span>17 / 26</span>
+          <span>Photos within 600 m — far more reach than articles. <b>But it finds photos taken
+            near here, not photos of here</b>: the nearest file to Point Danger is a sea spider,
+            and to the Toy Library is a different building.</span></p>
+        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>Victorian Heritage Database</b>
+          <span>?</span>
+          <span>The register itself. <code>robots.txt</code> gives <code>ClaudeBot</code> and
+            <code>anthropic-ai</code> <code>Disallow: /</code>; <code>User-agent: *</code> allows
+            <code>/places/&lt;id&gt;</code>. <b>The Action may read it, a session may not.</b></span></p>
+        <p class="dl" style="grid-template-columns:196px 78px 1fr"><b>OpenStreetMap tags</b>
+          <span>untested</span>
+          <span>Opening hours, surface, <code>wheelchair</code> — the accessibility gap two passes
+            have now reported. Already the geocoding source, so no new permission.</span></p>
+        <p class="dl" style="grid-template-columns:196px 78px 1fr;border-bottom:0"><b>Trove · Victorian Collections</b>
+          <span>none</span>
+          <span>Trove v2 is gone (410) and v3 wants a key; Victorian Collections answers 403 to
+            our user agent.</span></p>
+      </div>
+    </div>
+  </div>
+
+  <p class="why">
+    <b>Ecology is the one that scales, and the one that needs a gate.</b> Every pin sampled had
+    records, which makes it the opposite of Wikipedia — but <i>Born &amp; Bread Bakehouse</i> has
+    172,948 of them, because it is in Geelong and Geelong is where people survey. A raw count is a
+    map of observer effort. So this belongs on rows where nature is the reason you go — the ocean,
+    the landscape, the outdoors — which <code>groupsOf()</code> already knows, and it belongs as
+    <b>species and season</b> rather than as a number.
   </p>
 
   <p class="why">

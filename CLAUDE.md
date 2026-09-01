@@ -6280,6 +6280,91 @@ answers 403 to our UA.
 **Nothing from VHD has been read or written.** It is a route, checked for
 permission, and left for the Action.
 
+### Bells Beach IS heritage listed — VHD place 12711
+
+Asked directly, and worth recording how it was answered, because the authority
+is a site this session may not read.
+
+**Wikidata carries no heritage statement for Q627886 at all** — 31 statements,
+none of them a designation. **The Wikipedia article does**: it cites the
+Heritage Council of Victoria and links `vhd.heritage.vic.gov.au/places/12711`,
+and the article sits in *Category:Victorian Heritage Register Barwon South West
+(region)*. So the claim is sourced to the register, via a source that is
+readable, and **the VHD page itself was not fetched** (see the robots note
+above). Note the cited domain is the old one; the live address is
+`vhd.heritagecouncil.vic.gov.au/places/12711`.
+
+Wikidata being silent where Wikipedia is not is worth remembering: **the two are
+not interchangeable**, and for heritage the article is the richer of the two.
+
+### Ecology — the Atlas of Living Australia works at EVERY pin
+
+`biocache-ws.ala.org.au/ws/occurrences/search`, with `lat`/`lon`/`radius`,
+`pageSize=0` and facets. No key, no robots problem.
+
+**This is the opposite of Wikipedia's coverage problem: 18 of 18 sampled pins
+had over 200 occurrence records within 2 km**, spanning spots, venues, shops and
+groups. Within 2 km of Bells Beach there are 7,147 records — 3,696 birds, 1,990
+plants, 353 mammals.
+
+What makes a page rather than a statistic:
+
+- **Threatened species, by name.** `q=state_conservation:("Critically
+  Endangered" OR "Endangered" OR "Vulnerable")` at Bells Beach returns Southern
+  Right Whale, Hooded Plover, Otways Rufous Bristlebird, Gang-gang Cockatoo, Shy
+  Albatross — and **Bellarine Yellow-gum**, a locally endemic eucalypt subspecies,
+  which is the most local fact on the page.
+- **Seasonality, faceted on `month`.** Southern Right Whale: 61 records within
+  10 km, **May–October, peaking in July, and zero in November–April**. Hooded
+  Plover peaks October–January, which *is* the breeding season and therefore
+  exactly when the dog restrictions this file already records for Point
+  Roadknight apply.
+
+**Two field-name traps, both hit.** The species field is `species`, not
+`taxon_name` — the wrong one returns 0 records with no error. And the `month`
+facet returns **month NAMES** (`"July"`), not numbers, so an `int(label)` parse
+silently yields an empty chart.
+
+**A count is a map of observer effort, not of nature.** `Born & Bread Bakehouse`
+has 172,948 records within 2 km because it is in Geelong and Geelong is where
+people survey. So ecology belongs on rows where nature is why you go — the
+ocean, the landscape, the outdoors, which `groupsOf()` already knows — and it
+belongs as **species and season**, never as a total.
+
+### Commons geosearch reaches further than articles and is dirtier
+
+`list=geosearch&gsnamespace=6` finds geotagged files near a point. **17 of 26
+sampled pins have one within 600 m**, against 34 of 522 for articles.
+
+**But it finds photographs taken NEAR here, not photographs OF here.** Measured:
+the nearest file to `Point Danger` is *Pallenopsis macneilli* (a sea spider), to
+`Anglesea Bike Trail` is *Daerlac cephalotes* (an insect), to `The Rock Adventure
+Centre` is *Neritodes verrucata* — all iNaturalist observations, which are
+geotagged and in Commons. `Surf Coast Toy Library` gets the Australian National
+Surfing Museum, a different building. `Bicycle Superstore` gets Mapillary street
+imagery.
+
+So the raw hit rate is not the usable rate. A filter has to drop binomial-titled
+observation files and Mapillary, or better, prefer files in the place's own
+**Commons category** — Bells Beach has one (`Bells Beach, Victoria`), which is a
+curated answer rather than a proximity guess. Not built.
+
+### The whole source inventory, as probed 1 Sep 2026
+
+    Wikipedia + Wikidata     34/522   history, naming, a photo on 21     CC BY-SA 4.0
+    Atlas of Living Aust.    18/18    species, threat status, season     open, no key
+    Commons geosearch        17/26    photos <600m, needs filtering      per-file
+    Vic Heritage Database    ?        the register itself                Action only
+    OpenStreetMap tags       untested opening hours, wheelchair          ODbL
+    Trove                    none     v2 gone (410), v3 wants a key
+    Victorian Collections    none     403 to our UA
+
+**OSM tags are the untested one worth doing next**, and they cost no new
+permission because OSM is already the geocoding source. `wheelchair`,
+`opening_hours` and `surface` are exactly the accessibility gap the ocean and
+outdoors passes both reported and which currently lives in prose in `notes`
+where nothing can filter it.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
