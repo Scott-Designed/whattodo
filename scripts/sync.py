@@ -201,12 +201,19 @@ def reject(idn, assume_yes=False):
 # column — there is no such thing as an event without a date — so the router
 # pops it there and only there.
 
+# `published` is in both sets because `add` INJECTS it — see the gate in add().
+# It was not, and that broke `add` outright for four days: every row failed on
+# "no such field ['published']" while `check` passed, because check does not
+# inject. The 1 Sep publish gate was written and never exercised, so the fix for
+# the fifth write path broke the path it was fixing. Anything add() sets on a row
+# has to be a column check() knows about.
 ACTIVITY_COLS = {'name','kind','types','tags','ages','cost','location','km','season','duration',
                  'description','url','rating','notes','conditions','lat','lng','daypart',
-                 'place_id','added_by','verified','source_note'}
+                 'place_id','added_by','verified','published','source_note'}
 EVENT_COLS    = {'name','types','starts_on','ends_on','time_text','recurrence','venue',
                  'location','km','cost','ages','artist','genre','description','ticket_url',
-                 'info_url','conditions','date_confidence','added_by','verified','source_note',
+                 'info_url','conditions','date_confidence','added_by','verified','published',
+                 'source_note',
                  # Without this, every event written by hand started unlinked — no
                  # pin, no curated suburb — and had to be patched in a second step
                  # that is easy to forget. That is a quiet contributor to the

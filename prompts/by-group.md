@@ -72,6 +72,11 @@ prompt reads it rather than repeating it.
 row when it was added; it is worked by SOURCE rather than by type, so it has its own
 file: [prompts/second-hand.md](second-hand.md).
 
+**And a CHAPTER can want a pass of its own.** The nine passes below all filled the
+same chapter — places. A type page draws one chapter per `kind`, and 13 of the 18
+types that should have a Shops chapter have none, with the same 13 missing People.
+That is not thirteen jobs, it is two: [prompts/shops.md](shops.md).
+
 ---
 
 ## 1 · The ocean

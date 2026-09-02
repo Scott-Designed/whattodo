@@ -660,12 +660,6 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
       <option value="upcoming">Still to come</option>
       <option value="past">Already been</option>
     </select>
-    <select id="esort">
-      <option value="date">Soonest first</option>
-      <option value="name">A–Z</option>
-      <option value="newest">Newest first</option>
-      <option value="flags">Most to fix</option>
-    </select>
   </div>
   <div class="flags" id="eflags"></div>
   <div style="overflow-x:auto">
@@ -678,12 +672,6 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
   <div class="controls">
     <input type="search" id="aq" placeholder="Search names, suburbs, descriptions…">
     <select id="atype"><option value="">Any type</option></select>
-    <select id="asort">
-      <option value="name">A–Z</option>
-      <option value="km">Closest first</option>
-      <option value="newest">Newest first</option>
-      <option value="flags">Most to fix</option>
-    </select>
   </div>
   <div class="flags" id="aflags"></div>
   <div id="alist"></div>
@@ -699,12 +687,6 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
   <div class="controls">
     <input type="search" id="pq" placeholder="Search places, suburbs, aliases…">
     <select id="pkind"><option value="">Any kind</option></select>
-    <select id="psort">
-      <option value="name">A–Z</option>
-      <option value="events">Most events</option>
-      <option value="feed">Automated first</option>
-      <option value="flags">Most to fix</option>
-    </select>
   </div>
   <div id="pstate"></div>
   <div class="flags" id="pflags"></div>
@@ -770,6 +752,88 @@ const TODAY = new Date().toISOString().slice(0,10);
 
 let DATA = {activities:[], events:[], places:[], types:[], conditions:[],
             kinds:[], place_kinds:[], place_offers:[], runs:[], log:[]};
+
+/* ── every table sorts, and there is one mechanism ────────────────────────
+   Scott, 2 Sep 2026, the day after the review queue got it: "add sorting to
+   all lists in the backend."
+
+   Eight tables here are worklists, and which end of one you start from
+   depends on what you came to do. So each column heading is a button:
+   pressing it sorts, pressing the same one again flips the direction.
+
+   ONE mechanism, not eight. Every table used to be free to invent its own
+   comparators, and three of them had a `sort` dropdown with its own private
+   list — which is how the Events list could sort by a thing that was not a
+   column and the Groups list could not sort at all. The rules that have to
+   hold everywhere are the reason this is shared:
+
+   - BLANK SORTS LAST, in both directions, on every column. An activity has
+     no date and a place has no events; a blank rising to the top pushes the
+     rows the ordering is FOR off the screen. One rule here, not eight
+     comparators each remembering it.
+   - Numbers compare as numbers. `numeric: true` on the string compare is not
+     enough on its own — 0 and null are different answers and only one of them
+     is a number.
+   - The accessor is the same value the CELL prints. A column ordered by one
+     answer and labelled with another is worse than an unsorted one, which is
+     why rowTown() was lifted out of drawReview when the queue got this.
+
+   A spec is [key, label, accessor]; a fourth element is extra <th> attributes.
+   Give the accessor `null` for a column with nothing to sort on — a Link, an
+   `edit →`. It still draws, it just is not a button. */
+
+const SORT_TIE = (a, b) => String(a?.name ?? '').localeCompare(String(b?.name ?? ''));
+
+function sortRows(rows, cols, st, tie = SORT_TIE){
+  const col = cols.find(c => c[0] === st.sort);
+  if (!col || !col[2]) return rows;
+  const get = col[2], d = st.dir < 0 ? -1 : 1;
+  return rows.slice().sort((a, b) => {
+    let x = get(a), y = get(b);
+    const bx = x === null || x === undefined || x === '';
+    const by = y === null || y === undefined || y === '';
+    if (bx !== by) return bx ? 1 : -1;          // blank last, both directions
+    if (bx) return tie(a, b);
+    if (typeof x === 'number' && typeof y === 'number')
+      return d * (x - y) || tie(a, b);
+    return d * String(x).localeCompare(String(y), 'en', {numeric: true}) || tie(a, b);
+  });
+}
+
+/* The heading row. The arrow draws ONLY on the column actually in force — an
+   arrow on every heading says nothing, and a heading that looks pressable and
+   is not is worse than a plain one. */
+function sortHead(cols, st){
+  return cols.map(([k, label, get, attrs]) => {
+    if (!get) return `<th${attrs ? ' ' + attrs : ''}>${label}</th>`;
+    const on = st.sort === k;
+    return `<th class="sortable" data-s="${k}"${attrs ? ' ' + attrs : ''}${
+      on ? ` aria-sort="${st.dir > 0 ? 'ascending' : 'descending'}"` : ''
+    }>${label}<span class="arw">${on && st.dir < 0 ? '\u25bc' : '\u25b2'}</span></th>`;
+  }).join('');
+}
+
+/* Same column again flips; a new one starts ascending, which for a date is
+   soonest first and for a name is A-Z.
+
+   querySelectorAll, not querySelector: the Review queue draws one <table> per
+   source, so every group's headings have to drive the one shared order. They
+   are one queue split up, not five tables with opinions of their own — the
+   same call the header checkbox already had to make. */
+function wireSort(sel, st, redraw){
+  document.querySelectorAll(sel + ' th[data-s]').forEach(th => th.onclick = () => {
+    const k = th.dataset.s;
+    st.dir  = st.sort === k ? -st.dir : 1;
+    st.sort = k;
+    redraw();
+  });
+}
+
+/* The two values that come up on nearly every table here, as one rule each. */
+const sortTown  = r => (DATA.places.find(p => p.id === r.place_id) || {}).suburb
+                       || townOf(r.location) || '';
+const sortVenue = r => (DATA.places.find(p => p.id === r.place_id) || {}).name
+                       || r.venue || '';
 
 /* ── flags: the worklist ────────────────────────────────────────────────────
    Each one is a known way a row is unfinished, drawn from the standing list in
@@ -1242,6 +1306,8 @@ function drawOverview(){
 }
 
 /* ── automations tab ───────────────────────────────────────────────────────*/
+let RUNSORT = {sort: 'when', dir: -1};
+
 function drawAutos(){
   const last = DATA.log[0];
   const due  = nextRun();
@@ -1269,9 +1335,23 @@ function drawAutos(){
       this address (60 an hour, unauthenticated). Try again shortly.</p>`;
     return;
   }
+  /* Newest first, because a run history is read from the top. `added` is the
+     number the run log recorded; a run from before the log existed has none,
+     and blank last is the honest place for "not recorded". */
+  const RUNCOLS = [
+    ['num',    'Run',        r => r.run_number, 'class="mono"'],
+    ['when',   'When',       r => r.run_started_at],
+    ['who',    'Started by', r => r.event],
+    ['took',   'Took',       r => (r.updated_at && r.run_started_at)
+                    ? Math.max(0, Math.round((new Date(r.updated_at) - new Date(r.run_started_at))/1000)) : ''],
+    ['result', 'Result',     r => r.conclusion || r.status],
+    ['did',    'What it did', r => { const rec = byId[String(r.id)];
+                    return rec ? rec.steps.reduce((n,s) => n + (s.added || 0), 0) : ''; }],
+  ];
+  const runs = sortRows(DATA.runs, RUNCOLS, RUNSORT, (a,b) => b.run_number - a.run_number);
   $('#runs').innerHTML = `<table><thead><tr>
-      <th>Run</th><th>When</th><th>Started by</th><th>Took</th><th>Result</th><th>What it did</th>
-    </tr></thead><tbody>${DATA.runs.map(r => {
+      ${sortHead(RUNCOLS, RUNSORT)}
+    </tr></thead><tbody>${runs.map(r => {
       const rec = byId[String(r.id)];
       const secs = r.updated_at && r.run_started_at
         ? Math.max(0, Math.round((new Date(r.updated_at) - new Date(r.run_started_at))/1000)) : null;
@@ -1300,6 +1380,7 @@ function drawAutos(){
       </td></tr>`;
     }).join('')}</tbody></table>`;
 
+  wireSort('#runs', RUNSORT, drawAutos);
   $('#runs').querySelectorAll('tr[data-run]').forEach(tr => tr.onclick = () => {
     const out = $('#out-' + tr.dataset.run); out.hidden = !out.hidden;
   });
@@ -1581,6 +1662,22 @@ function sourceRows(){
   return rows;
 }
 
+let SFILTER = {sort: 'status', dir: 1};
+
+/* Whatever wants a person leads, which is what this tab is for — SRC_ORDER is
+   already that judgement written down, so it is read rather than re-invented.
+   Runs sorts the same way, on RUNS_ON's own order: automated, by hand, not
+   built. */
+const SCOLS = [
+  ['name',     'Source',    r => r.name],
+  ['runs',     'Runs',      r => Object.keys(RUNS_ON).indexOf(r.auto) + 1 || 9],
+  ['status',   'Status',    r => SRC_ORDER.indexOf(r.state) + 1 || 99],
+  ['read',     'Last read', r => r.read],
+  ['venues',   'Venues',    r => r.venues || ''],
+  ['events',   'Events',    r => r.events || ''],
+  ['upcoming', 'Upcoming',  r => r.events ? (r.live || 0) : ''],
+];
+
 /* A status that says a person is needed and not what they should do is a
    dead end. Every state that asks for you says the next action, in one line. */
 const TODO = {
@@ -1612,14 +1709,13 @@ const SRC_ORDER = ['read','skipped','failed','manual','fbweekly','dead','refused
    became a way INTO Places, where the town, the events and the editor are. */
 function drawSources(){
   const all = sourceRows();
-  const aggs = all.filter(r => r.kind === 'aggregator')
-    .sort((a,b) => SRC_ORDER.indexOf(a.state) - SRC_ORDER.indexOf(b.state) ||
-                   a.name.localeCompare(b.name));
+  /* Default order is the state — whatever wants a person leads, which is what
+     this tab is for. Every column sorts on top of that. */
+  const aggs = sortRows(all.filter(r => r.kind === 'aggregator'), SCOLS, SFILTER);
 
   SRC_LIST = aggs;
   $('#sources').innerHTML = `<table><thead><tr>
-      <th>Source</th><th>Runs</th><th>Status</th><th>Last read</th>
-      <th>Venues</th><th>Events</th><th>Upcoming</th><th></th>
+      ${sortHead(SCOLS, SFILTER)}<th></th>
     </tr></thead><tbody>${aggs.map((r,i) => {
       const st = SRC_STATE[r.state] || {label:r.state, tag:''};
       const sc = RUNS_ON[r.auto] || {label:'—', tag:''};
@@ -1641,6 +1737,7 @@ function drawSources(){
       </tr>`;
     }).join('')}</tbody></table>`;
 
+  wireSort('#sources', SFILTER, drawSources);
   $('#sources').querySelectorAll('tr[data-i]').forEach(tr =>
     tr.onclick = () => openSource(SRC_LIST[+tr.dataset.i]));
 
@@ -1867,7 +1964,19 @@ async function probeSource(url){
    shows is already public; an email is not — it carries whoever sent it and
    whatever they wrote — so the table has no anon policy and this needs the
    password even to read. */
-let IFILTER = {status: 'new', triage: ''};
+let IFILTER = {status: 'new', triage: '', sort: 'arrived', dir: -1};
+
+/* Newest first, because the inbox is a queue you work from the top of.
+   The accessor takes the MESSAGE off the pair — see drawInbox, where the rows
+   are {m, i} so a sorted table can still index back into INBOX. */
+const ICOLS = [
+  ['arrived', 'Arrived',       x => x.m.received_at],
+  ['from',    'From',          x => x.m.from_addr],
+  ['subject', 'Subject',       x => x.m.subject, 'class="wide"'],
+  ['body',    'What it says',  x => x.m.body,    'class="wide"'],
+  ['triage',  'Triage',        x => x.m.triage],
+  ['status',  'Status',        x => x.m.status],
+];
 let EMAILED = {};
 let INBOX = [];
 
@@ -1925,9 +2034,14 @@ function drawInbox(){
     $('#inbox').innerHTML = `<p class="empty">Nothing here. Anything sent to the
       inbox address appears in this list; nothing is read or acted on automatically.</p>`;
     return; }
+  /* The row's own index into INBOX travels WITH it. `data-i` is what every
+     button on the row reads, so sorting a bare copy would leave Filed and
+     Ignore pointing at whichever message used to be in that position. */
+  const rows = sortRows(INBOX.map((m, i) => ({m, i})), ICOLS, IFILTER,
+                        (a, b) => a.i - b.i);
   $('#inbox').innerHTML = `<div style="overflow-x:auto"><table><thead><tr>
-      <th>Arrived</th><th>From</th><th>Subject</th><th>What it says</th><th>Triage</th><th>Status</th><th></th>
-    </tr></thead><tbody>${INBOX.map((m,i) => `
+      ${sortHead(ICOLS, IFILTER)}<th></th>
+    </tr></thead><tbody>${rows.map(({m, i}) => `
       <tr data-i="${i}">
         <td style="white-space:nowrap">${esc(ago(m.received_at))}</td>
         <td class="cap" title="${esc(m.from_addr || '')}">${esc(m.from_addr || '—')}</td>
@@ -1943,6 +2057,7 @@ function drawInbox(){
           <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-ignored="1">Ignore</button>
         </td></tr>`).join('')}</tbody></table></div>`;
 
+  wireSort('#inbox', IFILTER, drawInbox);
   $('#inbox').querySelectorAll('tr[data-i]').forEach(tr => {
     const m = INBOX[+tr.dataset.i];
     tr.querySelector('[data-open]').onclick = e => { e.preventDefault(); openMail(+tr.dataset.i); };
@@ -2201,94 +2316,23 @@ let RFILTER = {src: '', sort: 'when', dir: 1};
    the empty value LAST in both directions — an activity has no date and a
    blank sorting to the top would push the dated rows, which are the whole
    point of the ordering, off the screen. */
-const RSORTS = {
-  name:      r => r.name || '',
-  type:      r => (r.types || []).join(' · '),
-  when:      r => r.starts_on || '',
-  town:      r => rowTown(r),
-  dupe:      r => { const h = r.__t === 'events' ? dupesOf(r) : [];
-                    return h.length ? String(DUP_RANK.indexOf(h[0].how)) : ''; },
-  submitted: r => r.created_at || '',
-};
-const RSORT_HEADS = [['name','Name'], ['type','Type'], ['when','When'],
-                     ['town','Town'], ['dupe','Already have'],
-                     ['submitted','Submitted']];
+const RCOLS = [
+  ['name',      'Name',         r => r.name],
+  ['type',      'Type',         r => (r.types || []).join(' · ')],
+  ['when',      'When',         r => r.starts_on],
+  ['town',      'Town',         sortTown],
+  ['dupe',      'Already have', r => { const h = r.__t === 'events' ? dupesOf(r) : [];
+                                       // The column's own order of seriousness,
+                                       // read rather than re-invented: ascending
+                                       // puts "could not both be true" first.
+                                       return h.length ? DUP_RANK.indexOf(h[0].how) + 1 : ''; },
+                                'style="max-width:22ch"'],
+  ['submitted', 'Submitted',    r => r.created_at],
+];
 
-/* The town of a review row, by the same rules the board uses: a linked place's
-   curated suburb wins, the row's own location is the fallback, and townOf
-   collapses a street address to its town. Lifted out of drawReview because the
-   sort needs the identical answer the cell prints. */
-function rowTown(r){
-  const place = DATA.places.find(p => p.id === r.place_id);
-  return place?.suburb || townOf(r.location) || '';
-}
-
-function rsort(rows){
-  const get = RSORTS[RFILTER.sort] || RSORTS.when, d = RFILTER.dir;
-  return rows.slice().sort((a, b) => {
-    const x = get(a), y = get(b);
-    // Blank last whichever way the column is pointing.
-    if (!x !== !y) return x ? -1 : 1;
-    return d * String(x).localeCompare(String(y), 'en', {numeric: true})
-        || a.name.localeCompare(b.name);
-  });
-}
-
-/* A heading that says what it does and which way it is pointing. */
-const rhead = ([k, label]) =>
-  `<th class="sortable" data-s="${k}"${RFILTER.sort === k
-      ? ` aria-sort="${RFILTER.dir > 0 ? 'ascending' : 'descending'}"` : ''
-    }>${label}<span class="arw">${RFILTER.sort === k && RFILTER.dir < 0 ? '\u25bc' : '\u25b2'}</span></th>`;
-
-/* The queue is NOT PUBLISHED, not `not verified` — 1 Sep 2026, Scott's rule:
-   "Anything from scrapers goes in for review, and doesn't go on site until I
-   approve." Before that, `verified` was only a badge and a scraped row was live
-   from the moment it was written, so this queue was reviewing things readers
-   could already see.
-
-   `published === false` and not `!published`: the column defaults to true, and
-   a row loaded from a cache written before it existed has the field UNDEFINED,
-   which `!published` would read as held back. An absent flag is not a decision. */
-function reviewRows(){
-  const held = r => r.published === false;
-  return [
-    ...DATA.events.filter(held).map(r => ({...r, __t:'events'})),
-    ...DATA.activities.filter(held).map(r => ({...r, __t:'activities'})),
-  ];
-}
-
-/* The time of day something arrived, in Melbourne — the same clock the rest of
-   this page reads. `created_at` is a real instant (unlike starts_on, which is a
-   day), so it is correct to hand it to Date(). */
-const clock = ts => new Date(ts).toLocaleTimeString('en-AU',
-  {timeZone: 'Australia/Melbourne', hour: 'numeric', minute: '2-digit'}).toLowerCase();
-
-/* What we already hold under this name, for the row you are about to approve.
-   Blank for nearly everything, which is the point — the column earns its width
-   by being empty until it isn't. `source` is red because a second source
-   carrying the same night is a real duplicate; the rest is amber or grey
-   because it is usually a tour, a series, or the same session at another
-   branch, and only a person can tell those apart. Activities have no dates, so
-   they get nothing rather than a match nobody could act on. */
-function dupeCell(r){
-  if (r.__t !== 'events') return '';
-  const hits = dupesOf(r);
-  if (!hits.length) return '';
-  const top  = hits[0];
-  const col  = top.how === 'date'  ? 'var(--ink3)'
-             : top.how === 'unsure' ? 'var(--accent)' : 'var(--bad)';
-  const where = p => (DATA.places.find(x => x.id === p.place_id) || {}).name
-                     || p.venue || p.added_by || '';
-  // Every match on the tooltip, so a row with five of them hides none of them.
-  const all = hits.map(h => `${DUP_SAYS[h.how]} — #${h.row.id} ${dmy(h.row.starts_on)
-                             } ${where(h.row)} (${sourceName(h.row.added_by)})`).join('\n');
-  return `<span title="${esc(all)}">
-      <a href="#" data-dup="${top.row.id}" style="color:${col};text-decoration:none;border-bottom:1px dotted"
-        >${esc(DUP_SAYS[top.how])}</a>
-      <br><span style="color:var(--ink3);font-size:11px">#${top.row.id} · ${
-        esc(dmy(top.row.starts_on))} · ${esc(where(top.row))}${
-        hits.length > 1 ? ` · +${hits.length - 1} more` : ''}</span></span>`;
-}
+/* The town of a review row, by the same rules the board uses. Kept as a name
+   because the cell reads it too — the sort and the print are one answer. */
+const rowTown = sortTown;
 
 function drawReview(){
   const all = reviewRows();
@@ -2324,8 +2368,8 @@ function drawReview(){
           data-approve="${esc(src)}">Publish all ${rows.length}</button>
       </h3>
       <div style="overflow-x:auto"><table><thead><tr>
-        ${pickHead()}${RSORT_HEADS.map(rhead).join('')}<th></th>
-      </tr></thead><tbody>${rsort(rows).slice(0, 400).map(r => {
+        ${pickHead()}${sortHead(RCOLS, RFILTER)}<th></th>
+      </tr></thead><tbody>${sortRows(rows, RCOLS, RFILTER).slice(0, 400).map(r => {
         const place = DATA.places.find(p => p.id === r.place_id);
         const venue = place?.name || r.venue || '';
         // The town is the thing you check first — is this even in the region.
@@ -2365,17 +2409,7 @@ function drawReview(){
       ${rows.length > 400 ? `<p class="note">Showing the first 400. Publish all ${rows.length} does the lot.</p>` : ''}`;
   }).join('');
 
-  /* Same column again flips the direction; a new one starts ascending, which
-     for `when` is soonest (and the past) first and for a name is A-Z. The
-     headings repeat once per source group, so this is querySelectorAll and
-     every group's heading drives the one shared order — the groups are one
-     queue split up, not five tables with opinions of their own. */
-  $('#review').querySelectorAll('th[data-s]').forEach(th => th.onclick = () => {
-    const k = th.dataset.s;
-    RFILTER.dir  = RFILTER.sort === k ? -RFILTER.dir : 1;
-    RFILTER.sort = k;
-    drawReview();
-  });
+  wireSort('#review', RFILTER, drawReview);
 
   $('#review').querySelectorAll('[data-approve]').forEach(b => b.onclick = () => {
     const rows = bySrc[b.dataset.approve] || [];
@@ -2502,7 +2536,27 @@ const sourceName = k => SOURCE_OF[k]?.name || k || 'unknown';
    question. An event is asked "when is it, where is it, and how sure are we";
    an activity is asked "can it be found on a map". One table serving both was
    showing every row an empty When column or an empty Km one. */
-let EFILTER = {q:'', type:'', rec:'', when:'', src:'', sort:'date', flag:''};
+let EFILTER = {q:'', type:'', rec:'', when:'', src:'', flag:'', sort:'when', dir:1};
+
+/* Soonest first is the default, because the Events list is a calendar. That is
+   the opposite of the Review queue, which defaults to the same column and means
+   something different by it: there the past leading is the point. */
+const ECOLS = [
+  ['name',   'Name',      r => r.name],
+  ['type',   'Type',      r => (r.types || []).join(' · ')],
+  ['when',   'When',      r => r.starts_on],
+  ['time',   'Time',      r => r.time_text],
+  ['often',  'How often', r => (r.recurrence && r.recurrence !== 'none') ? r.recurrence : ''],
+  ['venue',  'Venue',     sortVenue],
+  ['town',   'Town',      sortTown],
+  // Whether a machine brought it in, then which one — the question the column
+  // is for is "how much of this arrived without a person".
+  ['source', 'Source',    r => (sourceOf(r).auto ? '0' : '1') + sourceOf(r).label],
+  // What the sort dropdown called "Newest first". It is a column now, so the
+  // ordering and the fact are the same thing rather than two.
+  ['added',  'Added',     r => r.created_at],
+  ['link',   'Link',      null],
+];
 
 function drawEvents(){
   const list = DATA.events.map(r => ({...r, __flags: flagsFor(r,'events')}));
@@ -2527,21 +2581,14 @@ function drawEvents(){
                       sourceOf(r).label, sourceOf(r).name]);
   });
 
-  out.sort({
-    // Undated things sort last rather than first — an empty string would win.
-    date:   (a,b) => (a.starts_on || '9999').localeCompare(b.starts_on || '9999'),
-    name:   (a,b) => a.name.localeCompare(b.name),
-    newest: (a,b) => String(b.created_at).localeCompare(String(a.created_at)),
-    flags:  (a,b) => b.__flags.length - a.__flags.length || a.name.localeCompare(b.name),
-  }[EFILTER.sort]);
+  out = sortRows(out, ECOLS, EFILTER);
 
   $('#t-events').textContent = DATA.events.length;
   if (!out.length){ $('#elist').innerHTML = '<p class="empty">Nothing matches.</p>';
     wirePick('#elist', 'events', 'events'); return; }
 
   $('#elist').innerHTML = `<table><thead><tr>
-      ${pickHead()}<th>Name</th><th>Type</th><th>When</th><th>Time</th><th>How often</th>
-      <th>Venue</th><th>Town</th><th>Source</th><th>Link</th><th></th>
+      ${pickHead()}${sortHead(ECOLS, EFILTER)}<th></th>
     </tr></thead><tbody>${out.map(r => {
       const place = DATA.places.find(p => p.id === r.place_id);
       const repeats = r.recurrence && r.recurrence !== 'none';
@@ -2565,6 +2612,8 @@ function drawEvents(){
                ? `<span style="color:var(--good)">✓</span> <span style="color:var(--ink2)">${esc(s.label)}</span>`
                : `<span style="color:var(--ink3)">${esc(s.label)}</span>`;
            })()}</td>
+        <td style="white-space:nowrap;color:var(--ink3)" title="${esc(r.created_at || '')}">${
+             r.created_at ? esc(dmy(r.created_at.slice(0,10))) : '—'}</td>
         <td class="cap">${(() => {
              const u = r.info_url || r.ticket_url;
              return u ? `<a href="${esc(u)}" target="_blank" rel="noopener" title="${esc(u)}"
@@ -2577,11 +2626,43 @@ function drawEvents(){
     }).join('')}</tbody></table>`;
   $('#elist').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
     openEditor('events', DATA.events.find(x => x.id === +tr.dataset.id)));
+  wireSort('#elist', EFILTER, drawEvents);
   wirePick('#elist', 'events', 'events');
 }
 
 /* ── activities: the evergreen half ────────────────────────────────────────*/
-let AFILTER = {q:'', type:'', sort:'name', flag:'', kind:''};
+let AFILTER = {q:'', type:'', flag:'', kind:'', sort:'name', dir:1};
+
+/* Two of these columns only draw on some tabs, so the spec is built per draw
+   rather than being a constant — see acols(). Everything else about it is the
+   shared mechanism. */
+function acols(showKind, showPlace){
+  const place = p => p.place_id ? DATA.places.find(x => x.id === p.place_id) : null;
+  return [
+    ['name',   'Name',     r => r.name, 'class="wide"'],
+    ...(showKind  ? [['kind', 'Kind', r => r.kind]] : []),
+    ['type',   'Type',     r => (r.types || []).join(' · ')],
+    ['where',  'Where',    r => r.location],
+    ...(showPlace ? [
+      ['place',  'Location', r => (place(r) || {}).name],
+      // How much is attached here. A listing can only have events through a
+      // place_id, so an unlinked row is blank rather than zero — and blank
+      // sorts last, which is the honest place for "cannot have any".
+      ['events', 'Events',   r => r.place_id
+                   ? DATA.events.filter(e => e.place_id === r.place_id).length || 0 : ''],
+    ] : []),
+    // null km is "nowhere to measure", not zero — and blank last handles it.
+    ['km',     'Km',       r => (r.km === null || r.km === undefined) ? '' : r.km],
+    ['pinned', 'Pinned',   r => !r.lat || !r.lng ? 3
+                              : (coarse(r.lat) || coarse(r.lng)) ? 2 : 1],
+    ['cost',   'Cost',     r => r.cost],
+    ['added',  'Added',    r => r.created_at],
+    // What the dropdown called "Most to fix", on the column that shows it.
+    // Descending is the useful direction, which is one more press.
+    ['tofix',  'To fix',   r => r.__flags.filter(f =>
+                                  !['no pin','coarse pin'].includes(f)).length || ''],
+  ];
+}
 
 function drawActivities(){
   const list = DATA.activities.map(r => ({...r, __flags: flagsFor(r,'activities')}));
@@ -2597,13 +2678,6 @@ function drawActivities(){
     return hit(r, q, [(r.tags || []).join(' ')]);
   });
 
-  out.sort({
-    name:   (a,b) => a.name.localeCompare(b.name),
-    // null km is "nowhere to measure", which belongs at the bottom, not the top.
-    km:     (a,b) => (a.km ?? 1e9) - (b.km ?? 1e9) || a.name.localeCompare(b.name),
-    newest: (a,b) => String(b.created_at).localeCompare(String(a.created_at)),
-    flags:  (a,b) => b.__flags.length - a.__flags.length || a.name.localeCompare(b.name),
-  }[AFILTER.sort]);
 
   $('#t-activities').textContent = DATA.activities.length;
   if (!out.length){ $('#alist').innerHTML = '<p class="empty">Nothing matches.</p>';
@@ -2618,9 +2692,10 @@ function drawActivities(){
      never carry a place_id nor host a happening. On that tab these two are a
      question with no possible answer, which is worse than a blank column. */
   const showPlace = AFILTER.kind !== 'idea';
+  const cols = acols(showKind, showPlace);
+  out = sortRows(out, cols, AFILTER);
   $('#alist').innerHTML = `<table><thead><tr>
-      ${pickHead()}<th>Name</th>${showKind ? '<th>Kind</th>' : ''}<th>Type</th><th>Where</th>
-${showPlace ? '<th>Location</th><th>Events</th>' : ''}<th>Km</th><th>Pinned</th><th>Cost</th><th>To fix</th><th></th>
+      ${pickHead()}${sortHead(cols, AFILTER)}<th></th>
     </tr></thead><tbody>${out.map(r => `
       <tr class="clickable" data-id="${r.id}">
         ${pickCell('activities', r.id)}
@@ -2648,6 +2723,8 @@ ${showPlace ? '<th>Location</th><th>Events</th>' : ''}<th>Km</th><th>Pinned</th>
              : (coarse(r.lat) || coarse(r.lng)) ? '<span class="tag warn">coarse</span>'
              : '<span class="tag live">yes</span>'}</td>
         <td>${esc(r.cost || '—')}</td>
+        <td style="white-space:nowrap;color:var(--ink3)" title="${esc(r.created_at || '')}">${
+             r.created_at ? esc(dmy(r.created_at.slice(0,10))) : '—'}</td>
         <td class="cap" style="color:var(--ink3)">${(() => {
              // What is left to do with this row, as words in a column. The two
              // that repeat Pinned and Km are not among them.
@@ -2665,6 +2742,7 @@ ${showPlace ? '<th>Location</th><th>Events</th>' : ''}<th>Km</th><th>Pinned</th>
     e.preventDefault(); e.stopPropagation();
     openEditor('places', DATA.places.find(x => x.id === +a.dataset.place));
   });
+  wireSort('#alist', AFILTER, drawActivities);
   wirePick('#alist', 'activities', 'activities');
 }
 
@@ -2684,7 +2762,41 @@ function agoLong(iso){
 }
 
 /* ── places ────────────────────────────────────────────────────────────────*/
-let PFILTER = {q:'', kind:'', sort:'name', flag:'', state:'', showQuiet:false};
+let PFILTER = {q:'', kind:'', flag:'', state:'', showQuiet:false, sort:'name', dir:1};
+let GFILTER = {sort:'name', dir:1};
+
+/* When anything was last attached here — an event or a listing. A venue changes
+   slowly, so silence is the signal this column is for. One rule, because both
+   the Locations table and the Groups table print it and sort by it. */
+function lastAddedAt(p){
+  const stamps = [...DATA.events.filter(e => e.place_id === p.id),
+                  ...DATA.activities.filter(a => a.place_id === p.id)]
+    .map(x => x.created_at).filter(Boolean).sort();
+  return stamps[stamps.length - 1] || null;
+}
+
+/* Locations and Groups are the same table with a different question asked of
+   it, so they take one column spec with one word changed. `srcByName` is passed
+   in rather than looked up, because both draws have already built it and it is
+   the expensive part. */
+function pcols(head, srcByName, pinned){
+  const st = p => (srcByName[p.name] || {}).state || '';
+  return [
+    ['name',  head,        p => p.name, 'class="wide"'],
+    ['kind',  'Kind',      p => p.kind],
+    ['town',  'Town',      p => p.suburb],
+    // Automated first, which is what the dropdown called "feed". An events_url
+    // is a deliberate claim that this page belongs to this place, so it outranks
+    // a bare website — the same order automationCell() draws in.
+    ['auto',  'Automation', p => (p.events_url ? 1 : p.website || p.ticketing_url ? 2 : 3)
+                                 + (SRC_ORDER.indexOf(st(p)) + 1) / 100],
+    ['added', 'Last added', p => lastAddedAt(p)],
+    ['link',  'Link',       null, 'style="max-width:15ch"'],
+    ['events','Events',     p => DATA.events.filter(e => e.place_id === p.id).length || ''],
+    ...(pinned ? [['pinned', 'Pinned', p => !p.lat || !p.lng ? 3
+                              : (coarse(p.lat) || coarse(p.lng)) ? 2 : 1]] : []),
+  ];
+}
 
 /* What actually keeps a place up to date, taken from where its events came
    from rather than from what the last run poked at. The two disagreed loudly:
@@ -2873,8 +2985,7 @@ function automationCell(p, s){
 const isGroup = p => DATA.place_kinds.some(k => k.name === p.kind && k.band === 'people');
 
 function drawGroups(){
-  const list = DATA.places.filter(isGroup)
-    .sort((a, b) => a.name.localeCompare(b.name));
+  let list = DATA.places.filter(isGroup);
   $('#t-groups').textContent = list.length || '';
   if (!list.length){ $('#glist').innerHTML = '<p class="empty">No groups yet.</p>';
     wirePick('#glist', 'groups', 'places'); return; }
@@ -2884,9 +2995,10 @@ function drawGroups(){
   // a group and a venue cannot disagree about whether a source is reading.
   const srcByName = {};
   for (const r of sourceRows()) if (r.kind === 'venue') srcByName[r.name] = r;
+  const gc = pcols('Group', srcByName, false);
+  list = sortRows(list, gc, GFILTER);
   $('#glist').innerHTML = `<div style="overflow-x:auto"><table><thead><tr>
-      ${pickHead()}<th>Group</th><th>Kind</th><th>Town</th><th>Automation</th>
-      <th>Last added</th><th>Link</th><th>Events</th><th></th>
+      ${pickHead()}${sortHead(gc, GFILTER)}<th></th>
     </tr></thead><tbody>${list.map(p => {
       const s  = srcByName[p.name] || {};
       const ev = DATA.events.filter(e => e.place_id === p.id);
@@ -2919,6 +3031,7 @@ function drawGroups(){
       no address. None of these is on the map, and none should be — an event they
       run points at whichever room they hired.</p>`;
 
+  wireSort('#glist', GFILTER, drawGroups);
   $('#glist').querySelectorAll('[data-edit]').forEach(a => a.onclick = e => {
     e.preventDefault();
     openEditor('places', DATA.places.find(x => x.id === +a.dataset.edit));
@@ -2961,13 +3074,6 @@ function drawPlaces(){
     return [p.name, p.suburb, p.address, ...(p.aliases||[])]
       .some(v => String(v ?? '').toLowerCase().includes(q));
   });
-  list.sort({
-    name:   (a,b) => a.name.localeCompare(b.name),
-    events: (a,b) => b.__events - a.__events || a.name.localeCompare(b.name),
-    feed:   (a,b) => (b.events_url?2:b.website?1:0) - (a.events_url?2:a.website?1:0)
-                     || a.name.localeCompare(b.name),
-    flags:  (a,b) => b.__flags.length - a.__flags.length || a.name.localeCompare(b.name),
-  }[PFILTER.sort]);
 
   // Not DATA.places.length — the groups have their own tab, and a tally that
   // counted them here would promise six rows this table does not show.
@@ -2993,9 +3099,10 @@ function drawPlaces(){
   };
   if (!list.length){ $('#plist').innerHTML = '<p class="empty">Nothing matches.</p>';
     wirePick('#plist', 'places', 'places'); return; }
+  const pc = pcols('Venue', srcByName, true);
+  list = sortRows(list, pc, PFILTER);
   $('#plist').innerHTML = `<table><thead><tr>
-      ${pickHead()}<th>Venue</th><th>Kind</th><th>Town</th><th>Automation</th>
-      <th>Last added</th><th>Link</th><th>Events</th><th>Pinned</th><th></th>
+      ${pickHead()}${sortHead(pc, PFILTER)}<th></th>
     </tr></thead><tbody>${list.map(p => {
       const s  = srcByName[p.name] || {};
       const st = SRC_STATE[s.state] || null;
@@ -3042,6 +3149,7 @@ function drawPlaces(){
     }).join('')}</tbody></table>`;
   $('#plist').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = () =>
     openEditor('places', DATA.places.find(x => x.id === +tr.dataset.id)));
+  wireSort('#plist', PFILTER, drawPlaces);
   wirePick('#plist', 'places', 'places');
 }
 
@@ -4464,10 +4572,10 @@ const wire = (map, filter, redraw) => {
     el[ev] = e => { filter[key] = e.target.value; redraw(); };
   }
 };
-wire({'#eq':'q', '#etype':'type', '#erec':'rec', '#ewhen':'when', '#esrc':'src', '#esort':'sort'},
+wire({'#eq':'q', '#etype':'type', '#erec':'rec', '#ewhen':'when', '#esrc':'src'},
      EFILTER, () => drawEvents());
-wire({'#aq':'q', '#atype':'type', '#asort':'sort'}, AFILTER, () => drawActivities());
-wire({'#pq':'q', '#pkind':'kind', '#psort':'sort'}, PFILTER, () => drawPlaces());
+wire({'#aq':'q', '#atype':'type'}, AFILTER, () => drawActivities());
+wire({'#pq':'q', '#pkind':'kind'}, PFILTER, () => drawPlaces());
 wire({'#rsrc':'src'}, RFILTER, () => drawReview());
 wire({'#istatus':'status', '#itriage':'triage'}, IFILTER, () => loadInbox());
 $('#ireload').onclick = loadInbox;

@@ -210,6 +210,156 @@ structured query on the address returns a `class=building` node at
 `km` is null. The newsletter was the tip-off and is named as such in the
 `source_note`, **not** cited as the source.
 
+### The pass — 1 → 54, run 2 Sep 2026
+
+`prompts/second-hand.md` is a **type** prompt rather than a group one, organised
+by source. It came back with 49 activities, one event, three edits to existing
+rows and one `places` row to build. All applied.
+
+**Every one of the 49 is single-typed `second-hand` with `kind: "shop"`, so not
+one needs a `BY_ID` line.** That is `KIND_OF['second-hand'] = 'shop'` doing the
+work unaided, which is the whole reason the type was allowed to map to a kind —
+and the pass earned it by refusing the two rows that would have broken it. See
+below.
+
+**The distribution is Geelong-heavy and was not corrected for**, which is the
+honest answer: Pakington Street alone has five (Salvos, Vinnies, Uniting, MS
+Plus, Fight Cancer) and **High Street Belmont has four in a row** — Brotherhood
+at 142-146, Vinnies at 170, Lifeline at 174, Salvos at 176. Greater Geelong 25,
+Bellarine 13, Surf Coast and Great Ocean Road **4**. Lorne and Apollo Bay have
+one each and Lorne's cannot be confirmed first-party. A pass returning three
+Lorne op shops would have invented them.
+
+### Two refusals are the more useful half
+
+- **Pop Cultcha is NOT `second-hand`**, and this is the audit item the prompt
+  asked for coming out the other way. It sells **new** licensed merchandise, and
+  its Level 1 record floor is a new-vinyl store — "over 6,000 in-stock vinyl
+  records" with no mention anywhere of used, pre-loved or pre-owned. A
+  collectibles shop *feels* adjacent, and that is the trap: **the type says what
+  is sold, and what is sold here is new.** Adding it would also have cost
+  something real — `KIND_OF['music'] = 'venue'`, so `second-hand · music` comes
+  out a venue on `PRECEDENCE` and the row walks onto the board it is held off.
+  `music` is still a poor word for a shop selling figurines downstairs, and the
+  fix for that is not this type.
+- **The Amazing Mill Markets is NOT `market`.** It has Markets in its name and is
+  a permanent indoor emporium open 10–6 every day but Christmas. `market` would
+  have made it `market · second-hand`, `KIND_OF['market'] = 'venue'`, same
+  failure. It is an activity, `kind = shop`, single-typed.
+
+Both are the multi-type warning in the prompt working as written, on the two rows
+that would actually have triggered it.
+
+### Row 110's pin was 2,584 m wrong, and it was verified
+
+`Anglesea Resale Shed (Tip Shop)` held `-38.4044,144.1844`, which
+reverse-geocodes to **"13 River Reserve Road, Anglesea"** — a residential street
+in town. The shed is at the transfer station, 50 Coalmine Road; the Shire's own
+published address geocodes to `-38.3850487,144.2008192` and reverse-geocodes back
+to "50, Coalmine Road, Anglesea". **Verified here, not quoted**, and the row was
+`verified = true`, so a wrong pin had been through a review.
+
+Retyped `['community'] → ['second-hand']` in the same edit. `community` describes
+**who runs it** — an Anglesea Community House project — and filed the tip shop on
+`/community` beside Landcare branches, where nobody hunting a bookcase would
+look. The Shire's own words are that you buy "secondhand furniture and other
+items in good condition". `km` was 15.0 and is now null. This is the row this
+file has flagged twice as carrying the weakest type in the database; it is the
+row the type was created for, and it is fixed.
+
+### `Winchelsea re-loved market` was already here and did not say so
+
+Event 689, found by scanning the events table rather than by the prompt. Its own
+description reads *"A market for all things Re-Loved, Recycled and Re-Purposed"*
+and it was typed `market` alone. Now `market · second-hand` — an event carries no
+`kind`, so the second type costs nothing. It also had `place_id: null` with a
+venue string of "Winchelsea Shire Hall", **which is already `places` 78**, so one
+of the twelve unpinnable market rows was fixed by linking rather than by building.
+
+### The one event, and the place built for it
+
+`The Dove Designer Runway & High Tea` (event 1114, 24 Oct 2026) at the Ocean
+Grove Uniting Church op shop. **Place 217** was built for it — 107-109 The
+Parade, `kind = community-centre`, pinned house-level, carrying *The Dove* as an
+alias so `scrape_venues.py`'s registry can match a listing back to it.
+
+**`date_confidence` is `medium` off a first-party page, and the reason is worth
+keeping: Facebook does not print the year** for a date inside the next twelve
+months. It shows "Sat, 24 Oct at 13:45 AEDT", so 2026 is *derived*, not read. It
+is corroborated — 24 Oct 2026 is a Saturday, matching the "Sat" Facebook prints,
+and AEDT is right for late October — but a worked-out year is not a read one.
+That is a new instance of the weekday-checksum rule, pointed at a source that
+withholds the year rather than one that gets it wrong.
+
+### What the chains taught, and it generalises past this type
+
+The Savers technique held for fifteen chains. Three failed in ways worth naming,
+because **each returns a plausible empty result rather than an error**:
+
+- **MS Plus's Victorian shop list is a collapsed accordion that renders empty to
+  a fetch.** Anyone fetching that URL concludes MS Plus has no shops anywhere.
+  Eight VIC shops are behind it.
+- **GAWS's op shop page returns an empty `<body>`.** In a browser it says the
+  Vines Road shop is **permanently closed** and the shop is now at Newcomb —
+  while OpenStreetMap still carries Vines Road as a live `shop=charity` way. A
+  fetch-only pass would have written the dead one.
+- **Salvos' store list is empty in `__NEXT_DATA__`** and fetched client-side from
+  its own `/api/uplister/store-list` — 445 stores with address, hours and
+  coordinate. Its `StoreLink` field is **stale**, pointing at a domain the chain
+  no longer uses; the live page is `/stores/{state}/{slug}`.
+
+Five chains run no op shops in this region at all, which is a finding rather than
+a gap: Sacred Heart Mission (Melbourne only), **Anglicare Victoria (no op shop
+network at all)**, Diabetes Victoria (Savers' *donation partner*, not an
+operator), Cancer Council (sells new sun-protection goods), RSPCA (11 shops,
+none here). Bethany has rebranded as Meli and runs none.
+
+**There is exactly one tip shop in the region and it was already row 110.** Three
+of the four councils — Greater Geelong, Colac Otway, Golden Plains — run drop-off
+centres with no reuse shop. Also a fact rather than a gap.
+
+### The `books` tag's bad bargain, measured
+
+`shop=books` is in `KIND_TAGS['secondhand']` because a used bookshop carries no
+other tag. In this region it caught **twelve shops and not one is second-hand** —
+Torquay Books, Beach Books, Bookgrove, Lorne Beach Books, Great Escape, Galapagos,
+Cook & Young and the rest are new-book independents. The tag stays, because
+reading twelve names once is cheaper than missing a used bookshop, but the next
+pass can skip those twelve by name — they are listed in the log.
+
+**And the map badly under-reports this category outside Geelong.** OSM knows two
+second-hand places in Torquay and misses St Luke's; it knows **nothing at all** in
+Queenscliff, which has two op shops on one street. Every parish shop in this batch
+was found by search, not by the sweep. A zero from `nearby.py` is not a fact about
+a town here.
+
+### The pass broke the filter lesson itself, and said so
+
+Its first sweep of Uniting Vic.Tas's 152-URL sitemap filtered on a **hand-written
+list of town names** and found one shop. It missed Point Lonsdale and Highton,
+both sitting in that same sitemap, and only caught it when an unrelated search
+surfaced one directly. The correct answer is three. Worth recording that the
+discard-without-saying-so failure — the `--kinds` space form, the arts label bug,
+the stale cache, the 1000-row cap — **happens to a person reading a list just as
+readily as to a script.**
+
+### Left for a person
+
+- **Grovedale Lifeline has no pin, deliberately.** Lifeline publishes 4/148
+  Marshalltown Road; OSM has a `shop=charity` way named Lifeline at **129**
+  carrying **the same phone number**. 230 m apart, so one source has missed a
+  move. A null is the honest answer.
+- **Breakwater Lifeline may be two operations at one address** — a Warehouse and
+  a Shop, same street number, same hours, different phone numbers. Written as one
+  row.
+- **Brotherhood Belmont's hours are OpenStreetMap's, not the Brotherhood's** —
+  their own op shops page is a plain list of town names with no addresses and no
+  per-store pages.
+- **Second Sails, Apollo Bay reopened 4 Sep 2026** after renovations; the `notes`
+  line saying so should come out.
+- Seventeen candidates in the log have an address and no first-party page.
+  **Lorne is the one most likely to be a real shop.**
+
 ## Six kinds of listing — COLUMN BUILT AND EVERYTHING CLASSIFIED 27 Aug 2026
 
 Decided with Scott over a long session on 27 Aug 2026, after reading all 585
@@ -1201,6 +1351,22 @@ true** — which is what this file already said, and was not true of the tooling
 
 Worth generalising: **the invariant is the test, not the list of write paths.**
 Run it after any change that writes a listing.
+
+**And that fix broke `sync.py add` outright for four days — found 2 Sep 2026.**
+`add()` injects `r['published'] = False` and *then* runs `check()`, and
+`published` was in neither `ACTIVITY_COLS` nor `EVENT_COLS`. So every row failed
+on `no such field ['published']` and nothing could be written by hand at all.
+
+**`sync.py check` passed the whole time**, because `check` does not inject — so
+the two commands disagreed, and the one a research pass runs is the one that
+worked. Four Cowork passes handed back batches that validated clean and could
+not have been applied.
+
+Two things to take from it. **Anything `add()` sets on a row has to be a column
+`check()` knows about** — they are one contract split across two functions.
+And the gate was written and never exercised: the row that proved the bug
+existed was written *before* the fix, and nobody ran `add` again afterwards.
+**A guard you have not run is not a guard.**
 
 ### Batch actions — Publish and Hold on the pick bar
 
