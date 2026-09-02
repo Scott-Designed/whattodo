@@ -151,6 +151,39 @@ const BASELINE = {
 };
 const BASELINE_TAKEN = '2026-08-31';
 
+/* ── recent whale and dolphin sightings ────────────────────────────────────
+   This project's own notes say there is no live whale feed for Victoria, and
+   that is still true of the AUTHORITATIVE one: WhaleFace, run by DEECA with
+   SWIFFT, collects exactly these sightings and its robots.txt disallows
+   /api/. What there IS is whoever happened to log an observation — 22
+   research-grade cetacean records in the region over the past year, which is
+   far too thin to draw a season from and perfectly good for answering "has
+   anyone seen one lately".
+
+   THE ASYMMETRY IS THE WHOLE POINT AND HAS TO REACH THE COPY. A record means
+   somebody saw a whale. NO record means nobody logged one, which is not the
+   same as no whales — in a month when several hundred pass this coast, this
+   feed might carry two. It may say yes; it may never say no. */
+const CETACEA = 152871;
+const WHALE_BOX = {nelat: -38.10, nelng: 144.80, swlat: -38.95, swlng: 143.30};
+const WHALE_DAYS = 60;          // how far back to ask
+const WHALE_RECENT = 21;        // and what counts as "lately"
+
+/* iNaturalist's own `place_guess` is the observer's rough label and is not
+   reliable: the 23 Aug 2026 Southern Right Whale carries "Moriac", an inland
+   town, for a coordinate that is open water off Barwon Heads. The coordinates
+   are NOT obscured for these records (checked — taxon_geoprivacy is open), so
+   the honest thing is to name the nearest place we already hold a pin for and
+   ignore the label entirely. */
+function nearestBeach(lat, lng) {
+  let best = null;
+  for (const [key, [blat, blng]] of Object.entries(BEACH_AT)) {
+    const m = metres(lat, lng, blat, blng);
+    if (!best || m < best.m) best = {key, m};
+  }
+  return best;
+}
+
 /* Where this month sits against the taxon's own annual peak, and which way it
    is heading. Bands are wide on purpose — this is "is it worth going to look",
    not a phenology model. */
@@ -210,6 +243,10 @@ const SOURCE_META = {
             licence: 'per observation — CC, and the observer is named'},
   'nature.fungi':   {org: 'iNaturalist', feed: 'Species counts — Fungi, research grade',
             home: 'https://www.inaturalist.org/observations?taxon_id=47170&place_id=any',
+            doc:  'https://api.inaturalist.org/v1/docs/',
+            licence: 'per observation — CC, and the observer is named'},
+  'nature.whales':  {org: 'iNaturalist', feed: 'Recent cetacean sightings — whoever logged one',
+            home: 'https://www.inaturalist.org/observations?taxon_id=152871&place_id=any',
             doc:  'https://api.inaturalist.org/v1/docs/',
             licence: 'per observation — CC, and the observer is named'},
   'nature.plants':  {org: 'iNaturalist', feed: 'Species counts — Plantae, research grade',
@@ -292,13 +329,22 @@ function nextShowers(now, howMany = 3) {
    a source that fails is visible rather than silently absent — the failure
    mode run_log.py already had to be taught about, where anything that was not
    a known failure phrase came out green. */
+/* JSON must never be shortened — a cut object is not a smaller answer, it is
+   an unparseable one. Generous, because iNaturalist returns 492 KB for four
+   whale sightings and there is no field selection on that endpoint. */
+const JSON_CAP = 4_000_000;
+
 async function source(id, url, parse, ms = 12000) {
   const t0 = Date.now();
   const bad = safeUrl(url);
   const host = (() => { try { return new URL(url).host; } catch { return null; } })();
   if (bad.error) return {id, host, ok: false, state: 'bad_url', error: bad.error, ms: 0};
   try {
-    const r = await getPage(url, ms);
+    const r = await getPage(url, ms, JSON_CAP);
+    if (r.truncated)
+      return {id, host, ok: false, state: 'truncated', ms: Date.now() - t0,
+              bytes: r.body.length,
+              error: 'response exceeded ' + JSON_CAP + ' bytes and was cut'};
     const took = Date.now() - t0;
     if (r.status !== 200)
       return {id, host, ok: false, state: 'http', error: 'HTTP ' + r.status,
@@ -379,6 +425,15 @@ export default async function handler(req, res) {
        waste — 432 calls a day against iNaturalist's 10,000. A second endpoint
        on a six-hour window would be tidier and is not worth a second thing to
        monitor until something else needs one. */
+    /* Newest first, and a wide window — the rule decides what counts as
+       recent, not the query. */
+    source('nature.whales', 'https://api.inaturalist.org/v1/observations?' + q({
+      taxon_id: CETACEA, per_page: 5,
+      order_by: 'observed_on', order: 'desc',
+      d1: iso(new Date(Date.now() - WHALE_DAYS * 864e5)), d2: iso(new Date()),
+      nelat: WHALE_BOX.nelat, nelng: WHALE_BOX.nelng,
+      swlat: WHALE_BOX.swlat, swlng: WHALE_BOX.swlng}), J, 20000),
+
     ...Object.entries(BASELINE).map(([id, b]) =>
       source('nature.' + id, 'https://api.inaturalist.org/v1/observations/species_counts?' + q({
         taxon_id: b.taxon, quality_grade: 'research',
@@ -404,6 +459,7 @@ export default async function handler(req, res) {
                   each heading, because a number with no provenance on the
                   screen is one nobody can check. */
                from: {weather: 'weather', sea: 'marine', air: 'air', sky: 'space',
+                      whales: 'nature.whales',
                       space: 'space', tide: 'marine', beaches: 'beaches',
                       burns: 'burns', growing: 'nature.orchids'},
                taken_at: {
@@ -541,6 +597,37 @@ export default async function handler(req, res) {
         latin: r.taxon.name})),
     };
   });
+  /* Sightings, newest first. Each carries its observer and licence because
+     iNaturalist records are somebody's work and the attribution is owed. */
+  const wh = got['nature.whales'];
+  if (wh?.results) {
+    const today = new Date();
+    out.whales = wh.results.map(o => {
+      const [lat, lng] = String(o.location || '').split(',').map(Number);
+      const near = (isFinite(lat) && isFinite(lng)) ? nearestBeach(lat, lng) : null;
+      const days = o.observed_on
+        ? Math.round((today - new Date(o.observed_on + 'T12:00')) / 864e5) : null;
+      return {
+        what: o.taxon?.preferred_common_name || o.taxon?.name || 'a cetacean',
+        on: o.observed_on, days_ago: days,
+        near_key: near?.key || null,
+        near_km: near ? Math.round(near.m / 100) / 10 : null,
+        by: o.user?.login || null, licence: o.license_code || null,
+        url: o.id ? 'https://www.inaturalist.org/observations/' + o.id : null,
+      };
+    }).filter(x => x.on);
+    out.whales_note = {
+      window: WHALE_DAYS + ' days', recent: WHALE_RECENT + ' days',
+      source: 'iNaturalist — whoever logged one',
+      caveat: 'A record means somebody saw a whale. No record means nobody '
+            + 'logged one, which is not the same as no whales. The '
+            + 'authoritative Victorian source is WhaleFace, run by DEECA, and '
+            + 'its robots.txt disallows its API — so this can say yes and can '
+            + 'never say no.',
+      report: 'https://whaleface.swifft.net.au/',
+    };
+  }
+
   out.growing_note = {
     window: '30 days', source: 'iNaturalist, research grade',
     baseline_taken: BASELINE_TAKEN,

@@ -40,11 +40,22 @@ function safeUrl(raw) {
   return {u};
 }
 
-async function getPage(url, ms = 12000) {
+/* The 400 KB cap keeps a runaway page from filling the function's memory, and
+   it is the right default for HTML. It is WRONG for a JSON endpoint, which it
+   corrupts rather than shortens: iNaturalist answers a four-record cetacean
+   query with 492 KB, and the cut landed mid-object, so JSON.parse threw
+   "Unexpected end of JSON input" and the source read as down.
+
+   So the cap is a parameter now — the default is unchanged, so probe and
+   inbox_read behave exactly as before — and the result says when it fired.
+   A body that was silently shortened is the failure this project keeps
+   paying for: it looks like a world containing less. */
+async function getPage(url, ms = 12000, cap = 400_000) {
   const r = await fetch(url, {headers: {'User-Agent': UA},
                               signal: AbortSignal.timeout(ms), redirect: 'follow'});
+  const full = await r.text();
   return {status: r.status, type: r.headers.get('content-type') || '',
-          body: (await r.text()).slice(0, 400_000)};
+          body: full.slice(0, cap), truncated: full.length > cap};
 }
 
 /* Read robots the way eventlib does — only a 401/403 on robots.txt ITSELF is a
