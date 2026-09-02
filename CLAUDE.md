@@ -1110,6 +1110,61 @@ compute driving distance automatically. Distances here are already shaky, and
 hand-entering 101 of them is how a hundred more guesses get in. Do not fill `km`
 during a review.
 
+### A Perth comedy gig was on the board — 2 Sep 2026
+
+Found while listing the new `second-hand` rows, by asking a question nothing had
+asked before: **which published listings does `suburbOf()` resolve to no town?**
+Nineteen, and twelve of them were a national speaker tour — Brian Lara, Tom
+Hawkins, Jeremy Cameron, Patrick Dangerfield, Nathan Broad — at venues in
+**Hobart, Launceston, Perth, Mount Gambier, Sale, Traralgon, Horsham, Mulwala,
+Bendigo, West Melbourne and Beaconsfield.**
+
+**Place 198, `Entertainment by Vin`, is a national promoter**, registered from
+/admin on 31 Aug 2026 with its Eventbrite organiser URL. `scrape_venues.py` read
+it through the API, correctly took `location.name` off each event, **created
+twelve `places` rows (203–214) for venues in five states**, and wrote twelve
+events.
+
+**All twelve auto-verified**, because they passed every one of the four
+mechanical checks: `date_confidence high` off a first-party page, a real
+`starts_on`, a `place_id`, and a `source_note`. This file names that risk
+exactly — *"the Moshtix case is the standing example: every one of those twelve
+Melbourne gigs would have passed a mechanical check"* — and this is it happening,
+one platform along, to rows that then went live.
+
+**Auto-verification is also what carried them past the retrospective hold.** The
+1 Sep publish gate held 41 rows, and it held **unverified** ones; these were
+already `verified = true`, so they stayed published. Two safety nets, and the
+first one disarmed the second.
+
+**Twelve unpublished, `verified` deliberately left alone** — the events are real,
+they are just not ours, and unpublishing says nothing about whether a row is
+true. Published listings 1252 → 1240. The twelve `places` rows and place 198's
+`events_url` are **not touched**: deleting is destructive and un-registering
+undoes a decision Scott made by hand. The gate makes it non-urgent — a future
+run writes `published: false`, so Thursday's import lands in the queue.
+
+**The missing check is a region check, and there is still none.** Nothing in any
+write path asks whether a row is in the region; `suburbOf()` returning null is
+the signal, and it is already computed. The honest place for it is a **warning**,
+not a refusal — a suburb the vocabulary has not learned yet looks identical to
+Perth, which is the Mt Duneed lesson, and refusing on it would have blocked
+`Bellarine Catchment Network` (a543) for the Mannerim gap.
+
+**Registering an organiser is not the same as registering a venue**, and the
+distinction this file draws for aggregators applies to Eventbrite organisers
+too: `/o/` is right when the organiser IS the room — Torquay Bowls Club, the
+Book Bird, HOOP Gallery — and wrong when it is a promoter who hires other
+people's rooms. `Entertainment by Vin` is the second kind. The Moshtix fix was
+to remove the pattern so the venue's own listing was read instead; there is no
+equivalent here, because a promoter has no room of its own.
+
+The other seven stranded rows are known and were left: three Warrnambool events
+from Coast & Bay (a region judgement — the publication is regional but reaches
+further west than this site does), the three parked `Quiet Club` nights, and
+`Bellarine Catchment Network`, whose town is the **Mannerim** vocabulary gap this
+file already records.
+
 ## The venue feed — one worker, driven by the database
 
 `scrape_venues.py` reads gigs from the venues themselves. **The registry is the
