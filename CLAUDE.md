@@ -267,6 +267,52 @@ items in good condition". `km` was 15.0 and is now null. This is the row this
 file has flagged twice as carrying the weakest type in the database; it is the
 row the type was created for, and it is fixed.
 
+### The repair cafés DO carry it — Scott's call, 2 Sep 2026
+
+He noticed `Repair Cafe Bellarine – Ocean Grove` missing from `/second-hand`
+and, offered the choice, widened the type: **reuse is the shelf, not "what is
+sold".**
+
+That reverses the naming argument above, which names *"both Repair Cafés"* as
+rows an `environmental` type would wrongly swallow. The argument was that the
+type is the word the row prints and a repair café sells nothing. Scott's reading
+wins, and the reasoning is in each row's `source_note` so the disagreement is
+readable from the row rather than only from here.
+
+**Applied to all four repair rows, not the two he named**, because one repair
+café on the page and the other off is a visible inconsistency with no reason a
+reader could see:
+
+    a132  Repair Cafe Bellarine – Ocean Grove   community · second-hand
+    a630  Repair Café Surf Coast                volunteering · community · second-hand
+    e4    Repair Café                           community · second-hand
+    e1062 Repair Cafe Bellarine – Ocean Grove   community · second-hand   HELD
+
+**`second-hand` was appended, never put first.** `types[0]` is the primary — the
+word the row prints, the icon it draws, the colour it tints — so a repair café
+still reads *community*, which is what it is.
+
+**`e1062` is a Coast & Bay import of the same monthly session as `a132`** and is
+still held. That is the Gather trio shape (a group and its happening are two
+rows), not a duplicate to delete — but the two carry different venues and only
+one has a pin, so somebody should read them together before publishing.
+
+**There is no Men's Shed or tool library in the database at all**, checked. When
+one arrives it faces this same question, and the honest answer may still be the
+page this file argues for — second-hand *plus* repair *plus* borrowing — rather
+than stretching this type a third time.
+
+### 49 of the 55 second-hand rows are HELD, and that is the bigger number
+
+`/second-hand` showed **six** rows on 2 Sep 2026 while 55 carried the type. The
+whole op-shop pass (a707–a754) is unpublished, which is the 1 Sep gate working
+exactly as designed and nobody having pressed Publish. **Scott's call was to
+leave them in the queue and review them in /admin.**
+
+Worth remembering when a type page looks empty: **ask the published count and
+the carried count separately.** They have been 6 and 55 for a day, and the page
+gives no hint that the other 49 exist.
+
 ### `Winchelsea re-loved market` was already here and did not say so
 
 Event 689, found by scanning the events table rather than by the prompt. Its own
