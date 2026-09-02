@@ -2330,6 +2330,41 @@ const RCOLS = [
   ['submitted', 'Submitted',    r => r.created_at],
 ];
 
+function reviewRows(){
+  const held = r => r.published === false;
+  return [
+    ...DATA.events.filter(held).map(r => ({...r, __t:'events'})),
+    ...DATA.activities.filter(held).map(r => ({...r, __t:'activities'})),
+  ];
+}
+
+/* What we already hold under this name, for the row you are about to approve.
+   Blank for nearly everything, which is the point — the column earns its width
+   by being empty until it isn't. `source` is red because a second source
+   carrying the same night is a real duplicate; the rest is amber or grey
+   because it is usually a tour, a series, or the same session at another
+   branch, and only a person can tell those apart. Activities have no dates, so
+   they get nothing rather than a match nobody could act on. */
+function dupeCell(r){
+  if (r.__t !== 'events') return '';
+  const hits = dupesOf(r);
+  if (!hits.length) return '';
+  const top  = hits[0];
+  const col  = top.how === 'date'  ? 'var(--ink3)'
+             : top.how === 'unsure' ? 'var(--accent)' : 'var(--bad)';
+  const where = p => (DATA.places.find(x => x.id === p.place_id) || {}).name
+                     || p.venue || p.added_by || '';
+  // Every match on the tooltip, so a row with five of them hides none of them.
+  const all = hits.map(h => `${DUP_SAYS[h.how]} — #${h.row.id} ${dmy(h.row.starts_on)
+                             } ${where(h.row)} (${sourceName(h.row.added_by)})`).join('\n');
+  return `<span title="${esc(all)}">
+      <a href="#" data-dup="${top.row.id}" style="color:${col};text-decoration:none;border-bottom:1px dotted"
+        >${esc(DUP_SAYS[top.how])}</a>
+      <br><span style="color:var(--ink3);font-size:11px">#${top.row.id} · ${
+        esc(dmy(top.row.starts_on))} · ${esc(where(top.row))}${
+        hits.length > 1 ? ` · +${hits.length - 1} more` : ''}</span></span>`;
+}
+
 /* The town of a review row, by the same rules the board uses. Kept as a name
    because the cell reads it too — the sort and the print are one answer. */
 const rowTown = sortTown;
