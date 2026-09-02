@@ -2299,6 +2299,104 @@ no `source_note`** — verifying those would record that somebody looked when
 nothing says what they checked, which is the exact failure this file already
 notes about the 25 Aug bulk accept.
 
+### Every list in the back office sorts — 2 Sep 2026
+
+Scott, the day after the review queue got it: *"Add sorting to all lists in the
+backend."* Eight tables, **one mechanism** — `sortRows`, `sortHead` and
+`wireSort` near the top of `admin.html`, with a `[key, label, accessor]` spec
+per table.
+
+    Sources    source · runs · status · last read · venues · events · upcoming
+    Review     name · type · when · town · already have · submitted
+    Inbox      arrived · from · subject · what it says · triage · status
+    Events     name · type · when · time · how often · venue · town · source · added
+    Locations  venue · kind · town · automation · last added · link · events · pinned
+    Groups     the same, without Pinned
+    Listings   name · kind · type · where · location · events · km · pinned · cost · added · to fix
+    Runs       run · when · started by · took · result · what it did
+
+**The three sort dropdowns are gone.** `#esort`, `#asort` and `#psort` were a
+private list of orderings per table, and that is how the Events list came to
+sort by things that were not columns while the Groups list could not sort at
+all. Two of their options had no column and are now one: **Added** on Events and
+Listings, which is `created_at` — the same fact the Review queue calls
+*Submitted*. *Most to fix* was dropped rather than given a column, because the
+flag chips above each table already select exactly those rows.
+
+**Why one mechanism rather than eight comparators.** Three rules have to hold
+everywhere, and each is written once:
+
+- **Blank sorts LAST, in both directions, on every column.** An activity has no
+  date, a place has no events, a null `km` means *nowhere to measure*. A blank
+  rising to the top pushes the rows the ordering is FOR off the screen.
+- **Numbers compare as numbers.** `numeric: true` on a string compare is not
+  enough on its own, because 0 and null are different answers.
+- **The accessor is the value the CELL prints.**
+
+**That third rule caught a real bug within a minute of shipping.** The Events
+column on Locations sorted by the total and the cell leads with **upcoming**, so
+descending put *13 0 6* above *17 0 1* — right (19 beats 18) and unreadable.
+`eventsWorth()` is upcoming, then today, then the total as the tiebreak, which
+is the order the cell is written in. Same fault `rowTown()` was extracted to
+avoid on the review queue.
+
+**The Inbox needed one more thing: the row's index travels with it.** Its
+buttons read `data-i` as a position in `INBOX`, so sorting a bare copy would
+have left Filed and Ignore pointing at whichever message used to be in that
+slot. The rows are `{m, i}` pairs and the tie-break is the original order.
+
+**Verified by driving it** — every column of all eight tables, both directions,
+in a browser against live data: row counts unchanged after every press, the
+arrow only ever on the column in force, no stray arrows, and the Inbox's top row
+still resolving to the message it prints. A header click on the 317-row Review
+queue is 85–215ms.
+
+### `scripts/check_admin.py` — because this file has now been broken three times
+
+`private/admin.html` is 4,500 lines edited by scripts, and it has failed the
+same way three times: **a replacement whose anchors spanned more than the author
+meant.** A function inserted into the `<style>` block; a tab-strip rebuild that
+deleted the six tally spans six functions were writing to; and — this session —
+a slice from `const RSORTS` to `function drawReview()` that **swallowed
+`reviewRows`, `clock` and `dupeCell`**, because a previous edit had written them
+between those two markers.
+
+**All three parsed perfectly.** `node --check` is necessary and nowhere near
+sufficient.
+
+    python3 scripts/check_admin.py
+
+Four checks: no function inside `<style>`, every `$('#id')` resolves, `node
+--check`, and **the one that catches a swallowed function — ask git what the
+file used to define, and fail where a name has gone while something still calls
+it.** A deliberate deletion has no callers left and passes in silence; that is
+what makes it usable rather than noisy. Proved against the real failure: given
+f9514ad as the baseline it names all three of `clock`, `dupeCell`, `reviewRows`.
+
+**A generic "called but never defined" scan was tried first and abandoned.** The
+page's prose and its CSS are full of things that look like calls — *"this
+address (60 an hour)"*, `var(--ink3)`, *"send you (/search/…)"* — so it needs
+comments AND string literals stripped, and stripping template literals while
+keeping their `${…}` needs a real parser. The git comparison answers the
+question that actually matters with no parsing at all.
+
+**The Review tab shipped broken and was live for about an hour**, because the
+browser check ran BEFORE the edit that broke it and the commit came after. Run
+the checker last, not the browser.
+
+### Another session committed this session's work — 2 Sep 2026
+
+`ff9f934` ("second-hand goes 1 to 54") contains a half-finished sorting change
+to `admin.html` that a different session had in the working tree. Nothing was
+lost and nothing conflicted, but the commit message describes none of it and
+the broken slice above went out under it.
+
+**One task per session is this file's own rule and it does not stop a second
+session committing your tree.** `git add -A` in a shared checkout takes whatever
+is there. Add files by name, and check `git log --oneline -3` before assuming
+HEAD is what you last committed — `git status` was clean here precisely because
+somebody else had committed the work.
+
 ### Every column of the review queue sorts — 2 Sep 2026
 
 Scott: *"add a sort to each column on the review queue, as I will need an easy
