@@ -169,6 +169,124 @@ function seasonOf(months, monthIndex) {
 
 const iso = d => d.toISOString().slice(0, 10);
 
+
+/* ── who each source actually is ───────────────────────────────────────────
+   The job ids are internal — `weather` is not a source, it is a thing we
+   wanted. This names the organisation, the endpoint it was read from and a
+   page a person can open, and it ships IN THE PAYLOAD rather than in the
+   admin page: a second copy of "what is a source" is how two screens come to
+   disagree, which this project has paid for three times.
+
+   `home` is the human page. `doc` is where the terms and the field list live,
+   because the licence question is the one that has actually bitten. */
+const SOURCE_META = {
+  weather: {org: 'Open-Meteo', feed: 'Forecast API',
+            home: 'https://open-meteo.com/en/docs',
+            doc:  'https://open-meteo.com/en/terms',
+            licence: 'CC-BY 4.0'},
+  marine:  {org: 'Open-Meteo', feed: 'Marine Weather API',
+            home: 'https://open-meteo.com/en/docs/marine-weather-api',
+            doc:  'https://open-meteo.com/en/terms',
+            licence: 'CC-BY 4.0'},
+  beaches: {org: 'Open-Meteo', feed: 'Forecast API — 28 coordinates, one call',
+            home: 'https://open-meteo.com/en/docs',
+            doc:  'https://open-meteo.com/en/terms',
+            licence: 'CC-BY 4.0'},
+  air:     {org: 'Open-Meteo', feed: 'Air Quality API',
+            home: 'https://open-meteo.com/en/docs/air-quality-api',
+            doc:  'https://open-meteo.com/en/terms',
+            licence: 'CC-BY 4.0'},
+  space:   {org: 'NOAA Space Weather Prediction Center', feed: 'Planetary K index, 1-minute',
+            home: 'https://www.swpc.noaa.gov/products/planetary-k-index',
+            doc:  'https://www.swpc.noaa.gov/content/data-access',
+            licence: 'US public domain'},
+  burns:   {org: 'Emergency Management Victoria', feed: 'VicEmergency incidents & warnings',
+            home: 'https://emergency.vic.gov.au/respond/',
+            doc:  'https://www.emergency.vic.gov.au/',
+            licence: 'Victorian Government'},
+  'nature.orchids': {org: 'iNaturalist', feed: 'Species counts — Orchidaceae, research grade',
+            home: 'https://www.inaturalist.org/observations?taxon_id=47217&place_id=any',
+            doc:  'https://api.inaturalist.org/v1/docs/',
+            licence: 'per observation — CC, and the observer is named'},
+  'nature.fungi':   {org: 'iNaturalist', feed: 'Species counts — Fungi, research grade',
+            home: 'https://www.inaturalist.org/observations?taxon_id=47170&place_id=any',
+            doc:  'https://api.inaturalist.org/v1/docs/',
+            licence: 'per observation — CC, and the observer is named'},
+  'nature.plants':  {org: 'iNaturalist', feed: 'Species counts — Plantae, research grade',
+            home: 'https://www.inaturalist.org/observations?taxon_id=47126&place_id=any',
+            doc:  'https://api.inaturalist.org/v1/docs/',
+            licence: 'per observation — CC, and the observer is named'},
+};
+
+
+/* ── the moon, and it needs no API at all ──────────────────────────────────
+   Phase is deterministic astronomy — the same class of maths the board
+   already does in-house for sunset. No network, no third party, no rate
+   limit, nothing that can go down or change its licence.
+
+   Mean synodic month against a known new moon. Good to a few hours, which is
+   far more than "waxing gibbous, 74% lit, full on the 26th" needs.
+
+   CHECKED against a date this project already had on file from timeanddate:
+   from 20 Aug 2026 it returns a full moon on 28 Aug 2026, which is what
+   event 11's own note records. */
+const SYNODIC = 29.530588853;
+const NEW_MOON_0 = Date.UTC(2000, 0, 6, 18, 14);
+const moonPhase = ms => ((((ms - NEW_MOON_0) / 86400000 / SYNODIC) % 1) + 1) % 1;
+const moonLit   = ph => (1 - Math.cos(2 * Math.PI * ph)) / 2;
+function moonNext(ms, target) {
+  const d = ((target - moonPhase(ms)) % 1 + 1) % 1;
+  return new Date(ms + d * SYNODIC * 86400000);
+}
+const MOON_NAMES = [
+  [0.02, 'new moon'], [0.24, 'waxing crescent'], [0.28, 'first quarter'],
+  [0.48, 'waxing gibbous'], [0.52, 'full moon'], [0.72, 'waning gibbous'],
+  [0.78, 'last quarter'], [0.98, 'waning crescent'], [1.01, 'new moon'],
+];
+const moonName = ph => MOON_NAMES.find(([edge]) => ph < edge)[1];
+
+/* ── meteor showers ────────────────────────────────────────────────────────
+   A FIXED ANNUAL CALENDAR, not a feed. Peak dates move by a day either way
+   and that is inside the useful precision — you go out on the night, not at
+   an instant. Peaks are the International Meteor Organization's.
+
+   `south` is the half that matters here and the half most lists get wrong:
+   the Perseids are the famous one and they are essentially invisible from
+   Victoria, because the radiant barely clears the horizon. Listing a shower
+   nobody here can see is the same class of wrong as an invented date. */
+const SHOWERS = [
+  {name: 'Quadrantids',     peak: '01-03', zhr: 110, south: false},
+  {name: 'Lyrids',          peak: '04-22', zhr: 18,  south: true},
+  {name: 'Eta Aquariids',   peak: '05-06', zhr: 50,  south: true},
+  {name: 'Delta Aquariids', peak: '07-30', zhr: 25,  south: true},
+  {name: 'Perseids',        peak: '08-12', zhr: 100, south: false},
+  {name: 'Orionids',        peak: '10-21', zhr: 20,  south: true},
+  {name: 'Leonids',         peak: '11-17', zhr: 15,  south: true},
+  {name: 'Geminids',        peak: '12-14', zhr: 150, south: true},
+  {name: 'Ursids',          peak: '12-22', zhr: 10,  south: false},
+];
+
+/* The next few peaks visible from here, with how dark the moon will be on the
+   night — a 150-an-hour shower under a full moon is a handful, so the two
+   facts belong together or the number misleads. */
+function nextShowers(now, howMany = 3) {
+  const y = now.getUTCFullYear();
+  return SHOWERS.filter(s => s.south)
+    .flatMap(s => [y, y + 1].map(yy => {
+      const [m, d] = s.peak.split('-').map(Number);
+      return {...s, at: new Date(Date.UTC(yy, m - 1, d, 13))};   // ~midnight local
+    }))
+    .filter(s => s.at >= now)
+    .sort((a, b) => a.at - b.at)
+    .slice(0, howMany)
+    .map(s => {
+      const lit = Math.round(moonLit(moonPhase(s.at.getTime())) * 100);
+      return {name: s.name, at: s.at.toISOString().slice(0, 10), zhr: s.zhr,
+              moon_lit: lit,
+              moon_verdict: lit <= 25 ? 'dark — good' : lit >= 70 ? 'washed out' : 'some moon'};
+    });
+}
+
 /* ── one source, settled on its own ────────────────────────────────────────
    Returns the parsed value AND a report. The report is what /admin draws, so
    a source that fails is visible rather than silently absent — the failure
@@ -177,17 +295,18 @@ const iso = d => d.toISOString().slice(0, 10);
 async function source(id, url, parse, ms = 12000) {
   const t0 = Date.now();
   const bad = safeUrl(url);
-  if (bad.error) return {id, ok: false, state: 'bad_url', error: bad.error, ms: 0};
+  const host = (() => { try { return new URL(url).host; } catch { return null; } })();
+  if (bad.error) return {id, host, ok: false, state: 'bad_url', error: bad.error, ms: 0};
   try {
     const r = await getPage(url, ms);
     const took = Date.now() - t0;
     if (r.status !== 200)
-      return {id, ok: false, state: 'http', error: 'HTTP ' + r.status,
+      return {id, host, ok: false, state: 'http', error: 'HTTP ' + r.status,
               ms: took, bytes: r.body.length};
     const value = parse(r.body);
-    return {id, ok: true, state: 'read', ms: took, bytes: r.body.length, value};
+    return {id, host, ok: true, state: 'read', ms: took, bytes: r.body.length, value};
   } catch (e) {
-    return {id, ok: false, state: 'down', ms: Date.now() - t0,
+    return {id, host, ok: false, state: 'down', ms: Date.now() - t0,
             error: String(e && e.message || e).slice(0, 120)};
   }
 }
@@ -227,7 +346,7 @@ export default async function handler(req, res) {
     source('weather', OM + q({
       latitude: HOME.lat, longitude: HOME.lng,
       current: 'temperature_2m,precipitation,wind_speed_10m,wind_direction_10m,cloud_cover',
-      daily: 'precipitation_sum,uv_index_max',
+      daily: 'precipitation_sum,uv_index_max,sunrise,sunset,daylight_duration',
       past_days: 2, forecast_days: 3, timezone: TZ}), J),
 
     source('marine', 'https://marine-api.open-meteo.com/v1/marine?' + q({
@@ -281,6 +400,12 @@ export default async function handler(req, res) {
                   none of them, which teaches a reader that one number covers
                   the coast. It does not: the air is measured at Jan Juc, the
                   sea at Bells, and Kp is planet-wide. */
+               /* Which source answers which block. The tab prints it under
+                  each heading, because a number with no provenance on the
+                  screen is one nobody can check. */
+               from: {weather: 'weather', sea: 'marine', air: 'air', sky: 'space',
+                      space: 'space', tide: 'marine', beaches: 'beaches',
+                      burns: 'burns', growing: 'nature.orchids'},
                taken_at: {
                  weather: {name: 'Jan Juc', lat: HOME.lat, lng: HOME.lng},
                  sea:     {name: 'Bells Beach', lat: SURF.lat, lng: SURF.lng},
@@ -301,6 +426,36 @@ export default async function handler(req, res) {
       // The 48-hour figure the board already fetches and reads in one
       // direction only: it closes the MTB trails and OPENS the waterfalls.
       rain_48h: rain.slice(0, 2).reduce((a, b) => a + (b || 0), 0),
+    };
+  }
+
+  /* ── the sky ─────────────────────────────────────────────────────────
+     Three different kinds of thing on one block, and they cost completely
+     different amounts: the sun comes free in a call already being made, the
+     moon is arithmetic with no network at all, and the showers are a table
+     written once a year. Only Kp is a live feed. */
+  const now = new Date();
+  const ph = moonPhase(now.getTime());
+  out.sky = {
+    moon: {
+      phase: Number(ph.toFixed(4)),
+      name: moonName(ph),
+      lit: Math.round(moonLit(ph) * 100),
+      next_new:  moonNext(now.getTime(), 0).toISOString(),
+      next_full: moonNext(now.getTime(), 0.5).toISOString(),
+      how: 'computed — no API',
+    },
+    showers: nextShowers(now),
+    showers_how: 'a fixed annual calendar, IMO peak dates — the northern-only '
+               + 'showers are left out because the radiant barely clears the '
+               + 'horizon here',
+  };
+  if (w?.daily?.sunrise) {
+    const i = 2;                       // today, after two past_days
+    out.sky.sun = {
+      sunrise: w.daily.sunrise[i], sunset: w.daily.sunset[i],
+      daylight_h: Math.round((w.daily.daylight_duration[i] / 3600) * 10) / 10,
+      how: 'Open-Meteo, in the call already being made',
     };
   }
 
@@ -332,6 +487,14 @@ export default async function handler(req, res) {
               gust_kmh: c.wind_gusts_10m, relation: windRelation(faces, from)};
     }).sort((x, y) => apart(x.wind_from, (x.faces + 180) % 360)
                     - apart(y.wind_from, (y.faces + 180) % 360));
+    /* Two halves with completely different lifespans, and a table that does
+       not say so invites the reader to trust the wrong one. */
+    out.beaches_note = {
+      wind: 'live — one Open-Meteo call carrying all 28 coordinates, same '
+          + 'cache window as everything else on this page',
+      faces: 'stored — measured once from OpenStreetMap coastline on '
+           + '31 Aug 2026. It is a property of the beach and does not change.',
+    };
   }
 
   if (got.air) out.air = {pm2_5: got.air.current.pm2_5, pm10: got.air.current.pm10};
@@ -416,8 +579,9 @@ export default async function handler(req, res) {
   /* The report, last, so the monitor reads one place. Never the raw bodies —
      the Kp feed alone is 28 KB and only its final row is wanted. */
   out.sources = reports.map(r => ({
-    id: r.id, ok: r.ok, state: r.state, ms: r.ms,
+    id: r.id, ok: r.ok, state: r.state, ms: r.ms, host: r.host || null,
     bytes: r.bytes ?? null, error: r.error || null,
+    ...(SOURCE_META[r.id] || {org: r.id, feed: null, home: null, doc: null, licence: null}),
   }));
   out.ok = reports.every(r => r.ok);
 

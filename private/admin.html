@@ -327,7 +327,68 @@ h2[id]{scroll-margin-top:60px}
   letter-spacing:-.012em;text-transform:none;color:var(--ink);
   padding-bottom:9px;border-bottom:1px solid var(--rule2)}
 .cbox > .note{margin:9px 0 13px}
+/* Every section names the source behind it. A number with no provenance on
+   the screen is one nobody can check. */
+.cbox > .src{font-family:var(--util);font-size:11.5px;color:var(--ink3);
+  margin:-2px 0 12px}
+.cbox > .src a{color:var(--ink2);text-decoration:none;
+  border-bottom:1px solid var(--rule2)}
+.cbox > .src a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.cbox > .src .dot{opacity:.5;margin:0 6px}
+.subhead2{font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);
+  margin:20px 0 0;padding-bottom:7px;border-bottom:1px solid var(--rule2)}
+
+/* An arrow is the only honest way to show a bearing. Rotated from north, so
+   0deg points up. The wind arrow points where the wind is GOING, the beach
+   arrow points out to sea — when they agree, it is offshore, and you can read
+   that off the two arrows without doing the arithmetic. */
+.arw{width:15px;height:15px;vertical-align:-3px;stroke:currentColor;fill:none;
+  stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.arw.wind{color:var(--ink2)}
+.arw.face{color:var(--ink3)}
+td .arw{margin-right:5px}
+
+/* what is growing, as a table */
+.grow-top{font-family:var(--util);font-size:11.5px;color:var(--ink3);
+  line-height:1.5}
+.grow-top b{font-weight:600;color:var(--ink2)}
+.seasontag{font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase}
+
+/* the sky */
+.skyrow{display:grid;grid-template-columns:118px minmax(0,1fr);gap:0 16px;
+  padding:9px 0;border-bottom:1px solid var(--rule);align-items:baseline}
+.skyrow .sk{font-family:var(--util);font-size:12.5px;color:var(--ink3)}
+.skyrow .sv{font-size:16px;color:var(--ink)}
+.skyrow .sv small{font-family:var(--util);font-size:12px;color:var(--ink3);
+  display:block;margin-top:2px}
+
+/* ── rules: if this, then that ───────────────────────────────────────────
+   Declared here and evaluated live. NOTHING IS STORED AND NOTHING IS WIRED —
+   this is the decision shown before the machinery is built, which is the
+   order this project has learnt to work in. */
+.rule{display:grid;grid-template-columns:20px minmax(0,1.25fr) minmax(0,1fr);
+  gap:0 16px;padding:11px 0;border-bottom:1px solid var(--rule);
+  align-items:start}
+.rule .dot2{width:9px;height:9px;border-radius:50%;background:var(--rule2);
+  margin-top:5px}
+.rule.on .dot2{background:var(--good)}
+.rule .rn{font-size:16px;color:var(--ink);line-height:1.25}
+.rule.on .rn{font-weight:500}
+.rule .rw{font-family:var(--util);font-size:11.5px;color:var(--ink3);
+  margin-top:3px;line-height:1.5}
+.rule .rt{font-family:var(--util);font-size:12.5px;color:var(--ink3);
+  line-height:1.5}
+.rule.on .rt{color:var(--ink2)}
+.rule .rt b{font-weight:500;color:var(--ink)}
+.rulehead{display:grid;grid-template-columns:20px minmax(0,1.25fr) minmax(0,1fr);
+  gap:0 16px;font-family:var(--util);font-size:10px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);
+  padding-bottom:8px;border-bottom:1px solid var(--rule2)}
 .cbox table{width:100%}
+.tm2{display:block;font-family:var(--util);font-size:11px;color:var(--ink3);
+  margin-top:2px;line-height:1.3}
 @media (max-width:1180px){.condgrid{grid-template-columns:1fr;gap:30px}}
 
 .rd{display:grid;grid-template-columns:minmax(0,1fr) 96px 96px;gap:0 14px;
@@ -1246,6 +1307,14 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 function dmy(iso){
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
   return m ? `${+m[3]} ${MONTHS[+m[2] - 1]} ${m[1]}` : (iso || '');
+}
+/* The opposite of dmy, and the distinction is the whole trick: `created_at`
+   is a real INSTANT, so it may be handed to Date() and rendered in Melbourne.
+   A stored `starts_on` is a DAY and must not be, which is what dmy is for. */
+function clock(iso){
+  if (!iso) return '';
+  const d = new Date(iso);
+  return isNaN(d) ? String(iso) : melb(d);
 }
 function ago(iso){
   const s = (Date.now() - new Date(iso)) / 1000;
@@ -2683,8 +2752,7 @@ function acols(showKind, showPlace){
       // How much is attached here. A listing can only have events through a
       // place_id, so an unlinked row is blank rather than zero — and blank
       // sorts last, which is the honest place for "cannot have any".
-      ['events', 'Events',   r => r.place_id
-                   ? DATA.events.filter(e => e.place_id === r.place_id).length || 0 : ''],
+      ['events', 'Events',   r => eventsWorth(r.place_id)],
     ] : []),
     // null km is "nowhere to measure", not zero — and blank last handles it.
     ['km',     'Km',       r => (r.km === null || r.km === undefined) ? '' : r.km],
@@ -2827,7 +2895,7 @@ function pcols(head, srcByName, pinned){
                                  + (SRC_ORDER.indexOf(st(p)) + 1) / 100],
     ['added', 'Last added', p => lastAddedAt(p)],
     ['link',  'Link',       null, 'style="max-width:15ch"'],
-    ['events','Events',     p => DATA.events.filter(e => e.place_id === p.id).length || ''],
+    ['events','Events',     p => eventsWorth(p.id)],
     ...(pinned ? [['pinned', 'Pinned', p => !p.lat || !p.lng ? 3
                               : (coarse(p.lat) || coarse(p.lng)) ? 2 : 1]] : []),
   ];
@@ -2894,6 +2962,19 @@ const evState = e => {
    none, while a listing with no place_id cannot be asked the question at all.
    A dash in the second case would read as "no events", which is a different
    statement and an untrue one. */
+/* What the Events cell is WORTH, for sorting. It has to be the number the
+   reader compares, and the cell leads with UPCOMING — sorting by the total put
+   "13 0 6" above "17 0 1" and read as broken, because 19 beats 18 and nobody
+   can see either. Upcoming first, then today, then the total as the tiebreak,
+   which is the order the cell itself is written in. */
+function eventsWorth(placeId){
+  if (!placeId) return '';
+  const ev = DATA.events.filter(e => e.place_id === placeId);
+  if (!ev.length) return '';
+  const n = s => ev.filter(e => evState(e) === s).length;
+  return n('up') * 1e6 + n('now') * 1e3 + ev.length;
+}
+
 function eventsCell(placeId, unlinked = '\u2014'){
   if (!placeId) return `<span style="color:var(--ink3)">${esc(unlinked)}</span>`;
   const ev = DATA.events.filter(e => e.place_id === placeId);
@@ -4230,6 +4311,200 @@ async function loadConditions(){
   drawConditions();
 }
 
+
+/* ── the sky ───────────────────────────────────────────────────────────────
+   Three kinds of thing on one block, and saying which is which matters more
+   here than anywhere else on the page, because they cost completely different
+   amounts and fail in completely different ways.
+
+     sun      free, in a call already being made
+     moon     arithmetic — no network at all, nothing that can go down
+     showers  a table written once a year
+     Kp       the only live feed of the four                              */
+function skyBlock(d){
+  if (!d.sky) return '';
+  const m = d.sky.moon, sun = d.sky.sun;
+  const rows = [];
+  if (sun) rows.push(['Sun',
+    `${esc(clock24(sun.sunrise))} &rarr; ${esc(clock24(sun.sunset))}`,
+    `${sun.daylight_h} hours of daylight &middot; ${esc(sun.how)}`]);
+  if (m) {
+    rows.push(['Moon', esc(m.name),
+      `${m.lit}% lit &middot; ${esc(m.how)}`]);
+    rows.push(['Next new moon', esc(dmy(m.next_new.slice(0, 10))),
+      'the dark-sky window &mdash; what a stargazing listing would gate on']);
+    rows.push(['Next full moon', esc(dmy(m.next_full.slice(0, 10))), '']);
+  }
+  if (d.space) rows.push(['Geomagnetic Kp', String(d.space.kp),
+    d.space.aurora_watch ? '<b style="color:var(--good)">aurora worth a drive</b>'
+                         : 'aurora australis wants roughly 6 or more']);
+
+  const sh = (d.sky.showers || []).map(x =>
+    `<tr><td>${esc(x.name)}</td><td>${esc(dmy(x.at))}</td>
+       <td class="num">${x.zhr}/hr</td>
+       <td>${x.moon_lit}% moon <span class="tm2">${esc(x.moon_verdict)}</span></td></tr>`).join('');
+
+  return box('The sky',
+    'The sun comes free in a call already being made. <b>The moon is computed — ' +
+    'no API at all</b>, the same class of maths the board already does for sunset. ' +
+    'The showers are a fixed annual calendar. Only Kp is a live feed.',
+    rows.map(([k, v, n]) => `<div class="skyrow"><span class="sk">${k}</span>
+      <span class="sv">${v}${n ? `<small>${n}</small>` : ''}</span></div>`).join('') +
+    (sh ? `<div class="subhead2">Next meteor showers</div>
+      <p class="note">${esc(d.sky.showers_how || '')}</p>
+      <table><thead><tr><th>Shower</th><th>Peak</th><th>Rate</th>
+        <th>Moon that night</th></tr></thead><tbody>${sh}</tbody></table>` : ''),
+    false, srcLine(d, 'sky'));
+}
+
+/* A stored ISO datetime with no zone is already local — Open-Meteo was asked
+   for Australia/Melbourne. Splitting rather than parsing, for the reason dmy
+   splits: new Date('2026-09-02T06:43') is fine but the date half is not. */
+function clock24(iso){
+  const hm = String(iso).split('T')[1] || '';
+  const h = Number(hm.slice(0, 2)), mm = hm.slice(3, 5);
+  return (((h + 11) % 12) + 1) + ':' + mm + (h >= 12 ? 'pm' : 'am');
+}
+
+/* ══ Rules — if this, then that ════════════════════════════════════════════
+   The decision written down before the machinery is built, which is the order
+   this project has learnt to work in.
+
+   NOTHING HERE IS STORED AND NOTHING IS WIRED. Each rule is declared in this
+   page and evaluated against the live reply, so the tab shows which would be
+   firing right now and what each would put on the board. That is deliberately
+   the whole of it: the interesting question is whether these are the right
+   sentences, and that is answerable by reading them fire for a fortnight
+   without a schema, a table or a write path existing at all.
+
+   `needs` names the readings a rule depends on, so a rule whose source is
+   down reads as UNKNOWN rather than quietly false — which is the difference
+   between "the falls are not running" and "we cannot tell". */
+const RULES = [
+  {id:'waterfalls', name:'The falls are running',
+   when:'20 mm or more of rain in the last 48 hours',
+   needs:['weather.rain_48h'],
+   test:d => d.weather.rain_48h >= 20,
+   then:'Erskine, Hopetoun, Triplet, Sheoak, Kalimna — the Otways falls, which are otherwise a trickle'},
+
+  {id:'trails', name:'The trails are dry',
+   when:'under 2 mm in 48 hours, and not raining now',
+   needs:['weather.rain_48h','weather.raining'],
+   test:d => d.weather.rain_48h < 2 && !d.weather.raining,
+   then:'Forrest and the You Yangs — the same number as the rule above, read the other way'},
+
+  {id:'offshore', name:'Offshore at Bells',
+   when:'the wind at Bells is blowing off the land',
+   needs:['beaches'],
+   test:d => (d.beaches || []).find(b => b.key === 'a2')?.relation === 'offshore',
+   then:'Bells, Winkipop, Southside — and the paraglider rule is its exact inverse'},
+
+  {id:'sheltered', name:'Somewhere is sheltered',
+   when:'any beach has the wind off the land at 15 km/h or more',
+   needs:['beaches'],
+   test:d => (d.beaches || []).some(b => b.relation === 'offshore' && b.wind_kmh >= 15),
+   then:'names the three most sheltered beaches — the answer changes every day and is why the bearing column is worth having'},
+
+  {id:'calm', name:'The sea is glassy',
+   when:'wind wave under 0.3 m',
+   needs:['sea.wind_wave_m'],
+   test:d => d.sea.wind_wave_m < 0.3,
+   then:'wires calm-sea, a tag on 40 rows that has never once evaluated'},
+
+  {id:'groundswell', name:'A groundswell is running',
+   when:'swell over 1.8 m at 11 seconds or longer',
+   needs:['sea.swell_m','sea.swell_s'],
+   test:d => d.sea.swell_m >= 1.8 && d.sea.swell_s >= 11,
+   then:'period is the half nobody prints — 2.6 m at 6 seconds is a mess and this rule knows the difference'},
+
+  {id:'lowtide', name:'Low tide in daylight',
+   when:'the next low tide falls between 7am and 7pm',
+   needs:['tide'],
+   test:d => {const n=(d.tide?.next||[]).find(x=>x.kind==='low'); if(!n) return null;
+              const h=Number(String(n.at).slice(11,13)); return h>=7 && h<=19;},
+   then:'the rockpools — Jan Juc, Point Lonsdale Front, Barwon Bluff'},
+
+  {id:'darksky', name:'A dark sky tonight',
+   when:'the moon is under a quarter lit',
+   needs:['sky.moon.lit'],
+   test:d => d.sky.moon.lit <= 25,
+   then:'stargazing, the Milky Way core, and every dark-sky listing — this is what new-moon should have been gating all along'},
+
+  {id:'aurora', name:'Aurora worth a drive',
+   when:'Kp is 6 or more',
+   needs:['space.kp'],
+   test:d => d.space.kp >= 6,
+   then:'south-facing beaches after dark — wires geomagnetic-storm, a tag on exactly one row'},
+
+  {id:'orchids', name:'The orchids are out',
+   when:'orchids are at 60% or more of their own annual peak',
+   needs:['growing'],
+   test:d => (d.growing||[]).find(g=>g.id==='orchids')?.season.share >= 60,
+   then:'the Anglesea heath, with the species actually being recorded this month'},
+
+  {id:'fungi', name:'The fungi are up',
+   when:'fungi are at 60% or more of their own annual peak',
+   needs:['growing'],
+   test:d => (d.growing||[]).find(g=>g.id==='fungi')?.season.share >= 60,
+   then:'the Otways — the other half of the year from the orchids, and the sharper signal of the two'},
+
+  {id:'smoke', name:'It is smoky',
+   when:'PM2.5 over 25, or a fire or burn within 30 km',
+   needs:['air.pm2_5','burns'],
+   test:d => d.air.pm2_5 > 25 || (d.burns || []).some(b => b.km <= 30),
+   then:'a reason not to drive out for a walk, and currently nowhere on the site'},
+
+  {id:'coldwater', name:'The water is cold',
+   when:'sea temperature under 14 °C',
+   needs:['sea.sea_temp'],
+   test:d => d.sea.sea_temp < 14,
+   then:'swimming and snorkelling listings — the decision nobody can make from an air temperature'},
+];
+
+/* A rule is only false if everything it needs actually answered. Otherwise it
+   is unknown, and saying so is the whole point — "the falls are not running"
+   and "we cannot tell" are different sentences. */
+function ruleState(d, r){
+  const missing = (r.needs || []).filter(k => {
+    if (k === 'beaches') return !d.beaches?.length;
+    if (k === 'growing') return !d.growing?.length;
+    if (k === 'tide')    return !d.tide?.next?.length;
+    return dig(d, k) == null;
+  });
+  if (missing.length) return {state:'unknown', why:'needs ' + missing.join(', ')};
+  let v;
+  try { v = r.test(d); } catch { return {state:'unknown', why:'could not evaluate'}; }
+  if (v == null) return {state:'unknown', why:'not enough to decide'};
+  return {state: v ? 'on' : 'off'};
+}
+
+function rulesBlock(d){
+  const rows = RULES.map(r => {
+    const st = ruleState(d, r);
+    const tag = st.state === 'on' ? '<b>firing now</b>'
+              : st.state === 'unknown' ? `<span style="color:var(--bad)">unknown — ${esc(st.why)}</span>`
+              : 'quiet';
+    return `<div class="rule ${st.state === 'on' ? 'on' : ''}">
+      <span class="dot2"></span>
+      <span><span class="rn">${esc(r.name)}</span>
+        <span class="rw">IF ${esc(r.when)} &nbsp;·&nbsp; ${tag}</span></span>
+      <span class="rt">THEN ${esc(r.then)}</span>
+    </div>`;
+  }).join('');
+  const on = RULES.filter(r => ruleState(d, r).state === 'on').length;
+  return box('Rules — if this, then that',
+    `<b>Nothing here is stored and nothing is wired.</b> Each rule is declared in
+     this page and evaluated against the live reply, so you can see which would be
+     firing and what each would put on the board. That is deliberately the whole of
+     it: the question worth answering first is whether these are the right
+     sentences, and reading them fire for a fortnight answers it without a schema,
+     a table or a write path existing at all.
+     <b>${on} of ${RULES.length} are firing right now.</b>`,
+    `<div class="rulehead"><span></span><span>Rule, and when it fires</span>
+       <span>What it would say</span></div>${rows}`,
+    true);
+}
+
 function drawConditions(){
   const S = $('#condstats'), B = $('#condbody');
   if (!COND){ S.innerHTML = ''; B.innerHTML = ''; return; }
@@ -4268,10 +4543,13 @@ function drawConditions(){
      what answered beside what is out, then the numbers beside the tide. The
      beach table spans both columns — 28 rows in half a column is a periscope. */
   B.innerHTML = '<div class="condgrid">' +
-    sourcesTable(d) + growingBlock(d) +
-    readingsTable(d) + tideBlock(d) +
+    sourcesTable(d) +
+    readingsTable(d) + skyBlock(d) +
+    growingBlock(d) +
     beachTable(d) +
-    burnsBlock(d) + fireBlock(d) +
+    tideBlock(d) + burnsBlock(d) +
+    rulesBlock(d) +
+    fireBlock(d) +
     '</div>' + footNote(d);
 }
 
@@ -4297,24 +4575,53 @@ const COND_STATE = {
 
 /* Each section is a block so the grid can lay them out. It also puts the
    heading and its note in one place instead of seven. */
-function box(title, note, body, full){
+function box(title, note, body, full, src){
   return `<section class="cbox${full ? ' full' : ''}"><h3>${title}</h3>` +
+         (src ? `<p class="src">${src}</p>` : '') +
          (note ? `<p class="note">${note}</p>` : '') + body + `</section>`;
+}
+
+/* The source line under a heading, built from what the payload says about
+   itself rather than from a second list kept here. */
+function srcLine(d, blockKey){
+  const id = (d.from || {})[blockKey];
+  const s  = (d.sources || []).find(x => x.id === id);
+  if (!s) return '';
+  const name = s.home ? `<a href="${esc(s.home)}" target="_blank" rel="noopener">${esc(s.org)}</a>`
+                      : esc(s.org || id);
+  return name + (s.feed ? `<span class="dot">·</span>${esc(s.feed)}` : '') +
+         (s.licence ? `<span class="dot">·</span>${esc(s.licence)}` : '');
+}
+
+/* A bearing, drawn. 0 deg points up (north); the caller says which way. */
+function arrow(deg, cls, title){
+  return `<svg class="arw ${cls}" viewBox="0 0 16 16" role="img"
+    aria-label="${esc(title)}" title="${esc(title)}"
+    style="transform:rotate(${Math.round(deg)}deg)">
+    <path d="M8 14 L8 2 M4.6 5.4 L8 2 L11.4 5.4"/></svg>`;
 }
 
 function sourcesTable(d){
   const rows = (d.sources || []).map(s => {
     const st = COND_STATE[s.state] || {label: s.state, cls:''};
-    return `<tr><td>${esc(s.id)}</td>
+    const org = s.home
+      ? `<a href="${esc(s.home)}" target="_blank" rel="noopener">${esc(s.org || s.id)}</a>`
+      : esc(s.org || s.id);
+    return `<tr>
+      <td>${org}<span class="tm2">${esc(s.feed || s.id)}</span></td>
+      <td class="cap">${s.host ? `<a href="https://${esc(s.host)}" target="_blank" rel="noopener">${esc(s.host)}</a>` : '—'}</td>
       <td style="color:var(--${st.cls === 'bad' ? 'bad' : st.cls === 'good' ? 'good' : 'ink3'})">${esc(st.label)}</td>
       <td class="num">${s.ms} ms</td>
       <td class="num">${s.bytes == null ? '—' : (s.bytes / 1024).toFixed(1) + ' KB'}</td>
       <td>${s.error ? esc(s.error) : ''}</td></tr>`;
   }).join('');
   return box('Each source, on its own',
-    'One being down never takes the others with it — the reply is always 200 and says what happened.',
-    `<table><thead><tr><th>Source</th><th>State</th><th>Took</th><th>Raw</th>
-      <th>Error</th></tr></thead><tbody>${rows}</tbody></table>`);
+    'One being down never takes the others with it — the reply is always 200 ' +
+    'and says what happened. <b>The names and links come from the reply</b>, not ' +
+    'from a second list kept in this page.',
+    `<table><thead><tr><th>Source</th><th>Read from</th><th>State</th><th>Took</th>
+      <th>Raw</th><th>Error</th></tr></thead><tbody>${rows}</tbody></table>`,
+    true);
 }
 
 function readingsTable(d){
@@ -4341,7 +4648,8 @@ function readingsTable(d){
     'its own table below. Each value is checked against a deliberately wide ' +
     'range; the range shows only when something falls outside it.',
     `<div class="condhead"><span>Reading</span><span>Now</span><span>Taken at</span></div>
-    ${rows}`);
+    ${rows}`, false, srcLine(d, 'weather') + '<span class="dot">·</span>' +
+    'sea from ' + srcLine(d, 'sea'));
 }
 
 /* ── what is growing ───────────────────────────────────────────────────────
@@ -4351,25 +4659,25 @@ function readingsTable(d){
    under it. */
 function growingBlock(d){
   if (!d.growing?.length) return '';
-  const g = d.growing.map(x => {
+  const rows = d.growing.map(x => {
     const st = x.season.state;
     const col = st === 'peak' ? 'good' : st === 'in season' ? 'ink' : 'ink3';
-    const top = (x.top || []).map(s =>
-      `<span class="sp2"><b>${s.n}</b> ${esc(s.name)}</span>`).join('');
-    return `<div class="grow">
-      <div class="gh">
-        <span class="gn">${esc(x.label)}</span>
-        <span class="gw">${esc(x.where)}</span>
-        <span class="gs" style="color:var(--${col})">${esc(st)}${
-          x.season.rising ? ' · rising' : ''}</span>
-      </div>
-      <div class="gc">${x.species == null
-        ? '<span style="color:var(--bad)">iNaturalist did not answer</span>'
-        : `<b>${x.species}</b> species · <b>${x.records}</b> records in 30 days ·
-           ${x.season.share}% of its own peak, which is ${esc(x.season.peak_month)}`}</div>
-      ${top ? `<div class="gt">${top}</div>` : ''}
-    </div>`;
+    const top = (x.top || []).slice(0, 5).map(s =>
+      `<b>${s.n}</b> ${esc(s.name)}`).join(' &middot; ');
+    return `<tr>
+      <td>${esc(x.label)}<span class="tm2">${esc(x.where)}</span></td>
+      <td><span class="seasontag" style="color:var(--${col})">${esc(st)}${
+        x.season.rising ? ' &middot; rising' : ''}</span>
+        <span class="tm2">${x.season.share}% of its peak, ${esc(x.season.peak_month)}</span></td>
+      <td class="num">${x.species == null ? '—' : x.species}</td>
+      <td class="num">${x.records == null ? '—' : x.records}</td>
+      <td><span class="grow-top">${x.species == null
+        ? '<span style="color:var(--bad)">iNaturalist did not answer</span>' : top}</span></td>
+    </tr>`;
   }).join('');
+  const g = `<table><thead><tr><th>What</th><th>Season now</th><th>Species</th>
+    <th>Records</th><th>Most seen, last 30 days</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
   const n = d.growing_note || {};
   return box('What is growing',
     'Research-grade observations over the last 30 days. The season verdict ' +
@@ -4377,7 +4685,8 @@ function growingBlock(d){
     esc(n.baseline_taken || '—') + ' and stored — re-measure it yearly.',
     g + `<p class="note" style="margin-top:14px">${esc(n.caveat || '')}
       <b>Nothing here is an animal</b>, on purpose: the method works where the
-      organism's visibility IS the phenomenon, and fails where it is not.</p>`);
+      organism's visibility IS the phenomenon, and fails where it is not.</p>`,
+    true, srcLine(d, 'growing'));
 }
 
 function tideBlock(d){
@@ -4387,7 +4696,7 @@ function tideBlock(d){
        <td class="num">${p.m > 0 ? '+' : ''}${p.m.toFixed(2)} m</td></tr>`).join('');
   return box('Tide, next four turns', esc(d.tide.note),
     `<table><thead><tr><th>Turn</th><th>About</th><th>Height</th></tr></thead>
-      <tbody>${rows}</tbody></table>`);
+      <tbody>${rows}</tbody></table>`, false, srcLine(d, 'tide'));
 }
 
 /* The stored value is an hour from an hourly model, so it is printed as an
@@ -4409,18 +4718,24 @@ function beachTable(d){
   const rows = d.beaches.map(b => {
     const col = b.relation === 'offshore' ? 'good'
               : b.relation === 'onshore'  ? 'bad' : 'ink3';
+    // The wind arrow points where the wind is GOING; the beach arrow points
+    // out to sea. Agreeing arrows are offshore, and you can read that without
+    // doing the arithmetic.
+    const blowing = (b.wind_from + 180) % 360;
     return `<tr><td class="cap" title="${esc(name(b.key))}">${esc(name(b.key))}</td>
-      <td class="num">${b.faces}° ${esc(b.faces_sector)}</td>
-      <td class="num">${Math.round(b.wind_kmh)} km/h ${esc(b.wind_sector)}</td>
+      <td>${arrow(b.faces, 'face', 'faces ' + b.faces + '°')}${b.faces}° ${esc(b.faces_sector)}</td>
+      <td>${arrow(blowing, 'wind', 'wind from ' + b.wind_sector + ', blowing towards ' + Math.round(blowing) + '°')}${Math.round(b.wind_kmh)} km/h ${esc(b.wind_sector)}</td>
       <td style="color:var(--${col})">${esc(b.relation)}</td></tr>`;
   }).join('');
+  const bn = d.beaches_note || {};
   return box('Every beach, most sheltered first',
-    'The bearings are measured from OpenStreetMap coastline and live in ' +
-    '<code>api/conditions.mjs</code> because <b>the column does not exist yet</b>. ' +
-    'Offshore means the wind is coming off the land behind the beach.',
+    '<b>The wind is a live read</b> — ' + esc(bn.wind || '') + '. <b>The bearing is ' +
+    'stored</b> — ' + esc(bn.faces || '') + ' It lives in <code>api/conditions.mjs</code> ' +
+    'because the column does not exist yet. The grey arrow points out to sea, the ' +
+    'darker one points where the wind is blowing: when they agree it is offshore.',
     `<div class="scrollbox"><table><thead><tr><th>Beach</th><th>Faces</th>
-      <th>Wind</th><th>Today</th></tr></thead><tbody>${rows}</tbody></table></div>`,
-    true);
+      <th>Wind now</th><th>Today</th></tr></thead><tbody>${rows}</tbody></table></div>`,
+    true, srcLine(d, 'beaches'));
 }
 
 function burnsBlock(d){
@@ -4435,7 +4750,8 @@ function burnsBlock(d){
     'From the VicEmergency feed, which carries a real coordinate for each one — ' +
     'so the distance is measured, not estimated.',
     `<table><thead><tr><th>What</th><th>Where</th><th>From Jan Juc</th>
-      <th>Size</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`);
+      <th>Size</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`,
+    false, srcLine(d, 'burns'));
 }
 
 /* A status that asks for a person and does not say what they should do is a
