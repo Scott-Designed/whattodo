@@ -368,22 +368,29 @@ td .arw{margin-right:5px}
    Declared here and evaluated live. NOTHING IS STORED AND NOTHING IS WIRED —
    this is the decision shown before the machinery is built, which is the
    order this project has learnt to work in. */
-.rule{display:grid;grid-template-columns:20px minmax(0,1.25fr) minmax(0,1fr);
-  gap:0 16px;padding:11px 0;border-bottom:1px solid var(--rule);
+.rule{display:grid;grid-template-columns:18px minmax(0,0.85fr) minmax(0,1fr) minmax(0,1.25fr);
+  gap:0 18px;padding:12px 0;border-bottom:1px solid var(--rule);
   align-items:start}
 .rule .dot2{width:9px;height:9px;border-radius:50%;background:var(--rule2);
   margin-top:5px}
 .rule.on .dot2{background:var(--good)}
 .rule .rn{font-size:16px;color:var(--ink);line-height:1.25}
 .rule.on .rn{font-weight:500}
-.rule .rw{font-family:var(--util);font-size:11.5px;color:var(--ink3);
-  margin-top:3px;line-height:1.5}
+.rule .rw{font-family:var(--util);font-size:12px;color:var(--ink3);line-height:1.55}
+.rule .rw em{font-style:normal;display:block;margin-top:4px;font-size:11px}
+.rule.on .rw em{color:var(--good);font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase}
+/* Column three is the sentence itself, so it is set as a sentence — the site's
+   serif, not the utility face the labels use. */
+.rule .rs{font-size:15.5px;line-height:1.45;color:var(--ink3)}
+.rule.on .rs{color:var(--ink)}
+.rule .rs.tmpl{font-style:italic;opacity:.75}
 .rule .rt{font-family:var(--util);font-size:12.5px;color:var(--ink3);
   line-height:1.5}
 .rule.on .rt{color:var(--ink2)}
 .rule .rt b{font-weight:500;color:var(--ink)}
-.rulehead{display:grid;grid-template-columns:20px minmax(0,1.25fr) minmax(0,1fr);
-  gap:0 16px;font-family:var(--util);font-size:10px;font-weight:600;
+.rulehead{display:grid;grid-template-columns:18px minmax(0,0.85fr) minmax(0,1fr) minmax(0,1.25fr);
+  gap:0 18px;font-family:var(--util);font-size:10px;font-weight:600;
   letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);
   padding-bottom:8px;border-bottom:1px solid var(--rule2)}
 .cbox table{width:100%}
@@ -4382,84 +4389,116 @@ function clock24(iso){
    between "the falls are not running" and "we cannot tell". */
 const RULES = [
   {id:'waterfalls', name:'The falls are running',
-   when:'20 mm or more of rain in the last 48 hours',
+   when:'20 mm or more of rain in the last 48 hours, measured over the Otways',
    needs:['weather.rain_48h'],
    test:d => d.weather.rain_48h >= 20,
-   then:'Erskine, Hopetoun, Triplet, Sheoak, Kalimna — the Otways falls, which are otherwise a trickle'},
+   says:d => `Erskine, Hopetoun, Triplet, Sheoak and Kalimna Falls are running strong` +
+             (d.weather ? ` — ${Math.round(d.weather.rain_48h)} mm of rain in two days` : '')},
 
   {id:'trails', name:'The trails are dry',
-   when:'under 2 mm in 48 hours, and not raining now',
+   when:'under 2 mm in 48 hours and not raining now, over the Otways',
    needs:['weather.rain_48h','weather.raining'],
    test:d => d.weather.rain_48h < 2 && !d.weather.raining,
-   then:'Forrest and the You Yangs — the same number as the rule above, read the other way'},
+   says:d => 'Forrest and the You Yangs are dry and fast — the same number as the falls, read the other way'},
 
-  {id:'offshore', name:'Offshore at Bells',
-   when:'the wind at Bells is blowing off the land',
+  {id:'offshore', name:'Bells is offshore',
+   when:'the wind at Bells Beach is within 45° of 316°, which is off the land',
    needs:['beaches'],
    test:d => (d.beaches || []).find(b => b.key === 'a2')?.relation === 'offshore',
-   then:'Bells, Winkipop, Southside — and the paraglider rule is its exact inverse'},
+   says:d => {const b = (d.beaches || []).find(x => x.key === 'a2');
+     return b ? `Bells is offshore — ${esc(b.wind_sector)} at ${Math.round(b.wind_kmh)} km/h, holding the faces up`
+              : 'Bells is offshore — the classic north-westerly, holding the faces up';}},
 
-  {id:'sheltered', name:'Somewhere is sheltered',
-   when:'any beach has the wind off the land at 15 km/h or more',
+  {id:'sheltered', name:'Somewhere is out of the wind',
+   when:'any beach has the wind off the land at 15 km/h or more, per beach',
    needs:['beaches'],
    test:d => (d.beaches || []).some(b => b.relation === 'offshore' && b.wind_kmh >= 15),
-   then:'names the three most sheltered beaches — the answer changes every day and is why the bearing column is worth having'},
+   says:d => {const n = (d.beaches || []).filter(b => b.relation === 'offshore').slice(0, 3)
+                        .map(b => beachName(b.key));
+     return n.length ? `Out of the wind today: ${esc(n.join(', '))}`
+                     : 'Out of the wind today: the east-facing beaches';}},
 
   {id:'calm', name:'The sea is glassy',
-   when:'wind wave under 0.3 m',
+   when:'wind wave under 0.3 m at Bells Beach',
    needs:['sea.wind_wave_m'],
    test:d => d.sea.wind_wave_m < 0.3,
-   then:'wires calm-sea, a tag on 40 rows that has never once evaluated'},
+   says:d => `The sea is glass${d.sea ? ` — ${d.sea.wind_wave_m} m of wind chop` : ''}. Good for the rock pools and a snorkel`},
 
   {id:'groundswell', name:'A groundswell is running',
-   when:'swell over 1.8 m at 11 seconds or longer',
+   when:'swell over 1.8 m at 11 seconds or longer, at Bells Beach',
    needs:['sea.swell_m','sea.swell_s'],
    test:d => d.sea.swell_m >= 1.8 && d.sea.swell_s >= 11,
-   then:'period is the half nobody prints — 2.6 m at 6 seconds is a mess and this rule knows the difference'},
+   says:d => d.sea ? `A ${d.sea.swell_m} m groundswell at ${d.sea.swell_s} seconds — the reefs are on`
+                   : 'A long-period groundswell — the reefs are on'},
 
-  {id:'lowtide', name:'Low tide in daylight',
-   when:'the next low tide falls between 7am and 7pm',
+  {id:'lowtide', name:'Low tide falls in daylight',
+   when:'the next low tide is between 7am and 7pm, modelled at Bells Beach',
    needs:['tide'],
    test:d => {const n=(d.tide?.next||[]).find(x=>x.kind==='low'); if(!n) return null;
               const h=Number(String(n.at).slice(11,13)); return h>=7 && h<=19;},
-   then:'the rockpools — Jan Juc, Point Lonsdale Front, Barwon Bluff'},
+   says:d => {const n=(d.tide?.next||[]).find(x=>x.kind==='low');
+     return n ? `Low tide around ${esc(clock12(n.at))} — the Jan Juc rock pools are open`
+              : 'Low tide in daylight — the rock pools are open';}},
 
-  {id:'darksky', name:'A dark sky tonight',
-   when:'the moon is under a quarter lit',
+  {id:'darksky', name:'The sky is dark tonight',
+   when:'the moon is under a quarter lit — computed, not measured',
    needs:['sky.moon.lit'],
    test:d => d.sky.moon.lit <= 25,
-   then:'stargazing, the Milky Way core, and every dark-sky listing — this is what new-moon should have been gating all along'},
+   says:d => d.sky?.moon ? `${d.sky.moon.lit}% moon tonight — the Milky Way is up over the Otways`
+                         : 'A dark sky tonight — the Milky Way is up over the Otways'},
 
-  {id:'aurora', name:'Aurora worth a drive',
-   when:'Kp is 6 or more',
+  {id:'aurora', name:'Aurora is worth a drive',
+   when:'planetary Kp is 6 or more — a global reading, not a local one',
    needs:['space.kp'],
    test:d => d.space.kp >= 6,
-   then:'south-facing beaches after dark — wires geomagnetic-storm, a tag on exactly one row'},
+   says:d => `Aurora watch${d.space ? ` — Kp ${d.space.kp}` : ''}. Try a south-facing beach after dark`},
 
   {id:'orchids', name:'The orchids are out',
-   when:'orchids are at 60% or more of their own annual peak',
+   when:'orchids reach 60% of their own annual peak, on the Anglesea heath',
    needs:['growing'],
    test:d => (d.growing||[]).find(g=>g.id==='orchids')?.season.share >= 60,
-   then:'the Anglesea heath, with the species actually being recorded this month'},
+   says:d => {const g=(d.growing||[]).find(x=>x.id==='orchids');
+     const t=(g?.top||[]).slice(0,3).map(x=>x.name).join(', ');
+     return g ? `The Anglesea heath is in flower — ${esc(t)} and ${g.species - 3} more species this month`
+              : 'The Anglesea heath is in flower';}},
 
   {id:'fungi', name:'The fungi are up',
-   when:'fungi are at 60% or more of their own annual peak',
+   when:'fungi reach 60% of their own annual peak, across the Otways',
    needs:['growing'],
    test:d => (d.growing||[]).find(g=>g.id==='fungi')?.season.share >= 60,
-   then:'the Otways — the other half of the year from the orchids, and the sharper signal of the two'},
+   says:d => {const g=(d.growing||[]).find(x=>x.id==='fungi');
+     const t=(g?.top||[]).slice(0,3).map(x=>x.name).join(', ');
+     return g && t ? `The Otways floor is up — ${esc(t)}`
+                   : 'The Otways floor is up — worth a walk at Melba Gully';}},
 
   {id:'smoke', name:'It is smoky',
-   when:'PM2.5 over 25, or a fire or burn within 30 km',
+   when:'PM2.5 over 25 at Jan Juc, or any fire or burn within 30 km',
    needs:['air.pm2_5','burns'],
    test:d => d.air.pm2_5 > 25 || (d.burns || []).some(b => b.km <= 30),
-   then:'a reason not to drive out for a walk, and currently nowhere on the site'},
+   says:d => {const b=(d.burns||[]).find(x=>x.km<=30);
+     return b ? `Smoke about — a ${esc(String(b.what).toLowerCase())} ${b.km} km away at ${esc(b.where||'')}. Maybe not the Otways today`
+              : 'Smoke about — maybe not the Otways today';}},
 
   {id:'coldwater', name:'The water is cold',
-   when:'sea temperature under 14 °C',
+   when:'sea temperature under 14 °C, modelled at Bells Beach',
    needs:['sea.sea_temp'],
    test:d => d.sea.sea_temp < 14,
-   then:'swimming and snorkelling listings — the decision nobody can make from an air temperature'},
+   says:d => d.sea ? `The water is ${d.sea.sea_temp}° — wetsuit weather, and the swimming rows should say so`
+                   : 'The water is under 14° — wetsuit weather'},
 ];
+
+/* The listing name behind a beach key, so a rule can name real places rather
+   than ids. Same lookup the beach table does. */
+function beachName(key){
+  const a = (DATA.activities || []).find(x => x.id === Number(String(key).slice(1)));
+  return a ? a.name.replace(/\s*[–—-].*$/, '') : key;
+}
+/* An hour out of an hourly model, printed as an hour. */
+function clock12(iso){
+  const h = Number(String(iso).slice(11, 13));
+  return (((h + 11) % 12) + 1) + (h >= 12 ? 'pm' : 'am');
+}
+
 
 /* A rule is only false if everything it needs actually answered. Otherwise it
    is unknown, and saying so is the whole point — "the falls are not running"
@@ -4481,14 +4520,28 @@ function ruleState(d, r){
 function rulesBlock(d){
   const rows = RULES.map(r => {
     const st = ruleState(d, r);
-    const tag = st.state === 'on' ? '<b>firing now</b>'
-              : st.state === 'unknown' ? `<span style="color:var(--bad)">unknown — ${esc(st.why)}</span>`
-              : 'quiet';
+    const tag = st.state === 'on' ? '<em>firing now</em>'
+              : st.state === 'unknown' ? `<em style="color:var(--bad)">unknown — ${esc(st.why)}</em>`
+              : '<em style="opacity:.7">quiet</em>';
+    // The sentence is built from the live reply where it can be, so column
+    // three shows the copy that would actually appear rather than a
+    // description of it. A rule that is quiet still writes its sentence, in
+    // italic, because "what would it say" is the question being asked.
+    /* A QUIET rule is handed an empty reading set, not the live one. Filling
+       today's numbers into a sentence whose condition is not met produces a
+       statement that is false rather than hypothetical — "74% moon tonight,
+       the Milky Way is up" and "Aurora watch — Kp 0" were both on screen
+       before this. Every `says` already has a no-data branch, and that branch
+       is the illustration. */
+    let says = '';
+    try { says = typeof r.says === 'function'
+                   ? r.says(st.state === 'on' ? d : {}) : String(r.says || ''); }
+    catch { says = ''; }
     return `<div class="rule ${st.state === 'on' ? 'on' : ''}">
       <span class="dot2"></span>
-      <span><span class="rn">${esc(r.name)}</span>
-        <span class="rw">IF ${esc(r.when)} &nbsp;·&nbsp; ${tag}</span></span>
-      <span class="rt">THEN ${esc(r.then)}</span>
+      <span class="rn">${esc(r.name)}</span>
+      <span class="rw">${esc(r.when)}${tag}</span>
+      <span class="rs${st.state === 'on' ? '' : ' tmpl'}">${says}</span>
     </div>`;
   }).join('');
   const on = RULES.filter(r => ruleState(d, r).state === 'on').length;
@@ -4500,8 +4553,9 @@ function rulesBlock(d){
      sentences, and reading them fire for a fortnight answers it without a schema,
      a table or a write path existing at all.
      <b>${on} of ${RULES.length} are firing right now.</b>`,
-    `<div class="rulehead"><span></span><span>Rule, and when it fires</span>
-       <span>What it would say</span></div>${rows}`,
+    `<div class="rulehead"><span></span><span>What is happening</span>
+       <span>The condition, and where it is measured</span>
+       <span>What the listing could say</span></div>${rows}`,
     true);
 }
 
