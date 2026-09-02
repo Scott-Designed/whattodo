@@ -372,9 +372,20 @@ td .arw{margin-right:5px}
   gap:0 18px;padding:12px 0;border-bottom:1px solid var(--rule);
   align-items:start}
 .rule .dot2{width:9px;height:9px;border-radius:50%;background:var(--rule2);
-  margin-top:5px}
-.rule.on .dot2{background:var(--good)}
+  margin-top:6px}
+/* Three states and no words for them. Green is met, amber is close, grey is
+   not — and "close" is the one worth having, because a board that could say
+   the falls will be running tomorrow is more use than one that only knows
+   about today. */
+.rule.on   .dot2{background:var(--good)}
+.rule.near .dot2{background:var(--accent)}
+.rule .ricon{width:19px;height:19px;flex:none;stroke:currentColor;fill:none;
+  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;color:var(--ink3)}
+.rule.on .ricon{color:var(--good)}
+.rule.near .ricon{color:var(--accent)}
+.rule .rn{display:flex;gap:9px;align-items:center}
 .rule .rn{font-size:16px;color:var(--ink);line-height:1.25}
+.rule.near .rs{color:var(--ink2)}
 .rule.on .rn{font-weight:500}
 .rule .rw{font-family:var(--util);font-size:12px;color:var(--ink3);line-height:1.55}
 .rule .rw em{font-style:normal;display:block;margin-top:4px;font-size:11px}
@@ -559,6 +570,13 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 </style>
 </head>
 <body>
+<!-- Lucide 0.544.0 (ISC), fetched verbatim, NOT redrawn. Only the
+     seven the site's own set does not carry — everything else on this
+     page uses /notice-icons.js. Ids are x- rather than i- because two
+     symbols sharing one id is a silent override: a <use> takes the
+     first match and the wrong icon simply appears. -->
+<svg class="sprite" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="x-sunrise" viewBox="0 0 24 24"><path d="M12 2v8" /> <path d="m4.93 10.93 1.41 1.41" /> <path d="M2 18h2" /> <path d="M20 18h2" /> <path d="m19.07 10.93-1.41 1.41" /> <path d="M22 22H2" /> <path d="m8 6 4-4 4 4" /> <path d="M16 18a4 4 0 0 0-8 0" /></symbol><symbol id="x-sunset" viewBox="0 0 24 24"><path d="M12 10V2" /> <path d="m4.93 10.93 1.41 1.41" /> <path d="M2 18h2" /> <path d="M20 18h2" /> <path d="m19.07 10.93-1.41 1.41" /> <path d="M22 22H2" /> <path d="m16 6-4 4-4-4" /> <path d="M16 18a4 4 0 0 0-8 0" /></symbol><symbol id="x-wind" viewBox="0 0 24 24"><path d="M12.8 19.6A2 2 0 1 0 14 16H2" /> <path d="M17.5 8a2.5 2.5 0 1 1 2 4H2" /> <path d="M9.8 4.4A2 2 0 1 1 11 8H2" /></symbol><symbol id="x-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" /></symbol><symbol id="x-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /> <path d="M20 2v4" /> <path d="M22 4h-4" /> <circle cx="4" cy="20" r="2" /></symbol><symbol id="x-snowflake" viewBox="0 0 24 24"><path d="m10 20-1.25-2.5L6 18" /> <path d="M10 4 8.75 6.5 6 6" /> <path d="m14 20 1.25-2.5L18 18" /> <path d="m14 4 1.25 2.5L18 6" /> <path d="m17 21-3-6h-4" /> <path d="m17 3-3 6 1.5 3" /> <path d="M2 12h6.5L10 9" /> <path d="m20 10-1.5 2 1.5 2" /> <path d="M22 12h-6.5L14 15" /> <path d="m4 10 1.5 2L4 14" /> <path d="m7 21 3-6-1.5-3" /> <path d="m7 3 3 6h4" /></symbol><symbol id="x-telescope" viewBox="0 0 24 24"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44" /> <path d="m13.56 11.747 4.332-.924" /> <path d="m16 21-3.105-6.21" /> <path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z" /> <path d="m6.158 8.633 1.114 4.456" /> <path d="m8 21 3.105-6.21" /> <circle cx="12" cy="13" r="2" /></symbol></svg>
+
 <nav class="nav">
   <a class="mark" href="#home" title="Dashboard">Notice Admin</a>
   <div class="navlinks" id="barnav"></div>
@@ -775,6 +793,8 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
      which town a row is in would be worse than useless. No name collisions with
      the script below — checked. -->
 <script src="/notice-vocab.js"></script>
+<!-- The site's own 43 icons, reused rather than redrawn here. -->
+<script src="/notice-icons.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════════════
    Back of house.
@@ -4388,50 +4408,94 @@ function clock24(iso){
    down reads as UNKNOWN rather than quietly false — which is the difference
    between "the falls are not running" and "we cannot tell". */
 const RULES = [
-  {id:'waterfalls', name:'The falls are running',
+  {id:'sunrise', name:'Sunrise is early enough for a dawn swim', icon:'x-sunrise',
+   when:'the sun is up before 6:30am at Jan Juc',
+   needs:['sky.sun.sunrise'],
+   test:d => sunMin(d.sky.sun.sunrise) < 390,
+   near:d => sunMin(d.sky.sun.sunrise) < 420,
+   says:d => d.sky?.sun ? `Sunrise ${esc(clock12x(d.sky.sun.sunrise))} — dawn patrol, and the water before anyone else`
+                        : 'An early sunrise — dawn patrol before anyone else'},
+
+  {id:'sunset', name:'Sunset is late enough to go after work', icon:'x-sunset',
+   when:'the sun sets after 7:30pm at Jan Juc',
+   needs:['sky.sun.sunset'],
+   test:d => sunMin(d.sky.sun.sunset) > 1170,
+   near:d => sunMin(d.sky.sun.sunset) > 1110,
+   says:d => d.sky?.sun ? `Sunset ${esc(clock12x(d.sky.sun.sunset))} — there is a whole evening at the beach after work`
+                        : 'A late sunset — a whole evening at the beach after work'},
+
+  {id:'waterfalls', name:'The falls are running', icon:'i-droplet',
    when:'20 mm or more of rain in the last 48 hours, measured over the Otways',
    needs:['weather.rain_48h'],
    test:d => d.weather.rain_48h >= 20,
+   near:d => d.weather.rain_48h >= 10,
    says:d => `Erskine, Hopetoun, Triplet, Sheoak and Kalimna Falls are running strong` +
              (d.weather ? ` — ${Math.round(d.weather.rain_48h)} mm of rain in two days` : '')},
 
-  {id:'trails', name:'The trails are dry',
+  {id:'trails', name:'The trails are dry', icon:'i-bike',
    when:'under 2 mm in 48 hours and not raining now, over the Otways',
    needs:['weather.rain_48h','weather.raining'],
    test:d => d.weather.rain_48h < 2 && !d.weather.raining,
+   near:d => d.weather.rain_48h < 5,
    says:d => 'Forrest and the You Yangs are dry and fast — the same number as the falls, read the other way'},
 
-  {id:'offshore', name:'Bells is offshore',
+  {id:'offshore', name:'Bells is offshore', icon:'i-waves',
    when:'the wind at Bells Beach is within 45° of 316°, which is off the land',
    needs:['beaches'],
    test:d => (d.beaches || []).find(b => b.key === 'a2')?.relation === 'offshore',
+   near:d => (d.beaches || []).find(b => b.key === 'a2')?.relation === 'cross',
    says:d => {const b = (d.beaches || []).find(x => x.key === 'a2');
      return b ? `Bells is offshore — ${esc(b.wind_sector)} at ${Math.round(b.wind_kmh)} km/h, holding the faces up`
               : 'Bells is offshore — the classic north-westerly, holding the faces up';}},
 
-  {id:'sheltered', name:'Somewhere is out of the wind',
+  {id:'sheltered', name:'Somewhere is out of the wind', icon:'i-parasol',
    when:'any beach has the wind off the land at 15 km/h or more, per beach',
    needs:['beaches'],
    test:d => (d.beaches || []).some(b => b.relation === 'offshore' && b.wind_kmh >= 15),
+   near:d => (d.beaches || []).some(b => b.relation === 'offshore'),
    says:d => {const n = (d.beaches || []).filter(b => b.relation === 'offshore').slice(0, 3)
                         .map(b => beachName(b.key));
      return n.length ? `Out of the wind today: ${esc(n.join(', '))}`
                      : 'Out of the wind today: the east-facing beaches';}},
 
-  {id:'calm', name:'The sea is glassy',
+  {id:'hangglide', name:'Hang gliders are up at Bells', icon:'x-wind',
+   when:'wind from the east or south-east at 15–35 km/h at Bells Beach',
+   needs:['beaches'],
+   test:d => {const b=(d.beaches||[]).find(x=>x.key==='a2'); if(!b) return null;
+     return b.wind_from >= 80 && b.wind_from <= 170 && b.wind_kmh >= 15 && b.wind_kmh <= 35;},
+   near:d => {const b=(d.beaches||[]).find(x=>x.key==='a2'); if(!b) return false;
+     return b.wind_from >= 60 && b.wind_from <= 190 && b.wind_kmh >= 10;},
+   says:d => {const b=(d.beaches||[]).find(x=>x.key==='a2');
+     return `Hang gliders on the Winkipop cliff${b ? ` — ${esc(b.wind_sector)} at ${Math.round(b.wind_kmh)} km/h` : ''}. ` +
+            `Paragliders are not permitted at this launch; theirs is Southside`;}},
+
+  {id:'paraglide', name:'Paragliders are up at Spion Kop', icon:'x-wind',
+   when:'wind from the south or south-west at 15–35 km/h, above Moggs Creek',
+   needs:['beaches'],
+   test:d => {const b=(d.beaches||[]).find(x=>x.key==='a9'); if(!b) return null;
+     return b.wind_from >= 150 && b.wind_from <= 250 && b.wind_kmh >= 15 && b.wind_kmh <= 35;},
+   near:d => {const b=(d.beaches||[]).find(x=>x.key==='a9'); if(!b) return false;
+     return b.wind_from >= 130 && b.wind_from <= 270 && b.wind_kmh >= 10;},
+   says:d => {const b=(d.beaches||[]).find(x=>x.key==='a9');
+     return `Paragliders above Moggs Creek${b ? ` — ${esc(b.wind_sector)} at ${Math.round(b.wind_kmh)} km/h` : ''}, ` +
+            `soaring the Spion Kop face. Pilots need the site endorsement`;}},
+
+  {id:'calm', name:'The sea is glassy', icon:'i-waves-ladder',
    when:'wind wave under 0.3 m at Bells Beach',
    needs:['sea.wind_wave_m'],
    test:d => d.sea.wind_wave_m < 0.3,
+   near:d => d.sea.wind_wave_m < 0.5,
    says:d => `The sea is glass${d.sea ? ` — ${d.sea.wind_wave_m} m of wind chop` : ''}. Good for the rock pools and a snorkel`},
 
-  {id:'groundswell', name:'A groundswell is running',
+  {id:'groundswell', name:'A groundswell is running', icon:'i-waves',
    when:'swell over 1.8 m at 11 seconds or longer, at Bells Beach',
    needs:['sea.swell_m','sea.swell_s'],
    test:d => d.sea.swell_m >= 1.8 && d.sea.swell_s >= 11,
+   near:d => d.sea.swell_m >= 1.4 && d.sea.swell_s >= 10,
    says:d => d.sea ? `A ${d.sea.swell_m} m groundswell at ${d.sea.swell_s} seconds — the reefs are on`
                    : 'A long-period groundswell — the reefs are on'},
 
-  {id:'lowtide', name:'Low tide falls in daylight',
+  {id:'lowtide', name:'Low tide falls in daylight', icon:'i-waves-ladder',
    when:'the next low tide is between 7am and 7pm, modelled at Bells Beach',
    needs:['tide'],
    test:d => {const n=(d.tide?.next||[]).find(x=>x.kind==='low'); if(!n) return null;
@@ -4440,52 +4504,77 @@ const RULES = [
      return n ? `Low tide around ${esc(clock12(n.at))} — the Jan Juc rock pools are open`
               : 'Low tide in daylight — the rock pools are open';}},
 
-  {id:'darksky', name:'The sky is dark tonight',
+  {id:'darksky', name:'The sky is dark tonight', icon:'x-telescope',
    when:'the moon is under a quarter lit — computed, not measured',
    needs:['sky.moon.lit'],
    test:d => d.sky.moon.lit <= 25,
+   near:d => d.sky.moon.lit <= 40,
    says:d => d.sky?.moon ? `${d.sky.moon.lit}% moon tonight — the Milky Way is up over the Otways`
                          : 'A dark sky tonight — the Milky Way is up over the Otways'},
 
-  {id:'aurora', name:'Aurora is worth a drive',
+  {id:'fullmoon', name:'Full moon tonight', icon:'i-moon-star',
+   when:'the moon is 95% lit or more — the other end of the same number',
+   needs:['sky.moon.lit'],
+   test:d => d.sky.moon.lit >= 95,
+   near:d => d.sky.moon.lit >= 85,
+   says:d => d.sky?.moon ? `A ${d.sky.moon.lit}% moon over the water — moonrise walks, and the beach is light enough to read by`
+                         : 'A full moon over the water — moonrise walks, and the beach is light enough to read by'},
+
+  {id:'aurora', name:'Aurora is worth a drive', icon:'x-sparkles',
    when:'planetary Kp is 6 or more — a global reading, not a local one',
    needs:['space.kp'],
    test:d => d.space.kp >= 6,
+   near:d => d.space.kp >= 4,
    says:d => `Aurora watch${d.space ? ` — Kp ${d.space.kp}` : ''}. Try a south-facing beach after dark`},
 
-  {id:'orchids', name:'The orchids are out',
+  {id:'orchids', name:'The orchids are out', icon:'i-sprout',
    when:'orchids reach 60% of their own annual peak, on the Anglesea heath',
    needs:['growing'],
    test:d => (d.growing||[]).find(g=>g.id==='orchids')?.season.share >= 60,
+   near:d => (d.growing||[]).find(g=>g.id==='orchids')?.season.share >= 40,
    says:d => {const g=(d.growing||[]).find(x=>x.id==='orchids');
      const t=(g?.top||[]).slice(0,3).map(x=>x.name).join(', ');
      return g ? `The Anglesea heath is in flower — ${esc(t)} and ${g.species - 3} more species this month`
               : 'The Anglesea heath is in flower';}},
 
-  {id:'fungi', name:'The fungi are up',
+  {id:'fungi', name:'The fungi are up', icon:'i-leaf',
    when:'fungi reach 60% of their own annual peak, across the Otways',
    needs:['growing'],
    test:d => (d.growing||[]).find(g=>g.id==='fungi')?.season.share >= 60,
+   near:d => (d.growing||[]).find(g=>g.id==='fungi')?.season.share >= 40,
    says:d => {const g=(d.growing||[]).find(x=>x.id==='fungi');
      const t=(g?.top||[]).slice(0,3).map(x=>x.name).join(', ');
      return g && t ? `The Otways floor is up — ${esc(t)}`
                    : 'The Otways floor is up — worth a walk at Melba Gully';}},
 
-  {id:'smoke', name:'It is smoky',
+  {id:'smoke', name:'It is smoky', icon:'x-flame',
    when:'PM2.5 over 25 at Jan Juc, or any fire or burn within 30 km',
    needs:['air.pm2_5','burns'],
    test:d => d.air.pm2_5 > 25 || (d.burns || []).some(b => b.km <= 30),
+   near:d => d.air.pm2_5 > 15 || (d.burns || []).some(b => b.km <= 60),
    says:d => {const b=(d.burns||[]).find(x=>x.km<=30);
      return b ? `Smoke about — a ${esc(String(b.what).toLowerCase())} ${b.km} km away at ${esc(b.where||'')}. Maybe not the Otways today`
               : 'Smoke about — maybe not the Otways today';}},
 
-  {id:'coldwater', name:'The water is cold',
+  {id:'coldwater', name:'The water is cold', icon:'x-snowflake',
    when:'sea temperature under 14 °C, modelled at Bells Beach',
    needs:['sea.sea_temp'],
    test:d => d.sea.sea_temp < 14,
+   near:d => d.sea.sea_temp < 15.5,
    says:d => d.sea ? `The water is ${d.sea.sea_temp}° — wetsuit weather, and the swimming rows should say so`
                    : 'The water is under 14° — wetsuit weather'},
 ];
+
+/* Minutes past midnight out of a local ISO time, for the two sun rules. */
+function sunMin(iso){
+  const hm = String(iso || '').split('T')[1] || '';
+  return Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5));
+}
+function clock12x(iso){
+  const hm = String(iso || '').split('T')[1] || '';
+  const h = Number(hm.slice(0, 2));
+  return (((h + 11) % 12) + 1) + ':' + hm.slice(3, 5) + (h >= 12 ? 'pm' : 'am');
+}
 
 /* The listing name behind a beach key, so a rule can name real places rather
    than ids. Same lookup the beach table does. */
@@ -4498,6 +4587,8 @@ function clock12(iso){
   const h = Number(String(iso).slice(11, 13));
   return (((h + 11) % 12) + 1) + (h >= 12 ? 'pm' : 'am');
 }
+
+
 
 
 /* A rule is only false if everything it needs actually answered. Otherwise it
@@ -4514,15 +4605,23 @@ function ruleState(d, r){
   let v;
   try { v = r.test(d); } catch { return {state:'unknown', why:'could not evaluate'}; }
   if (v == null) return {state:'unknown', why:'not enough to decide'};
-  return {state: v ? 'on' : 'off'};
+  if (v) return {state:'on'};
+  // Close, but not met. Worth its own colour: a board that can say the falls
+  // will be running tomorrow is more use than one that only knows about today.
+  try { if (typeof r.near === 'function' && r.near(d)) return {state:'near'}; }
+  catch {}
+  return {state:'off'};
 }
 
 function rulesBlock(d){
   const rows = RULES.map(r => {
     const st = ruleState(d, r);
-    const tag = st.state === 'on' ? '<em>firing now</em>'
-              : st.state === 'unknown' ? `<em style="color:var(--bad)">unknown — ${esc(st.why)}</em>`
-              : '<em style="opacity:.7">quiet</em>';
+    /* No words for met and not-met — the dot and the icon carry it, which is
+       this page's own rule about colour being the signal. `unknown` still
+       says so in words, because a rule that cannot be evaluated is not a
+       third shade of the same thing. */
+    const tag = st.state === 'unknown'
+      ? `<em style="color:var(--bad)">unknown — ${esc(st.why)}</em>` : '';
     // The sentence is built from the live reply where it can be, so column
     // three shows the copy that would actually appear rather than a
     // description of it. A rule that is quiet still writes its sentence, in
@@ -4537,14 +4636,17 @@ function rulesBlock(d){
     try { says = typeof r.says === 'function'
                    ? r.says(st.state === 'on' ? d : {}) : String(r.says || ''); }
     catch { says = ''; }
-    return `<div class="rule ${st.state === 'on' ? 'on' : ''}">
-      <span class="dot2"></span>
-      <span class="rn">${esc(r.name)}</span>
+    return `<div class="rule ${st.state}">
+      <span class="dot2" title="${st.state === 'on' ? 'met now'
+        : st.state === 'near' ? 'close' : st.state === 'unknown' ? 'cannot tell' : 'not met'}"></span>
+      <span class="rn">${r.icon ? `<svg class="ricon" aria-hidden="true"><use href="#${esc(r.icon)}"/></svg>` : ''}${esc(r.name)}</span>
       <span class="rw">${esc(r.when)}${tag}</span>
       <span class="rs${st.state === 'on' ? '' : ' tmpl'}">${says}</span>
     </div>`;
   }).join('');
-  const on = RULES.filter(r => ruleState(d, r).state === 'on').length;
+  const states = RULES.map(r => ruleState(d, r).state);
+  const on = states.filter(x => x === 'on').length;
+  const near = states.filter(x => x === 'near').length;
   return box('Rules — if this, then that',
     `<b>Nothing here is stored and nothing is wired.</b> Each rule is declared in
      this page and evaluated against the live reply, so you can see which would be
@@ -4552,7 +4654,9 @@ function rulesBlock(d){
      it: the question worth answering first is whether these are the right
      sentences, and reading them fire for a fortnight answers it without a schema,
      a table or a write path existing at all.
-     <b>${on} of ${RULES.length} are firing right now.</b>`,
+     <b>${on} of ${RULES.length} are met right now</b>, and ${near} are close.
+     Green is met, amber is close, grey is not — there are no words for it in
+     the rows because the colour is the signal.`,
     `<div class="rulehead"><span></span><span>What is happening</span>
        <span>The condition, and where it is measured</span>
        <span>What the listing could say</span></div>${rows}`,
