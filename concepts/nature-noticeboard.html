@@ -739,5 +739,72 @@ body.mapview .tbl{display:none}
       argued.</p>
   </div>
 </div>
+
+<script>
+/* ══ the chrome, made real ════════════════════════════════════════════════
+   The masthead was lifted from index.html as markup and had no behaviour
+   behind it, so the theme pill and the pins looked pressable and were not.
+   A control that looks interactive has to be.
+
+   The switcher is the site's own, lifted rather than rewritten. It sets or
+   clears ONE attribute and redefines no colour: bare :root is light, the
+   media query is guarded against an explicit light, and [data-theme="dark"]
+   overrides both. Auto is a real third state — clearing the key means follow
+   the system, so a laptop that flips at sunset takes the page with it. */
+const THEMEKEY = 'notice.theme', MODES = ['auto','light','dark'];
+const themeBtn = document.getElementById('themebtn');
+function syncThemeBtn(){
+  const m = document.documentElement.dataset.theme || 'auto';
+  themeBtn.querySelector('b').textContent = m[0].toUpperCase() + m.slice(1);
+  const next = MODES[(MODES.indexOf(m) + 1) % MODES.length];
+  themeBtn.title = (m === 'auto' ? 'Following your system' : 'Forced to ' + m)
+                 + ' — click for ' + next;
+  themeBtn.setAttribute('aria-label', 'Colour scheme: ' + m + '. Click for ' + next + '.');
+}
+themeBtn.addEventListener('click', () => {
+  const m = document.documentElement.dataset.theme || 'auto';
+  const next = MODES[(MODES.indexOf(m) + 1) % MODES.length];
+  if (next === 'auto') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = next;
+  /* Private browsing refuses to write. The choice holds for this visit and is
+     simply not there next time, which is better than not working at all. */
+  try { next === 'auto' ? localStorage.removeItem(THEMEKEY)
+                        : localStorage.setItem(THEMEKEY, next); } catch (e) {}
+  syncThemeBtn();
+});
+try {
+  const stored = localStorage.getItem(THEMEKEY);
+  if (stored === 'light' || stored === 'dark')
+    document.documentElement.dataset.theme = stored;
+} catch (e) {}
+syncThemeBtn();
+
+/* The pins. Nothing is saved anywhere — this is a concept board — but a row
+   keeps its tint and its coloured icon while it is pinned, which is the whole
+   reason the saved state is visible at rest on the real board. */
+const savedCount = document.querySelector('#savedbtn b');
+const savedBtn = document.getElementById('savedbtn');
+let saved = 0;
+document.querySelectorAll('.savebtn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const head = btn.closest('.rowhead');
+    const on = !head.classList.contains('saved');
+    head.classList.toggle('saved', on);
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', String(on));
+    saved += on ? 1 : -1;
+    savedCount.textContent = saved;
+    savedBtn.classList.toggle('empty', saved === 0);
+  });
+});
+
+/* Opening a row is the board's own gesture and there is nothing behind it
+   here, so the rows do not pretend: the button is inert and says so. */
+document.querySelectorAll('.rowline').forEach(b => {
+  b.setAttribute('aria-disabled', 'true');
+  b.title = 'This is a concept board — the rows do not open';
+});
+</script>
 </body>
 </html>
