@@ -6644,6 +6644,15 @@ six-hour window would be tidier and is not worth a second thing to monitor.
 The full investigation is `concepts/AUTOMATING_NATURE.md`; the exploration
 behind it is `concepts/nature-whats-on.html` and its published artifact.
 
+**`prompts/nature-sources.md` is the next pass** — a source pass, not a
+listings pass, written 4 Sep 2026 for a Cowork session. It produces an
+inventory (`prompts/log/nature-sources.json`) and a worklog, never rows. Its
+spine is eight checks per source — fetch it, robots for both agents, the
+licence quoted, CORS, timing, where it is measured, one value validated
+against something independent, and which of the five kinds it is — and it
+names the Western Treatment Plant at Werribee as the one place a strong
+result is expected.
+
 ## A listing needs its own page — the linking pass, 1 Sep 2026
 
 Scott, asking whether shops and venues need listing pages, and then clarifying
