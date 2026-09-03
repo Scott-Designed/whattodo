@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nature&rsquo;s Noticeboard</title>
+<meta name="description" content="A hundred natural events on the Surf Coast, on the Notice board itself.">
+<script>
+try{var t=localStorage.getItem('notice.theme');
+    if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}
+</script>
+<link rel="stylesheet" href="/sunset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap">
+<style>
+/* ══ THE SITE'S OWN STYLESHEET, lifted from index.html and not stripped ═══
+   This page is the board and nothing else, so there is no second stylesheet
+   to collide with. That is the reason it has its own file rather than living
+   inside a document of prose: in there, nine selectors had to be cut and
+   three tokens put back by hand. Here, none of that.
+   The only thing removed is the @font-face, which /sunset.css carries. */
+
+
+:root{
+  --ground:#EAEAEA; --surface:#E1E2DC; --ink:#1B2114; --ink2:#4A5142; --ink3:#787E6E;
+  --rule:#CFD0C9; --rule2:#B9BBB2;
+  --serif:'Sunset',Georgia,'Times New Roman',serif;
+  --util:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --pad:64px; --ctrl-invert:none;
+  /* where a row's two marks sit: the icon's ink in from the left edge, the pin's
+     out from the right. The list bleeds past the page margin, so these hang
+     inside it — one number moves both ends. */
+  --gut:60px;
+  --tint-l:.905; --tint-c:.115;
+  --accent:#FFBB02;
+  --live:#2C7A4B;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
+  --rule:#2C3126; --rule2:#3C4234; --ctrl-invert:invert(.92);
+  --tint-l:.355; --tint-c:.082;
+  --live:#3E9E63;
+}}
+:root[data-theme="dark"]{
+  --ground:#14170F; --surface:#1E2218; --ink:#E5E7DE; --ink2:#B1B6A7; --ink3:#7F8678;
+  --rule:#2C3126; --rule2:#3C4234; --ctrl-invert:invert(.92);
+  --tint-l:.355; --tint-c:.082;
+  --live:#3E9E63;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.page{padding:0 var(--pad) 120px}
+
+/* the title takes the row, the pill takes its right-hand end, and the date
+   line runs the full width underneath rather than being squeezed by the pill */
+header{padding:44px 0 40px;display:grid;grid-template-columns:minmax(0,1fr) auto;
+  align-items:start;column-gap:18px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,6vw,76px);letter-spacing:-.025em;line-height:.95;margin:0}
+.srcbadge{font-family:var(--util);font-size:9.5px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink3);border:1px solid var(--rule2);padding:1px 6px;margin-left:10px}
+.sub{grid-column:1/-1;margin-top:14px;font-family:var(--util);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+
+/* ── what you have kept, counted, top right ──
+   An outline pill so it reads as a tally rather than a button to press first;
+   it fills in only while it is holding the list down to what you saved. */
+.hdrbtns{grid-column:2;grid-row:1;justify-self:end;margin-top:9px;
+  display:flex;align-items:center;gap:10px}
+.savedpill,.modepill{
+  display:inline-flex;align-items:center;gap:9px;white-space:nowrap;
+  font-family:var(--util);font-size:12.5px;font-weight:600;letter-spacing:.06em;
+  color:var(--ink2);background:transparent;border:1px solid var(--rule2);
+  border-radius:999px;padding:8px 15px;cursor:pointer;
+}
+.savedpill:hover,.modepill:hover{border-color:var(--ink);color:var(--ink)}
+/* The word rather than a sun-and-moon glyph. There are three states, which do
+   not reduce to two symbols, and a cycling icon button makes the reader guess
+   what the next press will do. */
+.modepill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.modepill b{font-weight:600;letter-spacing:.06em}
+.savedpill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+.savedpill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.savedpill b{font-weight:600;font-variant-numeric:tabular-nums}
+.savedpill.empty{color:var(--ink3)}
+/* grey until it is holding something, so the count and the colour say the same thing */
+.savedpill .ic{font-size:14px;line-height:1;filter:grayscale(1);opacity:.75}
+.savedpill:not(.empty) .ic{filter:none;opacity:1}
+
+/* ── controls: dropdowns only ── */
+.controls{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding-bottom:26px}
+.ctrl{display:flex;flex-direction:column;gap:6px;min-width:0}
+select,input[type=search]{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--rule2);padding:5px 26px 6px 0;min-width:150px;
+  border-radius:0;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:calc(100% - 9px) calc(50% + 1px),calc(100% - 4px) calc(50% + 1px);
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+}
+input[type=search]{background-image:none;padding-right:4px;cursor:text}
+input[type=search]::placeholder{color:var(--ink3)}
+select:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+select:hover,input[type=search]:hover{border-bottom-color:var(--ink)}
+option{background:var(--ground);color:var(--ink)}
+.clearbtn{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--ink);padding:5px 0 6px;cursor:pointer;white-space:nowrap;
+}
+.clearbtn:hover{color:var(--ink2);border-bottom-color:var(--ink2)}
+.clearbtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+/* ── multi-select: several answers to one question, which a native select can
+      only do as a listbox. The button reads as the other controls do. ── */
+.ms{position:relative}
+.ms-btn{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--rule2);padding:5px 26px 6px 0;min-width:132px;
+  text-align:left;cursor:pointer;white-space:nowrap;position:relative;border-radius:0;
+}
+.ms-btn::after{content:"";position:absolute;right:6px;bottom:11px;
+  border-left:4px solid transparent;border-right:4px solid transparent;
+  border-top:5px solid currentColor;opacity:.8}
+.ms-btn:hover,.ms-btn[aria-expanded="true"]{border-bottom-color:var(--ink)}
+.ms-btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.ms-btn.on{font-style:italic}
+.ms-pop{
+  position:absolute;top:calc(100% + 6px);left:0;z-index:60;min-width:212px;
+  max-height:min(58vh,420px);overflow-y:auto;padding:8px 0;
+  background:var(--ground);border:1px solid var(--rule2);
+  box-shadow:0 6px 26px rgba(0,0,0,.22);
+}
+.ms-pop[hidden]{display:none}
+.ms-pop label{
+  display:flex;align-items:center;gap:10px;padding:7px 15px;cursor:pointer;
+  font-family:var(--serif);font-size:16px;color:var(--ink);white-space:nowrap;
+}
+.ms-pop label .n{margin-left:auto;padding-left:14px;font-family:var(--util);font-size:11px;
+  color:var(--ink3);font-variant-numeric:tabular-nums}
+.ms-pop label:hover{background:var(--surface)}
+/* `.off` used to grey out an option that would return nothing. Those are left
+   out of the menu now, so there is nothing to grey. */
+.ms-none{margin:0;padding:9px 15px;font-family:var(--serif);font-size:14px;
+  font-style:italic;color:var(--ink3);white-space:normal;max-width:22em}
+.ms-pop input{accent-color:var(--ink);width:14px;height:14px;flex:none;margin:0}
+.ms-clear{
+  display:block;width:100%;text-align:left;padding:7px 15px;margin-top:4px;
+  border:0;border-top:1px solid var(--rule);background:transparent;cursor:pointer;
+  font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink3);
+}
+.ms-clear:hover{color:var(--ink)}
+
+/* ── the four secondary filters, folded away until asked for ── */
+.morebtn{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--rule2);padding:5px 0 6px;cursor:pointer;
+  white-space:nowrap;display:inline-flex;align-items:center;gap:7px;
+}
+.morebtn:hover,.morebtn[aria-expanded="true"]{border-bottom-color:var(--ink)}
+.morebtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.morebtn .dot{width:6px;height:6px;border-radius:50%;background:var(--ink);flex:none}
+.more{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding:0 0 26px}
+.more[hidden]{display:none}
+
+/* ── sort / view / search belong to the list, not to the filters ── */
+.toolbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;padding-bottom:12px}
+/* the listing area has a name, and its count belongs beside it rather than
+   floating loose at the end of a row of controls */
+.board{margin:0 auto 0 0;font-family:var(--serif);font-weight:400;font-size:17px;
+  line-height:1.3;letter-spacing:-.005em;color:var(--ink);white-space:nowrap}
+/* the count is grey, the name of the board is not — scoped to #tally
+   because the name is a span too since it started changing per page */
+.board #tally{color:var(--ink3);font-variant-numeric:tabular-nums}
+.toolbar input[type=search]{min-width:0;width:150px;transition:width .16s}
+.toolbar input[type=search]:focus{width:212px}
+
+/* ── what is currently on, and one click to take it off again ── */
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 0 22px}
+.chips:empty{display:none}
+.chip{
+  font-family:var(--util);font-size:12px;font-weight:500;letter-spacing:.02em;
+  color:var(--ground);background:var(--ink);border:1px solid var(--ink);
+  border-radius:999px;padding:5px 8px 5px 12px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.chip:hover{background:var(--ink2);border-color:var(--ink2)}
+.chip:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.chip .x{font-size:13px;line-height:1;opacity:.7}
+.chip:hover .x{opacity:1}
+
+/* ── Add is a standing offer, not a filter ── */
+.addpill{
+  position:fixed;right:24px;bottom:24px;z-index:40;
+  font-family:var(--util);font-size:13px;font-weight:600;letter-spacing:.06em;
+  color:var(--ground);background:var(--ink);border:0;border-radius:999px;
+  padding:13px 22px;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.28);
+}
+.addpill:hover,.addpill[aria-expanded="true"]{background:var(--ink2)}
+.addpill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+/* ── add panel ── */
+.addbtn{
+  font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--ink);padding:5px 0 6px;cursor:pointer;white-space:nowrap;
+}
+.addbtn:hover{color:var(--ink2);border-bottom-color:var(--ink2)}
+.addbtn:focus-visible,.clearbtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.panel{display:none;border-top:1px solid var(--ink);border-bottom:1px solid var(--rule2);
+  padding:30px 0 34px;margin-bottom:34px}
+.panel.open{display:block}
+.panel h2{font-family:var(--serif);font-weight:400;font-size:26px;margin:0 0 4px;letter-spacing:-.015em}
+.panel .lede{font-family:var(--util);font-size:12.5px;color:var(--ink3);margin:0 0 22px;max-width:70ch;line-height:1.7}
+.kind{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--rule2);width:max-content;max-width:100%}
+.kind button{font-family:var(--serif);font-size:16px;padding:9px 20px;border:0;border-right:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer}
+.kind button:last-child{border-right:0}
+.kind button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px 28px;max-width:1200px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fld label{font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3)}
+.fld input,.fld select,.fld textarea{
+  font-family:var(--serif);font-size:16px;color:var(--ink);background:transparent;
+  border:0;border-bottom:1px solid var(--rule2);padding:5px 0 6px;width:100%;border-radius:0}
+.fld textarea{resize:vertical;min-height:52px;line-height:1.5}
+.fld input:focus-visible,.fld select:focus-visible,.fld textarea:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.fld input::placeholder,.fld textarea::placeholder{color:var(--ink3)}
+.fld.wide{grid-column:1/-1;max-width:74ch}
+.fld.lead{order:-1;grid-column:1/-1;max-width:74ch}
+.acts{display:flex;flex-wrap:wrap;gap:22px;align-items:center;margin-top:26px}
+.acts .msg{font-family:var(--util);font-size:12px;color:var(--ink3);flex:1 1 200px;line-height:1.6}
+/* The `unverified` badge was here — an outlined square beside ON NOW — and it
+   went on 1 Sep 2026 with Scott's rule that nothing reaches the board until he
+   has approved it. It cannot fire any more: `published` gates the query, every
+   scraper writes false, and RLS refuses a community insert that sets either
+   flag true, so a row a reader can see has been looked at by definition. A
+   badge that can never render is worse than none — it teaches whoever reads
+   this file that a state exists which does not.
+   ON NOW is the one badge left on a row, and it is good news, so it is filled
+   and rounded.
+   `--live` is a token in all three theme states rather than one green, because
+   a green dark enough to carry white text in the light scheme goes muddy
+   against #14170F. The white on it IS a literal: both greens are chosen to
+   take it, and var(--ink) would flip to near-white in one scheme and near-black
+   in the other. */
+.live{font-family:var(--util);font-size:9.5px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:#fff;background:var(--live);border-radius:999px;
+  padding:1.5px 7px;margin-left:8px;white-space:nowrap}
+
+
+.fld.sug input,.fld.sug select,.fld.sug textarea{border-bottom-style:dashed;border-bottom-color:var(--ink2)}
+.fld.sug label::after{content:" · drafted";color:var(--ink3);letter-spacing:.08em}
+.review{display:none;margin-top:22px;padding:16px 18px;background:var(--surface);border-left:2px solid var(--ink2)}
+.review.on{display:block}
+.review h3{font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink3);margin:0 0 8px}
+.review p{margin:0 0 10px;font-size:15px;line-height:1.6;color:var(--ink2);max-width:74ch}
+.review ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px 16px}
+.review li a{font-family:var(--util);font-size:12px;color:var(--ink2);text-decoration:none;
+  border-bottom:1px solid var(--rule2)}
+.review li a:hover{border-bottom-color:var(--ink)}
+.warn{font-family:var(--util);font-size:12px;color:var(--ink3);margin-top:8px}
+
+
+/* ── table ── */
+.tbl{border-top:1px solid var(--ink);margin:0 calc(var(--pad) * -1)}
+.rowline{
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) 92px 200px 132px 140px;
+  gap:0 24px;align-items:center;
+}
+
+/* ── the type icon, in the row's left gutter ──
+   The slot is always drawn, even when the type has no icon: an empty cell keeps
+   every name on the same left edge, which a collapsing column would not.
+   The artwork is a <use> of a <symbol> declared once at the top of the page. */
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+.c-icon{width:48px;display:grid;place-items:center end;color:var(--ink3)}
+/* ── colour only on hover ──
+   At rest every icon is one grey, whether its artwork is one colour or two, so
+   a list of 400 rows is not a field of yellow. Hovering a row brings the ink up
+   and lets the accent through.
+
+   The accent is an inline fill on the path (see below), which no rule here can
+   override — but it is a var() lookup, so swapping what the variable *means*
+   per state does the job without touching the path. At rest it resolves to
+   currentColor and the icon collapses to the single grey; on hover it resolves
+   to the brand colour. The yellow itself still lives in one place, --accent. */
+.c-icon{--icon-accent:currentColor}
+.rowhead:hover .c-icon,.rowhead.saved .c-icon{--icon-accent:var(--accent)}
+/* A fixed box, not a fixed width. The set is not one proportion — the skateboard
+   is 3:1 and the coffee cup is taller than it is wide — so sizing on width alone
+   would make an upright icon 60px tall and push the row open. Each <symbol>
+   carries its own viewBox and scales to fit inside 48x28, centred. */
+/* ── 24px means 24px of white, not 24px of box ──
+   The 48x28 box is a container, not the artwork: a narrow icon centred in it
+   left 7px of air on each side, so the gap the eye measured between a runner
+   and its name was ~33px while the skateboard's was 26. The box now sits at the
+   slot's inner edge (place-items:center end) and each <symbol> right-aligns its
+   own artwork inside it (preserveAspectRatio="xMaxYMid"), so every icon's ink
+   ends on one line, 24px from the name — the column gap and nothing else.
+   The slot stays 51px whether or not it holds anything, which is still what
+   keeps every name on the same left edge. */
+.c-icon svg{width:48px;height:28px;fill:currentColor;display:block}
+/* Some of the set is two-colour. The black in those files is the ink and follows
+   the row like the single-colour icons do; the brand yellow is the accent.
+
+   The accent is set inline on the path rather than by a rule here, and that is
+   not laziness: <use> clones the symbol into a shadow tree, which a selector in
+   this stylesheet cannot reach — `.c-icon .accent{}` matches nothing. An inline
+   style is part of what gets cloned, and `--icon-accent` still reaches it
+   because custom properties inherit across the boundary. So the colour is still
+   one token in one place, it just has to be spent through var(). */
+.rowhead:hover .c-icon,.rowhead.saved .c-icon{color:var(--ink)}
+
+.rec{border-bottom:1px solid var(--rule)}
+
+/* ── keep this one ──
+   The pin sits in the row's right-hand gutter, as a sibling of the row button
+   and never inside it: a button within a button is invalid markup and eats the
+   row's own click. Hidden until the row is hovered, and it stays once it is on.
+   A touch screen has no hover, so there it is always showing.
+
+   Both ends of a row leave the same white space. The mark is aligned to the end
+   of the button rather than centred in it, so what lands on the page margin is
+   the pin itself and not a box around it — an emoji's advance width is not the
+   same on every platform, and a fixed offset would only be true on this one. The
+   36px hit area then runs inwards, into the gutter the row's padding keeps clear. */
+.rowhead{position:relative}
+.savebtn{
+  position:absolute;top:0;bottom:0;right:var(--gut);
+  width:36px;padding:0;border:0;background:none;cursor:pointer;
+  display:grid;place-items:center end;font-size:15px;line-height:1;
+  opacity:0;filter:grayscale(1);transition:opacity .13s,filter .13s;
+}
+.rowhead:hover .savebtn,.savebtn:focus-visible{opacity:.5}
+.savebtn:hover{opacity:.85}
+.savebtn.on,.rowhead:hover .savebtn.on{opacity:1;filter:none}
+.savebtn:focus-visible{outline:2px solid var(--ink);outline-offset:-4px}
+@media (hover:none){.savebtn{opacity:.45}}
+/* ── the press ──
+   A pin goes into a board along its own needle, and the 📌 points down-left, so
+   that is the direction this one travels. It shrinks as it goes in — going away
+   from you, not getting smaller — and the board gives a little back on the way
+   out. The overshoot is what reads as "in": the travel itself is two pixels at
+   this size and would pass for a wobble on its own.
+   Pulling one out is the same move reversed and shorter. Taking something off a
+   list is not an occasion.
+   The animation is on a span inside the button, not the button: the button is
+   the 36px hit area and the thing that moves should be the mark. */
+.savebtn .glyph{display:block;transition:transform .12s}
+.savebtn:active .glyph{transform:translate(-1px,1px) scale(.84)}
+.savebtn.press .glyph{animation:pin-in .34s cubic-bezier(.2,.7,.3,1)}
+.savebtn.unpress .glyph{animation:pin-out .24s ease-out}
+@keyframes pin-in{
+  0%  {transform:translate(0,0) scale(1)   rotate(0)}
+  38% {transform:translate(-2px,2px) scale(.66) rotate(-12deg)}
+  68% {transform:translate(0,0) scale(1.14) rotate(4deg)}
+  100%{transform:translate(0,0) scale(1)   rotate(0)}
+}
+@keyframes pin-out{
+  0%  {transform:translate(0,0) scale(1) rotate(0)}
+  45% {transform:translate(2px,-2px) scale(1.1) rotate(9deg)}
+  100%{transform:translate(0,0) scale(1) rotate(0)}
+}
+/* the page-wide reduced-motion rule turns off transitions; these are animations */
+@media (prefers-reduced-motion:reduce){.savebtn .glyph{animation:none!important}}
+/* Unpinning inside the saved view takes the row with it, so the row fades while
+   the pin comes out and the list redraws after both. */
+.rec.leaving{opacity:.2;transition:opacity .26s}
+
+.rowline{width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;
+  cursor:pointer;min-height:57px;
+  /* the extra 40 on the right is the pin's lane: the mark itself sits on the
+     margin like the icon does, and the text stops ~24px short of it, which is
+     the same gap the icon keeps from the name at the other end */
+  padding:11px calc(var(--gut) + 40px) 11px var(--gut)}
+/* ── the hover colourway ──
+   A row lights up in its own theme's colour, so running the eye down the list
+   the colour says what kind of thing it is before the type column is read.
+
+   Two numbers set the whole set. oklch is here for a reason and not decoration:
+   its lightness is perceptual, so every hue lands at the same brightness. The
+   same twelve colours written in hsl would give a yellow that reads almost
+   white and a blue that reads nearly black at identical numbers, and the list
+   would look like some rows were shouting.
+
+   Light needs a pale wash under near-black ink, dark a deep one under near-
+   white, so the pair is redefined per scheme and the twelve hues are not. */
+.rowhead{--tint:var(--surface)}
+/* Nine groups, nine hues 40 degrees apart. oklch keeps them all the same
+   perceptual brightness, so no row shouts louder than its neighbour. */
+.rowhead[data-tint="hospitality"]{--tint:oklch(var(--tint-l) var(--tint-c)  30)}
+.rowhead[data-tint="produce"]    {--tint:oklch(var(--tint-l) var(--tint-c)  70)}
+.rowhead[data-tint="outdoors"]   {--tint:oklch(var(--tint-l) var(--tint-c) 110)}
+.rowhead[data-tint="landscape"]  {--tint:oklch(var(--tint-l) var(--tint-c) 150)}
+.rowhead[data-tint="ocean"]      {--tint:oklch(var(--tint-l) var(--tint-c) 190)}
+.rowhead[data-tint="home"]       {--tint:oklch(var(--tint-l) var(--tint-c) 230)}
+.rowhead[data-tint="arts"]       {--tint:oklch(var(--tint-l) var(--tint-c) 270)}
+.rowhead[data-tint="music"]      {--tint:oklch(var(--tint-l) var(--tint-c) 310)}
+.rowhead[data-tint="community"]  {--tint:oklch(var(--tint-l) var(--tint-c) 350)}
+/* An unsorted row has no theme, keeps no data-tint, and falls back to --surface
+   above — the grey it has always had. */
+/* A pinned row keeps the hover look for good — its theme colour and its icon in
+   colour — so what you have saved is picked out of the list without hovering
+   anything. This is also the one place the colour reaches a touch screen, where
+   there is no hover at all. */
+.rowline:hover,.rowhead:hover .rowline,.rowhead.saved .rowline{background:var(--tint)}
+.rowline:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.c-name{font-size:20px;letter-spacing:-.01em;line-height:1.2}
+.c-type,.c-where,.c-when,.c-cost,.c-extra,.tm,.c-name .nm{
+  min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+/* the name clips, ON NOW does not — it is the one thing on a row that cannot
+   wait for the reader to widen the window. (It had a companion, `unverified`,
+   until nothing unapproved could reach the board any more.)
+   The spacing is the badge's own margin and NOT a gap here, because below 700px
+   this turns into a plain block and a gap stops applying — which is where the
+   two ran into the name. One rule, both layouts. It was gap AND margin while
+   there was one badge, so the doubling went unnoticed; two badges cost the name
+   32px of a column it already clips in, which is what found it. */
+.c-name{display:flex;align-items:center;gap:0;min-width:0}
+.c-name .live{flex:none}
+.c-type,.c-where,.c-when,.c-cost{font-size:14px;color:var(--ink2);line-height:1.22}
+.c-extra{font-size:14px;color:var(--ink2);line-height:1.22;min-width:0}
+.est{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-top:3px}
+.tm{display:block;font-family:var(--serif);font-size:12px;color:var(--ink3);line-height:1.25;margin-top:1px}
+/* How often it repeats, beside the day — "Saturday" alone reads as one Saturday. */
+.rep{font-family:var(--util);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink3);margin-left:7px;white-space:nowrap}
+.mob{display:none}
+
+.detail{display:none;padding:2px var(--pad) 30px}
+.rec.open .detail{display:block}
+.detail-in{display:grid;grid-template-columns:minmax(0,3.1fr) minmax(0,2.5fr);gap:28px 28px;max-width:1400px}
+.detail p{margin:0 0 14px;font-size:17px;line-height:1.62;color:var(--ink2);max-width:66ch}
+.dl{margin:0;font-family:var(--util);font-size:12px;line-height:1.75;color:var(--ink3)}
+.dl b{display:block;font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:10px;color:var(--ink3);margin-bottom:5px}
+.dl span{color:var(--ink2)}
+.links{display:flex;flex-wrap:wrap;gap:22px;margin-top:6px}
+/* One thing in several places: the branches, under the description in the open
+   row. Each keeps its own link and its own directions — collapsing the line
+   must not lose the fact that these are different buildings. */
+.branches{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.branches li{font-family:var(--serif);font-size:16px;color:var(--ink2);line-height:1.3}
+.branches a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule2);padding-bottom:1px}
+.branches a:hover{border-bottom-color:var(--ink)}
+.branches .tm{display:inline;margin-left:9px}
+.branches .dir{font-family:var(--util);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink3);margin-left:10px;border-bottom-color:transparent}
+.branches .dir:hover{border-bottom-color:var(--ink3)}
+.links a{font-family:var(--serif);font-size:16px;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule2);padding-bottom:1px}
+.links a:hover{border-bottom-color:var(--ink)}
+.none{padding:80px 0;text-align:center;color:var(--ink3);font-size:20px}
+footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--rule);font-family:var(--util);font-size:11.5px;line-height:1.8;color:var(--ink3);max-width:78ch}
+
+/* ── list / map switch ── */
+.seg{display:flex;border:1px solid var(--rule2);width:max-content;max-width:100%}
+.seg button{font-family:var(--serif);font-size:16px;line-height:1.2;padding:6px 17px 7px;border:0;
+  border-right:1px solid var(--rule2);background:transparent;color:var(--ink2);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+.seg button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* ── map ── */
+#mapwrap{display:none}
+body.mapview #mapwrap{display:block}
+body.mapview .tbl{display:none}
+#map{height:min(72vh,640px);width:100%;background:var(--surface);border-top:1px solid var(--ink)}
+.mapnote{font-family:var(--util);font-size:11.5px;line-height:1.75;color:var(--ink3);
+  margin:0;padding:11px 0 0;border-top:1px solid var(--rule)}
+.mapnote b{font-weight:600;color:var(--ink2)}
+.mapstate{display:grid;place-items:center;height:100%;text-align:center;padding:0 24px;
+  font-family:var(--serif);font-size:19px;color:var(--ink3);line-height:1.5}
+
+/* A pin is the page's own mark, not a map library's balloon. */
+/* No `position` here. MapLibre positions its own markers absolutely, this page's
+   stylesheet now loads first and would win — and a marker set to `relative` drops
+   out of the map and stacks down the page in document order. */
+.pin{width:13px;height:13px;border-radius:50%;background:var(--ground);
+  border:1.5px solid var(--ink);cursor:pointer;display:grid;place-items:center;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--ground) 65%,transparent)}
+/* the mark stays small; the thing you can hit with a thumb does not */
+.pin::before{content:'';position:absolute;inset:-10px}
+.pin:hover,.pin.on{background:var(--ink)}
+.pin b{font-family:var(--util);font-size:9px;font-weight:600;color:var(--ink);line-height:1}
+.pin:hover b,.pin.on b{color:var(--ground)}
+.pin.multi{width:20px;height:20px}
+.pin.home{width:9px;height:9px;background:var(--ink);border-color:var(--ink);cursor:default;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--ground) 65%,transparent)}
+
+.maplibregl-popup-content{background:var(--ground);color:var(--ink);border:1px solid var(--ink);
+  border-radius:0;box-shadow:none;padding:15px 17px 16px;font-family:var(--serif);max-width:290px}
+.maplibregl-popup-tip{display:none}
+.maplibregl-popup-close-button{font-family:var(--util);font-size:17px;line-height:1;color:var(--ink3);
+  background:none;padding:5px 8px 6px;right:0;top:0}
+.maplibregl-popup-close-button:hover{background:none;color:var(--ink)}
+.pop{max-height:270px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--rule2) transparent}
+.pop::-webkit-scrollbar{width:5px}
+.pop::-webkit-scrollbar-thumb{background:var(--rule2)}
+.pop::-webkit-scrollbar-track{background:transparent}
+.pop h4{font-family:var(--serif);font-weight:400;font-size:19px;letter-spacing:-.01em;line-height:1.2;
+  margin:0 0 4px;padding-right:16px}
+.pop h4~h4{margin-top:15px;padding-top:13px;border-top:1px solid var(--rule)}
+.pop .meta{font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);margin:0 0 7px}
+.pop p.txt{margin:0 0 9px;font-size:15px;line-height:1.5;color:var(--ink2)}
+.pop a{font-family:var(--util);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);
+  text-decoration:none;border-bottom:1px solid var(--rule2);margin-right:15px;white-space:nowrap}
+.pop a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.maplibregl-ctrl-group{border-radius:0!important;box-shadow:none!important;border:1px solid var(--rule2);
+  background:var(--ground)}
+.maplibregl-ctrl-group button{border-radius:0!important;background:var(--ground)}
+.maplibregl-ctrl-group button+button{border-top:1px solid var(--rule2)}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon{filter:var(--ctrl-invert)}
+.maplibregl-ctrl-attrib{font-family:var(--util);font-size:10px;
+  background:color-mix(in srgb,var(--ground) 82%,transparent)!important}
+.maplibregl-ctrl-attrib a,.maplibregl-ctrl-attrib{color:var(--ink3)}
+.maplibregl-ctrl-scale{font-family:var(--util);font-size:10px;border-radius:0;color:var(--ink3);
+  border-color:var(--rule2);background:color-mix(in srgb,var(--ground) 82%,transparent)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:1180px){
+  .rowline{grid-template-columns:51px minmax(0,1fr) 190px 128px 136px}
+  .c-type{display:none}
+}
+@media (max-width:940px){
+  .rowline{grid-template-columns:51px minmax(0,1fr) 180px 128px}
+  .c-extra{display:none}
+  .detail-in{grid-template-columns:1fr}
+}
+@media (max-width:700px){
+  :root{--pad:20px; --gut:20px}
+  /* stacked, so a fixed height and a clipped name both stop making sense */
+  .rowline{grid-template-columns:48px 1fr;gap:3px 12px;min-height:0;align-items:start;
+    padding:11px calc(var(--gut) + 40px) 11px var(--gut)}
+  .c-icon{grid-row:1;margin-top:3px}
+  .c-name{grid-column:2}
+  header{padding:26px 0 30px}
+  .c-name{display:block}
+  .c-name .nm{white-space:normal;overflow:visible;text-overflow:clip;display:inline}
+  .c-where,.c-when{display:none}
+  .mob{display:block;grid-column:2;font-family:var(--util);font-size:12px;color:var(--ink3)}
+  .controls{gap:12px 18px}
+  select,input[type=search]{min-width:0;width:100%;font-size:16px}
+  .ctrl{flex:1 1 42%}
+  #map{height:min(76vh,560px)}
+  .seg button{padding:6px 13px 7px;font-size:15px}
+}
+
+
+/* ══ the one thing this page adds ═════════════════════════════════════════
+   A note that none of it is real, and an amber sibling for the ON NOW pill. */
+.cnote{background:var(--surface);border-bottom:1px solid var(--rule2);
+  padding:11px var(--pad);font-family:var(--util);font-size:12px;color:var(--ink3);
+  display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;
+  position:sticky;top:0;z-index:80}
+.cnote b{font-weight:600;color:var(--accent);letter-spacing:.11em;
+  text-transform:uppercase;font-size:11px}
+.cnote .key{margin-left:auto;display:flex;gap:5px;align-items:center}
+.cnote .key i{width:9px;height:9px;border-radius:50%;display:inline-block;
+  margin:0 4px 0 12px}
+.cnote .k-now{background:var(--live)}
+.cnote .k-soon{background:var(--accent)}
+.cnote .k-shut{background:var(--rule2)}
+.live.soon{background:var(--accent);color:#1B2114}
+/* A row a condition has closed: dimmed, never hidden. A reader wants to know
+   the waterfall is low, not to find it missing. */
+.rowhead.cshut .rowline{opacity:.45}
+/* the footnote under the table */
+.after{padding:34px var(--pad) 90px;max-width:78ch}
+.after h2{font-family:var(--serif);font-weight:400;font-size:23px;
+  letter-spacing:-.012em;margin:0 0 12px}
+.after p{font-family:var(--util);font-size:13px;line-height:1.7;color:var(--ink3);
+  margin:0 0 14px}
+.after p b{color:var(--ink2)}
+.after code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+  color:var(--ink2)}
+</style>
+</head>
+<body data-nav="board">
+<script src="/notice-icons.js"></script>
+<!-- Lucide 0.544.0 (ISC), fetched verbatim. The eight the site set does
+     not carry; everything else comes from /notice-icons.js. -->
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="x-sunrise" viewBox="0 0 24 24"><path d="M12 2v8" /> <path d="m4.93 10.93 1.41 1.41" /> <path d="M2 18h2" /> <path d="M20 18h2" /> <path d="m19.07 10.93-1.41 1.41" /> <path d="M22 22H2" /> <path d="m8 6 4-4 4 4" /> <path d="M16 18a4 4 0 0 0-8 0" /></symbol><symbol id="x-sunset" viewBox="0 0 24 24"><path d="M12 10V2" /> <path d="m4.93 10.93 1.41 1.41" /> <path d="M2 18h2" /> <path d="M20 18h2" /> <path d="m19.07 10.93-1.41 1.41" /> <path d="M22 22H2" /> <path d="m16 6-4 4-4-4" /> <path d="M16 18a4 4 0 0 0-8 0" /></symbol><symbol id="x-wind" viewBox="0 0 24 24"><path d="M12.8 19.6A2 2 0 1 0 14 16H2" /> <path d="M17.5 8a2.5 2.5 0 1 1 2 4H2" /> <path d="M9.8 4.4A2 2 0 1 1 11 8H2" /></symbol><symbol id="x-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" /></symbol><symbol id="x-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /> <path d="M20 2v4" /> <path d="M22 4h-4" /> <circle cx="4" cy="20" r="2" /></symbol><symbol id="x-snowflake" viewBox="0 0 24 24"><path d="m10 20-1.25-2.5L6 18" /> <path d="M10 4 8.75 6.5 6 6" /> <path d="m14 20 1.25-2.5L18 18" /> <path d="m14 4 1.25 2.5L18 6" /> <path d="m17 21-3-6h-4" /> <path d="m17 3-3 6 1.5 3" /> <path d="M2 12h6.5L10 9" /> <path d="m20 10-1.5 2 1.5 2" /> <path d="M22 12h-6.5L14 15" /> <path d="m4 10 1.5 2L4 14" /> <path d="m7 21 3-6-1.5-3" /> <path d="m7 3 3 6h4" /></symbol><symbol id="x-telescope" viewBox="0 0 24 24"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44" /> <path d="m13.56 11.747 4.332-.924" /> <path d="m16 21-3.105-6.21" /> <path d="M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z" /> <path d="m6.158 8.633 1.114 4.456" /> <path d="m8 21 3.105-6.21" /> <circle cx="12" cy="13" r="2" /></symbol><symbol id="x-binoculars" viewBox="0 0 24 24"><path d="M10 10h4" /> <path d="M19 7V4a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v3" /> <path d="M20 21a2 2 0 0 0 2-2v-3.851c0-1.39-2-2.962-2-4.829V8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2z" /> <path d="M 22 16 L 2 16" /> <path d="M4 21a2 2 0 0 1-2-2v-3.851c0-1.39 2-2.962 2-4.829V8a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2z" /> <path d="M9 7V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v3" /></symbol></svg>
+
+<div class="cnote">
+  <b>Concept</b>
+  <span>A hundred natural events, on the site&rsquo;s own board. None of these rows exist.</span>
+  <span class="key"><i class="k-now"></i>on now<i class="k-soon"></i>soon<i class="k-shut"></i>waiting on the weather</span>
+</div>
+
+<div class="page">
+  <header>
+    <h1>Notice</h1>
+    <div class="hdrbtns">
+      <button id="themebtn" type="button" class="modepill"><b>Auto</b></button>
+      <button id="savedbtn" type="button" class="savedpill empty" aria-pressed="false"
+              aria-label="Saved listings"><span class="ic" aria-hidden="true">&#128204;</span><b>0</b></button>
+    </div>
+    <div class="sub"><span>Nature&rsquo;s Noticeboard &middot; 100 things the weather decides</span></div>
+  </header>
+
+  <div class="controls">
+    <div class="ctrl ms"><button type="button" class="ms-btn" aria-expanded="false" aria-haspopup="true">Any group</button></div>
+    <div class="ctrl ms"><button type="button" class="ms-btn" aria-expanded="false" aria-haspopup="true">Any type</button></div>
+    <div class="ctrl ms"><button type="button" class="ms-btn" aria-expanded="false" aria-haspopup="true">Anywhere</button></div>
+    <div class="seg" role="group" aria-label="When">
+      <button type="button" aria-pressed="false">Today</button>
+      <button type="button" aria-pressed="false">Tomorrow</button>
+      <button type="button" aria-pressed="false">This week</button>
+      <button type="button" aria-pressed="true">Any time</button>
+    </div>
+    <button type="button" class="morebtn" aria-expanded="false">Filters</button>
+  </div>
+
+  <div class="tbl"><div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"></span><span class="c-name"><span class="nm">Whale season</span><span class="live">on now</span></span><span class="c-type">wildlife</span><span class="c-where">Great Ocean Road<span class="tm">Aireys Inlet to Apollo Bay</span></span><span class="c-when">On now<span class="tm">June – October</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Great Ocean Road · On now</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">Orchids in flower</span><span class="live">on now</span></span><span class="c-type">wildflower</span><span class="c-where">Anglesea Heath<span class="tm">Anglesea</span></span><span class="c-when">On now<span class="tm">peaks late Sept</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Anglesea Heath · On now</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-footprints"/></svg></span><span class="c-name"><span class="nm">Echidnas out of torpor</span><span class="live">on now</span></span><span class="c-type">wildlife</span><span class="c-where">Anglesea Heath<span class="tm">Anglesea</span></span><span class="c-when">On now<span class="tm">to March</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Anglesea Heath · On now</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-parasol"/></svg></span><span class="c-name"><span class="nm">Sheltered from the westerly</span><span class="live">on now</span></span><span class="c-type">beach</span><span class="c-where">Point Lonsdale Front Beach<span class="tm">Point Lonsdale</span></span><span class="c-when">Today<span class="tm">wind W 30 km/h</span></span><span class="c-extra">Free</span><span class="mob">beach · Point Lonsdale Front Beach · Today</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves"/></svg></span><span class="c-name"><span class="nm">Bells is offshore</span><span class="live">on now</span></span><span class="c-type">surf</span><span class="c-where">Bells Beach<span class="tm">Bells Beach</span></span><span class="c-when">Today<span class="tm">6am – 10am</span></span><span class="c-extra">Free</span><span class="mob">surf · Bells Beach · Today</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span><span class="c-name"><span class="nm">The sea is glass</span><span class="live">on now</span></span><span class="c-type">paddling</span><span class="c-where">Point Addis<span class="tm">Anglesea</span></span><span class="c-when">Today<span class="tm">0.26 m wind chop</span></span><span class="c-extra">Free</span><span class="mob">paddling · Point Addis · Today</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunrise"/></svg></span><span class="c-name"><span class="nm">Sunrise over the water</span><span class="live">on now</span></span><span class="c-type">sunrise</span><span class="c-where">Point Roadknight Beach<span class="tm">Anglesea</span></span><span class="c-when">Today<span class="tm">6:43am</span></span><span class="c-extra">Free</span><span class="mob">sunrise · Point Roadknight Beach · Today</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-bike"/></svg></span><span class="c-name"><span class="nm">The trails are dry</span><span class="live">on now</span></span><span class="c-type">cycling</span><span class="c-where">Forrest MTB<span class="tm">Forrest</span></span><span class="c-when">Today<span class="tm">0 mm in 48h</span></span><span class="c-extra">Free</span><span class="mob">cycling · Forrest MTB · Today</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-snowflake"/></svg></span><span class="c-name"><span class="nm">Wetsuit weather</span><span class="live">on now</span></span><span class="c-type">swimming</span><span class="c-where">Jan Juc Beach<span class="tm">Jan Juc</span></span><span class="c-when">Today<span class="tm">water 13.7°</span></span><span class="c-extra">Free</span><span class="mob">swimming · Jan Juc Beach · Today</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span><span class="c-name"><span class="nm">Low tide at the rockpools</span></span><span class="c-type">tide</span><span class="c-where">Jan Juc Rockpools<span class="tm">Jan Juc</span></span><span class="c-when">Tonight<span class="tm">around 8pm</span></span><span class="c-extra">Free</span><span class="mob">tide · Jan Juc Rockpools · Tonight</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">A whale was seen off Ocean Grove</span></span><span class="c-type">wildlife</span><span class="c-where">Ocean Grove Main Beach<span class="tm">Ocean Grove</span></span><span class="c-when">10 days ago<span class="tm">Southern Right</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Ocean Grove Main Beach · 10 days ago</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-moon-star"/></svg></span><span class="c-name"><span class="nm">Waning gibbous, 74% lit</span></span><span class="c-type">moon</span><span class="c-where">Anywhere dark<span class="tm">Surf Coast</span></span><span class="c-when">Tonight<span class="tm">rises 9:14pm</span></span><span class="c-extra">Free</span><span class="mob">moon · Anywhere dark · Tonight</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-wind"/></svg></span><span class="c-name"><span class="nm">Offshore at dawn</span></span><span class="c-type">surf</span><span class="c-where">Winkipop<span class="tm">Bells Beach</span></span><span class="c-when">Tomorrow<span class="tm">6am – 9am</span></span><span class="c-extra">Free</span><span class="mob">surf · Winkipop · Tomorrow</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sailboat"/></svg></span><span class="c-name"><span class="nm">King George whiting on the flats</span></span><span class="c-type">fishing</span><span class="c-where">Swan Bay<span class="tm">Queenscliff</span></span><span class="c-when">Tomorrow<span class="tm">run-out tide</span></span><span class="c-extra">Free</span><span class="mob">fishing · Swan Bay · Tomorrow</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunset"/></svg></span><span class="c-name"><span class="nm">Sunset over the water</span></span><span class="c-type">sunset</span><span class="c-where">Point Lonsdale Back Beach<span class="tm">Point Lonsdale</span></span><span class="c-when">Tomorrow<span class="tm">6:02pm</span></span><span class="c-extra">Free</span><span class="mob">sunset · Point Lonsdale Back Beach · Tomorrow</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves"/></svg></span><span class="c-name"><span class="nm">Swell builds to 2.6 m</span></span><span class="c-type">surf</span><span class="c-where">Bells Beach<span class="tm">Bells Beach</span></span><span class="c-when">Sat 5 Sep<span class="tm">all day</span></span><span class="c-extra">Free</span><span class="mob">surf · Bells Beach · Sat 5 Sep</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span><span class="c-name"><span class="nm">Spring tide — lowest water of the month</span></span><span class="c-type">tide</span><span class="c-where">Barwon Bluff<span class="tm">Barwon Heads</span></span><span class="c-when">Sun 6 Sep<span class="tm">−1.02 m at 10am</span></span><span class="c-extra">Free</span><span class="mob">tide · Barwon Bluff · Sun 6 Sep</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-telescope"/></svg></span><span class="c-name"><span class="nm">New moon — the darkest sky</span><span class="live soon">soon</span></span><span class="c-type">stars</span><span class="c-where">Otway Fly<span class="tm">Beech Forest</span></span><span class="c-when">Fri 11 Sep<span class="tm">after 8pm</span></span><span class="c-extra">Free</span><span class="mob">stars · Otway Fly · Fri 11 Sep</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-telescope"/></svg></span><span class="c-name"><span class="nm">Milky Way core season opens</span><span class="live soon">soon</span></span><span class="c-type">stars</span><span class="c-where">Cape Otway<span class="tm">Cape Otway</span></span><span class="c-when">Fri 11 Sep<span class="tm">10pm – 3am</span></span><span class="c-extra">Free</span><span class="mob">stars · Cape Otway · Fri 11 Sep</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Hooded Plover nesting begins</span><span class="live soon">soon</span></span><span class="c-type">wildlife</span><span class="c-where">Point Roadknight Beach<span class="tm">Anglesea</span></span><span class="c-when">Mid Sept<span class="tm">dogs on leads</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Point Roadknight Beach · Mid Sept</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"></span><span class="c-name"><span class="nm">Short-tailed shearwaters return</span><span class="live soon">soon</span></span><span class="c-type">wildlife</span><span class="c-where">Cape Otway<span class="tm">Cape Otway</span></span><span class="c-when">~22 Sep<span class="tm">at dusk</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Cape Otway · ~22 Sep</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunrise"/></svg></span><span class="c-name"><span class="nm">Spring equinox — 12 hours of light</span><span class="live soon">soon</span></span><span class="c-type">sunrise</span><span class="c-where">Anywhere<span class="tm">Surf Coast</span></span><span class="c-when">Tue 22 Sep<span class="tm">6:07am – 6:14pm</span></span><span class="c-extra">Free</span><span class="mob">sunrise · Anywhere · Tue 22 Sep</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-moon-star"/></svg></span><span class="c-name"><span class="nm">Full moon rises over the bay</span></span><span class="c-type">moon</span><span class="c-where">Portarlington Pier<span class="tm">Portarlington</span></span><span class="c-when">Sat 26 Sep<span class="tm">6:38pm</span></span><span class="c-extra">Free</span><span class="mob">moon · Portarlington Pier · Sat 26 Sep</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">Wattle in flower along the Otway ranges</span></span><span class="c-type">wildflower</span><span class="c-where">Great Otway National Park<span class="tm">Forrest</span></span><span class="c-when">Late Sept<span class="tm">3 weeks</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Great Otway National Park · Late Sept</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">Orchids at their peak</span></span><span class="c-type">wildflower</span><span class="c-where">Anglesea Heath<span class="tm">Anglesea</span></span><span class="c-when">October<span class="tm">2,563 records</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Anglesea Heath · October</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">ANGAIR Wildflower Weekend</span></span><span class="c-type">wildflower</span><span class="c-where">Anglesea Memorial Hall<span class="tm">Anglesea</span></span><span class="c-when">Sat 3 Oct<span class="tm">9am – 4pm</span></span><span class="c-extra">$5</span><span class="mob">wildflower · Anglesea Memorial Hall · Sat 3 Oct</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sailboat"/></svg></span><span class="c-name"><span class="nm">Snapper move into the bay</span></span><span class="c-type">fishing</span><span class="c-where">Corio Bay<span class="tm">Geelong</span></span><span class="c-when">October<span class="tm">water past 16°</span></span><span class="c-extra">Free</span><span class="mob">fishing · Corio Bay · October</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">Coast beard-heath in flower</span></span><span class="c-type">wildflower</span><span class="c-where">Point Addis Marine Park<span class="tm">Anglesea</span></span><span class="c-when">October<span class="tm">4 weeks</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Point Addis Marine Park · October</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sparkles"/></svg></span><span class="c-name"><span class="nm">Orionids meteor shower</span></span><span class="c-type">stars</span><span class="c-where">Aireys Inlet<span class="tm">Aireys Inlet</span></span><span class="c-when">Wed 21 Oct<span class="tm">after midnight</span></span><span class="c-extra">Free</span><span class="mob">stars · Aireys Inlet · Wed 21 Oct</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Migratory waders arrive from Siberia</span></span><span class="c-type">wildlife</span><span class="c-where">Lake Connewarre<span class="tm">Barwon Heads</span></span><span class="c-when">October<span class="tm">high tide roost</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Lake Connewarre · October</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunset"/></svg></span><span class="c-name"><span class="nm">Daylight saving — an evening at the beach</span></span><span class="c-type">sunset</span><span class="c-where">Torquay Front Beach<span class="tm">Torquay</span></span><span class="c-when">Sun 4 Oct<span class="tm">sunset 7:36pm</span></span><span class="c-extra">Free</span><span class="mob">sunset · Torquay Front Beach · Sun 4 Oct</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">Common heath — the state flower</span></span><span class="c-type">wildflower</span><span class="c-where">Anglesea Heath<span class="tm">Anglesea</span></span><span class="c-when">October<span class="tm">peak</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Anglesea Heath · October</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"></span><span class="c-name"><span class="nm">Koalas begin bellowing</span></span><span class="c-type">wildlife</span><span class="c-where">Cape Otway Lighthouse Road<span class="tm">Cape Otway</span></span><span class="c-when">From October<span class="tm">at dusk</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Cape Otway Lighthouse Road · From October</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-snowflake"/></svg></span><span class="c-name"><span class="nm">Sea temperature passes 15°</span></span><span class="c-type">swimming</span><span class="c-where">Fishermans Beach<span class="tm">Torquay</span></span><span class="c-when">Late Oct<span class="tm">first swim</span></span><span class="c-extra">Free</span><span class="mob">swimming · Fishermans Beach · Late Oct</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-flame"/></svg></span><span class="c-name"><span class="nm">Fire danger period declared</span></span><span class="c-type">fire</span><span class="c-where">Surf Coast Shire<span class="tm">Central district</span></span><span class="c-when">~25 Nov<span class="tm">about 5 months</span></span><span class="c-extra">—</span><span class="mob">fire · Surf Coast Shire · ~25 Nov</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sparkles"/></svg></span><span class="c-name"><span class="nm">Leonids meteor shower</span></span><span class="c-type">stars</span><span class="c-where">Moggs Creek<span class="tm">Moggs Creek</span></span><span class="c-when">Tue 17 Nov<span class="tm">after 1am</span></span><span class="c-extra">Free</span><span class="mob">stars · Moggs Creek · Tue 17 Nov</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Hooded Plover chicks on the sand</span></span><span class="c-type">wildlife</span><span class="c-where">Thirteenth Beach<span class="tm">Barwon Heads</span></span><span class="c-when">November<span class="tm">dogs on leads</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Thirteenth Beach · November</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">Tea-tree in flower along the cliffs</span></span><span class="c-type">wildflower</span><span class="c-where">Urquhart Bluff<span class="tm">Aireys Inlet</span></span><span class="c-when">November<span class="tm">3 weeks</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Urquhart Bluff · November</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunrise"/></svg></span><span class="c-name"><span class="nm">Longest run of daylight begins</span></span><span class="c-type">sunrise</span><span class="c-where">Anywhere<span class="tm">Surf Coast</span></span><span class="c-when">November<span class="tm">14 hours</span></span><span class="c-extra">Free</span><span class="mob">sunrise · Anywhere · November</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sparkles"/></svg></span><span class="c-name"><span class="nm">Bioluminescence — if it happens at all</span></span><span class="c-type">water</span><span class="c-where">Any dark beach<span class="tm">Surf Coast</span></span><span class="c-when">Unpredictable<span class="tm">5 records ever</span></span><span class="c-extra">Free</span><span class="mob">water · Any dark beach · Unpredictable</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Gannets diving off the point</span></span><span class="c-type">wildlife</span><span class="c-where">Point Danger<span class="tm">Torquay</span></span><span class="c-when">November<span class="tm">bait balls</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Point Danger · November</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sailboat"/></svg></span><span class="c-name"><span class="nm">Salmon schooling in the shallows</span></span><span class="c-type">fishing</span><span class="c-where">Thirteenth Beach<span class="tm">Barwon Heads</span></span><span class="c-when">November<span class="tm">dawn and dusk</span></span><span class="c-extra">Free</span><span class="mob">fishing · Thirteenth Beach · November</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunrise"/></svg></span><span class="c-name"><span class="nm">Summer solstice — the longest day</span></span><span class="c-type">sunrise</span><span class="c-where">Anywhere<span class="tm">Surf Coast</span></span><span class="c-when">Mon 21 Dec<span class="tm">5:47am – 8:44pm</span></span><span class="c-extra">Free</span><span class="mob">sunrise · Anywhere · Mon 21 Dec</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunset"/></svg></span><span class="c-name"><span class="nm">Sunset over the water at Clifton Springs</span></span><span class="c-type">sunset</span><span class="c-where">Clifton Springs Foreshore<span class="tm">Clifton Springs</span></span><span class="c-when">December<span class="tm">8:44pm</span></span><span class="c-extra">Free</span><span class="mob">sunset · Clifton Springs Foreshore · December</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sparkles"/></svg></span><span class="c-name"><span class="nm">Geminids — 150 an hour</span></span><span class="c-type">stars</span><span class="c-where">Cape Otway<span class="tm">Cape Otway</span></span><span class="c-when">Mon 14 Dec<span class="tm">after 10pm</span></span><span class="c-extra">Free</span><span class="mob">stars · Cape Otway · Mon 14 Dec</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span><span class="c-name"><span class="nm">Sea temperature passes 18°</span></span><span class="c-type">swimming</span><span class="c-where">Ocean Grove Main Beach<span class="tm">Ocean Grove</span></span><span class="c-when">December<span class="tm">no wetsuit</span></span><span class="c-extra">Free</span><span class="mob">swimming · Ocean Grove Main Beach · December</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-flame"/></svg></span><span class="c-name"><span class="nm">Total fire ban — no fires anywhere</span></span><span class="c-type">fire</span><span class="c-where">Central fire district<span class="tm">Surf Coast</span></span><span class="c-when">Any hot day<span class="tm">declared 4:30pm</span></span><span class="c-extra">—</span><span class="mob">fire · Central fire district · Any hot day</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"></span><span class="c-name"><span class="nm">Christmas beetles on the wing</span></span><span class="c-type">wildlife</span><span class="c-where">Ironbark Basin<span class="tm">Point Addis</span></span><span class="c-when">December<span class="tm">after rain</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Ironbark Basin · December</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">Blue devil flowering on the dunes</span></span><span class="c-type">wildflower</span><span class="c-where">Point Impossible<span class="tm">Torquay</span></span><span class="c-when">December<span class="tm">4 weeks</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Point Impossible · December</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-footprints"/></svg></span><span class="c-name"><span class="nm">Peak echidna season</span></span><span class="c-type">wildlife</span><span class="c-where">Anglesea Heath<span class="tm">Anglesea</span></span><span class="c-when">January<span class="tm">65 records</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Anglesea Heath · January</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span><span class="c-name"><span class="nm">Sea temperature at its warmest</span></span><span class="c-type">swimming</span><span class="c-where">Cosy Corner<span class="tm">Torquay</span></span><span class="c-when">February<span class="tm">19.8°</span></span><span class="c-extra">Free</span><span class="mob">swimming · Cosy Corner · February</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span><span class="c-name"><span class="nm">Rock pools at their richest</span></span><span class="c-type">tide</span><span class="c-where">Point Lonsdale Front Beach<span class="tm">Point Lonsdale</span></span><span class="c-when">January<span class="tm">spring low tides</span></span><span class="c-extra">Free</span><span class="mob">tide · Point Lonsdale Front Beach · January</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Bottlenose dolphins in the bay</span></span><span class="c-type">wildlife</span><span class="c-where">Queenscliff Pier<span class="tm">Queenscliff</span></span><span class="c-when">Year round<span class="tm">morning</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Queenscliff Pier · Year round</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span><span class="c-name"><span class="nm">Seagrass meadows at their fullest</span></span><span class="c-type">water</span><span class="c-where">Swan Bay<span class="tm">Queenscliff</span></span><span class="c-when">February<span class="tm">snorkelling</span></span><span class="c-extra">Free</span><span class="mob">water · Swan Bay · February</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"></span><span class="c-name"><span class="nm">Cicadas across the heath</span></span><span class="c-type">wildlife</span><span class="c-where">Anglesea Heath<span class="tm">Anglesea</span></span><span class="c-when">January<span class="tm">hot afternoons</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Anglesea Heath · January</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunset"/></svg></span><span class="c-name"><span class="nm">Longest twilight of the year</span></span><span class="c-type">sunset</span><span class="c-where">Bells Beach<span class="tm">Bells Beach</span></span><span class="c-when">January<span class="tm">9:20pm</span></span><span class="c-extra">Free</span><span class="mob">sunset · Bells Beach · January</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-footprints"/></svg></span><span class="c-name"><span class="nm">Snake season — watch the tracks</span></span><span class="c-type">wildlife</span><span class="c-where">Ironbark Basin<span class="tm">Point Addis</span></span><span class="c-when">Oct – March<span class="tm">warm days</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Ironbark Basin · Oct – March</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunrise"/></svg></span><span class="c-name"><span class="nm">Autumn equinox</span></span><span class="c-type">sunrise</span><span class="c-where">Anywhere<span class="tm">Surf Coast</span></span><span class="c-when">Sat 20 Mar<span class="tm">12 hours each</span></span><span class="c-extra">Free</span><span class="mob">sunrise · Anywhere · Sat 20 Mar</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sparkles"/></svg></span><span class="c-name"><span class="nm">Eta Aquariids meteor shower</span></span><span class="c-type">stars</span><span class="c-where">Aireys Inlet<span class="tm">Aireys Inlet</span></span><span class="c-when">Wed 6 May<span class="tm">pre-dawn</span></span><span class="c-extra">Free</span><span class="mob">stars · Aireys Inlet · Wed 6 May</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-leaf"/></svg></span><span class="c-name"><span class="nm">First fungi after the autumn break</span></span><span class="c-type">fungi</span><span class="c-where">Melba Gully<span class="tm">Lavers Hill</span></span><span class="c-when">April<span class="tm">after 30 mm</span></span><span class="c-extra">Free</span><span class="mob">fungi · Melba Gully · April</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-flame"/></svg></span><span class="c-name"><span class="nm">Fire danger period ends</span></span><span class="c-type">fire</span><span class="c-where">Surf Coast Shire<span class="tm">Central district</span></span><span class="c-when">~1 May<span class="tm">permits again</span></span><span class="c-extra">—</span><span class="mob">fire · Surf Coast Shire · ~1 May</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-droplet"/></svg></span><span class="c-name"><span class="nm">Waterfalls start running again</span></span><span class="c-type">waterfall</span><span class="c-where">Erskine Falls<span class="tm">Lorne</span></span><span class="c-when">April<span class="tm">after rain</span></span><span class="c-extra">Free</span><span class="mob">waterfall · Erskine Falls · April</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-trees"/></svg></span><span class="c-name"><span class="nm">Autumn colour in the Otways gullies</span></span><span class="c-type">nature</span><span class="c-where">Lorne<span class="tm">Lorne</span></span><span class="c-when">May<span class="tm">exotic species</span></span><span class="c-extra">Free</span><span class="mob">nature · Lorne · May</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sparkles"/></svg></span><span class="c-name"><span class="nm">Glow worms after the first rains</span></span><span class="c-type">wildlife</span><span class="c-where">Melba Gully<span class="tm">Lavers Hill</span></span><span class="c-when">April<span class="tm">after dark</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Melba Gully · April</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Southern Right Whales return</span></span><span class="c-type">wildlife</span><span class="c-where">Point Addis<span class="tm">Anglesea</span></span><span class="c-when">Late May<span class="tm">to October</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Point Addis · Late May</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-leaf"/></svg></span><span class="c-name"><span class="nm">Fungi at their peak</span></span><span class="c-type">fungi</span><span class="c-where">The Otways<span class="tm">Beech Forest</span></span><span class="c-when">May<span class="tm">2,857 records</span></span><span class="c-extra">Free</span><span class="mob">fungi · The Otways · May</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-droplet"/></svg></span><span class="c-name"><span class="nm">Waterfalls running hard</span></span><span class="c-type">waterfall</span><span class="c-where">Hopetoun Falls<span class="tm">Beech Forest</span></span><span class="c-when">June<span class="tm">after 40 mm</span></span><span class="c-extra">Free</span><span class="mob">waterfall · Hopetoun Falls · June</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunset"/></svg></span><span class="c-name"><span class="nm">Winter solstice — the shortest day</span></span><span class="c-type">sunset</span><span class="c-where">Anywhere<span class="tm">Surf Coast</span></span><span class="c-when">Mon 21 Jun<span class="tm">7:33am – 5:09pm</span></span><span class="c-extra">Free</span><span class="mob">sunset · Anywhere · Mon 21 Jun</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunrise"/></svg></span><span class="c-name"><span class="nm">Sunrise AND sunset over water</span></span><span class="c-type">sunrise</span><span class="c-where">Jan Juc Beach<span class="tm">Jan Juc</span></span><span class="c-when">Midwinter<span class="tm">only in June</span></span><span class="c-extra">Free</span><span class="mob">sunrise · Jan Juc Beach · Midwinter</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves"/></svg></span><span class="c-name"><span class="nm">Biggest swells of the year</span></span><span class="c-type">surf</span><span class="c-where">Bells Beach<span class="tm">Bells Beach</span></span><span class="c-when">June – August<span class="tm">4 m+</span></span><span class="c-extra">Free</span><span class="mob">surf · Bells Beach · June – August</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-footprints"/></svg></span><span class="c-name"><span class="nm">Platypus at dawn</span></span><span class="c-type">wildlife</span><span class="c-where">Lake Elizabeth<span class="tm">Forrest</span></span><span class="c-when">Winter<span class="tm">first light</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Lake Elizabeth · Winter</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sparkles"/></svg></span><span class="c-name"><span class="nm">Aurora australis — if Kp climbs</span></span><span class="c-type">stars</span><span class="c-where">Thirteenth Beach<span class="tm">Barwon Heads</span></span><span class="c-when">Winter nights<span class="tm">needs Kp 6+</span></span><span class="c-extra">Free</span><span class="mob">stars · Thirteenth Beach · Winter nights</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-droplet"/></svg></span><span class="c-name"><span class="nm">Triplet Falls in full flow</span></span><span class="c-type">waterfall</span><span class="c-where">Triplet Falls<span class="tm">Beech Forest</span></span><span class="c-when">July<span class="tm">after rain</span></span><span class="c-extra">Free</span><span class="mob">waterfall · Triplet Falls · July</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-snowflake"/></svg></span><span class="c-name"><span class="nm">Coldest water of the year</span></span><span class="c-type">swimming</span><span class="c-where">Bells Beach<span class="tm">Bells Beach</span></span><span class="c-when">August<span class="tm">12.4°</span></span><span class="c-extra">Free</span><span class="mob">swimming · Bells Beach · August</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-snowflake"/></svg></span><span class="c-name"><span class="nm">Frost on the hinterland paddocks</span></span><span class="c-type">nature</span><span class="c-where">Deans Marsh<span class="tm">Deans Marsh</span></span><span class="c-when">July<span class="tm">clear nights</span></span><span class="c-extra">Free</span><span class="mob">nature · Deans Marsh · July</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Seals hauled out on the reef</span></span><span class="c-type">wildlife</span><span class="c-where">Marengo Reefs<span class="tm">Apollo Bay</span></span><span class="c-when">Winter<span class="tm">from the lookout</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Marengo Reefs · Winter</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-droplet"/></svg></span><span class="c-name"><span class="nm">Kalimna Falls, the two-tier walk</span></span><span class="c-type">waterfall</span><span class="c-where">Kalimna Falls<span class="tm">Lorne</span></span><span class="c-when">Winter<span class="tm">after rain</span></span><span class="c-extra">Free</span><span class="mob">waterfall · Kalimna Falls · Winter</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">Wine-lipped spider orchid</span></span><span class="c-type">wildflower</span><span class="c-where">Anglesea Heath<span class="tm">Anglesea</span></span><span class="c-when">Sept – Oct<span class="tm">rare</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Anglesea Heath · Sept – Oct</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">Nodding greenhood in the heath</span></span><span class="c-type">wildflower</span><span class="c-where">Ironbark Basin<span class="tm">Point Addis</span></span><span class="c-when">Aug – Oct<span class="tm">36 records</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Ironbark Basin · Aug – Oct</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">Leopard orchid</span></span><span class="c-type">wildflower</span><span class="c-where">Anglesea Heath<span class="tm">Anglesea</span></span><span class="c-when">Aug – Oct<span class="tm">56 records</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Anglesea Heath · Aug – Oct</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-trees"/></svg></span><span class="c-name"><span class="nm">Bellarine yellow-gum in flower</span></span><span class="c-type">wildflower</span><span class="c-where">Ocean Grove Nature Reserve<span class="tm">Ocean Grove</span></span><span class="c-when">Sept – Nov<span class="tm">endemic</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Ocean Grove Nature Reserve · Sept – Nov</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-wind"/></svg></span><span class="c-name"><span class="nm">Paragliders on the Spion Kop face</span></span><span class="c-type">paragliding</span><span class="c-where">Spion Kop<span class="tm">Moggs Creek</span></span><span class="c-when">Needs a southerly<span class="tm">15 – 35 km/h</span></span><span class="c-extra">Free</span><span class="mob">paragliding · Spion Kop · Needs a southerly</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-wind"/></svg></span><span class="c-name"><span class="nm">Hang gliders on the Winkipop cliff</span></span><span class="c-type">hang gliding</span><span class="c-where">Winkipop<span class="tm">Bells Beach</span></span><span class="c-when">Needs an easterly<span class="tm">15 – 35 km/h</span></span><span class="c-extra">Free</span><span class="mob">hang gliding · Winkipop · Needs an easterly</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-wind"/></svg></span><span class="c-name"><span class="nm">Kitesurfers on the sandbar</span></span><span class="c-type">kitesurfing</span><span class="c-where">Point Impossible<span class="tm">Torquay</span></span><span class="c-when">Needs 20 knots<span class="tm">cross-shore</span></span><span class="c-extra">Free</span><span class="mob">kitesurfing · Point Impossible · Needs 20 knots</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves"/></svg></span><span class="c-name"><span class="nm">A groundswell worth driving for</span></span><span class="c-type">surf</span><span class="c-where">Johanna Beach<span class="tm">Johanna</span></span><span class="c-when">When it lands<span class="tm">2 m at 14s</span></span><span class="c-extra">Free</span><span class="mob">surf · Johanna Beach · When it lands</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-flame"/></svg></span><span class="c-name"><span class="nm">Smoke from a planned burn</span></span><span class="c-type">fire</span><span class="c-where">The Otways<span class="tm">Forrest</span></span><span class="c-when">When it happens<span class="tm">check before you go</span></span><span class="c-extra">—</span><span class="mob">fire · The Otways · When it happens</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span><span class="c-name"><span class="nm">Rock platform walk at Point Danger</span></span><span class="c-type">tide</span><span class="c-where">Point Danger<span class="tm">Torquay</span></span><span class="c-when">Low tide only<span class="tm">under 0.3 m</span></span><span class="c-extra">Free</span><span class="mob">tide · Point Danger · Low tide only</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Wedge-tailed eagles over the ranges</span></span><span class="c-type">wildlife</span><span class="c-where">Mount Sabine<span class="tm">Otway Ranges</span></span><span class="c-when">Year round<span class="tm">mid-morning</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Mount Sabine · Year round</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Rufous bristlebird in the tea-tree</span></span><span class="c-type">wildlife</span><span class="c-where">Aireys Inlet<span class="tm">Aireys Inlet</span></span><span class="c-when">Year round<span class="tm">dawn chorus</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Aireys Inlet · Year round</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sparkles"/></svg></span><span class="c-name"><span class="nm">Bioluminescent plankton in the wash</span></span><span class="c-type">water</span><span class="c-where">Anglesea Main Beach<span class="tm">Anglesea</span></span><span class="c-when">Very rare<span class="tm">3 records in one night</span></span><span class="c-extra">Free</span><span class="mob">water · Anglesea Main Beach · Very rare</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span><span class="c-name"><span class="nm">King tide floods the Barwon flats</span></span><span class="c-type">tide</span><span class="c-where">Barwon Heads Riverbank<span class="tm">Barwon Heads</span></span><span class="c-when">Twice a year<span class="tm">+1.4 m</span></span><span class="c-extra">Free</span><span class="mob">tide · Barwon Heads Riverbank · Twice a year</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-trees"/></svg></span><span class="c-name"><span class="nm">Sea mist over the Otway ridge</span></span><span class="c-type">nature</span><span class="c-where">Beech Forest<span class="tm">Beech Forest</span></span><span class="c-when">Autumn mornings<span class="tm">before 9am</span></span><span class="c-extra">Free</span><span class="mob">nature · Beech Forest · Autumn mornings</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="outdoors"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Glossy black cockatoos in the she-oaks</span></span><span class="c-type">wildlife</span><span class="c-where">Anglesea Heath<span class="tm">Anglesea</span></span><span class="c-when">Autumn<span class="tm">feeding</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Anglesea Heath · Autumn</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead cshut" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span><span class="c-name"><span class="nm">Blue-ringed octopus in the rock pools</span></span><span class="c-type">wildlife</span><span class="c-where">Point Lonsdale Front Beach<span class="tm">Point Lonsdale</span></span><span class="c-when">Year round<span class="tm">look, never touch</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Point Lonsdale Front Beach · Year round</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-sprout"/></svg></span><span class="c-name"><span class="nm">Spider orchids on the Ironbark track</span></span><span class="c-type">wildflower</span><span class="c-where">Ironbark Basin<span class="tm">Point Addis</span></span><span class="c-when">Sept – Oct<span class="tm">fragile</span></span><span class="c-extra">Free</span><span class="mob">wildflower · Ironbark Basin · Sept – Oct</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-telescope"/></svg></span><span class="c-name"><span class="nm">The Milky Way core sets</span></span><span class="c-type">stars</span><span class="c-where">Cape Otway<span class="tm">Cape Otway</span></span><span class="c-when">October<span class="tm">before midnight</span></span><span class="c-extra">Free</span><span class="mob">stars · Cape Otway · October</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#i-waves-ladder"/></svg></span><span class="c-name"><span class="nm">First swim of the season</span></span><span class="c-type">swimming</span><span class="c-where">Fishermans Beach<span class="tm">Torquay</span></span><span class="c-when">When it hits 17°<span class="tm">late November</span></span><span class="c-extra">Free</span><span class="mob">swimming · Fishermans Beach · When it hits 17°</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="landscape"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-sunset"/></svg></span><span class="c-name"><span class="nm">Last light on the Twelve Apostles</span></span><span class="c-type">sunset</span><span class="c-where">Twelve Apostles<span class="tm">Port Campbell</span></span><span class="c-when">Year round<span class="tm">golden hour</span></span><span class="c-extra">Free</span><span class="mob">sunset · Twelve Apostles · Year round</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Whales rounding Split Point</span></span><span class="c-type">wildlife</span><span class="c-where">Split Point Lighthouse<span class="tm">Aireys Inlet</span></span><span class="c-when">Jun – Oct<span class="tm">from the cliff path</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Split Point Lighthouse · Jun – Oct</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div>
+<div class="rec"><div class="rowhead" data-tint="ocean"><button class="rowline" aria-expanded="false"><span class="c-icon" aria-hidden="true"><svg><use href="#x-binoculars"/></svg></span><span class="c-name"><span class="nm">Sea eagles nesting on the bluff</span></span><span class="c-type">wildlife</span><span class="c-where">Barwon Bluff<span class="tm">Barwon Heads</span></span><span class="c-when">Aug – Dec<span class="tm">keep back</span></span><span class="c-extra">Free</span><span class="mob">wildlife · Barwon Bluff · Aug – Dec</span></button><button class="savebtn" type="button" aria-pressed="false" title="Save this"><span class="glyph">&#128204;</span></button></div></div></div>
+
+  <div class="after">
+    <h2>What this is</h2>
+    <p>A hundred natural events on the Surf Coast, drawn on <b>the site&rsquo;s own board</b> —
+      <code>index.html</code>&rsquo;s stylesheet and icon sprite, lifted rather than imitated.
+      The six columns, the 57px row, the group tint, the ON NOW pill, the pin and the
+      icon gutter are all the real thing. What is invented is the hundred rows.</p>
+    <p>Sorted soonest first, which is the board&rsquo;s default, so the things waiting on
+      weather fall to the bottom by themselves. <b>9 are on right now</b>, 5 are
+      close, and 12 are dimmed because a condition has not been met — dimmed and
+      not hidden, because a reader wants to know the waterfall is low rather than
+      find it missing.</p>
+    <p>Every place is a real row in the database where one exists — 59 of them.
+      The dates are where they genuinely fall: the Geminids on 14 December, the fire
+      danger period from late November, fungi peaking in May, orchids in October,
+      shearwaters back around 22 September. <b>Four rows were cut for being out of
+      region</b> — Logans Beach, Portsea, St Kilda, Port Fairy — because a Perth comedy
+      gig on the board is this project&rsquo;s own standing example of that mistake.</p>
+    <p><b>Six of the types already exist</b>: beach, cycling, nature, paddling, swimming,
+      water. <b>Fifteen do not</b>, and adding one is five places each —
+      <code>fire</code> <code>fishing</code> <code>fungi</code> <code>hang gliding</code> <code>kitesurfing</code> <code>moon</code> <code>paragliding</code> <code>stars</code> <code>sunrise</code> <code>sunset</code> <code>surf</code> <code>tide</code> <code>waterfall</code> <code>wildflower</code> <code>wildlife</code>.</p>
+    <p><b>And the When column is doing something it cannot do today.</b>
+      &ldquo;Needs a southerly&rdquo;, &ldquo;When it lands&rdquo;, &ldquo;Unpredictable&rdquo;, &ldquo;Low tide only&rdquo; are
+      not dates and not recurrences — they are <em>conditions</em>, and a third of these
+      rows have nothing else. That is the schema question, made visible rather than
+      argued.</p>
+  </div>
+</div>
+</body>
+</html>
