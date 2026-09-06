@@ -40,6 +40,12 @@ const HOME = {lat: -38.34456, lng: 144.29517};
 /* Bells, for swell and sea temperature: the marine model wants a point in the
    water and the reef is the one everything else is described against. */
 const SURF = {lat: -38.3695, lng: 144.2810};
+/* The Otway hinterland — frost, fog and the rain that actually feeds the
+   falls. Deans Marsh, 239 m up on the inland side of the range. Forrest was
+   tried as a second point and LANDS IN THE SAME OPEN-METEO GRID CELL
+   (measured 7 Sep 2026: both answer -38.488575,143.73135), so one point is
+   the honest number of points. */
+const HILLS = {lat: -38.51, lng: 143.75, name: 'Deans Marsh'};
 
 const CACHE = 600;          // seconds at the edge — see the header note above
 const SWR   = 1800;         // and how long a stale copy may still be served
@@ -237,6 +243,14 @@ const SOURCE_META = {
             home: 'https://emergency.vic.gov.au/respond/',
             doc:  'https://www.emergency.vic.gov.au/',
             licence: 'Victorian Government'},
+  planned: {org: 'Forest Fire Management Victoria', feed: 'Planned burns register — ArcGIS, points',
+            home: 'https://plannedburns.ffm.vic.gov.au/',
+            doc:  'https://www.deeca.vic.gov.au/copyright',
+            /* DEECA's copyright page says all material on ITS website is
+               CC BY 4.0; the map service's own copyrightText is empty. Whether
+               a map service is "material on this website" is in the EMV
+               email. Attribution is given either way. */
+            licence: 'CC BY 4.0 (DEECA) — map-service coverage unconfirmed'},
   'nature.orchids': {org: 'iNaturalist', feed: 'Species counts — Orchidaceae, research grade',
             home: 'https://www.inaturalist.org/observations?taxon_id=47217&place_id=any',
             doc:  'https://api.inaturalist.org/v1/docs/',
@@ -290,7 +304,18 @@ const moonName = ph => MOON_NAMES.find(([edge]) => ph < edge)[1];
    `south` is the half that matters here and the half most lists get wrong:
    the Perseids are the famous one and they are essentially invisible from
    Victoria, because the radiant barely clears the horizon. Listing a shower
-   nobody here can see is the same class of wrong as an invented date. */
+   nobody here can see is the same class of wrong as an invented date.
+
+   THE KEY IS THE NIGHT, WRITTEN AS THE EVENING IT STARTS. `11-16` is the
+   night of 16→17 November. That matters because nextShowers() evaluates the
+   moon at 13:00 UTC on day d, which is midnight at the start of d+1 local —
+   the middle of that night. The IMO calendar phrases every peak as a night
+   ("Nov 16-17", "Dec 13-14"), and the source pass of 4 Sep 2026 found the
+   Leonids keyed a night late here and printing the wrong moon. Leonids and
+   Geminids are re-keyed from the IMO sentences it quoted; the rest are
+   inside the day-either-way tolerance and want re-reading against
+   imo.net/resources/calendar/ each December, which was down for maintenance
+   on 7 Sep 2026. */
 const SHOWERS = [
   {name: 'Quadrantids',     peak: '01-03', zhr: 110, south: false},
   {name: 'Lyrids',          peak: '04-22', zhr: 18,  south: true},
@@ -298,8 +323,8 @@ const SHOWERS = [
   {name: 'Delta Aquariids', peak: '07-30', zhr: 25,  south: true},
   {name: 'Perseids',        peak: '08-12', zhr: 100, south: false},
   {name: 'Orionids',        peak: '10-21', zhr: 20,  south: true},
-  {name: 'Leonids',         peak: '11-17', zhr: 15,  south: true},
-  {name: 'Geminids',        peak: '12-14', zhr: 150, south: true},
+  {name: 'Leonids',         peak: '11-16', zhr: 15,  south: true},   // night of 16-17
+  {name: 'Geminids',        peak: '12-13', zhr: 150, south: true},   // night of 13-14
   {name: 'Ursids',          peak: '12-22', zhr: 10,  south: false},
 ];
 
@@ -360,6 +385,10 @@ async function source(id, url, parse, ms = 12000) {
 const J = b => JSON.parse(b);
 const q = o => Object.entries(o).map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&');
 const OM = 'https://api.open-meteo.com/v1/forecast?';
+const FFM = 'https://maps.ffm.vic.gov.au/arcgis/rest/services/pbns_status_gdb/MapServer';
+/* The region, as a box — Colac to the Werribee River, the coast to the
+   Brisbane Ranges. The same box the nature source pass used. */
+const REGION = {w: 143.3, s: -39.0, e: 144.9, n: -37.8};
 const TZ = 'Australia/Melbourne';
 
 /* ── the tide, out of the marine model's sea level ─────────────────────────
@@ -389,10 +418,16 @@ export default async function handler(req, res) {
   const beachLng = KEYS.map(k => BEACH_AT[k][1]).join(',');
 
   const jobs = [
+    /* Two points in one call — Open-Meteo answers a coordinate list with an
+       array. The frost and fog fields (dew point, humidity, visibility,
+       weather_code 45/48 = fog, and the daily minimum) come free in the same
+       request; `models=bom_access_global` was tried for them and returns
+       null, so this stays on the default model. */
     source('weather', OM + q({
-      latitude: HOME.lat, longitude: HOME.lng,
-      current: 'temperature_2m,precipitation,wind_speed_10m,wind_direction_10m,cloud_cover',
-      daily: 'precipitation_sum,uv_index_max,sunrise,sunset,daylight_duration',
+      latitude: [HOME.lat, HILLS.lat].join(','), longitude: [HOME.lng, HILLS.lng].join(','),
+      current: 'temperature_2m,precipitation,wind_speed_10m,wind_direction_10m,cloud_cover,'
+             + 'relative_humidity_2m,dew_point_2m,visibility,weather_code',
+      daily: 'precipitation_sum,uv_index_max,sunrise,sunset,daylight_duration,temperature_2m_min',
       past_days: 2, forecast_days: 3, timezone: TZ}), J),
 
     source('marine', 'https://marine-api.open-meteo.com/v1/marine?' + q({
@@ -415,6 +450,20 @@ export default async function handler(req, res) {
     source('space', 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json', J),
 
     source('burns', 'https://emergency.vic.gov.au/public/osom-geojson.json', J, 15000),
+
+    /* Forest Fire Management Victoria's planned-burn register — the map
+       service behind plannedburns.ffm.vic.gov.au, named in that app's own
+       configuration. It is the only FORWARD-LOOKING burn source found: the
+       VicEmergency feed above says "burning now"; this says which burns are on
+       the books near a place and whether each is Planned, Patrol (just lit)
+       or Safe (done). IT DOES NOT SAY WHEN — there is no scheduled-date field,
+       because burns go when the weather allows. Measured 7 Sep 2026: 96 burns
+       in the region, 42 KB, 0.7 s. The host has no robots.txt. */
+    source('planned', FFM + '/1/query?' + q({
+      where: '1=1', geometry: [REGION.w, REGION.s, REGION.e, REGION.n].join(','),
+      geometryType: 'esriGeometryEnvelope', inSR: 4326, spatialRel: 'esriSpatialRelIntersects',
+      outFields: 'BURNNAME,status,locationdescription,PBURNTYPE,BURN_OBJECTIVE,BURNNO',
+      returnGeometry: true, outSR: 4326, f: 'json'}), J, 15000),
 
     /* iNaturalist. Its robots signals read search=yes, ai-train=no,
        use=reference — nothing here trains anything and referencing is what
@@ -450,7 +499,7 @@ export default async function handler(req, res) {
      Every block is null-safe on its own, because a source that failed must
      cost only its own block. */
   const out = {at: new Date().toISOString(), gathered_ms: Date.now() - started,
-               cache_seconds: CACHE,
+               cache_seconds: CACHE,   // rewritten below if a source failed
                /* Three different places answer this reply and it used to name
                   none of them, which teaches a reader that one number covers
                   the coast. It does not: the air is measured at Jan Juc, the
@@ -458,31 +507,76 @@ export default async function handler(req, res) {
                /* Which source answers which block. The tab prints it under
                   each heading, because a number with no provenance on the
                   screen is one nobody can check. */
-               from: {weather: 'weather', sea: 'marine', air: 'air', sky: 'space',
+               from: {weather: 'weather', hinterland: 'weather',
+                      sea: 'marine', air: 'air', sky: 'space',
                       whales: 'nature.whales',
                       space: 'space', tide: 'marine', beaches: 'beaches',
-                      burns: 'burns', growing: 'nature.orchids'},
+                      burns: 'burns', planned: 'planned', growing: 'nature.orchids'},
                taken_at: {
-                 weather: {name: 'Jan Juc', lat: HOME.lat, lng: HOME.lng},
+                 // weather and hinterland are filled in below FROM THE REPLY,
+                 // because the honest answer is the grid cell, not the point
+                 // that was asked for.
                  sea:     {name: 'Bells Beach', lat: SURF.lat, lng: SURF.lng},
                  air:     {name: 'Jan Juc', lat: HOME.lat, lng: HOME.lng},
                  space:   {name: 'planet-wide', lat: null, lng: null},
                  beaches: {name: 'each beach, individually', lat: null, lng: null},
                }};
 
-  const w = got.weather;
-  if (w) {
-    const rain = w.daily?.precipitation_sum || [];
-    out.weather = {
-      temp: w.current.temperature_2m, raining: w.current.precipitation > 0.1,
-      wind_kmh: w.current.wind_speed_10m, wind_from: w.current.wind_direction_10m,
-      wind_sector: sector(w.current.wind_direction_10m),
-      cloud: w.current.cloud_cover,
-      uv_max: (w.daily?.uv_index_max || [])[2] ?? null,
+  /* Open-Meteo answers for the GRID CELL nearest the point, and for Jan Juc
+     that cell is 9 km north-east and inland (-38.27768,144.36487, 26 m —
+     measured 7 Sep 2026). The tab used to print "Jan Juc" for that reading.
+     The cell's own coordinate is in the reply, so it is named from there. */
+  function cell(p, asked, label) {
+    const km = Math.round(metres(asked.lat, asked.lng, p.latitude, p.longitude) / 100) / 10;
+    return {name: `${label} — Open-Meteo grid cell ${km} km away`,
+            lat: p.latitude, lng: p.longitude, asked: {lat: asked.lat, lng: asked.lng},
+            km_from_asked: km, elevation_m: p.elevation ?? null};
+  }
+  /* One point's worth of reading, shared by Jan Juc and the hinterland. */
+  function readPoint(p) {
+    const rain = p.daily?.precipitation_sum || [], c = p.current;
+    const code = c.weather_code;
+    return {
+      temp: c.temperature_2m, raining: c.precipitation > 0.1,
+      wind_kmh: c.wind_speed_10m, wind_from: c.wind_direction_10m,
+      wind_sector: sector(c.wind_direction_10m),
+      cloud: c.cloud_cover,
+      uv_max: (p.daily?.uv_index_max || [])[2] ?? null,
       // The 48-hour figure the board already fetches and reads in one
       // direction only: it closes the MTB trails and OPENS the waterfalls.
       rain_48h: rain.slice(0, 2).reduce((a, b) => a + (b || 0), 0),
+      humidity: c.relative_humidity_2m ?? null,
+      dew_point: c.dew_point_2m ?? null,
+      visibility_km: c.visibility == null ? null : Math.round(c.visibility / 100) / 10,
+      weather_code: code ?? null,
+      fog: code === 45 || code === 48,           // WMO: fog, depositing rime fog
+      // The coldest point of the coming night is around dawn TOMORROW, and
+      // Open-Meteo's daily minimum runs midnight to midnight local — so
+      // tonight's low is tomorrow's minimum, index 3 after two past days.
+      low_tonight: (p.daily?.temperature_2m_min || [])[3] ?? null,
     };
+  }
+
+  const wx = got.weather;
+  const w  = Array.isArray(wx) ? wx[0] : wx;      // Jan Juc
+  const hl = Array.isArray(wx) ? wx[1] : null;    // the hinterland
+  if (w) {
+    out.weather = readPoint(w);
+    out.taken_at.weather = cell(w, HOME, 'Jan Juc');
+  }
+  if (hl) {
+    const h = readPoint(hl);
+    out.hinterland = {
+      name: HILLS.name,
+      temp: h.temp, rain_48h: h.rain_48h, humidity: h.humidity, dew_point: h.dew_point,
+      visibility_km: h.visibility_km, fog: h.fog, low_tonight: h.low_tonight,
+      // 2 °C at screen height is the usual ground-frost threshold; the
+      // paddocks are colder than the thermometer.
+      frost_likely: h.low_tonight != null && h.low_tonight <= 2,
+      note: 'the inland side of the range — where the frost, the fog and the '
+          + 'rain that feeds the falls actually are. Forrest shares this grid cell.',
+    };
+    out.taken_at.hinterland = cell(hl, HILLS, HILLS.name);
   }
 
   /* ── the sky ─────────────────────────────────────────────────────────
@@ -575,6 +669,38 @@ export default async function handler(req, res) {
       .sort((a, c) => a.km - c.km);
   }
 
+  /* The register: which burns are on the books, and where each stands.
+     Patrol first — those are lit, and a walk that goes past one is a walk
+     that wants rescheduling — then Planned by distance, Safe last. */
+  const PB_RANK = {Patrol: 0, Planned: 1, Safe: 2};
+  if (Array.isArray(got.planned?.features)) {
+    const list = got.planned.features
+      .filter(f => f.geometry && isFinite(f.geometry.x) && isFinite(f.geometry.y))
+      .map(f => {
+        const a = f.attributes || {};
+        return {
+          name: a.BURNNAME || null, status: a.status || null,
+          where: a.locationdescription || null,
+          type: a.PBURNTYPE ? String(a.PBURNTYPE).toLowerCase() : null,
+          why: a.BURN_OBJECTIVE || null, ref: a.BURNNO || null,
+          lat: Math.round(f.geometry.y * 1e4) / 1e4, lng: Math.round(f.geometry.x * 1e4) / 1e4,
+          km: Math.round(metres(HOME.lat, HOME.lng, f.geometry.y, f.geometry.x) / 100) / 10,
+        };
+      })
+      .sort((a, b) => (PB_RANK[a.status] ?? 9) - (PB_RANK[b.status] ?? 9) || a.km - b.km);
+    out.planned_burns = list;
+    out.planned_burns_note = {
+      count: list.length,
+      by_status: list.reduce((m, b) => (m[b.status] = (m[b.status] || 0) + 1, m), {}),
+      says: 'WHICH burns are on the books and whether each is Planned, Patrol '
+          + '(just lit, being watched) or Safe (done). It does NOT say when — '
+          + 'there is no date field; burns go when the weather allows and '
+          + 'Forest Fire Management Victoria notifies a day or three ahead.',
+      pair: 'read with the VicEmergency feed above, which says what is burning now',
+      region: REGION,
+    };
+  }
+
 
   /* One entry per taxon: what is out now, and where that sits in its own year.
      A raw count with nothing to compare against says very little — 63 fungi
@@ -663,6 +789,36 @@ export default async function handler(req, res) {
                 'South West': ['Colac Otway']},
   };
 
+  /* ── river level is deliberately NOT fetched, and the reason is new ─────
+     The source pass of 4 Sep 2026 found a live gauge: Bureau of Meteorology
+     Water Data Online, Cumberland River at Lorne (station 235216, series
+     248752010), hourly, 0.417 m on 3 Sep — five km along the same range as
+     Erskine Falls, whose own gauge has been dead since 1997. It read it from
+     a BROWSER. Asked from here with this project's user agent on 7 Sep 2026,
+     www.bom.gov.au answered 403 with a page that says, in its own words, the
+     site "does not support web scraping: if you are trying to access Bureau
+     data through automated means, you should stop." That is an instruction,
+     not a rate limit, and it is the same stance this file already keeps for
+     api.weather.bom.gov.au. The data owner's own service, WMIS at
+     data.water.vic.gov.au, answered the one attempt made with a 30-second
+     timeout (error 219), exactly as it did for the pass. So the falls rule
+     stays on rainfall, now read at the hinterland point rather than the
+     coast, and this block says why the better number is not here. */
+  out.river = {
+    state: 'blocked',
+    gauge: {station: '235216', name: 'Cumberland River at Lorne', series: '248752010',
+            proxy_for: 'Erskine Falls — no live gauge of its own (235243 ended 14 Jul 1997)'},
+    why: 'The Bureau of Meteorology refuses automated requests to its water '
+       + 'data pages and says so on the refusal page; Victoria\'s own WMIS '
+       + 'service answers after 30 s with a timeout error.',
+    todo: 'Two honest routes. Ask the Bureau — its refusal page links a '
+        + '"screen scraper enquiry" form and a registered-user service — '
+        + 'whether a free community site may read one gauge hourly. Or find '
+        + 'whether Barwon Water publishes the Cumberland or Erskine level on '
+        + 'its own site. Until then the falls rule reads rainfall.',
+    bom_form: 'http://reg.bom.gov.au/screenscraper/screenscraper_enquiry_form/',
+  };
+
   /* The report, last, so the monitor reads one place. Never the raw bodies —
      the Kp feed alone is 28 KB and only its final row is wanted. */
   out.sources = reports.map(r => ({
@@ -671,6 +827,7 @@ export default async function handler(req, res) {
     ...(SOURCE_META[r.id] || {org: r.id, feed: null, home: null, doc: null, licence: null}),
   }));
   out.ok = reports.every(r => r.ok);
+  if (!out.ok) out.cache_seconds = 60;
 
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   // Overrides vercel.json's blanket max-age=0. Checked against the live
@@ -681,12 +838,21 @@ export default async function handler(req, res) {
   // on its own heuristic — measured on the deploy, which is the only place
   // this is observable. Confirmed working: x-vercel-cache HIT with a rising
   // age, so one upstream gather serves everybody for CACHE seconds.
+  /* A gather with a source in error is cached for ONE minute, not ten. The
+     source pass watched a reply with weather and beaches in state `http`
+     served from the edge for its whole window; the per-source isolation
+     worked and the failure was still everybody's for ten minutes. A short
+     window means the next reader triggers a retry. There is no memory
+     between invocations, so "keep the previous good block" is not available
+     to a stateless function — this is the honest version of it. */
+  const ttl = out.ok ? CACHE : 60;
   res.setHeader('Cache-Control',
-                `public, max-age=0, s-maxage=${CACHE}, stale-while-revalidate=${SWR}`);
+                `public, max-age=0, s-maxage=${ttl}, stale-while-revalidate=${SWR}`);
   // Open-Meteo is CC-BY 4.0 and the attribution is owed somewhere a person
   // can find it. The page carries it too; this is the machine-readable half.
   res.setHeader('X-Data-Sources',
-                'open-meteo.com (CC-BY 4.0); NOAA SWPC; emergency.vic.gov.au');
+                'open-meteo.com (CC-BY 4.0); NOAA SWPC; emergency.vic.gov.au; '
+              + 'ffm.vic.gov.au planned burns (State of Victoria, DEECA, CC BY 4.0)');
   // The board reads this cross-origin from www.notice.place in some previews.
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.status(200).json(out);

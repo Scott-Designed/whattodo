@@ -6636,6 +6636,7 @@ six-hour window would be tidier and is not worth a second thing to monitor.
   exist; `index.html` has not changed.
 - The `faces` column, which retires two constants in the function.
 - Fire, behind the EMV licence question.
+- River level, behind BOM's refusal of automated access — see below.
 - The monthly iNaturalist job — wildflower and fungi counts per natural spot.
   That belongs in the database written by a scheduled job, NOT in this
   function: it moves over weeks and costs one call per spot.
@@ -6652,6 +6653,74 @@ licence quoted, CORS, timing, where it is measured, one value validated
 against something independent, and which of the five kinds it is — and it
 names the Western Treatment Plant at Werribee as the one place a strong
 result is expected.
+
+### The source pass came back — 7 Sep 2026
+
+`prompts/log/nature-sources.md` and `.json`: 33 sources, five kinds, every
+refusal with its reason. **The pass could not push** (its container's egress
+allows GitHub only), so the files arrived by hand — and **it could not curl
+either**, so every probe ran in a browser on Scott's Mac. That is why one of
+its two "build now" findings did not survive contact with a server.
+
+**Built the same day, in `api/conditions.mjs` and the Conditions tab:**
+
+- **Forest Fire Management Victoria's planned-burn register** — the ArcGIS
+  service behind plannedburns.ffm.vic.gov.au, named in that app's own config.
+  96 burns in the region, 42 KB, 0.7 s, no robots.txt. It says WHICH burns are
+  on the books and whether each stands at Planned, Patrol (lit, watched) or
+  Safe; **it never says when**, because burns go when the weather allows.
+  Paired with the VicEmergency feed, which says what is burning now. A
+  `burnlit` rule fires on a Patrol burn within 30 km. Licence is DEECA's
+  CC BY 4.0 page; whether a map service is "material on this website" is a
+  line in the EMV email.
+- **A second weather point, Deans Marsh**, in the same Open-Meteo call, with
+  the frost and fog fields (dew point, humidity, visibility, weather code,
+  daily minimum). **The falls rule now reads rainfall there**, not at the
+  coast: on the day it shipped the hinterland had 15.9 mm over 48 h against
+  7.9 at Jan Juc, which is the whole reason. Forrest was tried as a third
+  point and **lands in the same grid cell**, so one point is honest.
+- **The grid cell is named, not the point asked for.** Open-Meteo's cell for
+  Jan Juc is **9.6 km north-east and inland** (-38.27768,144.36487, 26 m).
+  The tab printed "Jan Juc"; `taken_at` now carries the cell's own coordinate
+  off the reply, the distance, and the elevation.
+- **Leonids `11-17` → `11-16`, Geminids `12-14` → `12-13`.** The table's key
+  is the NIGHT written as the evening it starts, because the moon is
+  evaluated at local midnight of that night; the pass found the Leonids a
+  night late and printing the wrong moon. IMO was down for maintenance on
+  7 Sep, so only the two peaks it quoted verbatim were re-keyed.
+- **A gather with a failed source is cached for one minute, not ten.** The
+  pass watched an errored reply served from the edge for its whole window. A
+  stateless function cannot keep the previous good block; a short window is
+  the honest version.
+
+**NOT built, and it was the pass's best "build now": the river gauge.** BOM
+Water Data Online has a live hourly gauge on the Cumberland at Lorne (station
+235216, series 248752010) — five km along the same range as Erskine Falls,
+whose own gauge died in 1997. The pass read 0.417 m off it **from a browser**.
+Asked from here with `whattodo-janjuc`, **www.bom.gov.au answered 403 with a
+page saying the site "does not support web scraping: if you are trying to
+access Bureau data through automated means, you should stop."** That is an
+instruction, and it is the same stance this file already keeps for
+`api.weather.bom.gov.au`. Victoria's own WMIS answered the one attempt made
+with the same 30-second error 219 the pass got. `out.river` reports the block
+and the two routes: the Bureau's own screen-scraper enquiry form, or a Barwon
+Water page if one exists. **Do not point the function at BOM.**
+
+**Waiting on Scott, each a licence:** the EMV email (drafted in the worklog,
+covers fire bans, the OSOM feed already in production, and the FFMVic map
+service); SLSA's written consent for the BeachSafe patrol roster, which the
+pass found complete down to the hour and whose terms forbid reproducing any
+of it; Parks Victoria's Change of Conditions blocks, readable and with no
+licence page anywhere; Melbourne Pollen's Geelong forecast, all rights
+reserved. **The Western Treatment Plant** wants a `places` row and a `spot`
+by hand — $20 single visit or $70 two-year key, over 18, a car, an online
+induction — and is **closed to birdwatchers since mid-August 2026 for H5**
+with no reopening date. Not in the database under any name.
+
+**Scott offered to work around eBird and king tides himself.** eBird needs a
+key tied to a personal account and its site refuses ClaudeBot, so the
+scheduled Action reads it and a session does not. King tides are the biggest
+predictions in BOM's yearly tide tables, read once a year by a person.
 
 ## A listing needs its own page — the linking pass, 1 Sep 2026
 
