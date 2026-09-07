@@ -6,6 +6,7 @@
     python3 scripts/scrape_events.py --json out.json   # emit rows for `sync.py add`
     python3 scripts/scrape_events.py --only coastandbay   # one source
     python3 scripts/scrape_events.py --backfill      # link the venue on rows already here
+    python3 scripts/scrape_events.py --backfill --create   # ...and build the places it can pin
 
 Both sources run WordPress with The Events Calendar, which publishes a plain
 JSON API at the same path on every install — so a second site costs a row in
@@ -262,6 +263,11 @@ def build(src, slug, instances):
     # A venue named in the data that IS a places row links to it; otherwise the
     # name stays as free text so a reader is still told where. Never created.
     pid   = E.match_place(place, where, REGISTRY) if place else None
+    # The rest of the feed's venue object rides along under a private key so
+    # the write step can geocode and CREATE the place when nothing matched
+    # (7 Sep 2026). Popped before the row goes anywhere — see strip().
+    meta  = {'name': place, 'street': html.unescape(venue.get('address') or '') or None,
+             'town': where, 'zip': (venue.get('zip') or '').strip() or None}
 
     # The organiser's own link if the source has one, else the source's page for
     # it. Both came from the source; neither is invented here.
@@ -280,6 +286,7 @@ def build(src, slug, instances):
         'time_text'      : time_text(first),
         'venue'          : place,
         'place_id'       : pid,
+        '__venue'        : meta,
         'location'       : where,
         'description'    : E.text(first.get('description') or first.get('excerpt')),
         'info_url'       : info,
@@ -307,6 +314,78 @@ def build(src, slug, instances):
     # km is deliberately absent: the database's distances are already known to be
     # shaky, and inventing more is how this project got burned. Fill it on review.
     return row
+
+def strip(row):
+    """The row as the database or a JSON file should see it."""
+    return {k: v for k, v in row.items() if not k.startswith('__')}
+
+def settle_places(new, seen, write):
+    """Give each new event a place, gate it on the region, and say what happened.
+
+    For a row whose venue matched nothing: geocode the venue the FEED published
+    (name, street, town, postcode) and, when the pin is honest, create the
+    `places` row — reviewed = false, so it sits in the /admin queue beside the
+    event — or alias an existing row the pin lands on. A venue that cannot be
+    pinned stays as free text, exactly as before.
+
+    THE REGION GATE IS A COORDINATE, NEVER A WORD. A row whose place (matched or
+    just made) is outside eventlib.REGION is dropped and written to the seen
+    ledger so Thursday does not offer it again. A row with no coordinate at all
+    is kept: "we cannot tell" is not "outside", and a town the vocabulary has
+    not learned looks identical to Perth — the Mt Duneed lesson. Those are
+    listed under a warning instead.
+    """
+    if not new: return new, [], [], [], []
+    places = E.db('GET', '/rest/v1/places?select=id,name,aliases,suburb,lat,lng',
+                  None, None, all_rows=True)
+    by_pid = {p['id']: p for p in places}
+    kept, dropped, made, aliased, unknown = [], [], [], [], []
+    for key, row in new:
+        v = row.get('__venue') or {}
+        src = key[0]
+        source = next(s['key'] for s in SOURCES if s['site'] == src)
+        pid = row.get('place_id')
+        if not pid and v.get('name'):
+            what = E.propose_place(v['name'], v.get('street'), v.get('town'), v.get('zip'),
+                                   places, REGISTRY, source)
+            if what[0] == 'link':
+                pid = what[1]
+            elif what[0] == 'alias':
+                pid = what[1]
+                aliased.append((row, what[1], what[2]))
+                if write:
+                    p = by_pid[pid]
+                    al = list(dict.fromkeys((p.get('aliases') or []) + [v['name']]))
+                    E.db('PATCH', f"/rest/v1/places?id=eq.{pid}", {'aliases': al})
+                    p['aliases'] = al
+            elif what[0] == 'new':
+                prow = what[1]
+                made.append((row, prow, what[2]))
+                if write:
+                    got = E.db('POST', '/rest/v1/places', prow, {'Prefer': 'return=representation'})
+                    pid = got[0]['id']
+                    places.append(got[0]); by_pid[pid] = got[0]
+                    REGISTRY[E.place_key(prow['name'])] = pid
+                else:
+                    pid = None
+            elif what[0] == 'outside':
+                dropped.append((key, row, what[1]))
+                continue
+            else:
+                unknown.append((row, what[1]))
+            row['place_id'] = pid
+        if pid and pid in by_pid and by_pid[pid].get('lat') is not None:
+            p = by_pid[pid]
+            if not E.in_region(p['lat'], p['lng']):
+                dropped.append((key, row, f"place {pid} {p['name']} is at {p['lat']},{p['lng']}, "
+                                          f"outside the region box"))
+                continue
+        kept.append((key, row))
+    for key, _, _ in dropped:
+        # Remembered as OFFERED, so it is not proposed again — a person can
+        # delete the line from events_seen.json to see it once more.
+        if write: seen.add(f"{key[0]}/{key[1]}")
+    return kept, dropped, made, aliased, unknown
 
 def merge(cands, twice, src, one):
     """Fold one source's series into the run, keeping a thing carried twice once.
@@ -385,25 +464,59 @@ def backfill(write):
     by_pid   = {v['id']: v for v in places}
     keys     = ','.join(s['key'] for s in SOURCES)
     rows = E.db('GET', f"/rest/v1/events?select=id,name,venue,place_id,location,"
-                       f"source_note&added_by=in.({keys})", None, None, all_rows=True)
+                       f"source_note,added_by&added_by=in.({keys})", None, None, all_rows=True)
     todo = [r for r in rows if not r.get('place_id') and (r.get('venue') or '').strip()]
     print(f"{len(rows)} rows from the calendar feeds, {len(todo)} with a venue and no place")
-    patches, unknown = [], collections.Counter()
+    create = '--create' in sys.argv
+    patches, unknown, made, outside = [], collections.Counter(), {}, {}
     for r in todo:
         pid = E.match_place(r['venue'], r.get('location'), registry)
+        if not pid and create and r['venue'] not in made and r['venue'] not in outside:
+            # No street on these rows — the feed's address was never stored —
+            # so this is the by-name route only, which is the stricter one.
+            source = r.get('added_by') or 'feed'
+            what = E.propose_place(r['venue'], None, r.get('location'), None, places, registry, source)
+            if what[0] == 'new':
+                prow = what[1]
+                if write:
+                    got = E.db('POST', '/rest/v1/places', prow, {'Prefer': 'return=representation'})
+                    pid = got[0]['id']; places.append(got[0]); by_pid[pid] = got[0]
+                    registry[E.place_key(prow['name'])] = pid
+                made[r['venue']] = (prow, what[2], pid)
+            elif what[0] == 'alias':
+                pid = what[1]
+                if write:
+                    p = by_pid[pid]
+                    al = list(dict.fromkeys((p.get('aliases') or []) + [r['venue']]))
+                    E.db('PATCH', f"/rest/v1/places?id=eq.{pid}", {'aliases': al}); p['aliases'] = al
+                made[r['venue']] = (None, what[2], pid)
+            elif what[0] == 'outside':
+                outside[r['venue']] = what[1]
+        elif not pid and create and r['venue'] in made:
+            pid = made[r['venue']][2]
+        # On a dry run a place "to create" has no id yet; the row still counts
+        # as one that WILL link, or the summary under-reports by every new place.
+        if not pid and create and r['venue'] in made: pid = 'new'
         if not pid:
             unknown[r['venue']] += 1; continue
         patches.append((r, {'place_id': pid, 'source_note': (r.get('source_note') or '') +
             f"; venue \"{r['venue']}\" matched place {pid} on {datetime.date.today().isoformat()}"}, pid))
+    if made:
+        print(f"\nPLACES {'CREATED' if write else 'TO CREATE'} (--create) — {len(made)}, reviewed = false")
+        for n, (prow, why, pid) in made.items():
+            print(f"  {n[:42]:44} {why}")
+    if outside:
+        print(f"\nOUTSIDE THE REGION — {len(outside)}, not created")
+        for n, why in outside.items(): print(f"  {n[:42]:44} {why}")
     print(f"\n{len(patches)} row(s) link to a place")
     for r, _, pid in patches:
-        print(f"  {r['id']:>6}  {r['name'][:40]:42} {r['venue'][:34]:36} -> {pid} {by_pid[pid]['name']}")
+        print(f"  {r['id']:>6}  {r['name'][:40]:42} {r['venue'][:34]:36} -> {pid} {by_pid[pid]['name'] if pid in by_pid else '(new)'}")
     if unknown:
         print(f"\nVENUES WITH NO PLACES ROW — {len(unknown)} names on {sum(unknown.values())} rows, build these by hand")
         for n, c in unknown.most_common():
             print(f"  {c:>3}  {n}")
     if not write:
-        print("\nnothing written. --backfill --write to apply.")
+        print("\nnothing written. --backfill --write to apply" + ("" if create else "; add --create to build the places it can pin") + ".")
         return 0
     for r, patch, _ in patches:
         E.db('PATCH', f"/rest/v1/events?id=eq.{r['id']}", patch)
@@ -455,7 +568,7 @@ def main(argv):
     fresh   = {k: r for k, r in cands.items() if f"{k[0]}/{k[1]}" not in already}
 
     if as_json and not need_db:
-        pathlib.Path(as_json).write_text(json.dumps(list(fresh.values()), indent=1) + '\n')
+        pathlib.Path(as_json).write_text(json.dumps([strip(r) for r in fresh.values()], indent=1) + '\n')
         log(f"wrote {len(fresh)} row(s) to {as_json} — check them, then `sync.py add`")
         return 1 if down else 0
 
@@ -484,6 +597,11 @@ def main(argv):
             clash.append((hit, key, row)); continue
         if f"{key[0]}/{key[1]}" in already: continue
         new.append((key, row))
+
+    # ── places and the region, before anything is reported or written ──
+    new, dropped, made, aliased, unknown = settle_places(new, seen, write)
+    # The vocabulary's opinion of each new row's town, for the warning below.
+    towns = E.suburbs_for([r.get('location') for _, r in new])
 
     # ── report ──
     # One line per source, prefixed `source `, because run_log.py reads these
@@ -525,6 +643,27 @@ def main(argv):
             lock = 'VERIFIED, left alone' if old['verified'] else 'unverified, updated'
             print(f"  {old['id']:>6}  {old['name'][:40]:42} {old['starts_on']} -> {r['starts_on']}  ({lock})")
 
+    if made:
+        print(f"\nPLACES {'CREATED' if write else 'TO CREATE'} — {len(made)}, each reviewed = false")
+        for row, prow, why in made:
+            print(f"  {prow['name'][:40]:42} {prow.get('suburb') or '':16} {why}   for: {row['name'][:36]}")
+    if aliased:
+        print(f"\nVENUE NAMES {'ADDED' if write else 'TO ADD'} AS ALIASES — {len(aliased)}")
+        for row, pid, why in aliased:
+            print(f"  {(row.get('__venue') or {}).get('name', '')[:40]:42} {why}")
+    if dropped:
+        print(f"\nOUTSIDE THE REGION — {len(dropped)}, dropped and remembered as offered")
+        for key, row, why in dropped:
+            print(f"  {row['starts_on']}  {row['name'][:40]:42} {why}")
+    if unknown:
+        print(f"\nVENUE COULD NOT BE PINNED — {len(unknown)}, kept as free text on the event")
+        for row, why in unknown:
+            print(f"  {(row.get('__venue') or {}).get('name', '')[:40]:42} {why}")
+    gaps = [(k, r) for k, r in new if r.get('location') and not towns.get(r['location'])]
+    if gaps:
+        print(f"\nTOWN NOT IN THE VOCABULARY — {len(gaps)}, kept, but they reach no filter and no town page")
+        for _, r in gaps:
+            print(f"  {r['location'][:30]:32} {r['name'][:40]}")
     if clash:
         print(f"\nSAME NAME already in the database — {len(clash)}, skipped")
         for hit, (site, _), r in clash:
@@ -536,7 +675,7 @@ def main(argv):
 
     # ── write ──
     for _, r in new:
-        got = E.db('POST', '/rest/v1/events', r, {'Prefer': 'return=representation'})
+        got = E.db('POST', '/rest/v1/events', strip(r), {'Prefer': 'return=representation'})
         print(f"added event {got[0]['id'] if got else '?'}: {r['name']}")
     for old, r in drift:
         if old['verified']: continue      # a human vouched for that date; ask them

@@ -190,6 +190,189 @@ def registry_of(places):
             reg.setdefault(place_key(a), v['id'])
     return reg
 
+# ── the region, and geocoding a venue a feed publishes ──────────────────────
+# A box, because a box is what a coordinate can be tested against without a
+# vocabulary. It is the Wikidata box from the listing-page work (SW 143.35
+# -39.05, NE 144.85 -37.80) pushed west to take Warrnambool, which joined the
+# vocabulary 7 Sep 2026. Werribee (144.66) is inside on Scott's call; Melbourne
+# (144.96), Mornington, Ballarat (-37.56) and Portland (141.6) are out.
+# The vocabulary (suburbOf) is still the finer test — a town it does not know
+# may be a gap rather than Perth — so the two are used together: the box
+# REFUSES, the vocabulary WARNS.
+REGION = {'south': -39.1, 'north': -37.75, 'west': 142.3, 'east': 144.85}
+
+def in_region(lat, lng):
+    try: lat, lng = float(lat), float(lng)
+    except (TypeError, ValueError): return False
+    return REGION['south'] <= lat <= REGION['north'] and REGION['west'] <= lng <= REGION['east']
+
+def suburbs_for(locations):
+    """suburbOf() for a batch of location strings, straight out of the site's
+    own vocabulary through node. One copy of the rule, not two. Lifted from
+    classify_kinds.py 7 Sep 2026, which now calls this."""
+    import subprocess, tempfile
+    js = ("const fs=require('fs'),vm=require('vm');const b=vm.createContext({});"
+          "vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),b);"
+          "const f=vm.runInContext('suburbOf',b);"
+          "const inp=JSON.parse(require('fs').readFileSync(process.argv[2],'utf8'));"
+          "const o={};for(const s of inp)o[s]=f(s);"
+          "process.stdout.write(JSON.stringify(o))")
+    tmp = pathlib.Path(tempfile.mkstemp(suffix='.json')[1])
+    tmp.write_text(json.dumps(sorted({str(s) for s in locations if s})))
+    try:
+        out = subprocess.run(['node', '-e', js, str(ROOT / 'public' / 'notice-vocab.js'), str(tmp)],
+                             capture_output=True, text=True, timeout=60)
+        if out.returncode != 0:
+            sys.exit('could not read suburbOf from notice-vocab.js:\n' + out.stderr[:400])
+        return json.loads(out.stdout)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+_NOM_LAST = [0.0]
+def nominatim(path, params):
+    """One Nominatim call, throttled to its 1 req/s policy, with our real UA."""
+    import time
+    wait = 1.1 - (time.time() - _NOM_LAST[0])
+    if wait > 0: time.sleep(wait)
+    _NOM_LAST[0] = time.time()
+    q = urllib.parse.urlencode({**params, 'format': 'jsonv2', 'addressdetails': 1})
+    r = urllib.request.Request(f'https://nominatim.openstreetmap.org/{path}?{q}',
+                               headers={'User-Agent': UA})
+    try:
+        return json.load(urllib.request.urlopen(r, timeout=30))
+    except Exception:
+        return None
+
+# What a reverse lookup must contain before a point counts as being ON something.
+# A bare "Victoria, Australia" — no road, no town — is this project's open-water
+# signature, and on this coast that is exactly where a bad pin lands.
+def _grounded(rev):
+    a = (rev or {}).get('address') or {}
+    return bool(a.get('road')) and any(a.get(k) for k in
+        ('suburb', 'town', 'village', 'city', 'locality', 'hamlet', 'neighbourhood'))
+
+# A result that is a named THING rather than a line or an area. Roads, admin
+# boundaries and place centroids are refused: a road centreline is a coin toss
+# between segments and a suburb centroid is not the place — both rules this
+# project has already paid for.
+_FEATURE = {'amenity', 'leisure', 'tourism', 'shop', 'club', 'office', 'craft',
+            'historic', 'building', 'man_made', 'railway', 'aeroway', 'natural'}
+
+def geocode_venue(name, street=None, town=None, postcode=None):
+    """A pin for a venue a source publishes, or None. Never a rough one.
+
+    Two routes, house number first because it is the stronger claim:
+      1. the published street address, structured — accepted only when the
+         match carries a house number (type=house / building);
+      2. the venue by NAME with its town — accepted only when Nominatim answers
+         with a named feature whose own name contains ours (or ours contains
+         its), so a query for "Founders & Co, Lara" cannot come back as Lara.
+    Either way the point is reverse-geocoded and must land on a road in a town,
+    and must be inside REGION. Returns {lat, lng, level, matched, how, outside}
+    with the words that belong in a source_note, or None with nothing guessed.
+    """
+    name = (name or '').strip()
+    cands = []
+    # A venue "named" 240 Ryrie St is an address wearing a name's hat. Send it
+    # down the house-number route rather than letting a by-name containment
+    # match it to whatever feature is called Ryrie Street.
+    if not street and re.match(r'^\d+[A-Za-z]?[\s/-]', name): street = name
+    if street and town:
+        res = nominatim('search', {'street': street, 'city': town, 'state': 'Victoria',
+                                   'country': 'Australia', 'limit': 3,
+                                   **({'postalcode': postcode} if postcode else {})})
+        for x in res or []:
+            a = x.get('address') or {}
+            if a.get('house_number') or x.get('type') in ('house', 'building'):
+                cands.append((x, 'house', f"structured query on '{street}, {town}' matched "
+                                          f"{x.get('category')}={x.get('type')} at a house number"))
+                break
+    if not cands and name:
+        res = nominatim('search', {'q': f'{name}, {town}' if town else name,
+                                   'countrycodes': 'au', 'limit': 5})
+        for x in res or []:
+            if x.get('category') not in _FEATURE: continue
+            theirs = norm(x.get('name') or x.get('display_name', '').split(',')[0])
+            ours   = norm(name)
+            if len(theirs) < 5 or len(ours) < 5: continue
+            # Containment either way, but the shorter must be most of the
+            # longer — "cafego" in "cafegogeelong" yes, "hall" in anything no.
+            if (theirs in ours or ours in theirs) and \
+               min(len(theirs), len(ours)) >= 0.6 * max(len(theirs), len(ours)):
+                cands.append((x, 'feature', f"matched the named {x.get('category')}={x.get('type')} "
+                                            f"feature '{x.get('display_name', '')[:90]}' by name"))
+                break
+    for x, level, how in cands:
+        lat, lng = round(float(x['lat']), 6), round(float(x['lon']), 6)
+        if not in_region(lat, lng):
+            return {'lat': lat, 'lng': lng, 'level': level, 'matched': x.get('display_name'),
+                    'how': how, 'outside': True}
+        rev = nominatim('reverse', {'lat': lat, 'lon': lng, 'zoom': 18})
+        if not _grounded(rev): continue
+        return {'lat': lat, 'lng': lng, 'level': level, 'matched': x.get('display_name'),
+                'how': how + f"; reverse-geocodes to '{rev.get('display_name', '')[:90]}'",
+                'outside': False}
+    return None
+
+def metres(lat1, lng1, lat2, lng2):
+    import math
+    p = math.pi / 180
+    a = (0.5 - math.cos((lat2 - lat1) * p) / 2
+         + math.cos(lat1 * p) * math.cos(lat2 * p) * (1 - math.cos((lng2 - lng1) * p)) / 2)
+    return 12742000 * math.asin(math.sqrt(a))
+
+def near_place(lat, lng, places, within=60):
+    """The existing place this point is effectively AT, or None.
+
+    60 m is a building, not a precinct: the HOOP Gallery and the surfing museum
+    share one pin on purpose and are two rows; anything closer than a building
+    apart under a different name is far more likely the same room spelled
+    differently, which is what created places 93, 94 and 95 in August.
+    """
+    best = None
+    for p in places:
+        if p.get('lat') is None or p.get('lng') is None: continue
+        d = metres(lat, lng, float(p['lat']), float(p['lng']))
+        if d <= within and (best is None or d < best[1]): best = (p, d)
+    return best
+
+def propose_place(name, street, town, postcode, places, registry, source):
+    """What to do about a venue a feed names and `places` does not hold.
+
+    Returns one of
+      ('link',    pid)              it IS a known place — name or alias matched
+      ('alias',   pid, why)         a geocode lands on an existing place's pin
+      ('new',     row, why)         a row to create, reviewed = false
+      ('outside', why)              pinned, and the pin is outside REGION
+      ('none',    why)              could not be pinned honestly; leave as text
+    Never writes. The caller decides whether it is a dry run.
+    """
+    name = usable_venue(name, town)
+    if not name: return ('none', 'not a venue name')
+    pid = match_place(name, town, registry)
+    if pid: return ('link', pid)
+    g = geocode_venue(name, street, town, postcode)
+    if not g: return ('none', 'no house-number or named-feature match that reverse-geocodes onto a road')
+    if g['outside']:
+        return ('outside', f"{g['matched']} is at {g['lat']},{g['lng']}, outside the region box")
+    hit = near_place(g['lat'], g['lng'], places)
+    if hit:
+        p, d = hit
+        return ('alias', p['id'], f"geocodes {d:.0f} m from place {p['id']} {p['name']} — same building, "
+                                  f"so '{name}' becomes an alias rather than a second row")
+    today = datetime.date.today().isoformat()
+    row = {'name': name, 'suburb': town or None, 'address': street or None,
+           'lat': g['lat'], 'lng': g['lng'], 'kind': None, 'offers': [], 'aliases': [],
+           'website': None, 'events_url': None, 'ticketing_url': None, 'facebook': None,
+           'instagram': None, 'kind_legacy': None,
+           'reviewed': False, 'added_by': source,
+           'source_note': (f"Created {today} by the {source} feed importer from the venue the feed "
+                           f"publishes ({name}" + (f", {street}" if street else '') +
+                           (f", {town}" if town else '') + (f" {postcode}" if postcode else '') +
+                           f"). Geocoded here: {g['how']}. NOT YET REVIEWED by a person — "
+                           f"it is in the /admin review queue beside the event that named it.")}
+    return ('new', row, f"{g['level']}-level pin at {g['lat']},{g['lng']}")
+
 def clock(hhmm):
     h, m = int(hhmm[:2]), int(hhmm[3:5])
     ap = 'am' if h < 12 else 'pm'

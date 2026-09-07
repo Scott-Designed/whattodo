@@ -7399,6 +7399,94 @@ registry entry, never shown to a reader on its own; if the event is never
 published the place sits unused like the 31 that host nothing. Scott asked
 before this was built.
 
+## The feeds build their own venues now, held for review — 7 Sep 2026
+
+Scott: *"Can we create some process which creates venues automatically if
+none are found?"* and *"the scraper is also pulling things from locations
+over Melbourne, how do we gatekeep locations?"* Both built the same afternoon,
+and they are one mechanism: **a coordinate is the gate, and a place row is
+what carries it.**
+
+**This reverses a rule this file states in capitals** — *"IT WILL NOT CREATE A
+PLACE. A room needs a geocode and a person."* It still needs both; what
+changed is the ORDER. The geocode happens first, mechanically and strictly, and
+the person's look happens in the review queue afterwards, where the place sits
+beside the event that named it. `supabase/PLACES_REVIEWED.sql` adds
+`places.reviewed` (default true — everything already there was a person's) and
+`places.added_by`. **Only /admin sets `reviewed` true**, through the same
+`publish` action the events use; the button on a place says *Reviewed*.
+
+### What the scraper does with a venue it does not hold
+
+`eventlib.propose_place()` — one function, five answers, never a write:
+
+    link      name or alias matched a places row            -> place_id
+    alias     the geocode lands within 60 m of a place      -> alias on that row, place_id
+    new       an honest pin, nothing nearby                 -> a places row, reviewed = false
+    outside   an honest pin, outside the region box         -> EVENT DROPPED, remembered as offered
+    none      no honest pin                                 -> venue stays as text, listed
+
+`eventlib.geocode_venue()` is what "honest" means, and every refusal is a rule
+this file already paid for: a structured query on the feed's own street is
+accepted **only at a house number**; a by-name query only when Nominatim answers
+with a **named feature** (amenity, leisure, tourism, shop …) whose own name is
+most of ours or vice versa — never a road, never a boundary, never a suburb
+centroid; a name that starts with a number is an address and goes the house
+route; and the point must **reverse-geocode onto a road in a town**, which is
+the open-water check. Two of sixteen proposals fell out when the name test was
+tightened, and that is the right direction to fail in.
+
+**60 m is the duplicate guard**, and it is a building, not a precinct. HOOP
+and the surfing museum share a pin on purpose; a *differently spelled* name
+within a building of an existing pin is places 93/94/95 again, so it becomes an
+alias — which is also what makes the next run match it.
+
+### The region gate is a box, and the vocabulary is a warning
+
+`eventlib.REGION` — lat −39.1 to −37.75, lng 142.3 to 144.85. The Wikidata box
+from the listing-page work pushed west for Warrnambool. Werribee is in (Scott's
+call, 2 Sep); Melbourne, Mornington, Ballarat and Portland are out. **A row
+whose place — matched or just made — is outside it is dropped** and written to
+`events_seen.json` so Thursday does not offer it again; delete the line to see
+it once more. **A row with no coordinate is kept**, because "cannot tell" is
+not "outside" and a town the vocabulary has not learned looks identical to
+Perth — the Mt Duneed lesson. Those print under *TOWN NOT IN THE VOCABULARY*
+via `eventlib.suburbs_for`, the node bridge lifted out of `classify_kinds.py`.
+
+**Measured before building: nothing pinned was outside the box.** The twelve
+interstate speaker-tour rooms were unpinned, and the "over Melbourne" rows
+Scott saw had no town at all — 26 Coast & Bay rows whose feed venue object was
+empty. So the gate catches things on the way in; there was nothing to sweep.
+
+### Applied: 14 places, `--backfill --create`, 7 Sep 2026
+
+Places 231–244, every one `reviewed = false`, `added_by = coastandbay`, in the
+review queue: Steampacket Gardens, Cafe Go, Poa Banyul Community Hub, Geelong
+West Town Hall, Bluewater Leisure Centre (Colac), City of Geelong Bowls Club,
+Surf Coast Shire Council, 240 Ryrie St, Geelong Sports Museum, St Joseph's
+College, Little Starfish Swimmers, WoodHouse Cafe, Bellarine Sewing Centre, The
+Beach Kiosk Cafe (Warrnambool). Fourteen events linked. **Coast & Bay rows with
+a place: 4 → 67 → 81 in one day.** The backfill's by-name route is the only one
+available to it — the feed's street was never stored on old rows — so the live
+importer, which has the street, will do better than this.
+
+**`Surf Coast Shire Council` as a venue is the one to look at first**: the feed
+named the council offices for a Bellarine longbow workshop. A pin that honest
+can still be filed against the wrong claim, which is exactly what the queue is
+for.
+
+43 names on 49 rows still cannot be pinned — bare towns, *Here & Now Lounge*,
+and a long tail of one-event rooms with no map feature. They stay as text on
+the event and print every run.
+
+### The queue draws three tables now
+
+`reviewRows()` folds `places.reviewed === false` in beside the held events and
+activities, shaped like a listing row — suburb as `location`, kind as the type,
+so the same columns, sort and pick logic read it. `publishRows()` takes any
+number of `(table, ids)` pairs. **The Places tab has a `not reviewed` chip.**
+`check_admin.py` ran clean.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

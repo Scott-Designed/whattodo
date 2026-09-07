@@ -1136,6 +1136,7 @@ const hostsNothing = p => !p.__events && !p.events_url && !p.ticketing_url;
 
 function placeFlags(p){
   const f = [];
+  if (p.reviewed === false)             f.push('not reviewed');
   if (p.lat === null || p.lng === null) f.push('no pin');
   if (coarse(p.lat) || coarse(p.lng))   f.push('coarse pin');
   if (!p.kind)                          f.push('no kind');
@@ -2428,9 +2429,17 @@ const RCOLS = [
 
 function reviewRows(){
   const held = r => r.published === false;
+  /* A place a scraper built is in the queue too (7 Sep 2026): the feed
+     importers now create a venue from the address a feed publishes, and every
+     one lands reviewed = false. It is shaped like a listing row here — its
+     suburb as `location`, its kind as the type — so the same columns, sort and
+     buttons read it. Publish on a place means "reviewed"; the endpoint knows. */
   return [
     ...DATA.events.filter(held).map(r => ({...r, __t:'events'})),
     ...DATA.activities.filter(held).map(r => ({...r, __t:'activities'})),
+    ...DATA.places.filter(p => p.reviewed === false).map(p =>
+        ({...p, __t:'places', location: p.suburb, types: p.kind ? [p.kind] : [],
+          starts_on: null, added_by: p.added_by || 'scraper'})),
   ];
 }
 
@@ -2491,8 +2500,6 @@ function drawReview(){
   }
 
   $('#review').innerHTML = groups.map(([src, rows]) => {
-    const ev = rows.filter(r => r.__t === 'events').map(r => r.id);
-    const ac = rows.filter(r => r.__t === 'activities').map(r => r.id);
     return `<h3 class="subhead" style="display:flex;align-items:center;gap:12px">
         <span>${esc(sourceName(src))} · ${rows.length}</span>
         <button class="btn" style="padding:4px 12px;font-size:11.5px"
@@ -2501,21 +2508,23 @@ function drawReview(){
       <div style="overflow-x:auto"><table><thead><tr>
         ${pickHead()}${sortHead(RCOLS, RFILTER)}<th></th>
       </tr></thead><tbody>${sortRows(rows, RCOLS, RFILTER).slice(0, 400).map(r => {
-        const place = DATA.places.find(p => p.id === r.place_id);
-        const venue = place?.name || r.venue || '';
+        const place = r.__t === 'places' ? null : DATA.places.find(p => p.id === r.place_id);
+        const venue = r.__t === 'places' ? (r.address || '') : (place?.name || r.venue || '');
         // The town is the thing you check first — is this even in the region.
         // rowTown is the same answer the sort reads, so the column cannot be
         // ordered by one rule and printed by another.
         const town  = rowTown(r);
         const types = (r.types || []).join(' · ');
-        const link  = r.info_url || r.ticket_url || r.url;
+        const link  = r.info_url || r.ticket_url || r.url || r.website || r.events_url;
+        const isPlace = r.__t === 'places';
         const past  = r.starts_on && r.starts_on < TODAY &&
                       (!r.recurrence || r.recurrence === 'none');
         return `<tr data-t="${r.__t}" data-id="${r.id}">
           ${pickCell(r.__t, r.id)}
           <td class="clickable" data-open="1"><div class="rowname">${esc(r.name)}</div></td>
           <td class="cap" style="max-width:16ch" title="${esc(types)}">${
-                types ? esc(types) : '<span style="color:var(--ink3)"><i>unsorted</i></span>'}</td>
+                isPlace ? `<span style="color:var(--ink3)">new location${types ? ' · ' + esc(types) : ''}</span>`
+                : types ? esc(types) : '<span style="color:var(--ink3)"><i>unsorted</i></span>'}</td>
           <td${past ? ' style="color:var(--bad)"' : ''} style="white-space:nowrap"
               title="${r.date_confidence ? 'date read with ' + esc(r.date_confidence) + ' confidence' : 'no confidence recorded'}">${esc(dmy(r.starts_on) || '—')}
               ${r.time_text ? `<br><span style="color:var(--ink3);font-size:11px">${esc(r.time_text)}</span>` : ''}
@@ -2533,7 +2542,7 @@ function drawReview(){
                  onclick="event.stopPropagation()"
                  style="color:var(--ink3);font-size:11.5px;margin-right:8px">source ↗</a>` : ''}
             <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-open="1">Edit</button>
-            <button class="btn" style="padding:3px 10px;font-size:11.5px" data-ok="1">Publish</button>
+            <button class="btn" style="padding:3px 10px;font-size:11.5px" data-ok="1">${isPlace ? 'Reviewed' : 'Publish'}</button>
             <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-no="1">Delete</button>
           </td></tr>`;
       }).join('')}</tbody></table></div>
@@ -2544,8 +2553,8 @@ function drawReview(){
 
   $('#review').querySelectorAll('[data-approve]').forEach(b => b.onclick = () => {
     const rows = bySrc[b.dataset.approve] || [];
-    publishRows('events', rows.filter(r => r.__t === 'events').map(r => r.id),
-            'activities', rows.filter(r => r.__t === 'activities').map(r => r.id));
+    publishRows(...['events', 'activities', 'places'].flatMap(t =>
+      [t, rows.filter(r => r.__t === t).map(r => r.id)]));
   });
   $('#review').querySelectorAll('tr[data-id]').forEach(tr => {
     const t = tr.dataset.t, id = +tr.dataset.id;
@@ -2581,18 +2590,24 @@ function rsay(html, cls){ $('#rmsg').className = 'msg ' + (cls||''); $('#rmsg').
    with it, and the queue is `published === false`, so there is no second
    decision left for a separate Approve to make — on the pick bar the two
    buttons were literally the same request. */
-async function publishRows(t1, ids1, t2, ids2){
+async function publishRows(...pairs){
   if (!PASS) return rsay('Unlock first — the button at the top right.', 'bad');
-  const jobs = [[t1, ids1], [t2, ids2]].filter(([t, ids]) => t && ids && ids.length);
+  // (table, ids, table, ids, …) — Review groups hold up to three tables now.
+  const jobs = [];
+  for (let i = 0; i + 1 < pairs.length; i += 2)
+    if (pairs[i] && pairs[i + 1] && pairs[i + 1].length) jobs.push([pairs[i], pairs[i + 1]]);
   rsay('Publishing…');
-  let done = 0;
+  let done = 0, seen = 0;
   for (const [table, ids] of jobs){
     const [code, out] = await post({action:'publish', table, ids, on:true});
     if (code !== 200) return rsay(esc(out.message || out.error || ('error ' + code)), 'bad');
-    done += out.published || 0;
-    for (const r of DATA[table]) if (ids.includes(r.id)){ r.published = true; r.verified = true; }
+    if (table === 'places') seen += out.published || 0; else done += out.published || 0;
+    for (const r of DATA[table]) if (ids.includes(r.id)){
+      if (table === 'places') r.reviewed = true; else { r.published = true; r.verified = true; }
+    }
   }
-  rsay(`Published ${done} — ${done === 1 ? 'it is' : 'they are'} on the site now.`, 'good');
+  rsay([done ? `Published ${done} — ${done === 1 ? 'it is' : 'they are'} on the site now.` : '',
+        seen ? `${seen} location${seen === 1 ? '' : 's'} marked reviewed.` : ''].filter(Boolean).join(' '), 'good');
   clearPick();
   drawReview(); redrawAll();
 }
@@ -3475,7 +3490,8 @@ async function bulkPublish(on){
     const [code, out] = await post({action:'publish', table, ids, on});
     if (code !== 200) return alert(out.message || out.error || ('error ' + code));
     for (const r of DATA[table]) if (ids.includes(r.id)){
-      r.published = on; if (on) r.verified = true;
+      if (table === 'places') r.reviewed = on;
+      else { r.published = on; if (on) r.verified = true; }
     }
   }
   clearPick(); drawReview(); redrawAll();

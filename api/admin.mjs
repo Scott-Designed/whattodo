@@ -35,7 +35,7 @@ const WRITABLE = {
     'source_note','place_id','published']),
   places: new Set(['name','suburb','address','kind','offers','aliases','website',
     'events_url','ticketing_url','facebook','instagram','lat','lng','source_note',
-    'kind_legacy']),
+    'kind_legacy','reviewed','added_by']),
 };
 
 const URL_FIELDS = ['url','info_url','ticket_url','website','events_url',
@@ -522,9 +522,9 @@ export default async function handler(req, res) {
   if (action === 'publish') {
     if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY)
       return res.status(501).json({error: 'not_configured'});
-    if (!['activities', 'events'].includes(table))
+    if (!['activities', 'events', 'places'].includes(table))
       return res.status(400).json({error: 'bad_table',
-        message: 'publish works on activities or events'});
+        message: 'publish works on activities, events or places'});
     const list = (Array.isArray(ids) ? ids : []).map(Number)
       .filter(n => Number.isInteger(n) && n > 0);
     if (!list.length)      return res.status(400).json({error: 'no_ids'});
@@ -535,6 +535,24 @@ export default async function handler(req, res) {
     // rows in both directions at once, and "publish these" has to mean one thing.
     const on = req.body?.on !== false;
     const inList = `(${list.join(',')})`;
+
+    /* A place is never on the board, so "publish" on one means REVIEWED: a
+       person has looked at a row a scraper built (7 Sep 2026 — the feed
+       importers may create a venue from the address a feed publishes, and every
+       one lands reviewed = false). Same button, same queue, same bar on a
+       source_note; no date, because a place has none. */
+    if (table === 'places') {
+      if (on) {
+        const rows = await db('GET', `/rest/v1/places?select=id,name,source_note&id=in.${inList}`);
+        const bare = rows.filter(r => !String(r.source_note || '').trim());
+        if (bare.length) return res.status(400).json({error: 'no_source_note',
+          message: `${bare.length} place(s) have no source_note — nothing says where they came from.`,
+          names: bare.slice(0, 5).map(r => r.name)});
+      }
+      const done = await db('PATCH', `/rest/v1/places?id=in.${inList}`, {reviewed: on},
+                            {Prefer: 'return=representation'});
+      return res.status(200).json({ok: true, published: done.length, on});
+    }
 
     if (on) {
       // The same bar `verify` sets, and for the same reason: putting a row in

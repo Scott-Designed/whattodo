@@ -293,26 +293,11 @@ def patch(table, rid, body):
 
 # ── the decision ──
 def suburbs_for(locations):
-    """suburbOf() for a batch of location strings, straight out of the site's
-    own vocabulary. One copy of the rule, not two."""
-    import subprocess
-    js = ("const fs=require('fs'),vm=require('vm');const b=vm.createContext({});"
-          "vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),b);"
-          "const f=vm.runInContext('suburbOf',b);"
-          "const inp=JSON.parse(require('fs').readFileSync(process.argv[2],'utf8'));"
-          "const o={};for(const s of inp)o[s]=f(s);"
-          "process.stdout.write(JSON.stringify(o))")
-    tmp = ROOT / '.suburbs.in.json'
-    tmp.write_text(json.dumps(sorted(locations)))
-    try:
-        out = subprocess.run(
-            ['node', '-e', js, str(ROOT / 'public' / 'notice-vocab.js'), str(tmp)],
-            capture_output=True, text=True, timeout=60)
-        if out.returncode != 0:
-            sys.exit('could not read suburbOf from notice-vocab.js:\n' + out.stderr[:400])
-        return json.loads(out.stdout)
-    finally:
-        tmp.unlink(missing_ok=True)
+    """suburbOf() for a batch of location strings, through node. The bridge
+    moved to eventlib.suburbs_for on 7 Sep 2026 so the feed scrapers share it."""
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    import eventlib as E
+    return E.suburbs_for(locations)
 
 def decide(row, suburb):
     """(kind, why) for one activity. `suburb` is suburbOf(row.location)."""
