@@ -1593,6 +1593,11 @@ const AGGREGATORS = [
    how:'Reads the site\u2019s own Algolia search index — the only place the dates exist. The page a person would send you (/search/What\u2019s+On/) has no events in its HTML at all: 139KB of chrome, drawn client-side. Every row lands UNPUBLISHED and waits in Review.',
    auto:'full',
    note:'Registered and automated 1 Sep 2026, on the Mon/Thu schedule. EVERY ROW IS HELD BACK — Scott\u2019s instruction for this source: nothing appears on the board until he publishes it. That is the `published` column, which is not `verified`: verified says somebody established this is true and a scraper can now set it itself, published says a person decided this belongs on the board and only /admin ever sets it. ▸ The product pages DO carry schema.org "@type":"Event" and it MUST NOT be used — there is no startDate on it, only datePublished, so a reader would file every event on the day its page was written. That is the GMBC wp/v2 failure a second time: a first-party-looking page is authoritative about intent, not correctness. ▸ Dates are Melbourne instants carrying a real start time and must be read in Melbourne; in UTC a 7pm gig becomes 9am and a midday lunch becomes 2am. ▸ One product is one row: a naive import is 556 rows for 119 things, because an exhibition carries 93 dates and Dinos at the Zoo carries 258. A consecutive run becomes starts_on + ends_on, weekly and fortnightly become a recurrence, and an irregular set keeps its dates in source_note with no recurrence claimed. ▸ THE VENUE IS ON THE PRODUCT PAGE and nowhere else — a server-rendered “Find Us” block with the venue’s name, street and suburb. The index has none and the JSON-LD has none, which is why 114 rows arrived with no venue, no place and no pin: nobody had read the page. The scraper reads it now and looks the name up in the same registry the venue scraper uses — every place’s name plus every alias, then each part of a name split on a dash or a comma, because “Geelong Arts Centre - The Story House” is one room wearing a programme. It will NOT create a place: a room needs a geocode and a person, and an unmatched venue is printed with its address and kept as free text on the event instead. ▸ It was on NO schedule until 2 Sep 2026 — this note said Mon & Thu from the day it was written and the Action had never heard of the script. All 114 rows came from one hand-run on 1 Sep. It is a step in the workflow now. ▸ The Algolia key is the public search-only one published in the site\u2019s HTML — it can be rotated without notice, and the run says so plainly rather than reading as a region with nothing on.'},
+  {name:'Parks Victoria', host:null, src:'parks.vic.gov.au',
+   what:'What is closed in the parks',
+   how:'Reads the Change of Conditions block on thirteen park pages \u2014 Great Otway, the You Yangs, the Brisbane Ranges, the marine sanctuaries, Serendip, Steiglitz, Werribee Gorge and Werribee Park \u2014 and keeps the park_notices table in step. There is no feed and no API behind those pages. It writes NOTICES, never listings: a notice attaches to a listing only by an exact name match on the site it names, or a hand line in the script.',
+   auto:'full',
+   note:'Added 8 Sep 2026, on the Mon/Thu schedule. THE WORDING RULE, decided with Scott: Parks Victoria publishes no licence statement anywhere, so its text is State copyright by default; a closure is a fact and a fact with a link is not a copyright question, a paragraph copied onto another site is. The board prints the notice\u2019s title and a link to the park page and nothing else of theirs. Their paragraph is stored for this page only, so a person can read what the notice actually says. \u25b8 A notice that has gone from a page that was READ is marked inactive, never deleted; a park page that did not answer leaves its notices as they were. \u25b8 Sub-pages under a park inherit the park page\u2019s block verbatim (checked on Lake Elizabeth and Big Hill), so reading the park page once is the whole of it. \u25b8 A missing slug answers 200 with the site\u2019s generic page, so the test is whether the block parses, never the status code. \u25b8 Park-wide notices (\u201cWye Road Closure\u201d filed under the whole of Great Otway) attach to nothing on purpose and are listed every run \u2014 guessing which rows a road closure touches is the fault this project refuses everywhere else. The Conditions tab shows the live table.'},
   {name:'Moshtix', host:'moshtix', what:'Ticketing platform',
    how:'Read from the venue page\u2019s own schema.org, not by following its ticket links.',
    auto:'full',
@@ -4617,7 +4622,18 @@ const LABEL = {
 
 const dig = (o, path) => path.split('.').reduce((x, k) => (x == null ? x : x[k]), o);
 
+/* The park notices live in the DATABASE, written Mon & Thu, not in the
+   function \u2014 they move over weeks. Read here with the anon key like every
+   other table, and drawn on the Conditions tab beside the live readings so
+   the two kinds of \u201cwhat is happening outside\u201d sit on one screen. */
+let PARKN = null;
+async function loadParkNotices(){
+  try { PARKN = await sb('park_notices?select=*&order=active.desc,park_name.asc,title.asc'); }
+  catch (e) { PARKN = {error: String(e.message || e)}; }
+  if (COND) drawConditions();
+}
 async function loadConditions(){
+  loadParkNotices();
   const msg = $('#condmsg');
   msg.textContent = 'reading…';
   const bust = $('#condbust')?.checked;
@@ -5099,6 +5115,7 @@ function drawConditions(){
     beachTable(d) +
     tideBlock(d) + burnsBlock(d) +
     plannedBlock(d) +
+    parkNoticesBlock() +
     rulesBlock(d) +
     fireBlock(d) + riverBlock(d) +
     '</div>' + footNote(d);
@@ -5351,6 +5368,40 @@ function riverBlock(d){
         rainfall at Deans Marsh — the inland side of the range, where the water
         that comes over Erskine actually falls.</p>
     </div>`);
+}
+
+/* What Parks Victoria says is closed. From the park_notices table, which the
+   Mon/Thu run keeps in step with thirteen park pages. Their paragraph is
+   shown HERE, to a person, and nowhere public. */
+function parkNoticesBlock(){
+  if (!PARKN) return box('Park notices', 'Reading the park_notices table\u2026', '');
+  if (PARKN.error) return box('Park notices',
+    `Could not read the park_notices table: ${esc(PARKN.error)}. If the table does not exist yet, run supabase/PARK_NOTICES.sql in the SQL editor.`, '');
+  const live = PARKN.filter(n => n.active), gone = PARKN.filter(n => !n.active);
+  const acts = new Map(DATA.activities.map(a => [a.id, a.name]));
+  const row = n => {
+    const who = (n.activity_ids || []).map(id =>
+      `<a href="#" data-open-activity="${id}">${esc(acts.get(id) || 'a' + id)}</a>`).join(', ');
+    return `<tr${n.active ? '' : ' style="opacity:.55"'}>
+      <td><b style="display:block;letter-spacing:0;text-transform:none;font-size:13px;color:var(--ink)">${esc(n.title)}</b>
+          <span class="tm2">${esc(n.site || '')}</span></td>
+      <td><a href="${esc(n.park_url)}" target="_blank" rel="noopener">${esc(n.park_name)}</a></td>
+      <td>${n.until ? esc(dmy(n.until)) : '<span style="color:var(--ink3)">not stated</span>'}</td>
+      <td>${who || '<span style="color:var(--bad)">none \u2014 park-wide, or no row by that name</span>'}</td>
+      <td class="num" title="first seen ${esc(dmy(n.first_seen))}">${esc(dmy(n.last_seen))}</td>
+      <td class="cap" style="max-width:360px;white-space:normal;font-size:12px;color:var(--ink3)">${esc((n.body || '').slice(0, 420))}${(n.body || '').length > 420 ? '\u2026' : ''}</td></tr>`;
+  };
+  return box('Park notices \u2014 what Parks Victoria says is closed',
+    `<b>${live.length} current</b>${gone.length ? `, ${gone.length} ended and kept` : ''}. ` +
+    'From the park_notices table, kept in step with thirteen park pages by the Mon &amp; Thu run. ' +
+    'The board prints the <b>title and a link</b> and nothing else of theirs; the paragraph in the ' +
+    'last column is for you. <b>Until</b> is only filled where the text states a date plainly. ' +
+    '<b>Attached to</b> is an exact name match on the site the notice names \u2014 a park-wide ' +
+    'notice attaches to nothing and is the worklist.',
+    `<div class="scrollbox"><table><thead><tr><th>Notice</th><th>Park</th><th>Until</th>
+      <th>Attached to</th><th>Last seen</th><th>What it says (back office only)</th></tr></thead>
+      <tbody>${live.map(row).join('')}${gone.map(row).join('')}</tbody></table></div>`,
+    true, '<a href="https://www.parks.vic.gov.au/" target="_blank" rel="noopener">Parks Victoria</a><span class="dot">\u00b7</span>Change of Conditions, thirteen park pages<span class="dot">\u00b7</span>no licence statement published \u2014 title and link only');
 }
 
 /* A status that asks for a person and does not say what they should do is a

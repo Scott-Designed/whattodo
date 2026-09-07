@@ -7085,6 +7085,76 @@ by hand — $20 single visit or $70 two-year key, over 18, a car, an online
 induction — and is **closed to birdwatchers since mid-August 2026 for H5**
 with no reopening date. Not in the database under any name.
 
+## Park notices — what Parks Victoria says is closed, 8 Sep 2026
+
+Scott, on the source pass listing Parks Victoria among the licence questions:
+*"What r u waiting on me for this?"* Nothing that should have blocked it,
+and the exchange settled the rule that made it buildable.
+
+**The wording rule.** parks.vic.gov.au publishes no licence statement
+anywhere — `/copyright`, `/disclaimer`, `/about-us/copyright` all 404 — so its
+text is State copyright by default. **A closure is a fact, and a fact with a
+link is not a copyright question; a paragraph copied onto another site is.**
+So the board prints the notice's **title and a link to the park page** and
+nothing else of theirs. Their paragraph is stored for the back office only,
+where a person reads what the notice actually says.
+
+    supabase/PARK_NOTICES.sql     the table, anon-readable, service-key-only writes
+    scripts/scrape_parks.py       thirteen park pages -> park_notices, Mon & Thu
+    run_log.py read_parks         its own state, the rule this file keeps
+    /admin -> Conditions          "Park notices" block, with their paragraph
+    index.html                    a "Parks Victoria notice" line in the open row
+
+**Thirteen park pages, read from the site's own sitemap** (466 park URLs):
+Great Otway, the You Yangs, the Brisbane Ranges, Point Addis, Serendip, the
+five marine sanctuaries and Port Phillip Heads, Steiglitz, Werribee Gorge and
+Werribee Park. Point Cook is Melbourne and is left out. **Sub-pages inherit
+the park page's block verbatim** — Lake Elizabeth and Big Hill both carry the
+Otway page's three items — so the park page once is the whole of it.
+
+**First run, 8 Sep 2026: 6 notices, 3 attached to a listing.** Aire River
+West and East campgrounds (closed to 25 Sep 2026, a date the text states
+plainly) attached to a667 and a668 by exact name; Barwon Bluff's cliff
+hazard to a564. **Three attach to nothing and that is correct**: "Wye Road
+Closure" is filed under the whole of Great Otway, Serendip's construction
+notice under "Notices Affecting Multiple Sites", and Werribee Gorge's
+Centenary Walk has no row. **Attachment is an exact normalised name match on
+the site the notice names, or a hand line in `BY_SITE`** — never fuzzy, and
+never "every listing in the park", because a road closure inland of Wye
+River is not a fact about Wye River Beach. The run lists the unattached
+ones every time; that is the worklist.
+
+**`until` is filled only where the body states one date plainly** ("closed
+from 29 May to 25 September 2026"). "Until the end of winter" is null. Two
+different dates in one body is null and a person's job.
+
+**A notice that has gone from a page that was READ is marked inactive, never
+deleted.** A park page that did not answer leaves its notices exactly as they
+were — silence from a server says nothing about what it would have shown.
+Idempotent on `key = sha1(park, site, title)`: the second run wrote 0 new
+and refreshed 6. The body, the date and the attachments are rewritten every
+run, because the page is the truth and no person's judgement lives on that
+row.
+
+**A missing slug answers 200 with the site's generic page**, so the test is
+whether the notices block parses, never the status code — three guessed
+slugs did exactly that during the build.
+
+**The board waits on nothing for this.** `loadNotices()` in `notice-data.js`
+returns an empty map on any failure, and the fetch rides alongside
+`loadRemote()` in one `Promise.all` — render() shuts every open row, so
+nothing may re-render once a reader is in the list. `place.html` and
+`type.html` do not print the line yet; `notice-page.js` has its own `row()`,
+the same gap as ON NOW and clustering.
+
+**Two silent ways this could go wrong later.** Parks Victoria renames a CSS
+class and every park reads as having nothing closed — the state would be
+`nothing`, green, and wrong. The scraper anchors on
+`change-of-conditions__item` and the `__subtitle` / `__title-text` classes;
+a run reading 13 parks and 0 notices while the Otway page plainly has some
+is the signature. And a park could be dropped from the sitemap without the
+list here changing — re-check the thirteen against it yearly.
+
 **Scott offered to work around eBird and king tides himself.** eBird needs a
 key tied to a personal account and its site refuses ClaudeBot, so the
 scheduled Action reads it and a session does not. King tides are the biggest

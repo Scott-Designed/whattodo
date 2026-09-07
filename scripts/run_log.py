@@ -271,6 +271,43 @@ def read_vgb(text):
     }
 
 
+def read_parks(text):
+    """What scrape_parks.py said.
+
+    Its own state, set here, because source_state() defaults to success and a
+    phrase it has never been taught comes out green — the rule this file
+    keeps. The script prints one summary line; `failed` in it means no park
+    page answered, and a partial read names the parks that did not.
+    """
+    read    = _int(r'^source parks\.vic\.gov\.au — (\d+) of \d+ parks read', text)
+    notices = _int(r'^source parks\.vic\.gov\.au — \d+ of \d+ parks read, (\d+) notices', text)
+    new     = _int(r'^source parks\.vic\.gov\.au — .*?, (\d+) new', text)
+    ended   = _int(r'^source parks\.vic\.gov\.au — .*?, (\d+) ended', text)
+    loose   = _int(r'^UNATTACHED — (\d+)', text)
+    bad     = bool(re.search(r'^source parks\.vic\.gov\.au — failed', text, re.M))
+    partial = bool(re.search(r'FAILED to read', text, re.M))
+    return {
+        'notices': notices,
+        'added':   new or 0,
+        'ended':   ended or 0,
+        'drift':   [],
+        'sources': [{
+            'name':  'parks.vic.gov.au',
+            'how':   (f'{read} park pages ({notices} notices, {new or 0} new)' if read
+                      else 'park pages'),
+            'hint':  ((f'{loose} notice(s) attach to no listing — park-wide, or no row '
+                       f'by that name; the run lists them') if loose else None)
+                     or ('some park pages did not answer — their notices were left as they were'
+                         if partial else None),
+            'state': 'failed' if bad else ('read' if notices else ('nothing' if read else 'failed')),
+            'via':   ['park pages'],
+            'own':   False,
+            'new':   new or 0,
+            'dupe':  0,
+        }],
+    }
+
+
 def step(name, script, out, rc, parse):
     """One scraper's leg of the run. Missing output is itself worth recording —
     it means the step never got to run, which the page should say out loud."""
@@ -299,6 +336,8 @@ def main():
              'library.txt', 'library.rc', read_library),
         step('Visit Geelong & The Bellarine', 'scrape_vgb.py',
              'vgb.txt', 'vgb.rc', read_vgb),
+        step('Parks Victoria notices', 'scrape_parks.py',
+             'parks.txt', 'parks.rc', read_parks),
     ]
 
     record = {

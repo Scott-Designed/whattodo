@@ -435,6 +435,8 @@ body.sheetopen{overflow:hidden}
 .dl{margin:0;font-family:var(--util);font-size:12px;line-height:1.75;color:var(--ink3)}
 .dl b{display:block;font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:10px;color:var(--ink3);margin-bottom:5px}
 .dl span{color:var(--ink2)}
+.dl.notice{padding-left:10px;border-left:2px solid var(--ink3)}
+.dl.notice a{color:inherit}
 .links{display:flex;flex-wrap:wrap;gap:22px;margin-top:6px}
 /* One thing in several places: the branches, under the description in the open
    row. Each keeps its own link and its own directions — collapsing the line
@@ -1196,6 +1198,11 @@ document.getElementById('f-export').addEventListener('click',async()=>{
 });
 
 let ALL=[], LIVE=null;
+/* activity id -> Parks Victoria notices attached to it. See loadNotices. */
+let NOTICES={};
+/* A stored date is a DAY, so it is split, never parsed — the nextDate lesson. */
+const dayLabel=iso=>{ const [y,m,d]=String(iso).split('-').map(Number);
+  return d+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]+' '+y; };
 function rebuild(){
   const base = LIVE ? LIVE
     : [...DATA.activities.map(a=>({...a,ev:false})), ...DATA.events.map(e=>({...e,ev:true}))];
@@ -1501,6 +1508,7 @@ function render(){
         </div>
         <div>
           ${!many&&addressOf(i)?`<p class="dl"><b>Address</b><span>${esc(addressOf(i))}</span></p>`:''}
+          ${!i.ev&&(NOTICES[i.id]||[]).map(n=>`<p class="dl notice"><b>Parks Victoria notice</b><span>${esc(n.title)}${n.until?` \u2014 until ${esc(dayLabel(n.until))}`:''} \u00b7 <a href="${esc(n.park_url)}" target="_blank" rel="noopener">read it at ${esc(n.park_name)}</a></span></p>`).join('')}
           ${i.notes?`<p class="dl"><b>Good to know</b><span>${esc(i.notes)}</span></p>`:''}
           ${(i.cond||[]).length?`<p class="dl"><b>Best conditions</b><span>${esc(i.cond.join(', '))}</span></p>`:''}
           ${(i.ages||[]).length?`<p class="dl"><b>Suits</b><span>${esc(i.ages.join(', '))}</span></p>`:''}
@@ -2017,7 +2025,10 @@ render();
   /* The `live` / `offline copy` badge left the page with the date line, so
      the state is on <body> now — nothing draws it, but it is there to read. */
   if(!REMOTE){ document.body.dataset.src='built-in copy'; return; }
-  const rows=await loadRemote();
+  /* Notices ride alongside the rows rather than after them: render() shuts
+     every open row, so nothing may re-render once a reader is in the list. */
+  const [rows, notes]=await Promise.all([loadRemote(), loadNotices()]);
+  NOTICES=notes||{};
   if(rows){ LIVE=rows; rebuild(); refreshFacets(); render(); document.body.dataset.src='live'; }
   else document.body.dataset.src='offline copy';
 })();

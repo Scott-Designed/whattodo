@@ -77,6 +77,22 @@ async function fetchAll(path){
   }
 }
 
+/* What Parks Victoria says is closed, keyed by the activity id it attaches
+   to. Written by scripts/scrape_parks.py on the Mon/Thu run; the board prints
+   a notice's title and a link to the park page and nothing else of theirs —
+   see supabase/PARK_NOTICES.sql for the wording rule. An empty map on any
+   failure: a notice is a line inside an open row, and the board must never
+   wait on it or blank because of it. */
+async function loadNotices(){
+  if(!REMOTE) return {};
+  try{
+    const rows = await fetchAll('park_notices?select=id,title,site,park_name,park_url,until,activity_ids&active=is.true');
+    const m = {};
+    for(const n of (rows || [])) for(const id of (n.activity_ids || [])) (m[id] = m[id] || []).push(n);
+    return m;
+  }catch(e){ return {}; }
+}
+
 async function loadRemote(){
   if(!REMOTE) return null;
   try{

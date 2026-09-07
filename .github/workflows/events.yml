@@ -118,6 +118,21 @@ jobs:
           echo "$?" > vgb.rc
           exit 0
 
+      # Parks Victoria's Change of Conditions — what is closed in the parks.
+      # Thirteen park pages, no feed behind them. Added 8 Sep 2026. Writes the
+      # park_notices table, never a listing; the board prints a title and a
+      # link and nothing else of theirs (see supabase/PARK_NOTICES.sql).
+      - name: Read Parks Victoria's park notices
+        if: always()
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set +e -o pipefail
+          python3 scripts/scrape_parks.py --write 2>&1 | tee parks.txt
+          echo "$?" > parks.rc
+          exit 0
+
       # The job summary below is a page on github.com nobody visits. This is the
       # same information written into the repo, where the back-of-house page can
       # read it off raw.githubusercontent.com without a token or a redeploy.
@@ -144,6 +159,10 @@ jobs:
             echo '## Visit Geelong & The Bellarine'
             echo '```'
             cat vgb.txt 2>/dev/null || echo 'produced nothing — check the step above'
+            echo '```'
+            echo '## Parks Victoria notices'
+            echo '```'
+            cat parks.txt 2>/dev/null || echo 'produced nothing — check the step above'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -190,5 +209,6 @@ jobs:
           rc2=$(cat venues.rc  2>/dev/null || echo 1)
           rc3=$(cat library.rc 2>/dev/null || echo 1)
           rc4=$(cat vgb.rc     2>/dev/null || echo 1)
-          echo "scrape_events.py exited $rc1, scrape_venues.py exited $rc2, scrape_library.py exited $rc3, scrape_vgb.py exited $rc4"
-          [ "$rc1" = 0 ] && [ "$rc2" = 0 ] && [ "$rc3" = 0 ] && [ "$rc4" = 0 ]
+          rc5=$(cat parks.rc   2>/dev/null || echo 1)
+          echo "scrape_events.py exited $rc1, scrape_venues.py exited $rc2, scrape_library.py exited $rc3, scrape_vgb.py exited $rc4, scrape_parks.py exited $rc5"
+          [ "$rc1" = 0 ] && [ "$rc2" = 0 ] && [ "$rc3" = 0 ] && [ "$rc4" = 0 ] && [ "$rc5" = 0 ]
