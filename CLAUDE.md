@@ -7253,6 +7253,74 @@ phone renders it at 980px and every media query below that never fires. Measured
 before the fix, mobile emulation at 375px reported `clientWidth` 980 and the
 five-column plant strip stayed five columns.
 
+## The unpinned places — 33 → 21, geocoded 7 Sep 2026
+
+Scott: *"How many place IDs don't have a location on the map?"* then *"add
+geocoding to the places that don't have it."* 33 of 208 had no pin, and the
+split is the useful part, because only a third of them were a job:
+
+    interstate rooms from the speaker tour   12   Hobart, Perth, Sale, Horsham …  not ours, events already unpublished
+    groups and organisers with no premises    8   the three MTB clubs, SCEG, BCN, Book Club Social, Sewing Collective, Entertainment by Vin
+    outside the region                        1   Alexandra Park, Mornington (219)
+    local rooms, pinnable                     12   done, one by merging
+
+**Eleven pinned, every one reverse-geocoded before it was written**, and each
+row's `source_note` says what was matched:
+
+    107  Barwon Heads Hall            house 77 Hitchcock Ave
+    149  Mount Moriac Hotel           the named amenity=pub node
+    202  Founders & Co, Lara          the named restaurant node, house 77
+    205  Wannon Function Centre       house 331 Koroit St, Warrnambool
+    215  Boom Gallery                 house 41 Pakington St — see below
+    197  Ocean Grind                  house 2 Sawmills Way, Torquay — had NO address
+    144  Barwon Bluff carpark         OSM parking way at the end of Bluff Road
+    168  Yellow Gums                  the council's own published reserve coordinate
+    143  Wurdi Youang                 = place 128, a room inside The Dome
+    157  Shoestring Playhouse         = places 46/98, a room inside The MAC
+    158  The Blues Train              = place 141, it departs Queenscliff station
+
+**Three took another row's pin on purpose** (143, 157, 158): a room inside a
+building is at the building, and a train boards at its station. That is the
+HOOP-and-surfing-museum case, not a duplicate to nudge apart. 143 still wants
+the alias merge onto 128 — event 690 there duplicates 730 — and that stays
+Scott's call.
+
+**Boom Gallery's own schema.org `geo` points at its OLD address.** The site's
+text says it *"made the big move to Pakington Street"* from Rutland Street,
+Newtown, and prints 41 Pakington; its JSON-LD still carries the Rutland Street
+coordinate. A first-party page can be stale about itself — the GMBC lesson in a
+`geo` block. OSM's tenant at number 41 is *Rawson Interiors*, which is OSM
+being stale the other way; the house number is what was checked.
+
+**Ocean Grind (197) had no address, no suburb and no kind** — registered from
+/admin as an Eventbrite organiser with five upcoming events and nothing else.
+Its own organiser page gives every event's location as *2 Sawmills Way,
+Torquay*, so the venue's own listing supplied the address, and Nominatim
+matched the building. The generalisable check: **a place registered from a
+feed may carry nothing but a URL, and its events then have no pin however
+well the feed reads.**
+
+**Place 218 was a duplicate of 103 and was merged, not pinned.** *Centrepoint
+Arcade,Shop 15* at 132 Little Malop Street is the Creative Geelong Makers Hub's
+own address; the venue scraper created it on 6 Sep because 103's aliases did not
+carry that spelling. Nothing referenced it (checked both `place_id` columns);
+the name went onto 103's `aliases` in both spellings and 218 was deleted — the
+three-step merge, with the alias being the step that stops Thursday's run
+recreating it.
+
+**Point Lonsdale Dog Beach (91) is still null, now on a fourth attempt.**
+Nominatim has nothing for "Narrows Beach" or "Dog Beach" under any spelling,
+and an Overpass sweep of every `natural=beach` around Point Lonsdale returns
+three — *Point Lonsdale (Back) Surf*, *Front Beach*, and an unnamed Bing-traced
+one — none provably the dog beach. **Event 118 is the one upcoming event left
+off the map for want of a place pin.** Somebody who knows the beach could
+supply a coordinate, the parkrun way.
+
+**Upcoming events on an unpinned place: 12 → 1.** The bigger number is
+unchanged and is the next job: **270 of 958 events carry no `place_id` at
+all**, mostly the Coast & Bay and tourism-board imports holding their venue as
+free text — and 45 of those venues are listed with addresses every VGB run.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated
