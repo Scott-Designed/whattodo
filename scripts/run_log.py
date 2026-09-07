@@ -198,12 +198,16 @@ def read_library(text):
     weekly = _int(r'^\s+(\d+)\s+weekly ', text)
     added  = _int(r'^(\d+) added unverified', text)
     gone   = _int(r'^(\d+) recurring row\(s\) the feed no longer carries', text)
+    # "74 of 500 held back — 74 tagged Seniors" — the audience rules, 7 Sep
+    # 2026. A count over the whole feed, not the new rows; see scrape_library.
+    held   = _int(r'^(\d+) of \d+ held back', text)
     return {
         'occurrences': occ,
         'series':      series,
         'weekly':      weekly,
         'added':       added or 0,
         'stopped':     gone or 0,
+        'held_back':   held or 0,
         # Nothing here rewrites a verified row, so there is no drift to report.
         'drift':       [],
         'sources': [{

@@ -2094,6 +2094,75 @@ one line saying *5 libraries*. Keying on the effective date rather than
 mechanisms were built for each other. 22 series in the live window share a name,
 weekday and time across branches (Toddler Time, Mon 10:30, five branches).
 
+### Not everything the library runs belongs here — the audience rules, 7 Sep 2026
+
+Scott: *"is there a way in the geelong library scrapers to not include events
+that are aimed at seniors"*, then *"if an event is during the day, monday to
+friday, and tagged youth, it can be deleted as well as youth will be at school"*.
+
+**The library tags every event with an audience and the feed filters on it —
+the tag is just not printed in the iCal.** Nothing in a VEVENT says "Seniors",
+which is why a grep of 382 grlc rows and 500 feed items for seniors, older,
+retire, U3A found nothing. Asking the feed with `ages: ["Seniors"]` instead of
+`["all"]` returns exactly that set. Measured on 500 events:
+
+    Adults 214   Children 88   Seniors 74   Youth 61   untagged 156
+
+**An unknown tag answers ONE event, not zero** — `["nonsense-value"]` came back
+with 1, the same as `["seniors"]` in lower case. That is the sentinel, and
+`audiences()` treats a tag returning ≤1 as *renamed* and holds nothing back on
+it, with a warning: fail open, because a tag that quietly stopped matching
+would otherwise read as "no seniors' events this week".
+
+**The two rules are deliberately different shapes, and the data decided it:**
+
+- **Seniors goes whatever else it is tagged.** 64 of the 74 are also Adults
+  (Makerspace hours, tech help, knitting circles, chair yoga); only the ten
+  Leopold hearing checks are Seniors alone. Scott's cut is "aimed at
+  seniors", so the generous tag is the one that applies.
+- **Youth goes only when it is the ONLY tag, on a school day, before 3:30pm.**
+  Every term-time weekday-daytime Youth event in the window was also tagged
+  Adults or Children — *Employment and Career Advice* at 1pm is an adults'
+  session the library thinks a teenager might use, and *Homeschool: Social
+  Group* at 10:30 on a Tuesday is tagged Children and in school hours on
+  purpose. And **23 of the 36 daytime Youth events fall in the September
+  school holidays** — the badge-making and photography program — which a bare
+  "weekday, daytime, Youth" rule would have thrown away. So the rule reads
+  the Victorian term dates. Today it holds back zero; it is a gate for term
+  time, not a sweep.
+
+`TERMS` in `scrape_library.py` carries 2026–2028 off vic.gov.au, **with the
+printed weekday as the checksum** — `_term_dates()` parses `'Fri 18 Sep'` and
+a typo refutes itself at import. A year not in the table switches the youth
+rule OFF for those dates and the run says so; add the next year from the same
+page. **Public holidays inside a term are NOT in it** — business.vic.gov.au
+answers 403 to an automated read — so a youth-only session on Melbourne Cup
+Tuesday is held back wrongly and shows in the report, which is where a person
+sees it. Three weekdays a year.
+
+**The report describes the feed, not the new rows.** The first version
+printed *0 held back* on a feed holding 74 Seniors events, because every one
+was already in the database or the ledger. It now says
+`74 of 500 held back — 74 tagged Seniors (0 of them new this run)` and lists
+them, every run; `run_log.py` reads that count as `held_back`. Held-back UIDs
+are **never written to the seen ledger**, so changing the rule changes what is
+offered on the next run with nothing to un-remember.
+
+**`--sweep` is the other half, and it is Scott's to run.** The rules gate what
+arrives; 46 rows the feed wrote before they existed — 37 published — were
+still on the board, and a series row from before the window has UIDs the feed
+no longer knows, which the sweep reads as *unknown*, not *honest* (the first
+draft read them as honest and missed 13 weekly seniors' rows). Dry run by
+default, `--sweep --write` deletes, **off the schedule on purpose** so the
+Action never deletes. The delete was blocked from a Claude session on 7 Sep
+2026, so as at that date the 46 are still there:
+
+    python3 scripts/scrape_library.py --sweep --write
+
+**`Employment and Career Advice` (283) is reported as a series the feed no
+longer carries.** Unrelated to this change; it is Youth + Adults and was never
+held back. `--expire` is the tool, still Scott's call.
+
 ### On the Mon/Thu schedule since 31 Aug 2026
 
 `.github/workflows/events.yml` runs it third, so the **Run the scrapers now**

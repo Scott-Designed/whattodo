@@ -6,6 +6,12 @@
     python3 scripts/scrape_library.py --branches  # just the branch/place audit
     python3 scripts/scrape_library.py --expire    # stand down series the feed has dropped
     python3 scripts/scrape_library.py --collapse  # fold rows imported one-per-occurrence
+    python3 scripts/scrape_library.py --sweep     # rows already here the audience rules would drop
+
+**Not everything the library runs belongs on this board.** Anything tagged
+Seniors, and anything tagged ONLY Youth that runs in school hours on a school
+day, is held back — see AGE_TAGS and the notes beside it. The tag is not in the
+iCal; it is asked for by fetching the feed once per audience.
 
 **Read the iCal feed, never the RSS one.** Both come off the same endpoint and
 only the `feedType` in the base64 payload differs, but they are not equivalent:
@@ -58,11 +64,12 @@ SEEN_NOTE = ('Event UIDs already offered by scrape_library.py. Delete a line to 
              'be offered it again.')
 CAP = 8_000_000
 
-def feed_url(days=90):
+def feed_url(days=90, ages=None):
     """The payload is base64 JSON. `days` is relative, so this URL never goes
-    stale — there is no absolute date in it to expire."""
+    stale — there is no absolute date in it to expire. `ages` is one of the
+    site's own audience tags (see AGE_TAGS); None is everything."""
     p = {"feedType": "ical",
-         "filters": {"location": ["all"], "ages": ["all"], "types": ["all"],
+         "filters": {"location": ["all"], "ages": [ages or "all"], "types": ["all"],
                      "tags": [], "term": "", "days": days}}
     blob = base64.b64encode(json.dumps(p, separators=(',', ':')).encode()).decode()
     return f'https://{SOURCE}/feeds?data={blob}'
@@ -102,6 +109,87 @@ def types_for(title):
         if re.search(pat, t):
             return types
     return []
+
+# ── who an event is for ─────────────────────────────────────────────────────
+# The library tags every event with an audience and the feed filters on it —
+# but the tag is NOT printed in the iCal, so nothing in a VEVENT says "Seniors".
+# Measured 7 Sep 2026 on 500 events: Adults 214, Children 88, Seniors 74,
+# Youth 61, untagged 156. An unknown tag answers ONE event rather than zero, so
+# a renamed tag would read as "nothing to hold back" — audiences() checks for
+# that and fails OPEN (nothing held back, and it says so).
+#
+# Scott, 7 Sep 2026: seniors' events are not for this board, and a youth event
+# in school hours on a school day is not either — youth will be at school.
+#
+# The tags are generous: 64 of the 74 Seniors events are also tagged Adults
+# (makerspace hours, tech help, knitting), and every term-time weekday-daytime
+# Youth event was also tagged Adults or Children. So the two rules differ on
+# purpose: Seniors goes WHATEVER ELSE it is tagged; Youth goes only when it is
+# the ONLY tag, because "Youth + Adults" at 2pm on a Tuesday is an adults'
+# session the library thinks a teenager might also like.
+AGE_TAGS          = ['Adults', 'Children', 'Seniors', 'Youth']
+EXCLUDE_AGES      = {'Seniors'}   # held back whatever else it is tagged
+SCHOOL_HOURS_AGES = {'Youth'}     # held back when this is the ONLY tag and school is in
+SCHOOL_END        = (15, 30)      # a start before this on a school day is in school hours
+
+# Victorian school terms, read off vic.gov.au/school-term-dates-and-holidays-victoria
+# on 7 Sep 2026, printed weekdays and all. A year not in this table is treated
+# as NOT school, so the rule fails open (the event is offered) and main() says
+# so. Public holidays inside a term are NOT here — business.vic.gov.au answers
+# 403 to an automated read — so a youth-only session on Melbourne Cup Tuesday
+# is held back wrongly and shows in the report, which is where a person sees it.
+TERMS = {
+    2026: [('Tue 27 Jan', 'Thu 2 Apr'), ('Mon 20 Apr', 'Fri 26 Jun'),
+           ('Mon 13 Jul', 'Fri 18 Sep'), ('Mon 5 Oct', 'Fri 18 Dec')],
+    2027: [('Wed 27 Jan', 'Thu 25 Mar'), ('Mon 12 Apr', 'Fri 25 Jun'),
+           ('Mon 12 Jul', 'Fri 17 Sep'), ('Mon 4 Oct', 'Fri 17 Dec')],
+    2028: [('Thu 27 Jan', 'Fri 31 Mar'), ('Tue 18 Apr', 'Fri 30 Jun'),
+           ('Mon 17 Jul', 'Fri 22 Sep'), ('Mon 9 Oct', 'Thu 21 Dec')],
+}
+def _term_dates():
+    """The printed weekday is the checksum — the same rule scrape_venues.py
+    applies to a venue's own listing. A typo in the table refutes itself here."""
+    out = {}
+    for yr, terms in TERMS.items():
+        out[yr] = []
+        for a, b in terms:
+            pair = []
+            for s in (a, b):
+                d = datetime.datetime.strptime(f'{s} {yr}', '%a %d %b %Y').date()
+                pair.append(d)
+            out[yr].append(tuple(pair))
+    return out
+TERM_DATES = _term_dates()
+
+def school_day(d):
+    """True on a weekday inside a Victorian term. None when the year is not in
+    TERMS, which the caller treats as 'not school' and reports."""
+    if d.year not in TERM_DATES: return None
+    return d.weekday() < 5 and any(a <= d <= b for a, b in TERM_DATES[d.year])
+
+def audiences(fetch=None):
+    """uid -> the set of audience tags the library put on it. One feed request
+    per tag. A tag the site no longer knows answers 1 event, not 0 — that is
+    the sentinel, and such a tag is dropped from the map with a warning rather
+    than silently holding back nothing."""
+    fetch = fetch or (lambda tag: E.fetch(feed_url(ages=tag), cap=CAP, timeout=45))
+    tags, broken = collections.defaultdict(set), []
+    for tag in AGE_TAGS:
+        evs = parse(fetch(tag) or '')
+        if len(evs) <= 1:
+            broken.append(tag); continue
+        for e in evs: tags[e['uid']].add(tag)
+    return tags, broken
+
+def held_back(e, tags):
+    """Why this occurrence is not offered, or None."""
+    if tags & EXCLUDE_AGES:
+        return 'tagged ' + ', '.join(sorted(tags & EXCLUDE_AGES))
+    if tags and tags <= SCHOOL_HOURS_AGES:
+        d = e['start']
+        if school_day(d.date()) and (d.hour, d.minute) < SCHOOL_END:
+            return 'youth-only, in school hours'
+    return None
 
 def unfold(text):
     """RFC5545 folds long lines with a leading space. Unfold before parsing or
@@ -227,7 +315,7 @@ def note_single(e, day):
 # a migration and `--collapse` can tidy up afterwards at leisure.
 def read_rows():
     rows = E.db('GET', '/rest/v1/events?select=id,name,starts_on,time_text,'
-                'recurrence,verified,info_url,source_note&added_by=eq.grlc',
+                'recurrence,verified,published,info_url,source_note&added_by=eq.grlc',
                 all_rows=True)
     by_uid, by_key = {}, {}
     for r in rows:
@@ -242,6 +330,35 @@ def read_rows():
                 by_uid[u.strip()] = r
     return rows, by_uid, by_key
 
+def sweep(rows, by_uid, why, today, a):
+    """Rows this feed wrote before the audience rules existed, that the rules
+    would hold back now. A row is named only when every UID it carries THAT THE
+    FEED STILL KNOWS is held back, and it carries at least one — a weekly series
+    row lists members from before the 21-day window, and those are unknowable,
+    not honest. The first version read them as honest and left 13 seniors'
+    series rows standing. Dry run by default. Off the schedule on purpose: the
+    Action must never delete."""
+    doomed = []
+    for r in rows:
+        uids = [u for u, row in by_uid.items() if row is r and u in why]
+        reasons = {why[u] for u in uids}
+        if uids and None not in reasons:
+            doomed.append((r, ', '.join(sorted(reasons)), len(uids)))
+    print(f"\n{len(doomed)} grlc row(s) already here would be held back today "
+          f"({sum(1 for r, _, _ in doomed if r.get('verified'))} verified, "
+          f"{sum(1 for r, _, _ in doomed if r.get('published'))} published)")
+    for r, reason, n in sorted(doomed, key=lambda x: (x[1], x[0]['starts_on'] or '')):
+        print(f"   {r['id']:>5}  {'pub ' if r.get('published') else 'held'} "
+              f"{r['starts_on'] or '':<11} {r['name'][:40]:42} {reason}" + (f" x{n}" if n > 1 else ''))
+    if not a.write:
+        print("   --sweep --write deletes these. Nothing written.")
+        return
+    if not doomed: return
+    ids = ','.join(str(r['id']) for r, _, _ in doomed)
+    E.db('DELETE', f"/rest/v1/events?id=in.({ids})&added_by=eq.grlc", None,
+         {'Prefer': 'return=minimal'})
+    print(f"   deleted {len(doomed)}.")
+
 def main(argv):
     ap = argparse.ArgumentParser()
     ap.add_argument('--write',    action='store_true', help='insert the new ones, unverified')
@@ -252,6 +369,9 @@ def main(argv):
                     help='stand down series the feed has stopped carrying')
     ap.add_argument('--force',    action='store_true',
                     help='let --collapse delete verified rows')
+    ap.add_argument('--sweep',    action='store_true',
+                    help='list grlc rows already here that the audience rules would hold '
+                         'back today; with --write, delete them. NOT on the schedule.')
     a = ap.parse_args(argv)
 
     # This was missing: the file only ever ran where SUPABASE_* was already
@@ -271,6 +391,24 @@ def main(argv):
     print(f"\n{SOURCE} — {today}")
     days = sorted({e['start'].date() for e in evs})
     print(f"  {len(evs)} events, {days[0]} → {days[-1]} ({(days[-1]-days[0]).days} days ahead)")
+
+    # ── who each event is for ──
+    # Four more requests to the same host. The exclusion is recomputed from the
+    # feed every run and never written to the seen ledger, so changing the rule
+    # changes what is offered on the next run, and a held-back event is listed
+    # every run rather than remembered — the same standing-report shape as
+    # ALREADY HERE FROM ANOTHER SOURCE.
+    aud, broken = audiences()
+    if broken:
+        print(f"  WARNING: the feed no longer answers for audience tag(s) "
+              f"{', '.join(broken)} — nothing is held back on those. Check the "
+              f"site's own age filter for the new wording and update AGE_TAGS.")
+    if {d.year for d in days} - set(TERM_DATES):
+        print(f"  WARNING: TERMS has no entry for "
+              f"{sorted({d.year for d in days} - set(TERM_DATES))} — the youth "
+              f"school-hours rule is off for those dates. Read the next year off "
+              f"vic.gov.au/school-term-dates-and-holidays-victoria.")
+    why = {e['uid']: held_back(e, aud.get(e['uid'], set())) for e in evs}
 
     # ── the branches, and which have a place row ──
     places = {p['name'].lower(): p for p in
@@ -328,6 +466,38 @@ def main(argv):
     fresh_rep = [s for s in repeat  if not known(s) and not offered(s)]
     fresh_one = [e for s in singles for e in s['evs']
                  if e['uid'] not in by_uid and e['uid'] not in seen]
+
+    # ── not for this board ──
+    # Reported over EVERYTHING the feed carries, not only what is new — the
+    # first version counted the fresh ones and printed "0 held back" on a feed
+    # holding 74 Seniors events, because every one was already in the database
+    # or the ledger. A standing report has to describe the feed, then say how
+    # many of those this run would otherwise have offered.
+    #
+    # A series is held back if ANY member is: the library tags a standing
+    # session once, so its members agree, and a series half in and half out
+    # would be a tagging fault worth seeing rather than a row worth writing.
+    # `ser`/`live` above are built from everything, so an excluded series
+    # already in the database is not reported as "no longer carried" and
+    # --expire leaves it alone; --sweep is the way to remove those.
+    def reason_s(s):
+        return next((why[x['uid']] for x in s['evs'] if why[x['uid']]), None)
+    back = [(reason_s(s), s['evs'][0], len(s['evs'])) for s in ser if reason_s(s)]
+    n_back = sum(n for _, _, n in back)
+    by_why = collections.Counter()
+    for r, _, n in back: by_why[r] += n
+    was_new = (sum(len(s['evs']) for s in fresh_rep if reason_s(s))
+               + sum(1 for e in fresh_one if why[e['uid']]))
+    fresh_rep = [s for s in fresh_rep if not reason_s(s)]
+    fresh_one = [e for e in fresh_one if not why[e['uid']]]
+    print(f"\n{n_back} of {len(evs)} held back — "
+          + (', '.join(f'{n} {r}' for r, n in by_why.most_common()) if back
+             else 'nothing tagged for seniors or youth-only in school hours')
+          + (f" ({was_new} of them new this run)" if back else ''))
+    for r, e, n in sorted(back, key=lambda x: (x[0], x[1]['title'], x[1]['start']))[:20]:
+        print(f"   {r:<30} {WEEKDAY[e['start'].weekday()]} {e['start'].date()} {time_text(e):<12} "
+              f"{e['title'][:34]:36} {e['branch'][:22]:24}" + (f" x{n}" if n > 1 else ''))
+    if len(back) > 20: print(f"   … and {len(back)-20} more series")
 
     # ── does anybody ELSE already have this night ──
     # read_rows() reads `added_by=eq.grlc` because it answers a different
@@ -406,6 +576,9 @@ def main(argv):
             print(f"   {r['id']:>4}  {r['name'][:44]:46} {r.get('recurrence')} "
                   f"from {r.get('starts_on')}")
         print("   --expire stands these down (recurrence -> none; nothing deleted)")
+
+    if a.sweep:
+        return sweep(rows, by_uid, why, today, a)
 
     if not a.write and not a.expire:
         print(f"\nnothing written. --write to insert the {total} new one(s) as unverified.")
