@@ -334,6 +334,9 @@ body.sheetopen{overflow:hidden}
 .savebtn.on,.rowhead:hover .savebtn.on{opacity:1;filter:none}
 .savebtn:focus-visible{outline:2px solid var(--ink);outline-offset:-4px}
 @media (hover:none){.savebtn{opacity:.45}}
+/* The pin inside the open row: drawn on a phone, where the gutter pin is
+   not, and hidden on a desktop, which keeps the gutter one. */
+.savebtn.inrow{display:none}
 /* ── the press ──
    A pin goes into a board along its own needle, and the 📌 points down-left, so
    that is the direction this one travels. It shrinks as it goes in — going away
@@ -565,8 +568,13 @@ body.mapview .tbl{display:none}
      lane clear for it. */
   .rowline{grid-template-columns:20px 1fr;gap:3px 12px;min-height:0;align-items:start;
     padding:11px var(--gut) 11px var(--gut)}
-  .savebtn{top:auto;bottom:6px;height:30px}
-  .mob{padding-right:34px}
+  .rowhead>.savebtn{display:none}
+  .savebtn.inrow{display:inline-flex;align-items:center;gap:7px;position:static;width:auto;height:auto;
+    opacity:1;font-family:var(--serif);font-size:15px;line-height:1;color:var(--ink);
+    border:1px solid var(--rule2);border-radius:8px;padding:7px 12px 7px 10px}
+  .savebtn.inrow.on{border-color:var(--ink)}
+  .detail p{font-size:15px;line-height:1.55;margin-bottom:12px}
+  .links{gap:16px}
   /* the icon spans both lines, so it never sets the height of the first one —
      it did, and a one-line title sat further from its grey line than a two-line
      one. 20px slot, sitting on the title's 22px line. Scott, 7 Sep 2026. */
@@ -1457,7 +1465,7 @@ function render(){
       <div class="detail"><div class="detail-in">
         <div>
           <p>${i.desc?esc(i.desc):'<em style="color:var(--ink3)">No description yet.</em>'}</p>
-          ${many?`<ul class="branches">${g.map(x=>{
+          ${many?`<button class="savebtn inrow${kept?' on':''}" type="button" data-k="${sk}" aria-pressed="${kept}"><span class="glyph">\u{1F4CC}</span><span class="w">${kept?'Saved':'Save'}</span></button><ul class="branches">${g.map(x=>{
             const nm=String(x.place||'').trim()||townOf(x.loc)||'Somewhere';
             const tn=townOf(x.loc), href=x.info||x.ticket||(isMapLink(x.url)?'':x.url);
             /* Colac Library is in Colac — the town only earns its place when the
@@ -1468,6 +1476,7 @@ function render(){
               + (x.lat!=null?` <a class="dir" href="https://www.google.com/maps/dir/?api=1&destination=${x.lat},${x.lng}" target="_blank" rel="noopener">Directions</a>`:'')
               + `</li>`;
           }).join('')}</ul>`:`<div class="links">
+            <button class="savebtn inrow${kept?' on':''}" type="button" data-k="${sk}" aria-pressed="${kept}"><span class="glyph">\u{1F4CC}</span><span class="w">${kept?'Saved':'Save'}</span></button>
             ${i.url&&i.url!==i.info?`<a href="${esc(i.url)}" target="_blank" rel="noopener">${isMapLink(i.url)?'Open in Maps':'Website'}</a>`:''}
             ${i.info?`<a href="${esc(i.info)}" target="_blank" rel="noopener">More info</a>`:''}
             ${i.ticket?`<a href="${esc(i.ticket)}" target="_blank" rel="noopener">Tickets</a>`:''}
@@ -1848,11 +1857,18 @@ document.getElementById('rows').addEventListener('click',e=>{
   const ks=b.dataset.k.split(' ');
   const on=!ks.every(k=>SAVED.has(k));
   setSaved(ks,on);
-  b.classList.toggle('on',on);
-  b.closest('.rowhead').classList.toggle('saved',on);
-  b.setAttribute('aria-pressed',String(on));
+  /* two pins per row since 7 Sep 2026 — the gutter one and the one inside the
+     open row, which is the only one a phone shows — so both are kept in step */
+  const rec0=b.closest('.rec');
+  rec0.querySelector('.rowhead').classList.toggle('saved',on);
+  rec0.querySelectorAll('.savebtn').forEach(x=>{
+    x.classList.toggle('on',on);
+    x.setAttribute('aria-pressed',String(on));
+    const w=x.querySelector('.w'); if(w) w.textContent = on ? 'Saved' : 'Save';
+    if(x.hasAttribute('aria-label'))
+      x.setAttribute('aria-label', (on?'Saved: ':'Save: ')+x.getAttribute('aria-label').replace(/^Saved?: /,''));
+  });
   b.title = on ? 'Saved — click to remove' : 'Save this';
-  b.setAttribute('aria-label', (on?'Saved: ':'Save: ')+b.getAttribute('aria-label').replace(/^Saved?: /,''));
   syncSavedPill();
   /* restart the animation rather than add a class that is already there */
   b.classList.remove('press','unpress'); void b.offsetWidth;
