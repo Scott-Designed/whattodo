@@ -3636,7 +3636,15 @@ function focusPick(sel, view, table){
 function wirePick(sel, view, table){
   const root = $(sel);
   if (!root) return;
-  focusPick(sel, view, table);
+  /* Only a table that is SHOWING may claim the selection on a draw. Every
+     table is in the DOM at once and redrawAll() wires them all, so a bulk edit
+     from Review — which redraws Events, Listings and Locations on the way —
+     used to hand the selection to the first hidden table wired, which then
+     cleared it. Scott, 7 Sep 2026: "when I add a type they all get
+     deselected." The click path still calls focusPick, which is what keeps a
+     selection from crossing views. */
+  const section = root.closest('section');
+  if (!section || !section.hidden) focusPick(sel, view, table);
 
   const boxes = [...root.querySelectorAll('input[data-pick]')];
   boxes.forEach(b => {
