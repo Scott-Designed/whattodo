@@ -45,31 +45,12 @@ try{var t=localStorage.getItem('notice.theme');
 body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased}
 .page{padding:0 var(--pad) 120px}
 
-/* the title takes the row, the pill takes its right-hand end, and the date
-   line runs the full width underneath rather than being squeezed by the pill */
-header{padding:44px 0 40px;display:grid;grid-template-columns:minmax(0,1fr) auto;
-  align-items:start;column-gap:18px}
+/* the masthead is the board's name, centred, and nothing else — Scott,
+   7 Sep 2026. The date line, the live badge and the theme pill that used to
+   sit here are gone (the theme switcher is in the bar's menu now). */
+header{padding:44px 0 36px;text-align:center}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,6vw,76px);letter-spacing:-.025em;line-height:.95;margin:0}
-.srcbadge{font-family:var(--util);font-size:9.5px;font-weight:600;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--ink3);border:1px solid var(--rule2);padding:1px 6px;margin-left:10px}
-.sub{grid-column:1/-1;margin-top:14px;font-family:var(--util);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
 
-/* ── the theme pill, top right. The pin count that sat beside it is in the
-   bar now — see notice-nav.css. ── */
-.hdrbtns{grid-column:2;grid-row:1;justify-self:end;margin-top:9px;
-  display:flex;align-items:center;gap:10px}
-.modepill{
-  display:inline-flex;align-items:center;gap:9px;white-space:nowrap;
-  font-family:var(--util);font-size:12.5px;font-weight:600;letter-spacing:.06em;
-  color:var(--ink2);background:transparent;border:1px solid var(--rule2);
-  border-radius:999px;padding:8px 15px;cursor:pointer;
-}
-.modepill:hover{border-color:var(--ink);color:var(--ink)}
-/* The word rather than a sun-and-moon glyph. There are three states, which do
-   not reduce to two symbols, and a cycling icon button makes the reader guess
-   what the next press will do. */
-.modepill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
-.modepill b{font-weight:600;letter-spacing:.06em}
 
 /* ── controls: dropdowns only ── */
 .controls{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding-bottom:26px}
@@ -177,15 +158,8 @@ option{background:var(--ground);color:var(--ink)}
 .chip .x{font-size:13px;line-height:1;opacity:.7}
 .chip:hover .x{opacity:1}
 
-/* ── Add is a standing offer, not a filter ── */
-.addpill{
-  position:fixed;right:24px;bottom:24px;z-index:40;
-  font-family:var(--util);font-size:13px;font-weight:600;letter-spacing:.06em;
-  color:var(--ground);background:var(--ink);border:0;border-radius:999px;
-  padding:13px 22px;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.28);
-}
-.addpill:hover,.addpill[aria-expanded="true"]{background:var(--ink2)}
-.addpill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+/* The + Add button came off both sizes on 7 Sep 2026 (Scott). The panel it
+   opened is still in the markup below, with nothing pointing at it. */
 
 /* ── the filter sheet (phones) ── */
 .filterbtn{display:none}
@@ -212,8 +186,14 @@ option{background:var(--ground);color:var(--ink)}
   color:var(--ground);background:var(--ink);border:0;border-radius:999px;padding:13px 22px;cursor:pointer}
 .sheetdone:focus-visible,.sheetx:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 body.sheetopen{overflow:hidden}
-/* List / Map carry an icon on a phone and only the word on a desktop */
-.seg .vic{display:none}
+/* ── the view switcher: one button, naming the view you are NOT in ── */
+.viewbtn{display:inline-flex;align-items:center;gap:8px;font-family:var(--serif);font-size:16px;
+  line-height:1.2;padding:6px 15px 7px 13px;border:1px solid var(--rule2);border-radius:8px;
+  background:transparent;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.viewbtn:hover{color:var(--ink);border-color:var(--ink)}
+.viewbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.viewbtn .vic{width:16px;height:16px;flex:none}
+.viewbtn .vic[hidden]{display:none}
 
 /* ── add panel ── */
 .addbtn{
@@ -469,13 +449,13 @@ body.sheetopen{overflow:hidden}
 .none{padding:80px 0;text-align:center;color:var(--ink3);font-size:20px}
 footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--rule);font-family:var(--util);font-size:11.5px;line-height:1.8;color:var(--ink3);max-width:78ch}
 
-/* ── list / map switch ── */
-.seg{display:flex;border:1px solid var(--rule2);width:max-content;max-width:100%}
+/* ── the When segment. 8px corners (Scott), so overflow clips the lit cell ── */
+.seg{display:flex;border:1px solid var(--rule2);border-radius:8px;overflow:hidden;width:max-content;max-width:100%}
 .seg button{font-family:var(--serif);font-size:16px;line-height:1.2;padding:6px 17px 7px;border:0;
   border-right:1px solid var(--rule2);background:transparent;color:var(--ink2);cursor:pointer}
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
-.seg button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.seg button:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
 
 /* ── map ── */
 #mapwrap{display:none}
@@ -551,7 +531,6 @@ body.mapview .tbl{display:none}
      with an icon, and a Filters button. Everything else is in the sheet.
      Before this, 535px of masthead and controls stood before the first row. */
   header{padding:18px 0 18px}
-  .sub{margin-top:10px}
   .controls{gap:10px 12px;padding-bottom:14px}
   select,input[type=search]{min-width:0;width:100%;font-size:16px}
   /* the When segment takes the width and splits it three ways. "Any time"
@@ -560,18 +539,22 @@ body.mapview .tbl{display:none}
   .controls .seg button{flex:1 1 0;padding:7px 2px 8px;font-size:15px;white-space:nowrap}
   #whenseg button[data-w="any"]{display:none}
   #morebtn,#more{display:none}
-  .filterbtn{display:inline-flex;align-items:center;gap:8px;margin-right:auto;
-    font-family:var(--util);font-size:13px;font-weight:600;letter-spacing:.04em;
-    color:var(--ink);background:transparent;border:1px solid var(--rule2);border-radius:999px;
-    padding:8px 14px 8px 12px;cursor:pointer}
-  .filterbtn svg{width:16px;height:16px}
-  .filterbtn b{font-weight:600;background:var(--ink);color:var(--ground);border-radius:999px;
-    min-width:18px;height:18px;display:grid;place-items:center;font-size:11px;padding:0 5px;margin-left:-2px}
+  /* the When chips take what is left of the row beside two circles — the view
+     switch and Filters — and drop to their own row when that is not enough */
+  .controls .seg#whenseg{width:auto;flex:1 1 220px}
+  .controls{gap:10px 8px}
+  /* on the narrowest phones the two circles drop to a row of their own
+     together, rather than one of them hanging under the chips alone */
+  @media (max-width:360px){ .controls .seg#whenseg{flex-basis:100%} }
+  .viewbtn,.filterbtn{position:relative;width:40px;height:40px;padding:0;border-radius:50%;
+    display:grid;place-items:center;flex:none;background:transparent;color:var(--ink);
+    border:1px solid var(--rule2);cursor:pointer}
+  .viewbtn .lbl{display:none}
+  .viewbtn .vic,.filterbtn svg{width:18px;height:18px}
+  .filterbtn b{position:absolute;top:-5px;right:-5px;font-family:var(--util);font-weight:600;
+    background:var(--ink);color:var(--ground);border-radius:999px;
+    min-width:18px;height:18px;display:grid;place-items:center;font-size:11px;padding:0 5px}
   .filterbtn b[hidden]{display:none}
-  /* List / Map, moved up beside Filters */
-  .controls .ctrl{flex:none}
-  .seg .vic{display:block;width:16px;height:16px}
-  #viewseg button{display:inline-flex;align-items:center;gap:7px;padding:7px 12px 7px 11px;font-size:15px}
   .toolbar{padding-bottom:8px}
   .toolbar .board{white-space:normal;font-size:16px}
   .toolbar input[type=search],.toolbar input[type=search]:focus{width:100%}
@@ -589,11 +572,6 @@ body.mapview .tbl{display:none}
   .mob{display:block;grid-column:2;font-family:var(--util);font-size:12px;color:var(--ink3)}
   .detail{padding:2px var(--pad) 24px}
   #map{height:min(76vh,560px)}
-  /* Add is a round + on a phone: the pill was 83px wide and sat over the end
-     of whichever row was at the bottom of the screen, pin and all. */
-  .addpill{right:16px;bottom:16px;width:50px;height:50px;padding:0;border-radius:50%;
-    display:grid;place-items:center;font-size:26px;font-weight:400;line-height:1;letter-spacing:0}
-  .addpill .word{display:none}
 }
 </style>
 
@@ -606,11 +584,7 @@ body.mapview .tbl{display:none}
 <script src="/notice-icons.js"></script>
 <div class="page">
   <header>
-    <h1>Notice</h1>
-    <div class="hdrbtns">
-      <button id="themebtn" type="button" class="modepill"><b>Auto</b></button>
-    </div>
-    <div class="sub"><span id="sub">Jan Juc &amp; the Surf Coast</span><span id="src" class="srcbadge"></span></div>
+    <h1 id="boardname">Notice Board</h1>
   </header>
 
   <div class="controls">
@@ -624,14 +598,19 @@ body.mapview .tbl{display:none}
       <button type="button" data-w="week" aria-pressed="false">This week</button>
       <button type="button" data-w="any" aria-pressed="true">Any time</button>
     </div>
+    <!-- one button that names the OTHER view: in the list it says Map, on the map it says List -->
+    <button id="viewbtn" type="button" class="viewbtn" data-v="map" aria-label="Show as map">
+      <svg class="vic list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></svg>
+      <svg class="vic map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg>
+      <span class="lbl">Map</span></button>
     <button id="morebtn" type="button" class="morebtn" aria-expanded="false"
             aria-controls="more">Filters<span class="dot" id="moredot" hidden></span></button>
     <button id="clear" type="button" class="clearbtn" hidden>Clear all</button>
     <!-- phones only: opens the sheet that holds every other control -->
-    <button id="filterbtn" type="button" class="filterbtn" aria-haspopup="dialog" aria-controls="sheet">
+    <button id="filterbtn" type="button" class="filterbtn" aria-haspopup="dialog" aria-controls="sheet" aria-label="Filters">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
            stroke-linejoin="round" aria-hidden="true"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>
-      Filters<b id="filtercount" hidden></b></button>
+      <b id="filtercount" hidden></b></button>
   </div>
 
   <div class="more" id="more" hidden>
@@ -699,25 +678,18 @@ body.mapview .tbl{display:none}
     </form>
   </section>
 
-  <button id="addtoggle" type="button" class="addpill" aria-label="Add something"><span aria-hidden="true">+</span><span class="word"> Add</span></button>
-
   <script id="additions" type="application/json">[]</script>
 
   <div class="chips" id="chips"></div>
 
   <div class="toolbar">
-    <h2 class="board"><span id="boardname">Noticeboard</span> <span id="tally"></span></h2>
+    <h2 class="board"><span id="tally"></span></h2>
     <div class="ctrl">
       <input id="q" type="search" aria-label="Search" placeholder="Search"></div>
     <div class="ctrl">
       <select id="sort" aria-label="Sort"><option value="when">Soonest first</option>
         <option value="near">Closest first</option><option value="best">Best rated</option>
         <option value="new">Recently added</option><option value="az">A &ndash; Z</option></select></div>
-    <div class="ctrl">
-      <div class="seg" id="viewseg" role="group" aria-label="How to show the listings">
-        <button type="button" data-v="list" aria-pressed="true"><svg class="vic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></svg>List</button>
-        <button type="button" data-v="map" aria-pressed="false"><svg class="vic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg>Map</button>
-      </div></div>
   </div>
 
   <!-- ── the filter sheet, phones only ──
@@ -1009,7 +981,7 @@ document.querySelectorAll('.kind button').forEach(b=>b.addEventListener('click',
   document.querySelectorAll('.kind button').forEach(x=>x.setAttribute('aria-pressed',x===b));
   fillTypes();
 }));
-document.getElementById('addtoggle').addEventListener('click',async()=>{
+document.getElementById('addtoggle')?.addEventListener('click',async()=>{
   panel.classList.toggle('open');
   if(panel.classList.contains('open')){
     fillTypes(); document.getElementById('f-name').focus();
@@ -1321,7 +1293,7 @@ const EVENTS_ONLY = location.pathname.replace(/\/+$/,'') === '/noticeboard';
    dropdown is where that changes. */
 const BOARD_KINDS=[['spot','Spots'],['venue','Venues'],
                    ['happening','Happenings'],['idea','Ideas']];
-const BOARD_TITLE = EVENTS_ONLY ? 'Noticeboard' : 'Everything';
+const BOARD_TITLE = EVENTS_ONLY ? 'Notice Board' : 'Everything';
 
 function ok(i){
   if(S.saved && !isSaved(i)) return false;
@@ -1650,10 +1622,17 @@ function buildMap(){
   });
 }
 
-const viewBtns=[...document.querySelectorAll('#viewseg button')];
+/* The switch is one button and it names the OTHER view, so pressing it always
+   does what it says; the view you are in is the page itself. */
+const viewBtn=document.getElementById('viewbtn');
 async function showView(v){
   S.view=v;
-  viewBtns.forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.v===v)));
+  const alt = v==='map' ? 'list' : 'map';
+  viewBtn.dataset.v=alt;
+  viewBtn.querySelector('.vic.list').hidden = alt!=='list';
+  viewBtn.querySelector('.vic.map').hidden = alt!=='map';
+  viewBtn.querySelector('.lbl').textContent = alt==='map' ? 'Map' : 'List';
+  viewBtn.setAttribute('aria-label','Show as '+alt);
   document.body.classList.toggle('mapview', v==='map');
   if(v!=='map') return;
   /* on a phone the filters fill the screen and the map starts below the fold —
@@ -1668,7 +1647,7 @@ async function showView(v){
   catch(e){ el.innerHTML='<div class="mapstate">The map couldn’t load. The list still works — switch back to it.</div>'; return; }
   buildMap();
 }
-viewBtns.forEach(b=>b.addEventListener('click',()=>showView(b.dataset.v)));
+viewBtn.addEventListener('click',()=>showView(viewBtn.dataset.v));
 S.view='list';
 rebuild();
 /* ── multi-select ───────────────────────────────────────────────────────────
@@ -1942,17 +1921,15 @@ function arrangeForPhone(on){
     [ctrlOf('km'),'Distance'],[$('ms-cost'),'Cost'],[$('ms-who'),'Who for'],
     [ctrlOf('wx'),'Weather'],[ctrlOf('q'),'Search'],[ctrlOf('sort'),'Sort by'],
   ].filter(([el])=>el);
-  const body=$('sheetbody'), foot=$('sheetfoot'), controls=document.querySelector('.controls');
-  const view=ctrlOf('viewseg'), clear=$('clear');
-  [...list.map(x=>x[0]), clear, view].forEach(el=>{ if(!HOMES.has(el)) HOMES.set(el,{p:el.parentNode,n:el.nextSibling}) });
+  const body=$('sheetbody'), foot=$('sheetfoot'), clear=$('clear');
+  [...list.map(x=>x[0]), clear].forEach(el=>{ if(!HOMES.has(el)) HOMES.set(el,{p:el.parentNode,n:el.nextSibling}) });
   if(on){
     const order=['Search','Kind','Group','Type','Place','Distance','Cost','Who for','Weather','Sort by'];
     order.forEach(l=>{ const m=list.find(x=>x[1]===l); if(!m) return;
       m[0].dataset.label=l; body.appendChild(m[0]); });
     foot.insertBefore(clear, foot.firstChild);
-    controls.appendChild(view);
   }else{
-    [...list.map(x=>x[0]), clear, view].reverse().forEach(el=>{
+    [...list.map(x=>x[0]), clear].reverse().forEach(el=>{
       delete el.dataset.label; const h=HOMES.get(el); h.p.insertBefore(el,h.n); });
     closeSheet();
   }
@@ -1990,28 +1967,21 @@ async function useAuto(sel){
   opt.textContent='Now — '+bits.join(', ');
   render();
 }
-function refreshClock(){
-  const now=melbNow(), {set}=sunHours(now);
-  const h=now.getHours()+now.getMinutes()/60, dark=h>=set||h<sunHours(now).rise;
-  const t=now.toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'}).toLowerCase();
-  document.getElementById('sub').textContent =
-    now.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'})+
-    '  ·  '+t+'  ·  Jan Juc & the Surf Coast';
-}
-refreshClock();
-setInterval(()=>{refreshClock();render()},60000);   /* keep it honest as the evening comes on */
+/* The date-and-time line under the title came off on 7 Sep 2026 (Scott); the
+   minute tick stays, because ON NOW and Today are read off the clock at paint. */
+setInterval(render,60000);
 render();
 
 /* The baked-in copy renders first so the page is never blank, then the live
    rows replace it. If the database is unreachable the page keeps the copy it
    shipped with and says so rather than pretending to be current. */
 (async()=>{
-  const badge=document.getElementById('src');
-  if(!REMOTE){ badge.textContent='built-in copy'; return; }
+  /* The `live` / `offline copy` badge left the page with the date line, so
+     the state is on <body> now — nothing draws it, but it is there to read. */
+  if(!REMOTE){ document.body.dataset.src='built-in copy'; return; }
   const rows=await loadRemote();
-  if(rows){ LIVE=rows; rebuild(); refreshFacets(); render(); badge.textContent='live'; }
-  else { badge.textContent='offline copy';
-    badge.title='Could not reach the database — showing the version built into this page.'; }
+  if(rows){ LIVE=rows; rebuild(); refreshFacets(); render(); document.body.dataset.src='live'; }
+  else document.body.dataset.src='offline copy';
 })();
 
 /* ── light / dark / follow the system ──
@@ -2023,34 +1993,14 @@ render();
    Auto is a real third state, not a default. Clearing the key means "follow the
    system", so someone who flips their laptop to dark at sunset gets the page
    with it; storing 'light' means they have overruled that on purpose. */
-const THEMEKEY='notice.theme', MODES=['auto','light','dark'];
-const themeBtn=document.getElementById('themebtn');
-
-function syncThemeBtn(){
-  const m=document.documentElement.dataset.theme||'auto';
-  themeBtn.querySelector('b').textContent=m[0].toUpperCase()+m.slice(1);
-  const next=MODES[(MODES.indexOf(m)+1)%MODES.length];
-  themeBtn.title = (m==='auto'?'Following your system':'Forced to '+m)+
-                   ' \u2014 click for '+next;
-  themeBtn.setAttribute('aria-label','Colour scheme: '+m+'. Click for '+next+'.');
-}
-
-themeBtn.addEventListener('click',()=>{
-  const m=document.documentElement.dataset.theme||'auto';
-  const next=MODES[(MODES.indexOf(m)+1)%MODES.length];
-  if(next==='auto') delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme=next;
-  /* Private browsing refuses to write, same as the saved pins: the choice holds
-     for this visit and is simply not there next time. */
-  try{ next==='auto' ? localStorage.removeItem(THEMEKEY)
-                     : localStorage.setItem(THEMEKEY,next) }catch(e){}
-  syncThemeBtn();
-  /* The basemap is a separate stylesheet on a CDN, so it does not follow the
-     page's own tokens — it has to be told. isDark() already reads the attribute
-     first and the media query second, so this is right in all three states. */
+/* The switcher itself is in the bar's menu since 7 Sep 2026 — nav.js owns it,
+   so every page has it. It announces a change, and the board's only job is
+   the basemap: a separate stylesheet on a CDN that does not follow the page's
+   own tokens, so it has to be told. isDark() reads the attribute first and the
+   media query second, so this is right in all three states. */
+document.addEventListener('notice:theme',()=>{
   if(MAP) MAP.setStyle(BASEMAP[isDark()?'dark':'light']);
 });
-syncThemeBtn();
 </script>
 
 </body>

@@ -80,9 +80,11 @@
   }
 
   /* ── the hamburger ──
-     Below 700px About, Place and Type leave the bar and sit behind this. The
-     bar keeps what a phone reader actually presses: the wordmark, Noticeboard,
-     the pin count, and this. Lucide `menu` (ISC), verbatim. */
+     About, Place, Type and the theme switcher sit behind this, at every
+     width since 7 Sep 2026. The bar keeps what a reader actually presses: the
+     wordmark, Everything, Noticeboard, the pin count, and this. The About /
+     Place / Type links are still drawn and hidden by CSS, so putting them back
+     on a wide screen is one rule. Lucide `menu` (ISC), verbatim. */
   function burger(){
     return '<div class="navmenu burger">' +
       '<button class="navlink burger" type="button" data-menu="more"' +
@@ -90,7 +92,7 @@
         '<svg class="navic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
         ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
         '<path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></button>' +
-      '<div class="navpop full" id="navpop-more" hidden></div></div>';
+      '<div class="navpop right full" id="navpop-more" hidden></div></div>';
   }
 
   function menu(key,label){
@@ -150,7 +152,35 @@
         label+'<i class="car" aria-hidden="true"></i></button>' +
         '<div class="secbox" id="sec-'+key+'" hidden></div>' }
     box.innerHTML = plain('about','/about','About') + plain('board','/','Everything') +
-      plain('whatson','/noticeboard','Noticeboard') + sec('place','Place') + sec('type','Type');
+      plain('whatson','/noticeboard','Noticeboard') + sec('place','Place') + sec('type','Type') +
+      themeRow();
+  }
+
+  /* ── light / dark / follow the system ──
+     Lives here since 7 Sep 2026 so every page has it, in the menu. The
+     stylesheets already have the three-state shape — bare :root is light, the
+     prefers-color-scheme block is guarded with :not([data-theme="light"]), and
+     [data-theme="dark"] overrides both — so this only sets or clears one
+     attribute on <html>. Auto is a real third state: clearing the key means
+     "follow the system". A change is announced as `notice:theme`, which is how
+     the board retints its basemap. */
+  var THEMEKEY='notice.theme';
+  function themeRow(){
+    var m = document.documentElement.dataset.theme || 'auto';
+    return '<div class="grp">Theme</div>' +
+      '<div class="navtheme" role="group" aria-label="Colour scheme">' +
+      ['auto','light','dark'].map(function(x){
+        return '<button type="button" data-mode="'+x+'" aria-pressed="'+(x===m)+'">' +
+               x[0].toUpperCase()+x.slice(1)+'</button>' }).join('') + '</div>';
+  }
+  function setTheme(m){
+    if(m==='auto') delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = m;
+    /* private browsing refuses to write: the choice holds for this visit */
+    try{ m==='auto' ? localStorage.removeItem(THEMEKEY) : localStorage.setItem(THEMEKEY,m) }catch(e){}
+    bar.querySelectorAll('[data-mode]').forEach(function(b){
+      b.setAttribute('aria-pressed', String(b.dataset.mode===m)) });
+    document.dispatchEvent(new CustomEvent('notice:theme',{detail:m}));
   }
 
   var FILL = {place:fillPlace, type:fillType, more:fillMore}, BUILT = {};
@@ -165,6 +195,8 @@
   }
 
   bar.addEventListener('click', function(e){
+    var th = e.target.closest('[data-mode]');
+    if(th){ e.stopPropagation(); setTheme(th.dataset.mode); return; }
     /* a Place / Type row inside the hamburger opens in place */
     var s = e.target.closest('[data-sec]');
     if(s){

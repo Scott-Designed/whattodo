@@ -4343,10 +4343,45 @@ end of whichever row was at the bottom of the screen, pin and all.
 came back to their markup order, the sheet emptied, no burger, no icons on
 List / Map, Any time drawn. No console errors on any of it.
 
-**Left alone, worth a look:** the masthead's `Notice` h1 sits 60px under the
-bar's `Notice` wordmark on a phone, with only the theme pill and the date line
-for company — the obvious next 90px. The subject pages (`place.html`,
-`type.html`) got the bar changes and nothing else.
+### The second pass, an hour later
+
+Scott, seven asks in one message, all applied:
+
+- **No Add button, on either size.** `#addtoggle` is gone from the markup;
+  the listener is `?.`-guarded and the `#panel` it opened is still there with
+  nothing pointing at it. The About page's sentence naming the button was
+  rewritten to say listings are added by the person who runs Notice — a
+  visible falsehood on the site was worse than editing prose; Scott may want
+  his own words there.
+- **The masthead is the board's name, centred, and nothing else.** The `h1`
+  is `#boardname` now — *Notice Board* on `/noticeboard`, *Everything* on `/`
+  — and the toolbar keeps only the count. The date-and-time line, the `live` /
+  `offline copy` badge and the theme pill all left with it. **The
+  live/offline state is on `<body data-src>`**, unprinted, because nothing
+  else says it any more.
+- **The theme switcher lives in the hamburger and `nav.js` owns it**, so every
+  page has it, as a three-way Auto / Light / Dark segment at the panel's foot.
+  It sets or clears one attribute and dispatches `notice:theme`; the board's
+  only remaining job is retinting the basemap on that event — checked, Dark
+  Matter comes up.
+- **The hamburger is at every width now.** About, Place and Type are drawn in
+  the bar and hidden by one CSS rule in `notice-nav.css`; the bar reads
+  *Notice · Everything · Noticeboard · 📌 0 · ☰*. On a desktop the panel is a
+  right-aligned dropdown (`navpop right full` — the `right` class was missed
+  first time and the panel hung off the window); on a phone it is full-screen.
+- **The view switcher is one button beside the When chips, naming the view you
+  are NOT in.** `#viewbtn` carries both Lucide icons and a label; `showView()`
+  flips it. On a phone it is an icon-only circle; on a desktop icon and word.
+  The two-button segment is gone.
+- **The phone's Filters is an icon in a circle**, count badge on its shoulder.
+  Below 360px the two circles drop to a row of their own together.
+- **8px corners** on the When segment (with `overflow:hidden` so the lit cell
+  clips, and the focus outline pulled inside) and on the view button. The
+  dropdowns themselves are underline-style with no box to round; if Scott
+  meant those, they want boxing first.
+
+Checked at 375, 320 and 1280, no console errors. The subject pages got the bar
+changes only.
 
 ## The nav bar, and the pages behind it
 

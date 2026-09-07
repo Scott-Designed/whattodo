@@ -75,9 +75,23 @@
 .savedpill .ic{font-size:13px;line-height:1;filter:grayscale(1);opacity:.75}
 .savedpill:not(.empty) .ic{filter:none;opacity:1}
 
-/* ── the hamburger, phones only ── */
+/* ── the hamburger, every width ──
+   About, Place and Type are drawn in the bar and hidden here; they live in the
+   panel, with the theme switcher at its foot. Delete the display:none to put
+   them back on a wide screen. */
 .navic{width:20px;height:20px;flex:none;display:block}
-.navmenu.burger{display:none}
+.nav a[data-nav="about"],.navmenu.place,.navmenu.type{display:none}
+.navmenu.burger{display:flex}
+.navlink.burger{padding:8px 8px}
+.navpop.full{min-width:260px}
+.navpop.full>a,.navsec{font-size:17px;padding:9px 15px}
+/* the theme switcher, a small three-way segment at the foot of the panel */
+.navtheme{display:flex;margin:4px 15px 8px;border:1px solid var(--rule2);border-radius:8px;overflow:hidden}
+.navtheme button{flex:1 1 0;font-family:var(--util);font-size:12px;font-weight:600;letter-spacing:.04em;
+  padding:8px 4px;border:0;border-right:1px solid var(--rule2);background:transparent;color:var(--ink2);cursor:pointer}
+.navtheme button:last-child{border-right:0}
+.navtheme button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+.navtheme button:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
 .navsec{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
   background:transparent;border:0;cursor:pointer;color:var(--ink);
   font-family:var(--serif);font-size:16px;padding:7px 15px}
@@ -93,10 +107,6 @@
   .nav{height:52px;gap:0}
   .nav .mark{font-size:23px}
   .navlink{padding:8px 9px;font-size:12.5px}
-  /* About, Place and Type go behind the hamburger. Everything and the
-     Noticeboard stay, because they are where a phone reader is going. */
-  .nav a[data-nav="about"],.navmenu.place,.navmenu.type{display:none}
-  .navmenu.burger{display:flex}
   .navlink.burger{padding:8px 6px 8px 8px;margin-right:-8px}
   .savedpill{padding:6px 11px;margin-left:4px}
   /* its panel takes the screen below the bar and scrolls on its own */
