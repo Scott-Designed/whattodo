@@ -131,6 +131,65 @@ def clean_url(u):
 def norm(s):
     return re.sub(r'[^a-z0-9]+', '', html.unescape(s or '').lower())
 
+# ── a venue name -> the places row it IS ────────────────────────────────────
+# Lifted out of scrape_vgb.py on 7 Sep 2026 so scrape_events.py could use the
+# same matcher; two copies is how this project put one festival on two dates.
+# scrape_venues.py still carries its own venue_key/GENERIC, kept in step by
+# hand — the next person to touch that should point it here too.
+GENERIC = {'online', 'tba', 'tbc', 'various', 'venue', 'virtual', 'zoom',
+           'to be advised', 'hosted online', 'hosted on humanitix',
+           'multiple venues', 'various venues'}
+
+def place_key(name):
+    """scrape_venues.py's key: forgives 'The' and punctuation."""
+    return norm(re.sub(r'(?i)^the\s+', '', (name or '').strip()))
+
+def usable_venue(name, town):
+    """The venue name worth writing, or None. Refusing is not a failure.
+
+    A name we will not link is still written to `venue` as free text, so this
+    guard has to run on the WRITE and not only on the match — the first version
+    ran it inside match_place alone and would have written a venue called
+    "Geelong" (the suburb) and one called "Multiple Venues" onto real rows.
+    """
+    name = (name or '').strip()
+    if len(name) < 3: return None
+    if name.lower() in GENERIC: return None
+    # The suburb wearing a venue's hat. Two VGB products do exactly this.
+    if town and place_key(name) == place_key(town): return None
+    return name
+
+def match_place(name, town, registry):
+    """The id of the place this venue name IS, or None. Never creates one.
+
+    Tries the whole name, then each part of it split on a dash or a comma — the
+    sources hang a programme off a room ("Church – Geelong Arts Centre",
+    "Geelong Arts Centre - The Story House") and a suburb off a name, and the
+    room is what `places` holds. Exact key match only, never fuzzy: fuzzy once
+    wanted to file the Bells Beach surf comp at Bells Beach Brewing.
+    """
+    name = usable_venue(name, town)
+    if not name: return None
+    hit = registry.get(place_key(name))
+    if hit: return hit
+    for bit in re.split(r'\s+[-\u2013]\s+|,', name):
+        if len(bit.strip()) < 3: continue
+        hit = registry.get(place_key(bit))
+        if hit: return hit
+    return None
+
+def registry_of(places):
+    """Every place by its own name and by every alias — scrape_venues.py's rule.
+
+    An alias is what a merged duplicate leaves behind, and it is the only thing
+    that makes a merge stick against a source that spells a venue its own way.
+    """
+    reg = {place_key(v['name']): v['id'] for v in places}
+    for v in places:
+        for a in (v.get('aliases') or []):
+            reg.setdefault(place_key(a), v['id'])
+    return reg
+
 def clock(hhmm):
     h, m = int(hhmm[:2]), int(hhmm[3:5])
     ap = 'am' if h < 12 else 'pm'

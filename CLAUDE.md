@@ -7321,6 +7321,84 @@ unchanged and is the next job: **270 of 958 events carry no `place_id` at
 all**, mostly the Coast & Bay and tourism-board imports holding their venue as
 free text — and 45 of those venues are listed with addresses every VGB run.
 
+## The calendar feeds link their venues now — 7 Sep 2026
+
+Scott, off the review queue: *"In the Coast & Bay scraping, it's not picking up
+venues very well. Lotte Gallagher at The Church: that venue and ID already
+exists."* Right. The Events Calendar API hands over a `venue` object on every
+event — name, street, town, postcode — and `scrape_events.py` wrote the name
+into `venue` as words and **never looked it up**. So "Church – Geelong Arts
+Centre" sat as free text while place 140 carried "Church" as an alias. 139
+Coast & Bay rows, 4 with a `place_id`.
+
+**Three parts, all done the same day:**
+
+1. **The matcher moved into `eventlib`** — `GENERIC`, `place_key`,
+   `usable_venue`, `match_place`, `registry_of`, lifted out of `scrape_vgb.py`
+   (which now aliases them) and used by `scrape_events.py`'s `build()`. One
+   copy. `scrape_venues.py` still has its own `venue_key` and GENERIC, kept in
+   step by hand; the next person in there should point it at `eventlib` too.
+   **This is not the aggregator-in-places trap**: `place_id` is the venue the
+   feed names on the event, never the feed itself, which has no row.
+2. **`scrape_events.py --backfill`** reads the venue text already on each
+   feed row and PATCHes `place_id` only where it is empty and the name matches
+   by name or alias. Never creates a place, never edits the venue text. Its
+   unmatched list, with counts, IS the worklist of places to build.
+3. **Five places built and four rooms aliased** — see below.
+
+    Coast & Bay rows with a place_id      4 -> 67
+    events with no place_id at all      270 -> 177   (of 927)
+
+**The second half of Scott's message was not true, and the queue already
+said so.** *"That event also already exists"* — there is one Lotte Gallagher
+row; the cross-source name+date check found no Coast & Bay row shared with any
+other source, and the "Already have" column was blank. Church Geelong's own
+site is hand-built HTML nothing can read, so the Coast & Bay copy is the only
+one we hold. Worth remembering: seeing a gig on a venue's website is not the
+same as it being in the database.
+
+### The places, and the aliases
+
+    226  Vines Road Community Centre       Hamlyn Heights   OSM's own community_centre node; 17 events
+    227  Platform Arts                     Geelong          house 60 Little Malop St, its own footer
+    228  Torquay Community House           Torquay          from activity 596, now linked
+    229  Ocean Grove Neighbourhood House   Ocean Grove      from activity 603, now linked
+    230  Geelong West Neighbourhood House  Geelong West     OSM node + its own site agree on 89 Autumn St
+
+**Hamlyn Heights joined the `GEELONG` fold** — both lists, as this file already
+says. Vines Road has no house number on the row: the council's page could not be
+read from here (every URL tried returns the site's generic 228KB body).
+
+**Platform Arts reverse-geocodes to 40 Gheringhap Street** — the corner
+building's other frontage, same building. The forward house match on 60 Little
+Malop is what was checked.
+
+**A room inside a building is an alias on the building**, not a row: The Story
+House and The Open House on 146 Geelong Arts Centre; "Deakin University
+Waterfront Campus & Costa Hall" on 166 (the `&` defeats the dash/comma split);
+The Dome's three unbracketed spellings on 128; "GMHBA Stadium (Kardinia Park)"
+on 139 (brackets defeat the split too).
+
+**Except The Play House, which already had a row — place 31 `The Playhouse`**,
+seeded from the music spreadsheet, pinned 13 m from 146, with no events until
+now. The matcher found it by NAME, which beats an alias, so the five Play House
+rows went to 31. The alias was taken OFF 146 and put on 31 so one name resolves
+to one row; 31 and 146 are a room and its building and both stay.
+
+### What is left — 60 names on 66 rows, listed every backfill run
+
+Bare towns (*Torquay* 4, *Lorne* 2, *Surf Coast Shire* 2) are correctly refused
+by `usable_venue`. The rest are one-event venues each; the ones that are
+plainly existing rows under another spelling — *The Mac*, *White Rabbit
+Brewery*, *Torquay Taphouse*, *Klein's Anglesea Hotel*, *Anglesea Community
+Precinct* — want an alias or a `places` row, one judgement each. *Here & Now
+Lounge* (2) is the only repeat.
+
+**Does an unapproved event make the place row a problem? No.** A place is a
+registry entry, never shown to a reader on its own; if the event is never
+published the place sits unused like the 31 that host nothing. Scott asked
+before this was built.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

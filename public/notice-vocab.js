@@ -35,14 +35,14 @@
    unknown towns every run for exactly this reason. */
 const GEELONG=new Set(['Geelong','Geelong West','South Geelong','Belmont','Grovedale',
   'Waurn Ponds','Norlane','Corio','Fyansford','Ceres','Highton','Newcomb',
-  'Breakwater','Newtown','Bell Park']);
+  'Breakwater','Newtown','Bell Park','Hamlyn Heights']);
 const SUBURBS=['Aireys Inlet','Anglesea','Apollo Bay','Armstrong Creek','Barwon Heads',
  'Bannockburn','Beech Forest','Bell Park','Bellarine','Bellbrae','Bells Beach','Belmont',
  'Birregurra','Breakwater','Breamlea',
  'Cape Otway','Ceres','Colac','Connewarre','Corio','Cumberland River','Curlewis',
  'Deans Marsh',
  'Drysdale','Eastern View','Fairhaven','Forrest','Freshwater Creek','Fyansford','Geelong',
- 'Geelong West','Grovedale','Highton','Indented Head','Inverleigh','Jan Juc',
+ 'Geelong West','Grovedale','Hamlyn Heights','Highton','Indented Head','Inverleigh','Jan Juc',
  'Kennett River','Lara',
  'Lavers Hill','Leopold','Little River','Lorne','Moggs Creek','Moriac','Mt Duneed','Norlane',
  'Newcomb','Newtown','Ocean Grove','Point Addis','Point Lonsdale','Portarlington','Queenscliff',

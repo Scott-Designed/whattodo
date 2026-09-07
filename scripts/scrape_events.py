@@ -5,6 +5,7 @@
     python3 scripts/scrape_events.py --write      # insert the new ones, unverified
     python3 scripts/scrape_events.py --json out.json   # emit rows for `sync.py add`
     python3 scripts/scrape_events.py --only coastandbay   # one source
+    python3 scripts/scrape_events.py --backfill      # link the venue on rows already here
 
 Both sources run WordPress with The Events Calendar, which publishes a plain
 JSON API at the same path on every install — so a second site costs a row in
@@ -70,6 +71,14 @@ FIRST_SITE = 'surfcoastevents.com.au'
 SLUG_RE = re.compile(r'(' + '|'.join(re.escape(s['site']) for s in SOURCES)
                      + r')/([a-z0-9\-]+)')
 
+
+# Every `places` row by name and alias, loaded once per run so a series whose
+# venue IS a known room gets its place_id — the same matcher scrape_vgb.py uses.
+# This is NOT the aggregator-in-places trap: place_id is the venue the feed
+# names on the event (its `venue` object carries name, street and town), never
+# the feed itself, which has no row and must never get one. Empty on a
+# --json run with no database, so nothing links and nothing breaks.
+REGISTRY = {}
 
 class SourceDown(Exception):
     """This site could not be read. The others still can."""
@@ -250,6 +259,9 @@ def build(src, slug, instances):
     venue = first.get('venue') or {}
     where = html.unescape(venue.get('city') or '') or None
     place = html.unescape(venue.get('venue') or '') or None
+    # A venue named in the data that IS a places row links to it; otherwise the
+    # name stays as free text so a reader is still told where. Never created.
+    pid   = E.match_place(place, where, REGISTRY) if place else None
 
     # The organiser's own link if the source has one, else the source's page for
     # it. Both came from the source; neither is invented here.
@@ -267,6 +279,7 @@ def build(src, slug, instances):
         'starts_on'      : dates[0].isoformat(),
         'time_text'      : time_text(first),
         'venue'          : place,
+        'place_id'       : pid,
         'location'       : where,
         'description'    : E.text(first.get('description') or first.get('excerpt')),
         'info_url'       : info,
@@ -354,11 +367,61 @@ def collapse(src, events):
 # this script and scrape_venues.py cannot drift apart on them.
 
 # ── main ────────────────────────────────────────────────────────────────────
+def backfill(write):
+    """Link rows this script already wrote to the place their venue text names.
+
+    Until 7 Sep 2026 build() never looked the feed's venue up, so 139 Coast &
+    Bay rows arrived with "Church – Geelong Arts Centre" as words and place_id
+    null while place 140 sat there with "Church" as an alias. This reads the
+    venue text already on each row and PATCHES place_id ONLY where it is empty
+    and the name matches a places row by name or alias. It never touches a row
+    that has a place, never creates a place, and never edits the venue text.
+    Names that match nothing are listed with a count — that is the worklist of
+    places to build by hand. Dry run by default.
+    """
+    E.load_env()
+    places   = E.db('GET', '/rest/v1/places?select=id,name,aliases', None, None, all_rows=True)
+    registry = E.registry_of(places)
+    by_pid   = {v['id']: v for v in places}
+    keys     = ','.join(s['key'] for s in SOURCES)
+    rows = E.db('GET', f"/rest/v1/events?select=id,name,venue,place_id,location,"
+                       f"source_note&added_by=in.({keys})", None, None, all_rows=True)
+    todo = [r for r in rows if not r.get('place_id') and (r.get('venue') or '').strip()]
+    print(f"{len(rows)} rows from the calendar feeds, {len(todo)} with a venue and no place")
+    patches, unknown = [], collections.Counter()
+    for r in todo:
+        pid = E.match_place(r['venue'], r.get('location'), registry)
+        if not pid:
+            unknown[r['venue']] += 1; continue
+        patches.append((r, {'place_id': pid, 'source_note': (r.get('source_note') or '') +
+            f"; venue \"{r['venue']}\" matched place {pid} on {datetime.date.today().isoformat()}"}, pid))
+    print(f"\n{len(patches)} row(s) link to a place")
+    for r, _, pid in patches:
+        print(f"  {r['id']:>6}  {r['name'][:40]:42} {r['venue'][:34]:36} -> {pid} {by_pid[pid]['name']}")
+    if unknown:
+        print(f"\nVENUES WITH NO PLACES ROW — {len(unknown)} names on {sum(unknown.values())} rows, build these by hand")
+        for n, c in unknown.most_common():
+            print(f"  {c:>3}  {n}")
+    if not write:
+        print("\nnothing written. --backfill --write to apply.")
+        return 0
+    for r, patch, _ in patches:
+        E.db('PATCH', f"/rest/v1/events?id=eq.{r['id']}", patch)
+    print(f"\n{len(patches)} row(s) linked. Nothing else on them was touched.")
+    return 0
+
 def main(argv):
     write   = '--write' in argv
+    if '--backfill' in argv: return backfill(write)
     as_json = argv[argv.index('--json') + 1] if '--json' in argv else None
     only    = argv[argv.index('--only') + 1] if '--only' in argv else None
     need_db = write or '--json' not in argv
+
+    global REGISTRY
+    if need_db:
+        E.load_env()
+        REGISTRY = E.registry_of(E.db('GET', '/rest/v1/places?select=id,name,aliases',
+                                      None, None, all_rows=True))
 
     sources = [s for s in SOURCES if not only or only in (s['key'], s['site'])]
     if not sources:
