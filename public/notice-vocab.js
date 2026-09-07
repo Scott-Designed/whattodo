@@ -267,10 +267,28 @@ const daysAway=ds=>ds?Math.round((new Date(ds+'T00:00:00')-new Date(todayISO+'T0
    the weekday, so "third Sunday" would quietly become "the 20th" — a date nobody
    published, which is exactly how this database got a festival wrong before. Those
    need a person to set the next starts_on. */
+/* A thing that runs across days — a festival, a two-day show, an exhibition —
+   is ON today while today sits inside its span, so its effective date is today
+   rather than the day it opened. `listings` carries ends_on since 7 Sep 2026;
+   before that a festival vanished from the board the morning after it opened.
+   An end before the start is a data fault (event 17 has one) and is ignored. */
+function endsOn(i){
+  return i && i.ev && i.date && i.ends && i.ends >= i.date ? i.ends : null;
+}
+/* "22–23 Sep", or "22 Sep – 3 Oct" across a month, or with years when they
+   differ. One copy, read by the board and the subject pages alike. */
+function dateSpan(a, b){
+  const A = new Date(a+'T00:00:00'), B = new Date(b+'T00:00:00');
+  const y = A.getFullYear()!==B.getFullYear();
+  const f = (d, m) => d.toLocaleDateString('en-AU', {day:'numeric', ...(m?{month:'short'}:{}), ...(y?{year:'numeric'}:{})});
+  return A.getMonth()===B.getMonth() && !y ? f(A,false)+'–'+f(B,true) : f(A,true)+' – '+f(B,true);
+}
 function nextDate(i){
   if(!i || !i.ev || !i.date) return i && i.date || null;
   const step = i.recur==='weekly' ? 7 : i.recur==='fortnightly' ? 14 : 0;
   const d = daysAway(i.date);
+  const e = endsOn(i);
+  if(d!==null && d<0 && e && daysAway(e)>=0 && !step) return todayISO;
   if(d===null || d>=0 || !step) return i.date;
   const hops = Math.ceil(-d/step);
   /* Parse and format in UTC. Parsing as local and formatting with toISOString

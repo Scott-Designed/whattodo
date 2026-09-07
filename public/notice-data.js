@@ -46,7 +46,7 @@ function fromRow(r){
     km:r.km===null?null:Number(r.km), cost:r.cost, ages:r.ages||[], desc:r.description,
     url:r.url, info:r.info_url, ticket:r.ticket_url, cond, rating:r.rating,
     notes:r.notes, dur:r.duration, season:r.season||[], dbDaypart:r.daypart,
-    date:r.starts_on, time:r.time_text, recur:r.recurrence, conf:r.date_confidence,
+    date:r.starts_on, ends:r.ends_on, time:r.time_text, recur:r.recurrence, conf:r.date_confidence,
     lat:r.lat, lng:r.lng, verified:r.verified, by:r.added_by, created:r.created_at,
     added: r.verified===false, groups,
   };

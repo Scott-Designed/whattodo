@@ -1158,7 +1158,11 @@ function whenText(i){
      still win, because whether it is on now is the more urgent question and the
      open row carries the recurrence either way. Fortnightly keeps "This", which
      is exactly what it means: this one, not every one. */
+  /* A span — a festival, a two-day show — prints its whole run, and while it
+     is on it says Today with the closing date beside the time. */
+  const ends = endsOn(i) && endsOn(i) > nd ? endsOn(i) : null;
   const lbl = d===0?'Today' : d===1?'Tomorrow'
+    : ends ? dateSpan(nd, ends)
     : (d>1&&d<7) ? (i.recur==='weekly'?'Every ':'This ')+dt.toLocaleDateString('en-AU',{weekday:'long'})
     : dated;
   /* The line above already says which day. A weekday inside the time text is
@@ -1168,7 +1172,9 @@ function whenText(i){
   const time = i.time ? String(i.time)
     .replace(new RegExp('^\\s*'+DAY.source+'\\s*[,\u2013-]?\\s*','i'),'')
     .replace(new RegExp('\\s*'+DAY.source+'\\s*$','i'),'').trim() : '';
-  return lbl + (time?`<span class="tm">${esc(time)}</span>`:'');
+  const until = ends && d<=1 ? 'until '+new Date(ends+'T00:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'}) : '';
+  const tm = [until, time].filter(Boolean).join(' · ');
+  return lbl + (tm?`<span class="tm">${esc(tm)}</span>`:'');
 }
 function whenOK(i){
   /* Three answers, because that is how many questions a person actually has:

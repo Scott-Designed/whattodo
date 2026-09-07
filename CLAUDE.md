@@ -7538,6 +7538,32 @@ new action on `api/admin.mjs`. Verified in the browser against live data:
 asserted** to define exactly those four functions and nothing else, which is
 the check this file's own `check_admin.py` section demands.
 
+## `listings` carries `ends_on` now — 7 Sep 2026
+
+Scott, off *Wolfgang In The Stars* (855): *"is it only bringing in the first
+date and time?"* The tourism-board feed had both days (22–23 Sep, a run) and
+the row held `ends_on` — but the view did not carry it, so the board printed
+22 Sep alone. This file had recorded that gap twice.
+
+`supabase/ENDS_ON_IN_LISTINGS.sql` appends `ends_on` to the view (CREATE OR
+REPLACE may only append, hence last on both halves). Three readers changed:
+
+- **`nextDate()`** returns TODAY for a non-recurring event whose span covers
+  today. Before this a festival vanished from the board the morning after it
+  opened; Sketch & Scribe (5 Sep–11 Oct) was invisible for two days while on.
+  `endsOn()` ignores an end before the start — **event 17 carries one**
+  (26 Aug → 17 Jun), which is a data fault for a person.
+- **`dateSpan()`** in `notice-vocab.js` prints *22–23 Sept* or *27 Aug – 13
+  Sept*, years only when they differ. The board's `whenText()` and the subject
+  pages' `whenLabel()` both use it, and while a span is on they say *Today ·
+  until 11 Oct*. DOM-free, so `api/subject.mjs`'s vm sandbox is fine.
+- **`fromRow`** carries `ends`.
+
+**What is still not captured: a second session on the same day.** The feed
+publishes one timestamp per day, so Wolfgang's 1pm shows never arrived; the
+Arts Centre's own page lists all four. That is the per-venue-parser question
+— see the next section.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

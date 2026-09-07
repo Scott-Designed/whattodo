@@ -36,8 +36,11 @@
     if(!i.ev) return '';
     if(!i.date) return 'Date not set';
     var ds = nextDate(i), d = daysAway(ds);
-    if(d === 0) return 'Today';
-    if(d === 1) return 'Tomorrow';
+    var ends = endsOn(i) && endsOn(i) > ds ? endsOn(i) : null;
+    var untilTxt = ends ? ', until ' + new Date(ends + 'T00:00:00').toLocaleDateString('en-AU', {day:'numeric', month:'short'}) : '';
+    if(d === 0) return 'Today' + untilTxt;
+    if(d === 1) return 'Tomorrow' + untilTxt;
+    if(ends) return dateSpan(ds, ends);
     /* A weekly event says how often rather than which date. Its name no longer
        carries the recurrence, so this is the only place it is written — the
        board's whenText() says the same thing the same way. */
