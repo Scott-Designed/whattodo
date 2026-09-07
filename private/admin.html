@@ -2413,8 +2413,15 @@ let RFILTER = {src: '', sort: 'when', dir: 1};
    the empty value LAST in both directions — an activity has no date and a
    blank sorting to the top would push the dated rows, which are the whole
    point of the ordering, off the screen. */
+/* What a review row IS — an event, a listing (with its kind), or a location —
+   because the queue now holds three tables and a row's name does not say
+   which. Scott, 7 Sep 2026: "add to the review table what type of thing it is". */
+const whatIs = r => r.__t === 'events'     ? 'event'
+              : r.__t === 'places'     ? 'location'
+              : r.kind ? `listing · ${r.kind}` : 'listing';
 const RCOLS = [
   ['name',      'Name',         r => r.name],
+  ['what',      'What',         whatIs],
   ['type',      'Type',         r => (r.types || []).join(' · ')],
   ['when',      'When',         r => r.starts_on],
   ['town',      'Town',         sortTown],
@@ -2522,9 +2529,9 @@ function drawReview(){
         return `<tr data-t="${r.__t}" data-id="${r.id}">
           ${pickCell(r.__t, r.id)}
           <td class="clickable" data-open="1"><div class="rowname">${esc(r.name)}</div></td>
+          <td style="white-space:nowrap;color:var(--ink3)">${esc(whatIs(r))}</td>
           <td class="cap" style="max-width:16ch" title="${esc(types)}">${
-                isPlace ? `<span style="color:var(--ink3)">new location${types ? ' · ' + esc(types) : ''}</span>`
-                : types ? esc(types) : '<span style="color:var(--ink3)"><i>unsorted</i></span>'}</td>
+                types ? esc(types) : '<span style="color:var(--ink3)"><i>unsorted</i></span>'}</td>
           <td${past ? ' style="color:var(--bad)"' : ''} style="white-space:nowrap"
               title="${r.date_confidence ? 'date read with ' + esc(r.date_confidence) + ' confidence' : 'no confidence recorded'}">${esc(dmy(r.starts_on) || '—')}
               ${r.time_text ? `<br><span style="color:var(--ink3);font-size:11px">${esc(r.time_text)}</span>` : ''}
