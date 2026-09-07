@@ -1467,8 +1467,9 @@ function render(){
           const left=[many?wVenue:whereLine(i), wt.replace(/<span class="tt">.*?<\/span>/,'').replace(/<[^>]+>/g,'\u001f')]
             .flatMap(v=>String(v==null?'':v).split('\u001f')).flatMap(v=>v.split(' · ')).map(v=>v.trim())
             .filter(Boolean)
-            /* with Today or Tomorrow lit, every row would say the day the chip already says */
-            .filter(v=>v.toLowerCase()!==S.when)
+            /* "Today" is never printed here: a row with no day is on today, and
+               the list leads with today. Tomorrow prints unless its chip is lit. */
+            .filter(v=>v.toLowerCase()!=='today' && v.toLowerCase()!==S.when)
             .map(esc).join(' &middot; ');
           return `<span class="mobl">${left}</span>${m?`<span class="mobr">${m[1]}</span>`:''}`;
         })()}</span>
