@@ -24,6 +24,10 @@
    place". A Geelong suburb answers as Geelong: nobody planning a Saturday
    distinguishes Grovedale from Waurn Ponds, and eleven suburbs holding one
    listing each is a longer menu that finds less. */
+/* Bell Park joined 7 Sep 2026 (a sewing-centre workshop venue) and Warrnambool
+   the same day, on Scott's instruction to register the Warrnambool Community
+   Garden as a source — that is the western edge moving, not a Geelong suburb,
+   so it is a town of its own. Both slugs collision-checked. */
 /* Breakwater and Newtown joined 1 Sep 2026 with the visitgeelongbellarine
    import, which files events at both. A town suburbOf() does not know resolves
    to null, and the symptom is a row that reaches no filter and no town page
@@ -31,9 +35,9 @@
    unknown towns every run for exactly this reason. */
 const GEELONG=new Set(['Geelong','Geelong West','South Geelong','Belmont','Grovedale',
   'Waurn Ponds','Norlane','Corio','Fyansford','Ceres','Highton','Newcomb',
-  'Breakwater','Newtown']);
+  'Breakwater','Newtown','Bell Park']);
 const SUBURBS=['Aireys Inlet','Anglesea','Apollo Bay','Armstrong Creek','Barwon Heads',
- 'Bannockburn','Beech Forest','Bellarine','Bellbrae','Bells Beach','Belmont',
+ 'Bannockburn','Beech Forest','Bell Park','Bellarine','Bellbrae','Bells Beach','Belmont',
  'Birregurra','Breakwater','Breamlea',
  'Cape Otway','Ceres','Colac','Connewarre','Corio','Cumberland River','Curlewis',
  'Deans Marsh',
@@ -43,7 +47,7 @@ const SUBURBS=['Aireys Inlet','Anglesea','Apollo Bay','Armstrong Creek','Barwon 
  'Lavers Hill','Leopold','Little River','Lorne','Moggs Creek','Moriac','Mt Duneed','Norlane',
  'Newcomb','Newtown','Ocean Grove','Point Addis','Point Lonsdale','Portarlington','Queenscliff',
  'Shelford','Skenes Creek',
- 'South Geelong','St Leonards','Torquay','Wallington','Waurn Ponds','Werribee',
+ 'South Geelong','St Leonards','Torquay','Wallington','Warrnambool','Waurn Ponds','Werribee',
  'Winchelsea','Wye River','You Yangs'];
 const SUB_BY_LEN=[...SUBURBS].sort((a,b)=>b.length-a.length);
 const rxEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');

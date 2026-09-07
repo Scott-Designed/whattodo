@@ -159,6 +159,19 @@ BY_ID = {
   # shop since the type was retired — the line is the only thing keeping it one.
   704: ('shop', 'The Book Bird sells books; `reading` is what you do with them'),
 
+  # The Capture pull of 7 Sep 2026. Makers and groups can never be inferred,
+  # and two venues carry types that would make them spots or groups.
+  758: ('group', 'Bakken Thyme Kids runs nature play sessions; `kids` would make it a venue'),
+  759: ('maker', 'Bellagreen Organic Farm sells veggie boxes; `produce` would make it a venue'),
+  760: ('group', 'Farm My School is a not-for-profit you join or buy from; `produce` would make it a venue'),
+  761: ('maker', 'Circulus Wine — cellar door closed during the build; `winery` would make it a venue'),
+  762: ('maker', 'Provenir is an online butcher with nothing to visit'),
+  763: ('maker', 'Geelong Region Olives sells online and through stockists; no grove to visit'),
+  764: ('venue', 'Yan Yan Gurt West Farm hosts farm tours; `farm life` would make it a spot'),
+  765: ('maker', 'Soli Farm sells veg boxes and market stalls; no address published'),
+  766: ('maker', 'Penny Drop runs adult art workshops with no premises'),
+  767: ('venue', 'Warrnambool Community Garden has a gate and hours; `community` would make it a group'),
+
   # The three rows added by hand on 27 Aug 2026, all of which the rules would
   # make spots — a maker, a shop and a group whose types are all activity types
   # that outrank their kind on PRECEDENCE. `types` says what a row is ABOUT and

@@ -5129,6 +5129,127 @@ hours are only in a browser-rendered footer and Our Story page. **No
 what's-on. **And no `places` row**, because nothing about it needs a pin twice;
 it carries its own coordinate like the other 438 activities.
 
+## The Capture pull of 7 Sep 2026 — 18 items, 34 rows, 6 places
+
+Scott: *"Check inbox."* The email inbox had nothing new since 1 Sep (three
+rows: two of Scott's tests and Postmark's fixture). **The Capture artifact held
+18 items** — ten links, two link-in-bio captures, six photographs — the largest
+pull yet, and mostly the produce group: Scott had walked a farm-gate trail on
+3 Sep and captured seven producers in six minutes.
+
+    755  White Rabbit Brewery & Barrel Hall  venue   brewery·bar        own pin (OSM node)
+    756  1915                                venue   restaurant·bar     place 223
+    757  Soul Potter                         venue   arts·workshop      place 221
+    758  Bakken Thyme Kids                   group   kids·nature        NO PIN, NO TOWN
+    759  Bellagreen Organic Farm             maker   produce            own pin (house)
+    760  Farm My School                      group   community·produce·kids   place 225
+    761  Circulus Wine                       maker   winery             no pin, on purpose
+    762  Provenir                            maker   produce            no pin; Avalon = no town
+    763  Geelong Region Olives               maker   produce            no pin
+    764  Yan Yan Gurt West Farm              venue   farm life·nature   no pin
+    765  Soli Farm                           maker   produce            no pin
+    766  Penny Drop                          maker   arts·workshop      no pin
+    767  Warrnambool Community Garden        venue   community·nature·volunteering  place 224
+
+    220  Heights Sewing Centre          Bell Park      house-level
+    221  Ashmore Arts                   Torquay        house-level; a169 linked and repinned
+    222  Old Geelong Gaol               Geelong        the named building; e888, e1104, a262 linked
+    223  1915                           North Geelong  the OSM restaurant node; e834, e886 linked
+    224  Warrnambool Community Garden   Warrnambool    the allotments polygon; e1023, e1075 linked
+    225  Farm My School – Bellarine     Drysdale       the school grounds
+
+Events 1245–1265: two sewing workshops (21, 23 Sep, Bell Park), four Soul
+Potter clay-play days (24, 25 Sep, 1, 2 Oct), a Bird Rock gig (11 Sep), the
+Bakken Thyme nature play (9 Sep), ten Warrnambool garden workshops (9 Sep –
+8 Nov), 1915's Melbourne Cup beer-garden launch (3 Nov), and three Farm My
+School Nourish workshops (12, 16 Sep, 8 Oct). All held for review, all with
+`km` null. Every pin was reverse-geocoded before writing.
+
+**Two towns joined the vocabulary.** `Bell Park` into the `GEELONG` fold (both
+lists, as this file already says), and **`Warrnambool` as a town of its own**
+— that is the region's western edge moving, on the strength of Scott's
+instruction to register the garden as a source. The three Coast & Bay
+Warrnambool rows this file recorded as stranded now resolve. `Avalon` did not
+join: Provenir is one maker with nothing to visit, and one row is not a town.
+
+### The duplicate check earned its keep twice
+
+`sync.py add` refused two names, and both refusals were right:
+
+- **Common Ground's A Day on the Farm was already event 45** — imported from
+  surfcoastevents on 24 Aug as one row spanning 22–24 Sep. The three per-day
+  rows drafted here were dropped; 45 was instead **filled from the farm's own
+  page** (9am–1pm, $60, ages 7–14, weekdays printed and matching → `high`), its
+  `info_url` moved off a Humanitix link carrying `_gl` tracking onto the
+  first-party page, and that link kept clean as `ticket_url`.
+- **The 30 Sep Sprouts Club session was already event 1023** from Coast & Bay,
+  held — and **Coast & Bay's time was wrong**: 4pm–5:30pm against the garden's
+  own page's 12:30–2:30pm. Unverified row, so updated to the first-party time,
+  linked to place 224, and its `info_url` repointed from the June occurrence.
+  That is the fourth time a duplicate has exposed a wrong value.
+
+Search on the distinctive word before drafting — this file already says so,
+and the check caught what the search step missed.
+
+### What could not be done, each with the reason on the row
+
+- **Bakken Thyme Kids has no venue.** Scott's note was *"Add as a group and a
+  venue and event."* Its only page is a Bookeo booking site behind a bot check,
+  and `www-33c.bookeo.com/robots.txt` disallows `/bookeo/` — so it cannot be
+  read by a machine, and no website, Facebook page or directory entry surfaced
+  in three searches. The group and the 9 Sep session are written; **where they
+  meet is not known**, so the row has no place, no pin and no town. Scott can
+  read it on his phone; a machine cannot.
+- **Soul Potter's four days are `medium`** — the poster is first-party but
+  prints no weekday to check, and the Square site renders client-side. All
+  four fall on the Thursday/Friday of each holiday week, which is consistent.
+- **Farm My School's Nourish workshops have no room.** They sell through
+  Humanitix, which a Claude session must not fetch; the dates and weekdays are
+  from the organisation's own page and match. The second line under each
+  workshop on that page (*Useful Seeds*, *Farm to Ferment*, *LAAM Thai*) is
+  the presenter's business, not the venue. Its Humanitix **host page was
+  deliberately NOT registered** on place 225: the scraper files everything at
+  the row it reads from, and these run in other people's kitchens.
+- **1915's Melbourne Cup party date is derived**, not read — the page says
+  "this Melbourne Cup Day" and prints no date. First Tuesday in November,
+  `medium`.
+
+### Findings worth keeping
+
+- **Two Square Online sites (`*.square.site`) and Bookeo are all unreadable to
+  a fetch.** Square pages carry a `__BOOTSTRAP_STATE__` with the site title and
+  meta description and nothing of the page; Penny Drop's meta description was
+  the whole listing. Expect the same from any Square site captured next.
+- **White Rabbit's age gate can be passed with one POST** to `/index.php`
+  (`agegate=enter` plus a date of birth), which sets a cookie; the contact page
+  then reads normally. Its "Events at the Barrel Hall" page 404s, so nothing is
+  registered. Its OSM node is 40 m from place 21 (Little Creatures) — same
+  village, deliberately its own listing and no places row.
+- **Circulus Wine's cellar door is closed for a rebuild** ("an active
+  construction site"), so it is a maker with no pin although it publishes an
+  address. Make it a venue and geocode it when the new cellar door opens.
+- **`eventlib.fetch` caps at 250,000 characters and Squarespace and Wix pages
+  are bigger than that** — Soli's About page is 1.6 MB. Nine pages in this pull
+  came back as header chrome only until refetched with `cap=4_000_000`. A
+  fetch that returns exactly ~249,9xx characters has been cut, not read.
+- **Wix event pages carry clean schema.org Event** (`startDate` with offset,
+  `location.address`, `offers`) at `/event-details-registration/<slug>`, while
+  the listing page draws its list client-side. A Wix source reads as nothing
+  machine-readable to `scrape_venues.py` today; the per-event pages are one
+  link-follow away and are what put ten Warrnambool rows in at `high`.
+- **Ashmore Arts (a169) was repinned 330 m**, from a street-level match to the
+  house match for 55 Ashmore Road, and linked to place 221. Its old
+  `source_note` said street-level only, so nothing a person set was overwritten
+  — but it is a moved pin and is recorded here for that reason.
+- **Event 886's `time_text` was "2am"** — a UTC artefact of the tourism-board
+  import on a bridal open day. Cleared, not guessed; 1915's own page prints no
+  time.
+
+Every new shop, maker and group is in `BY_ID`, plus the two venues (764, 767)
+whose types would make them a spot or a group; the classifier dry-run reports
+no disagreement on any of the 13. The invariant ran clean after every write.
+The Capture queue was republished empty.
+
 ## Two running events, and a past one kept on purpose — 30 Aug 2026
 
     685  Bellarine Rail Trail Run   Sun 23 Aug 2026  annual  place 141  ALREADY HAPPENED
