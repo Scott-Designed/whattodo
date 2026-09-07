@@ -2642,8 +2642,10 @@ function drawReview(){
               ${r.time_text ? `<br><span style="color:var(--ink3);font-size:11px">${esc(r.time_text)}</span>` : ''}
               ${past ? '<br><span style="font-size:11px">in the past</span>' : ''}`;
         const whereCell = series
-          ? `<b style="font-weight:500">${esc(typeof placesLabel === 'function' ? placesLabel(rooms) : rooms.length + ' places')}</b>
-             <br><span class="cap" style="color:var(--ink3);font-size:11px;display:block;max-width:22ch" title="${esc(rooms.join(', '))}">${esc(rooms.join(', '))}</span>`
+          ? (rooms.length === 1
+              ? `<b style="font-weight:500">${esc(rowTown(r) || '—')}</b><br><span style="color:var(--ink3);font-size:11.5px">${esc(rooms[0])}</span>`
+              : `<b style="font-weight:500">${esc(typeof placesLabel === 'function' ? placesLabel(rooms) : rooms.length + ' places')}</b>
+             <br><span class="cap" style="color:var(--ink3);font-size:11px;display:block;max-width:22ch" title="${esc(rooms.join(', '))}">${esc(rooms.join(', '))}</span>`)
           : `<b style="font-weight:500">${esc(town || '—')}</b>
               ${venue && venue !== town ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(venue)}</span>` : ''}
               ${isEv && !r.place_id ? `<br><select class="mini" data-place="1" onclick="event.stopPropagation()">
