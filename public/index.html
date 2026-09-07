@@ -1457,7 +1457,10 @@ function render(){
         <span class="c-extra">${(()=>{const x=extraOf(i);return x?esc(x.value):''})()}</span>
         <span class="mob">${[many?wVenue:whereLine(i), whenText(i).replace(/<[^>]+>/g,'\u001f')]
           .flatMap(v=>String(v==null?'':v).split('\u001f')).map(v=>v.trim())
-          .filter(Boolean).map(esc).join(' &middot; ')}</span>
+          .filter(Boolean)
+          /* with Today or Tomorrow lit, every row would say the day the chip already says */
+          .filter(v=>v.toLowerCase()!==S.when)
+          .map(esc).join(' &middot; ')}</span>
       </button>
       <button class="savebtn${kept?' on':''}" type="button" data-k="${sk}" aria-pressed="${kept}"
               aria-label="${kept?'Saved':'Save'}: ${esc(i.name)}${many?' at '+esc(wVenue):''}"
