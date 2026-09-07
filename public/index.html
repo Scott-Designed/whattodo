@@ -585,7 +585,10 @@ body.mapview .tbl{display:none}
   .c-where,.c-when{display:none}
   /* the grey line is where, when and what time — no type (the icon says it)
      and no venue kind or cost (Scott, 7 Sep 2026) */
-  .mob{display:block;grid-column:2;font-family:var(--util);font-size:12px;color:var(--ink3)}
+  .mob{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+    grid-column:2;font-family:var(--util);font-size:12px;color:var(--ink3)}
+  .mob .mobl{min-width:0}
+  .mob .mobr{flex:none;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink2)}
   .detail{padding:2px var(--pad) 24px}
   #map{height:min(76vh,560px)}
 }
@@ -1243,8 +1246,10 @@ function whenText(i){
     .replace(new RegExp('^\\s*'+DAY.source+'\\s*[,\u2013-]?\\s*','i'),'')
     .replace(new RegExp('\\s*'+DAY.source+'\\s*$','i'),'').trim() : '';
   const until = ends && d<=1 ? 'until '+new Date(ends+'T00:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'}) : '';
-  const tm = [until, time].filter(Boolean).join(' · ');
-  return lbl + (tm?`<span class="tm">${esc(tm)}</span>`:'');
+  /* the clock time is wrapped on its own, so the phone's row can pin it to
+     the right edge; on a desktop the span is invisible and the text unchanged */
+  const tm = [until?esc(until):'', time?`<span class="tt">${esc(time)}</span>`:''].filter(Boolean).join(' · ');
+  return lbl + (tm?`<span class="tm">${tm}</span>`:'');
 }
 function whenOK(i){
   /* Three answers, because that is how many questions a person actually has:
@@ -1455,12 +1460,18 @@ function render(){
         <span class="c-where"${many?` title="${esc(placeNames(g).join(' \u00b7 '))}"`:''}>${esc(wVenue)}${wSuburb?`<span class="tm">${esc(wSuburb)}</span>`:''}</span>
         <span class="c-when">${whenText(i)}</span>
         <span class="c-extra">${(()=>{const x=extraOf(i);return x?esc(x.value):''})()}</span>
-        <span class="mob">${[many?wVenue:whereLine(i), whenText(i).replace(/<[^>]+>/g,'\u001f')]
-          .flatMap(v=>String(v==null?'':v).split('\u001f')).map(v=>v.trim())
-          .filter(Boolean)
-          /* with Today or Tomorrow lit, every row would say the day the chip already says */
-          .filter(v=>v.toLowerCase()!==S.when)
-          .map(esc).join(' &middot; ')}</span>
+        <span class="mob">${(()=>{
+          /* where · day · until, on the left; the clock time on the right, so a
+             column of times can be scanned down the page (Scott, 7 Sep 2026) */
+          const wt=whenText(i), m=wt.match(/<span class="tt">(.*?)<\/span>/);
+          const left=[many?wVenue:whereLine(i), wt.replace(/<span class="tt">.*?<\/span>/,'').replace(/<[^>]+>/g,'\u001f')]
+            .flatMap(v=>String(v==null?'':v).split('\u001f')).flatMap(v=>v.split(' · ')).map(v=>v.trim())
+            .filter(Boolean)
+            /* with Today or Tomorrow lit, every row would say the day the chip already says */
+            .filter(v=>v.toLowerCase()!==S.when)
+            .map(esc).join(' &middot; ');
+          return `<span class="mobl">${left}</span>${m?`<span class="mobr">${m[1]}</span>`:''}`;
+        })()}</span>
       </button>
       <button class="savebtn${kept?' on':''}" type="button" data-k="${sk}" aria-pressed="${kept}"
               aria-label="${kept?'Saved':'Save'}: ${esc(i.name)}${many?' at '+esc(wVenue):''}"
