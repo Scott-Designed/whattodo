@@ -131,7 +131,7 @@ const typesOf = i => i.types?.length ? i.types : (i.type ? [i.type] : []);
    The group counts still do not sum to the number of listings, and that is the
    types being a list rather than a fault here: 69 rows carry types from two
    groups. Bells Beach Surf Film Festival is festival, surfing and cinema, so it
-   is in The music, The ocean and The arts & culture — which is the whole reason
+   is in The community, The ocean and The arts & culture — which is the whole reason
    any of this was done. 494 across nine groups, 419 rows.
 
    The line between `landscape` and `outdoors` is being in it versus doing
@@ -159,15 +159,22 @@ const GROUP_OF={
   arts:'arts', 'art gallery':'arts', theatre:'arts', museum:'arts',
   cinema:'arts', cultural:'arts',
 
-  music:'music', party:'music', comedy:'music', festival:'music',
+  music:'music', party:'music', comedy:'music',
 
+  /* festival was in The music until 7 Sep 2026 — Scott: "don't assume every
+     festival is music." Measured on the 34 rows carrying it: five are music
+     festivals; the rest are the Royal Geelong Show, a children's festival, a
+     glass treasure hunt, a mussel festival, a film festival, two fun runs. A
+     festival is a community occasion; the music ones also carry `music` and
+     land in that group through it. */
   community:'community', volunteering:'community', workshop:'community',
   reading:'community', kids:'community', 'second-hand':'community',
+  festival:'community',
 
   'at-home':'home'};
 
 /* A row is in every group its types are in — usually one, sometimes two: a film
-   festival is music and arts, a glow-worm walk is landscape only because all
+   festival is community and arts, a glow-worm walk is landscape only because all
    three of its types live there. The first is what tints the row. */
 /* Which icon a type gets. Only the types listed here draw one — the rest keep an
    empty slot, so this can be filled in a type at a time. Values are symbol ids

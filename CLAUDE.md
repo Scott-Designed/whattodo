@@ -101,8 +101,21 @@ ended up in both sheets with two different dates, one of them wrong.
 
   **The group counts do not sum to the number of listings, and that is not a
   fault.** 69 rows carry types from more than one group: Bells Beach Surf Film
-  Festival is `festival · surfing · cinema`, so it is in The music, The ocean and
+  Festival is `festival · surfing · cinema`, so it is in The community, The ocean and
   The arts & culture at once. 494 across nine groups, 419 rows.
+- **`festival` is in The community, not The music — 7 Sep 2026.** Scott:
+  *"don't assume every festival is music."* It had sat in The music since the
+  groups were built, so every festival took the music tint and the music
+  filter. Measured on the 34 rows carrying it: **five** are music festivals;
+  the rest are the Royal Geelong Show, a children's festival, a glass treasure
+  hunt, the mussel festival, a film festival and two fun runs. A festival is a
+  community occasion, and the music ones also carry `music`, which puts them
+  in that group anyway. One key in `GROUP_OF`; groups are derived at load, so
+  the baked-in copy and `api/subject.mjs` follow. Five tourism-board rows the
+  *Festivals & Shows* catch-all had left as bare `festival` were retyped from
+  their descriptions in the same pass (a Cat Power concert → `music`, The Snow
+  Fairy → `theatre · kids`, Dinos at the Zoo → `kids · nature`, two family
+  festivals gained `kids`); 29 rows in that shape remain in the queue.
 - **The Type menu leaves out what it cannot offer** rather than greying it. It was
   greyed while the menu was short — a grey row said "not with these filters"
   without lying — but that does not survive 42 types, where picking The ocean left
