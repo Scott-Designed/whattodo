@@ -7703,6 +7703,19 @@ new action on `api/admin.mjs`. Verified in the browser against live data:
   the link, cached per session. Under the local preview server it says *Could
   not read* because there is no `/api` there — check it on the deploy.
 
+**A redraw is not a navigation — 7 Sep 2026.** Scott: *"When I add a type to
+a listing, the whole page refreshed and takes me back to the top of the list.
+Same as when I click edit and save in the RHS panel."* One line: `drawReview`
+calls `keyboardRows()` to re-mark the highlighted row after every redraw, and
+that function scrolled the row into view every time — row 0 when the keys had
+never been used. It scrolls only from a key press now (`keyboardRows(true)`),
+and `redrawAll()` reads `window.scrollY` before it rebuilds the tables and
+puts it back after, so nothing else that repaints the page can do this again.
+**Save in the editor drawer closes it** on success rather than redrawing it
+over the row; the list behind it redraws anyway, so the flags settle there.
+Measured in the preview: 3000px before, 3000px after both redraws, and ↓ still
+brings the cursor's row on screen.
+
 **`drawReview`…`rejectRow` were replaced as one slice and the slice was
 asserted** to define exactly those four functions and nothing else, which is
 the check this file's own `check_admin.py` section demands.

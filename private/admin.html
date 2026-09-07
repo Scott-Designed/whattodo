@@ -2754,7 +2754,7 @@ async function patchRows(table, ids, make){
     Object.assign(r, out.row); n++;
   }
   rsay(`Saved on ${n} row${n === 1 ? '' : 's'}.`, 'good');
-  drawReview(); redrawAll();
+  redrawAll();   // which draws the queue; drawing it twice was a leftover
 }
 
 /* Approving PUBLISHES — one gesture, one decision, and the endpoint sets
@@ -2830,11 +2830,16 @@ const rejectRow = (table, id) => deleteRows(table, [id]);
    E opens it, U undoes. Only while the Review tab is showing and nothing is
    being typed into. */
 const RKEY = {i: 0};
-function keyboardRows(){
+/* `follow` is true only from a key press. drawReview() calls this on every
+   redraw to re-mark the row, and until 7 Sep 2026 it scrolled that row into
+   view every time — row 0 when the keys had never been used — so adding a type
+   or saving the editor threw the page back to the top of the queue. Scott:
+   "the whole page refreshed and takes me back to the top of the list." */
+function keyboardRows(follow){
   const trs = [...$('#review').querySelectorAll('tr[data-ids]')];
   trs.forEach((tr, i) => tr.classList.toggle('kb', i === RKEY.i));
   const cur = trs[RKEY.i];
-  if (cur) cur.scrollIntoView({block: 'nearest'});
+  if (cur && follow) cur.scrollIntoView({block: 'nearest'});
 }
 document.addEventListener('keydown', ev => {
   if ($('#tab-review').hidden || OPEN) return;
@@ -2843,8 +2848,8 @@ document.addEventListener('keydown', ev => {
   const trs = [...$('#review').querySelectorAll('tr[data-ids]')];
   if (!trs.length) return;
   const k = ev.key;
-  if (k === 'ArrowDown' || k === 'j'){ RKEY.i = Math.min(trs.length - 1, RKEY.i + 1); keyboardRows(); ev.preventDefault(); return; }
-  if (k === 'ArrowUp'   || k === 'k'){ RKEY.i = Math.max(0, RKEY.i - 1); keyboardRows(); ev.preventDefault(); return; }
+  if (k === 'ArrowDown' || k === 'j'){ RKEY.i = Math.min(trs.length - 1, RKEY.i + 1); keyboardRows(true); ev.preventDefault(); return; }
+  if (k === 'ArrowUp'   || k === 'k'){ RKEY.i = Math.max(0, RKEY.i - 1); keyboardRows(true); ev.preventDefault(); return; }
   const tr = trs[RKEY.i]; if (!tr) return;
   if (k === 'p' || k === 'P'){ tr.querySelector('[data-ok]').click(); ev.preventDefault(); }
   else if (k === 'd' || k === 'D'){ tr.querySelector('[data-no]').click(); ev.preventDefault(); }
@@ -4144,10 +4149,12 @@ async function save(){
     Object.assign(OPEN.row, out.row);
     const arr = DATA[OPEN.table]; const i = arr.findIndex(x => x.id === out.row.id);
     if (i > -1) arr[i] = out.row;
-    say('Saved.', 'good');
+    // Scott, 7 Sep 2026: "when I click save in RHS panel, it should close the
+    // fly out." It used to redraw the drawer over the saved row; the list
+    // behind it redraws anyway, so the flags settle there.
+    closeEditor();
     redrawAll();
-    openEditor(OPEN.table, out.row);            // redraw so the flags settle
-    say('Saved.', 'good');
+    if (!$('#tab-review').hidden) rsay('Saved.', 'good');
   } else if (out.complaints){
     say('Not saved:<ul>' + out.complaints.map(c => `<li>${esc(c)}</li>`).join('') + '</ul>', 'bad');
   } else say(why(code, out), 'bad');
@@ -5432,8 +5439,13 @@ const TAB_NAME = Object.fromEntries(PAGES.map(p => [p.id, p.name]));
 const SECTION_OF = {home:'home', sources:'autos', conditions:'conditions',
                     inbox:'inbox', review:'review',
                     happenings:'events', locations:'places'};
-const redrawAll = () => { indexDupes(); drawEvents(); drawActivities(); drawPlaces(); drawGroups();
-                          drawSources(); drawOverview(); drawReview(); drawHome(); drawChart(); drawKindRoll(); };
+/* Every table is rebuilt with innerHTML, so the page is where it was only if
+   somebody puts it back. Read the scroll before, restore it after — a redraw
+   is a repaint of the same list, not a navigation. */
+const redrawAll = () => { const y = window.scrollY;
+                          indexDupes(); drawEvents(); drawActivities(); drawPlaces(); drawGroups();
+                          drawSources(); drawOverview(); drawReview(); drawHome(); drawChart(); drawKindRoll();
+                          window.scrollTo({top: y}); };
 
 /* A page, and which tab within it. The hash carries both — #listings/venues —
    so a link into a tab survives a reload and the back button. */
