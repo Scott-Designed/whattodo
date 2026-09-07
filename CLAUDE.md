@@ -4214,6 +4214,71 @@ knowing because the same trap is waiting for the other three filters:
   the hold when it is computing the kind pool. Without the first change the menu
   promised 57 Ideas and delivered 14; without the second it promised 16.
 
+## The phone — 7 Sep 2026
+
+Scott: *"All I want to appear on mobile is: Today, Tomorrow, This Week; List
+(with icon). All other filters can go behind a filter button which takes over
+page for deeper filtering."* Then: *"call the page Noticeboard. Move pin saving
+into the main nav. Put about, place and type behind a hamburger."* All four,
+same afternoon. Measured before: **535px of masthead and controls stood before
+the first row on an 812px screen**, with the Group menu orphaned on the right
+of an empty Kind slot and "This week" / "Any time" each wrapping inside its
+own cell. After: the first row starts at 297px.
+
+**Below 700px the board shows three things and nothing else**: the When
+segment split three ways across the width, a `Filters` button, and List / Map
+with Lucide icons (`list`, `map`, verbatim). Every other control — the Kind,
+Group, Type and Place menus, the four folded filters, Search, Sort and Clear
+all — is in **the sheet**, `#sheet`, which takes the screen. It closes on ×,
+Escape, or *Show 448 things*, whose count is `render()`'s own so it moves as
+you change things. The Filters button carries a count of what is on, read off
+the same list `paintChips()` draws.
+
+**The controls MOVE; nothing is rebuilt.** `arrangeForPhone()` in index.html
+moves the elements into the sheet below 700px and puts them back above it, on
+a `matchMedia` change, so every listener they carry comes with them and the
+desktop is the markup exactly as written. Restoring runs in **reverse document
+order**, because each element's old neighbour may itself have moved — the
+Type menu's neighbour is the Place menu, which is also in the sheet. Each
+control in the sheet gets a label through `data-label` and a `::before`,
+because "Anything" alone does not read as the group menu once its neighbours
+are gone. `#ms-kind` is empty on `/noticeboard` and `.ctrl.ms:empty` hides it,
+label and all, which is also what fixed the orphaned Group menu.
+
+**"Any time" is not a chip on a phone.** Pressing the lit chip again is how
+you get back to it — that rule now holds on the desktop too, where it was a
+no-op — so the three-chip segment has no dead state.
+
+**The pin count is in the bar on every page, drawn by `nav.js`.** On the board
+it is the button it always was (index.html finds `#savedbtn` where the bar put
+it). Anywhere else it is a link to `/?saved`, which the board reads once and
+takes back off the address with `replaceState`. The count comes straight from
+`localStorage`, the one place the list lives. Its styles moved from index.html
+to `notice-nav.css` with it — one home.
+
+**The hamburger is phones only.** Above 700px the bar is what it was, plus the
+pin. Below, About, Place and Type leave the bar for a panel under it that
+takes the screen; Place and Type are rows that open in place, filled by the
+same `fillPlace` / `fillType` the desktop menus use, so there is one list of
+each. Everything and Noticeboard stay in the bar, because they are where a
+phone reader is going; Everything still drops below 430px as before.
+
+**`Noticeboard`, one word**, is the nav label and `BOARD_TITLE`. The prose in
+`about.html`, `place.html` and `type.html` still says "Notice Board" and points
+at `/` — it is describing the product's board, not this page, so it was left.
+
+**`+ Add` is a round + on a phone.** The pill was 83px wide and sat over the
+end of whichever row was at the bottom of the screen, pin and all.
+
+**Checked at 375 and 320, and at 1280 after a resize from 375** — the controls
+came back to their markup order, the sheet emptied, no burger, no icons on
+List / Map, Any time drawn. No console errors on any of it.
+
+**Left alone, worth a look:** the masthead's `Notice` h1 sits 60px under the
+bar's `Notice` wordmark on a phone, with only the theme pill and the date line
+for company — the obvious next 90px. The subject pages (`place.html`,
+`type.html`) got the bar changes and nothing else.
+
 ## The nav bar, and the pages behind it
 
 Built 26 Aug 2026. The site is four pages now, not one, and they share a bar

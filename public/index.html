@@ -54,34 +54,29 @@ h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,6vw,76px);lette
   text-transform:uppercase;color:var(--ink3);border:1px solid var(--rule2);padding:1px 6px;margin-left:10px}
 .sub{grid-column:1/-1;margin-top:14px;font-family:var(--util);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
 
-/* ── what you have kept, counted, top right ──
-   An outline pill so it reads as a tally rather than a button to press first;
-   it fills in only while it is holding the list down to what you saved. */
+/* ── the theme pill, top right. The pin count that sat beside it is in the
+   bar now — see notice-nav.css. ── */
 .hdrbtns{grid-column:2;grid-row:1;justify-self:end;margin-top:9px;
   display:flex;align-items:center;gap:10px}
-.savedpill,.modepill{
+.modepill{
   display:inline-flex;align-items:center;gap:9px;white-space:nowrap;
   font-family:var(--util);font-size:12.5px;font-weight:600;letter-spacing:.06em;
   color:var(--ink2);background:transparent;border:1px solid var(--rule2);
   border-radius:999px;padding:8px 15px;cursor:pointer;
 }
-.savedpill:hover,.modepill:hover{border-color:var(--ink);color:var(--ink)}
+.modepill:hover{border-color:var(--ink);color:var(--ink)}
 /* The word rather than a sun-and-moon glyph. There are three states, which do
    not reduce to two symbols, and a cycling icon button makes the reader guess
    what the next press will do. */
 .modepill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .modepill b{font-weight:600;letter-spacing:.06em}
-.savedpill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
-.savedpill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
-.savedpill b{font-weight:600;font-variant-numeric:tabular-nums}
-.savedpill.empty{color:var(--ink3)}
-/* grey until it is holding something, so the count and the colour say the same thing */
-.savedpill .ic{font-size:14px;line-height:1;filter:grayscale(1);opacity:.75}
-.savedpill:not(.empty) .ic{filter:none;opacity:1}
 
 /* ── controls: dropdowns only ── */
 .controls{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;padding-bottom:26px}
 .ctrl{display:flex;flex-direction:column;gap:6px;min-width:0}
+/* the Kind menu is not drawn on /noticeboard, and an empty flex item still
+   takes its gap — and, on a phone, its whole 42% slot */
+.ctrl.ms:empty{display:none}
 select,input[type=search]{
   font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;
   border:0;border-bottom:1px solid var(--rule2);padding:5px 26px 6px 0;min-width:150px;
@@ -191,6 +186,34 @@ option{background:var(--ground);color:var(--ink)}
 }
 .addpill:hover,.addpill[aria-expanded="true"]{background:var(--ink2)}
 .addpill:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+/* ── the filter sheet (phones) ── */
+.filterbtn{display:none}
+.sheet{position:fixed;inset:0;z-index:80;background:var(--ground);
+  display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain}
+.sheet[hidden]{display:none}
+.sheethead{position:sticky;top:0;z-index:1;background:var(--ground);border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;justify-content:space-between;padding:12px var(--pad) 10px}
+.sheethead h2{margin:0;font-family:var(--serif);font-weight:400;font-size:24px;letter-spacing:-.02em}
+.sheetx{width:40px;height:40px;margin-right:-10px;display:grid;place-items:center;
+  background:transparent;border:0;color:var(--ink);cursor:pointer;border-radius:50%}
+.sheetx svg{width:22px;height:22px}
+.sheetbody{flex:1;padding:14px var(--pad) 28px;display:grid;gap:20px;align-content:start}
+.sheetbody .ctrl{width:100%;flex:none}
+/* each control says what it is, because a sheet has no row of neighbours to
+   say it for it — "Anything" alone does not read as the group menu */
+.sheetbody .ctrl::before{content:attr(data-label);font-family:var(--util);font-size:10.5px;
+  font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3)}
+.sheetbody .ms-btn{width:100%;min-width:0}
+.sheetbody .ms-pop{left:0;right:0;min-width:0}
+.sheetfoot{position:sticky;bottom:0;background:var(--ground);border-top:1px solid var(--rule);
+  padding:12px var(--pad);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.sheetdone{margin-left:auto;font-family:var(--util);font-size:13px;font-weight:600;letter-spacing:.06em;
+  color:var(--ground);background:var(--ink);border:0;border-radius:999px;padding:13px 22px;cursor:pointer}
+.sheetdone:focus-visible,.sheetx:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+body.sheetopen{overflow:hidden}
+/* List / Map carry an icon on a phone and only the word on a desktop */
+.seg .vic{display:none}
 
 /* ── add panel ── */
 .addbtn{
@@ -523,21 +546,54 @@ body.mapview .tbl{display:none}
 }
 @media (max-width:700px){
   :root{--pad:20px; --gut:20px}
-  /* stacked, so a fixed height and a clipped name both stop making sense */
-  .rowline{grid-template-columns:48px 1fr;gap:3px 12px;min-height:0;align-items:start;
-    padding:11px calc(var(--gut) + 40px) 11px var(--gut)}
-  .c-icon{grid-row:1;margin-top:3px}
+  /* ── the phone ──
+     Scott, 7 Sep 2026: all that shows is Today / Tomorrow / This week, List
+     with an icon, and a Filters button. Everything else is in the sheet.
+     Before this, 535px of masthead and controls stood before the first row. */
+  header{padding:18px 0 18px}
+  .sub{margin-top:10px}
+  .controls{gap:10px 12px;padding-bottom:14px}
+  select,input[type=search]{min-width:0;width:100%;font-size:16px}
+  /* the When segment takes the width and splits it three ways. "Any time"
+     is not a chip here: pressing the lit chip again is how you get back to it */
+  .controls .seg#whenseg{width:100%}
+  .controls .seg button{flex:1 1 0;padding:7px 2px 8px;font-size:15px;white-space:nowrap}
+  #whenseg button[data-w="any"]{display:none}
+  #morebtn,#more{display:none}
+  .filterbtn{display:inline-flex;align-items:center;gap:8px;margin-right:auto;
+    font-family:var(--util);font-size:13px;font-weight:600;letter-spacing:.04em;
+    color:var(--ink);background:transparent;border:1px solid var(--rule2);border-radius:999px;
+    padding:8px 14px 8px 12px;cursor:pointer}
+  .filterbtn svg{width:16px;height:16px}
+  .filterbtn b{font-weight:600;background:var(--ink);color:var(--ground);border-radius:999px;
+    min-width:18px;height:18px;display:grid;place-items:center;font-size:11px;padding:0 5px;margin-left:-2px}
+  .filterbtn b[hidden]{display:none}
+  /* List / Map, moved up beside Filters */
+  .controls .ctrl{flex:none}
+  .seg .vic{display:block;width:16px;height:16px}
+  #viewseg button{display:inline-flex;align-items:center;gap:7px;padding:7px 12px 7px 11px;font-size:15px}
+  .toolbar{padding-bottom:8px}
+  .toolbar .board{white-space:normal;font-size:16px}
+  .toolbar input[type=search],.toolbar input[type=search]:focus{width:100%}
+  /* stacked, so a fixed height and a clipped name both stop making sense.
+     The icon and the pin's lane both come in a little, which is 30px more
+     for the name — a fifth column's worth on a 375px screen. */
+  .rowline{grid-template-columns:28px 1fr;gap:3px 12px;min-height:0;align-items:start;
+    padding:11px calc(var(--gut) + 28px) 11px var(--gut)}
+  .c-icon{grid-row:1;margin-top:3px;width:28px}
+  .c-icon svg{width:28px;height:26px}
   .c-name{grid-column:2}
-  header{padding:26px 0 30px}
   .c-name{display:block}
   .c-name .nm{white-space:normal;overflow:visible;text-overflow:clip;display:inline}
   .c-where,.c-when{display:none}
   .mob{display:block;grid-column:2;font-family:var(--util);font-size:12px;color:var(--ink3)}
-  .controls{gap:12px 18px}
-  select,input[type=search]{min-width:0;width:100%;font-size:16px}
-  .ctrl{flex:1 1 42%}
+  .detail{padding:2px var(--pad) 24px}
   #map{height:min(76vh,560px)}
-  .seg button{padding:6px 13px 7px;font-size:15px}
+  /* Add is a round + on a phone: the pill was 83px wide and sat over the end
+     of whichever row was at the bottom of the screen, pin and all. */
+  .addpill{right:16px;bottom:16px;width:50px;height:50px;padding:0;border-radius:50%;
+    display:grid;place-items:center;font-size:26px;font-weight:400;line-height:1;letter-spacing:0}
+  .addpill .word{display:none}
 }
 </style>
 
@@ -553,8 +609,6 @@ body.mapview .tbl{display:none}
     <h1>Notice</h1>
     <div class="hdrbtns">
       <button id="themebtn" type="button" class="modepill"><b>Auto</b></button>
-      <button id="savedbtn" type="button" class="savedpill empty" aria-pressed="false"
-              aria-label="Saved listings"><span class="ic" aria-hidden="true">&#128204;</span><b>0</b></button>
     </div>
     <div class="sub"><span id="sub">Jan Juc &amp; the Surf Coast</span><span id="src" class="srcbadge"></span></div>
   </header>
@@ -573,6 +627,11 @@ body.mapview .tbl{display:none}
     <button id="morebtn" type="button" class="morebtn" aria-expanded="false"
             aria-controls="more">Filters<span class="dot" id="moredot" hidden></span></button>
     <button id="clear" type="button" class="clearbtn" hidden>Clear all</button>
+    <!-- phones only: opens the sheet that holds every other control -->
+    <button id="filterbtn" type="button" class="filterbtn" aria-haspopup="dialog" aria-controls="sheet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round" aria-hidden="true"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>
+      Filters<b id="filtercount" hidden></b></button>
   </div>
 
   <div class="more" id="more" hidden>
@@ -640,14 +699,14 @@ body.mapview .tbl{display:none}
     </form>
   </section>
 
-  <button id="addtoggle" type="button" class="addpill">+ Add</button>
+  <button id="addtoggle" type="button" class="addpill" aria-label="Add something"><span aria-hidden="true">+</span><span class="word"> Add</span></button>
 
   <script id="additions" type="application/json">[]</script>
 
   <div class="chips" id="chips"></div>
 
   <div class="toolbar">
-    <h2 class="board"><span id="boardname">Notice Board</span> <span id="tally"></span></h2>
+    <h2 class="board"><span id="boardname">Noticeboard</span> <span id="tally"></span></h2>
     <div class="ctrl">
       <input id="q" type="search" aria-label="Search" placeholder="Search"></div>
     <div class="ctrl">
@@ -656,9 +715,26 @@ body.mapview .tbl{display:none}
         <option value="new">Recently added</option><option value="az">A &ndash; Z</option></select></div>
     <div class="ctrl">
       <div class="seg" id="viewseg" role="group" aria-label="How to show the listings">
-        <button type="button" data-v="list" aria-pressed="true">List</button>
-        <button type="button" data-v="map" aria-pressed="false">Map</button>
+        <button type="button" data-v="list" aria-pressed="true"><svg class="vic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></svg>List</button>
+        <button type="button" data-v="map" aria-pressed="false"><svg class="vic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg>Map</button>
       </div></div>
+  </div>
+
+  <!-- ── the filter sheet, phones only ──
+       Every control that is not Today / Tomorrow / This week or List / Map
+       moves in here below 700px (see arrangeForPhone) and takes the screen.
+       It is empty on a desktop, where the same controls sit in the rows above. -->
+  <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheettitle">
+    <div class="sheethead">
+      <h2 id="sheettitle">Filters</h2>
+      <button type="button" class="sheetx" id="sheetclose" aria-label="Close filters">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+             stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+    <div class="sheetbody" id="sheetbody"></div>
+    <div class="sheetfoot" id="sheetfoot">
+      <button type="button" class="sheetdone" id="sheetdone">Show everything</button>
+    </div>
   </div>
 
   <div class="tbl">
@@ -728,6 +804,12 @@ async function fetchWeather(){
   }catch(e){ clearTimeout(t); return null; }
 }
 const S={when:'any',kind:[],group:[],type:[],suburb:[],km:999,cost:[],who:[],wx:'',sort:'when',q:'',saved:false};
+/* The pin count in the bar is a link on every other page — /?saved — so the
+   board opens already holding the list down to what you kept. The parameter
+   is read once and taken back off the address, since it is a view, not a place. */
+if(new URLSearchParams(location.search).has('saved')){
+  S.saved=true; history.replaceState(null,'',location.pathname);
+}
 
 /* ══ what you kept ══════════════════════════════════════════
    A wishlist with no account behind it. The keys live in this browser and
@@ -1239,7 +1321,7 @@ const EVENTS_ONLY = location.pathname.replace(/\/+$/,'') === '/noticeboard';
    dropdown is where that changes. */
 const BOARD_KINDS=[['spot','Spots'],['venue','Venues'],
                    ['happening','Happenings'],['idea','Ideas']];
-const BOARD_TITLE = EVENTS_ONLY ? 'Notice Board' : 'Everything';
+const BOARD_TITLE = EVENTS_ONLY ? 'Noticeboard' : 'Everything';
 
 function ok(i){
   if(S.saved && !isSaved(i)) return false;
@@ -1359,6 +1441,8 @@ function render(){
   document.getElementById('boardname').textContent = BOARD_TITLE;
   document.getElementById('tally').textContent =
     list.length===1 ? '1 thing pinned' : list.length+' things pinned';
+  document.getElementById('sheetdone').textContent =
+    !list.length ? 'Nothing matches' : list.length===1 ? 'Show 1 thing' : 'Show '+list.length+' things';
   paintChips();
   /* Five branches running one story time at one hour is one line, not five.
      Clustered AFTER the filter, so narrowing to a town leaves a single row for
@@ -1733,9 +1817,10 @@ refreshFacets();
 
 document.getElementById('whenseg').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
-  S.when=b.dataset.w;
+  /* pressing the lit chip again is Any time — on a phone that chip is not drawn */
+  S.when = (b.dataset.w===S.when) ? 'any' : b.dataset.w;
   [...e.currentTarget.children].forEach(x=>
-    x.setAttribute('aria-pressed', String(x===b)));
+    x.setAttribute('aria-pressed', String(x.dataset.w===S.when)));
   refreshFacets(); render();
 });
 
@@ -1760,6 +1845,9 @@ function paintChips(){
   box.innerHTML=out.map(([k,v,l])=>
     `<button class="chip" type="button" data-k="${k}" data-v="${esc(String(v))}"`
     +` aria-label="Remove filter ${esc(l)}">${esc(l)}<span class="x">&times;</span></button>`).join('');
+  /* the phone's Filters button counts what is on, since the sheet hides it */
+  const fc=document.getElementById('filtercount');
+  fc.textContent=String(out.length); fc.hidden=!out.length;
 }
 document.getElementById('savedbtn').addEventListener('click',()=>{
   S.saved=!S.saved; refreshFacets(); render();
@@ -1837,6 +1925,56 @@ document.getElementById('clear').addEventListener('click',()=>{
   document.getElementById('q').value='';
   render();
 });
+
+/* ── the phone: every other control moves into the sheet ──
+   Below 700px the group, type and place menus, the four folded filters, the
+   search box, the sort and the Clear-all button leave their rows for the
+   sheet, and List / Map comes up beside the Filters button. Above it they go
+   back where the markup puts them. The elements move; nothing is rebuilt, so
+   every listener they carry comes with them. Restoring runs in reverse
+   document order, because each element's old neighbour may itself have moved. */
+const PHONE=matchMedia('(max-width:700px)');
+const HOMES=new Map();
+function arrangeForPhone(on){
+  const $=id=>document.getElementById(id), ctrlOf=id=>$(id).closest('.ctrl');
+  const list=[
+    [$('ms-kind'),'Kind'],[$('ms-group'),'Group'],[$('ms-type'),'Type'],[$('ms-suburb'),'Place'],
+    [ctrlOf('km'),'Distance'],[$('ms-cost'),'Cost'],[$('ms-who'),'Who for'],
+    [ctrlOf('wx'),'Weather'],[ctrlOf('q'),'Search'],[ctrlOf('sort'),'Sort by'],
+  ].filter(([el])=>el);
+  const body=$('sheetbody'), foot=$('sheetfoot'), controls=document.querySelector('.controls');
+  const view=ctrlOf('viewseg'), clear=$('clear');
+  [...list.map(x=>x[0]), clear, view].forEach(el=>{ if(!HOMES.has(el)) HOMES.set(el,{p:el.parentNode,n:el.nextSibling}) });
+  if(on){
+    const order=['Search','Kind','Group','Type','Place','Distance','Cost','Who for','Weather','Sort by'];
+    order.forEach(l=>{ const m=list.find(x=>x[1]===l); if(!m) return;
+      m[0].dataset.label=l; body.appendChild(m[0]); });
+    foot.insertBefore(clear, foot.firstChild);
+    controls.appendChild(view);
+  }else{
+    [...list.map(x=>x[0]), clear, view].reverse().forEach(el=>{
+      delete el.dataset.label; const h=HOMES.get(el); h.p.insertBefore(el,h.n); });
+    closeSheet();
+  }
+}
+const sheet=document.getElementById('sheet');
+function openSheet(){
+  closeAllMulti(); sheet.hidden=false; document.body.classList.add('sheetopen');
+  document.getElementById('filterbtn').setAttribute('aria-expanded','true');
+  document.getElementById('sheetclose').focus({preventScroll:true});
+}
+function closeSheet(){
+  if(sheet.hidden) return;
+  sheet.hidden=true; document.body.classList.remove('sheetopen');
+  const fb=document.getElementById('filterbtn');
+  fb.setAttribute('aria-expanded','false'); fb.focus({preventScroll:true});
+}
+document.getElementById('filterbtn').addEventListener('click',e=>{ e.stopPropagation(); openSheet(); });
+document.getElementById('sheetclose').addEventListener('click',closeSheet);
+document.getElementById('sheetdone').addEventListener('click',closeSheet);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheet(); });
+arrangeForPhone(PHONE.matches);
+PHONE.addEventListener('change',e=>arrangeForPhone(e.matches));
 
 async function useAuto(sel){
   const opt=sel.options[1];

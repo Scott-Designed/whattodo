@@ -55,12 +55,46 @@
     '<a class="navlink" data-nav="board" href="/"' +
       (CUR==='board'?' aria-current="page"':'') + '>Everything</a>' +
     '<a class="navlink" data-nav="whatson" href="/noticeboard"' +
-      (CUR==='whatson'?' aria-current="page"':'') + '>Notice Board</a>' +
+      (CUR==='whatson'?' aria-current="page"':'') + '>Noticeboard</a>' +
     menu('place','Place') +
-    menu('type','Type');
+    menu('type','Type') +
+    savedPill() +
+    burger();
+
+  /* ── the pin count, in the bar ──
+     What you have kept is a fact about the reader, not about one page, so it
+     travels with the bar. On the board it is the button that holds the list
+     down to what you saved (index.html wires it); anywhere else it is a link
+     to the board with that view already on. The count is read straight from
+     localStorage, the one place the saved list lives. */
+  function savedPill(){
+    var n = 0;
+    try{ n = JSON.parse(localStorage.getItem('notice.saved')||'[]').length }catch(e){}
+    var onBoard = CUR==='board' || CUR==='whatson';
+    var inner = '<span class="ic" aria-hidden="true">\uD83D\uDCCC</span><b>'+n+'</b>';
+    var cls = 'navlink savedpill'+(n?'':' empty');
+    return onBoard
+      ? '<button type="button" id="savedbtn" class="'+cls+'" aria-pressed="false"'
+        +' aria-label="Saved listings">'+inner+'</button>'
+      : '<a id="savedbtn" href="/?saved" class="'+cls+'" aria-label="Saved listings">'+inner+'</a>';
+  }
+
+  /* ── the hamburger ──
+     Below 700px About, Place and Type leave the bar and sit behind this. The
+     bar keeps what a phone reader actually presses: the wordmark, Noticeboard,
+     the pin count, and this. Lucide `menu` (ISC), verbatim. */
+  function burger(){
+    return '<div class="navmenu burger">' +
+      '<button class="navlink burger" type="button" data-menu="more"' +
+        ' aria-expanded="false" aria-haspopup="true" aria-controls="navpop-more" aria-label="Menu">' +
+        '<svg class="navic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
+        ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></button>' +
+      '<div class="navpop full" id="navpop-more" hidden></div></div>';
+  }
 
   function menu(key,label){
-    return '<div class="navmenu">' +
+    return '<div class="navmenu '+key+'">' +
       '<button class="navlink" type="button" data-menu="'+key+'"' +
         ' aria-expanded="false" aria-haspopup="true" aria-controls="navpop-'+key+'"' +
         (CUR===key?' aria-current="page"':'') + '>' +
@@ -104,7 +138,22 @@
     }).join('');
   }
 
-  var FILL = {place:fillPlace, type:fillType}, BUILT = {};
+  /* The hamburger's panel: the three plain links, then Place and Type as
+     rows that open in place. The town and type lists are the same fill
+     functions the desktop menus use, so there is one list of each. */
+  function fillMore(box){
+    function plain(key,href,label){
+      return '<a href="'+href+'"'+(CUR===key?' aria-current="page"':'')+'>'+label+'</a>' }
+    function sec(key,label){
+      return '<button class="navsec" type="button" data-sec="'+key+'" aria-expanded="false"' +
+        ' aria-controls="sec-'+key+'"'+(CUR===key?' aria-current="page"':'')+'>' +
+        label+'<i class="car" aria-hidden="true"></i></button>' +
+        '<div class="secbox" id="sec-'+key+'" hidden></div>' }
+    box.innerHTML = plain('about','/about','About') + plain('board','/','Everything') +
+      plain('whatson','/noticeboard','Noticeboard') + sec('place','Place') + sec('type','Type');
+  }
+
+  var FILL = {place:fillPlace, type:fillType, more:fillMore}, BUILT = {};
 
   /* ── opening and closing ── */
   function closeAll(except){
@@ -116,6 +165,17 @@
   }
 
   bar.addEventListener('click', function(e){
+    /* a Place / Type row inside the hamburger opens in place */
+    var s = e.target.closest('[data-sec]');
+    if(s){
+      e.stopPropagation();
+      var box = document.getElementById('sec-'+s.dataset.sec);
+      var was = s.getAttribute('aria-expanded')==='true';
+      if(!was && !BUILT['sec-'+s.dataset.sec]){ FILL[s.dataset.sec](box); BUILT['sec-'+s.dataset.sec]=1 }
+      s.setAttribute('aria-expanded', String(!was));
+      box.hidden = was;
+      return;
+    }
     var b = e.target.closest('[data-menu]');
     if(!b) return;
     e.stopPropagation();

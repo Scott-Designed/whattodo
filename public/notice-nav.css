@@ -60,11 +60,53 @@
   letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
 .navpop .grp:first-child{padding-top:3px}
 
+/* ── the pin count ──
+   An outline pill so it reads as a tally rather than a button to press first;
+   it fills in only while it is holding the board down to what you saved. It
+   moved here from the board's masthead on 7 Sep 2026, because what you have
+   kept is not a fact about one page. */
+.savedpill{gap:8px;border:1px solid var(--rule2);padding:7px 13px;margin-left:6px;
+  font-weight:600;letter-spacing:.06em;font-size:12.5px;line-height:1}
+.savedpill:hover{border-color:var(--ink);color:var(--ink);background:transparent}
+.savedpill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+.savedpill b{font-weight:600;font-variant-numeric:tabular-nums}
+.savedpill.empty{color:var(--ink3)}
+/* grey until it is holding something, so the count and the colour say the same thing */
+.savedpill .ic{font-size:13px;line-height:1;filter:grayscale(1);opacity:.75}
+.savedpill:not(.empty) .ic{filter:none;opacity:1}
+
+/* ── the hamburger, phones only ── */
+.navic{width:20px;height:20px;flex:none;display:block}
+.navmenu.burger{display:none}
+.navsec{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  background:transparent;border:0;cursor:pointer;color:var(--ink);
+  font-family:var(--serif);font-size:16px;padding:7px 15px}
+.navsec .car{border-left:4px solid transparent;border-right:4px solid transparent;
+  border-top:5px solid currentColor;opacity:.75;transition:transform .15s}
+.navsec[aria-expanded="true"] .car{transform:rotate(180deg)}
+.navsec[aria-current="page"]{font-style:italic}
+.secbox{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+  padding:6px 0;margin:4px 0}
+.secbox[hidden]{display:none}
+
 @media (max-width:700px){
   .nav{height:52px;gap:0}
   .nav .mark{font-size:23px}
   .navlink{padding:8px 9px;font-size:12.5px}
+  /* About, Place and Type go behind the hamburger. Everything and the
+     Noticeboard stay, because they are where a phone reader is going. */
+  .nav a[data-nav="about"],.navmenu.place,.navmenu.type{display:none}
+  .navmenu.burger{display:flex}
+  .navlink.burger{padding:8px 6px 8px 8px;margin-right:-8px}
+  .savedpill{padding:6px 11px;margin-left:4px}
+  /* its panel takes the screen below the bar and scrolls on its own */
+  .navpop.full{position:fixed;top:52px;left:0;right:0;bottom:0;
+    max-height:none;min-width:0;border:0;border-top:1px solid var(--rule);
+    box-shadow:none;padding:10px 0 48px;overscroll-behavior:contain}
+  .navpop.full>a,.navsec{font-size:19px;padding:12px var(--pad)}
+  .navpop.full .secbox a{padding-left:calc(var(--pad) + 12px)}
+  .navpop.full .secbox .grp{padding-left:calc(var(--pad) + 12px)}
 }
-/* Below this the four items stop fitting beside the wordmark. Noticeboard is
-   the one to drop — the wordmark already goes there. */
+/* Below this Everything stops fitting beside the wordmark. It is the one to
+   drop — the wordmark already goes there. */
 @media (max-width:430px){ .nav a[data-nav="board"]{display:none} }
