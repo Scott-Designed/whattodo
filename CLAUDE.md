@@ -2544,6 +2544,71 @@ every press, a second group's heading moving all four tables, and a shift-range
 selecting five rows that are contiguous **on screen and not by id**, which is
 what proves the pick logic follows the sorted order rather than the original one.
 
+### The queue was deduplicated by hand — 7 Sep 2026
+
+Scott: *"review the automation queue and help identify any duplicates, either
+across the automations or already in the database."* Every held row was
+matched against every event on name, date, place and start time, and the 13
+held activities against activities and places. **31 held rows deleted, 14
+rows patched, nothing published.** The invariant ran clean after.
+
+**Three shapes of duplicate, and only the first is what the `Already have`
+column catches on its own:**
+
+- **A held row for something already live** — 10 rows, one per source pair.
+  In four of them the HELD row carried the better data: Coast & Bay had the
+  hours and the railway's own page for *Day Out With Thomas* (e865 had
+  neither), the name and hours for *Drysdale Community Market* (e40 said
+  "Community Market", "Sunday morning" — the /admin fix this file had been
+  listing since the produce pass), and 6pm–9pm for the *Bellarine Sunset Run*
+  where e925 said **4:30am**, a UTC artefact of the tourism-board import on a
+  run that is named after sunset. Copy the data across BEFORE deleting the
+  duplicate; the live row's `source_note` names which held row it came from.
+- **The same show from Visit Geelong AND Coast & Bay** — 13 pairs, all at
+  Costa Hall, Geelong Arts Centre or the Bellarine Arts Centre, because both
+  feeds carry the arts centres' programmes. **Keep the Visit Geelong row**: it
+  is the one linked to a place (the Coast & Bay row names *The Play House* or
+  *The Story House*, rooms inside GAC with no `places` row). Take Coast & Bay's
+  **time range** (Visit Geelong only ever has a start) and its **link**, which
+  is the venue's or ticketer's own page where Visit Geelong's is a product
+  page. *The High Kings* is the one pair where the two disagree, 8pm against
+  7pm; the GAC page is JavaScript-rendered so it is unresolved and the row
+  says so.
+- **One source repeating itself** — Visit Geelong had Kim Wilde as two
+  products (7:30pm and 8pm), Coast & Bay had the Vines Road board-games night
+  under two slugs, and the library feed had The Youth Mix at Ocean Grove on
+  two Tuesdays, which is one weekly session the collapser needs three
+  occurrences to fold. e1115 is weekly now and carries **both UIDs** in its
+  `source_note`, which is what stops the feed re-offering the deleted one —
+  `read_rows()` reads `UIDs a,b` as well as `UID a`.
+
+**Deletions stick.** The seen ledgers key on the source's own id (a Visit
+Geelong objectID, a `<site>/<slug>`), not on whether a row exists, so a deleted
+duplicate is not offered again on Thursday.
+
+**What is NOT a duplicate and should not be touched:** six Father's Day
+lunches at six restaurants on one date, and every library session that runs at
+several branches on one day — the board already clusters those into one line.
+A name-and-date match is a question, not an answer.
+
+**Five Coast & Bay "Mother's Day" rows were dated 5 Oct 2026** (e1034–e1038).
+Mother's Day was 10 May, and the Skyline Bar booking link in one of them
+carried `date=2026-05-10` — **day and month swapped at the source**, so the
+feed was promising five October events that happened in May. Deleted. Worth
+knowing that the Coast & Bay date is what a person typed into WordPress, and a
+plausible-looking date in the future is not evidence it was typed right.
+
+**`scrape_vgb.py` types every "Festivals & Shows" product `festival`**, so a
+comedy night, a Bell Shakespeare *Macbeth* and the MSO's *Messiah* all arrived
+as festivals. Seven were retyped while their pairs were being merged (comedy,
+theatre, music); the rest of that category in the queue still says `festival`
+and needs a person, the same way the feed's Sport rows do.
+
+**Portarlington Market is the Lions Market** — portarlingtonmarket.com says
+"Hosted by Portarlington Lions Club Inc.", so e38 was renamed to what the
+Coast & Bay duplicate called it, off the market's own page rather than off
+the duplicate.
+
 ### The same thing arriving twice — 1 Sep 2026
 
 Scott, off the review queue: *"when we scrape, it's picking up events we
