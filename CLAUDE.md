@@ -7564,6 +7564,63 @@ publishes one timestamp per day, so Wolfgang's 1pm shows never arrived; the
 Arts Centre's own page lists all four. That is the per-venue-parser question
 — see the next section.
 
+## The first per-venue parser — Geelong Arts Centre, 7 Sep 2026
+
+Scott: *"why can't we do a parser for a venue?"* We can; the rule against it
+was a maintenance policy, and he chose one exception. `scripts/parsers/` holds
+it, keyed by host, and `scrape_venues.py`'s `gigs_for` consults `PARSERS`
+before its own ladder — **only for a row whose `events_url` is on that host.**
+The first dry run read all 132 pages for Costa Hall too, because its website
+is the Arts Centre's site, which would have filed every show twice.
+
+**How it reads.** The what's-on page is JavaScript, but the site's sitemap has
+an EVENT section listing every event page (132). Each page prints a plain
+*Performances:* block — one line per session, `Tue, 22 Sep 2026 10:00am` —
+and a *VENUE:* block naming the room. Weekday checksum on every line; no
+schema.org anywhere on the site. About 2½ minutes a run at one request a
+second.
+
+**Shape.** Consecutive dates with identical sessions fold into one row with
+`ends_on`; every other date is its own row (the review queue folds same-name
+rows anyway). **Two sessions on one day print as `10am & 1pm`** — the board
+prints that; the ON NOW badge cannot parse it, accepted. Rooms map through
+aliases: The Story House and The Open House → 146, The Play House → 31.
+*Limelight* and *Woodbin Theatre* have no street address, so those rows keep
+the room as text — Woodbin is Geelong Rep's own theatre in Newtown and wants a
+`places` row from a person.
+
+**The three guards, written into the module docstring:** host-keyed; the
+weekday checksum; and `scripts/parser_counts.json` remembers last run's count,
+so **finding zero where it found some reports `parser failed`**, which
+`run_log.py` already colours red. The workflow commits that ledger.
+
+**First write: 72 rows, all held, all `verified` (first-party, weekday-checked,
+linked).** 110 events read, 33 already held from the tourism board; a second
+run finds 0 new.
+
+### Two faults it exposed in the venue scraper, both fixed
+
+- **Same place + same date was a duplicate.** `by_slot` was written for pubs
+  with one stage; the Arts Centre has three rooms and several shows a night,
+  so *POV* was dropped as "already there" because *To Be Loved* was on the
+  same date at place 146. A slot hit now needs the names to be plausibly one
+  show (`same_show`: the first ten normalised characters of either inside
+  the other); otherwise the exact name+date map decides.
+- **A room the venue scraper creates was not `reviewed = false`.** It is now,
+  with `added_by = venue-feed`, the same gate `scrape_events.py`'s places get.
+
+### "Why is everything from Geelong Arts Centre a festival?"
+
+Because the tourism board files every theatre show, tribute act and kids'
+matinee under **"What's On > Festivals & Shows"**, and `scrape_vgb.py` mapped
+that whole category to `festival`. 72 rows. The category now falls through to
+`scrape_venues.py`'s `TITLE_RULES` (imported, one copy) and to unsorted when
+the title says nothing. **61 held rows retyped** — 52 to unsorted, 3 comedy, 2
+kept festival because the title says so, and one each theatre, music,
+workshop, community; the 11 published or hand-edited ones were left alone.
+Unsorted is honest here: the queue's type chips and `+ type…` menu are how a
+person sorts them in one click each.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

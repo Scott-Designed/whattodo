@@ -141,7 +141,11 @@ HORIZON = 270           # days ahead to bother with
 TYPE_PRIORITY = [
     ("What's On > Markets",            'market'),
     ("What's On > Classes & Worksops", 'workshop'),   # their spelling, not ours
-    ("What's On > Festivals & Shows",  'festival'),
+    # "Festivals & Shows" is NOT here any more. It is the board's catch-all for
+    # every theatre show, tribute act and kids' matinee, and mapping it to
+    # `festival` typed 72 rows that way — Scott, 7 Sep 2026: "why is
+    # everything from Geelong Arts Centre a festival?" It now falls through
+    # to what the TITLE says, and to unsorted when the title says nothing.
     ("What's On > Food & Wine",        'community'),
     ("What's On > Community",          'community'),
 ]
@@ -204,11 +208,22 @@ def clock(dt):
     hh = dt.hour % 12 or 12
     return f"{hh}:{dt.minute:02d}{ap}" if dt.minute else f"{hh}{ap}"
 
+SHOWS = "What's On > Festivals & Shows"
+
+def title_types(name):
+    """scrape_venues.py's TITLE_RULES, one copy: first match wins."""
+    from scrape_venues import TITLE_RULES
+    low = (name or '').lower()
+    for pat, types in TITLE_RULES:
+        if re.search(pat, low): return list(types)
+    return []
+
 def pick_types(h):
     have = set(h.get('roam_products_categories.lvl1') or [])
     for name, t in TYPE_PRIORITY:
         if name in have: return [t]
     if have & TYPE_UNSURE: return []      # a person picks the sport
+    if SHOWS in have: return title_types(h.get('roam_products_name') or h.get('name'))
     return ['community']
 
 # ── the venue, off the product page ─────────────────────────────────────────

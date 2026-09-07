@@ -33,6 +33,7 @@ run this yourself the first time.
 import os, sys, re, json, html, time, datetime, urllib.parse
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))
 import eventlib as E
+import parsers as P
 
 SKIP = set()          # platforms to leave alone this run, via --skip
 LINK_CAP = 80         # ticket pages fetched per venue, per platform
@@ -258,6 +259,17 @@ def gigs_for(venue):
     if page is None:
         return [], ('robots.txt asks us not to read it' if not E.robots_ok(src)
                     else 'site did not respond')
+    # 0 — a per-host parser, where Scott has allowed one (scripts/parsers/).
+    #     Complete in itself: no ladder, no link-following. See its docstring
+    #     for the three guards that make an exception bearable.
+    #     Only for the row whose EVENTS_URL is on that host — a deliberate
+    #     claim. Costa Hall carries the Arts Centre's site as its website and
+    #     no events_url, and on the first dry run the parser read all 132
+    #     pages for it too, which would have filed every show twice.
+    host = urllib.parse.urlparse(src).hostname or ''
+    host = host[4:] if host.startswith('www.') else host
+    if host in P.PARSERS and venue.get('events_url'):
+        return P.PARSERS[host](venue, src, page)
 
     # 1 — the venue's own listing, across every page of it. Preferred, because
     #     it sees gigs that were never ticketed.
@@ -428,6 +440,9 @@ def ensure_venue(g, src, registry, made, write, organisers=frozenset()):
     row = {'name': name, 'suburb': g.get('venue_suburb') or None,
            'address': (g.get('venue_address') or '').split(',')[0].strip() or None,
            'kind_legacy': 'event venue',
+           # A room a scraper makes is not a room a person has looked at —
+           # the same gate scrape_events.py's places get (7 Sep 2026).
+           'reviewed': False, 'added_by': 'venue-feed',
            'source_note': f"added from a ticketing listing for an event held there, "
                           f"{E.today().isoformat()}"}
     if not write:
@@ -525,6 +540,15 @@ def types_for(g):
             return list(types)
     return []
 
+def same_show(a, b):
+    """Could these two names be the same event? The first ten characters of
+    either, normalised, inside the other. Loose enough for "Cosi" against
+    "Cosi - Geelong Repertory Theatre Company", strict enough that two shows
+    sharing a date and a room stay two shows."""
+    x, y = E.norm(a), E.norm(b)
+    if not x or not y: return False
+    return x[:10] in y or y[:10] in x
+
 def build(venue, g, registry):
     """One gig -> an events row.
 
@@ -607,6 +631,7 @@ def main(argv):
             if '--skip' in argv else set()
     if skip: print(f"  (skipping: {', '.join(sorted(skip))})")
     globals()['SKIP'] = skip
+    P.WRITE = write
 
     E.load_env()
     venues = E.db('GET', '/rest/v1/places?select=id,name,aliases,suburb,kind_legacy,website,events_url,ticketing_url'
@@ -692,8 +717,16 @@ def main(argv):
             key = f"{v['id']}:{g['starts_on']}:{E.norm(g['name'])[:40]}"
             if key in seen:
                 continue
-            hit = (by_slot.get((row['place_id'], g['starts_on'])) if row['place_id'] else None) \
-                  or by_name.get((E.norm(g['name']), g['starts_on']))
+            # Same place + same date was written for pubs with one stage. A
+            # multi-room venue puts three different shows on one night, and
+            # the Arts Centre parser's first dry run (7 Sep 2026) dropped POV
+            # as "already there" because To Be Loved was on the same date at
+            # the same place_id. So a slot hit only counts when the names are
+            # plausibly one thing — one contains the other's first ten
+            # characters — and otherwise the exact name+date map decides.
+            slot = by_slot.get((row['place_id'], g['starts_on'])) if row['place_id'] else None
+            if slot and not same_show(slot['name'], g['name']): slot = None
+            hit = slot or by_name.get((E.norm(g['name']), g['starts_on']))
             if hit:
                 dupe.append((hit, row))
                 where = hit['id'] if hit.get('id') else 'another venue in this run'
