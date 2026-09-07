@@ -583,6 +583,8 @@ body.mapview .tbl{display:none}
   .c-name{grid-column:2;display:block;font-size:18px;line-height:22px}   /* Scott: 18/22 */
   .c-name .nm{white-space:normal;overflow:visible;text-overflow:clip;display:inline}
   .c-where,.c-when{display:none}
+  /* the grey line is where, when and what time — no type (the icon says it)
+     and no venue kind or cost (Scott, 7 Sep 2026) */
   .mob{display:block;grid-column:2;font-family:var(--util);font-size:12px;color:var(--ink3)}
   .detail{padding:2px var(--pad) 24px}
   #map{height:min(76vh,560px)}
@@ -1453,8 +1455,7 @@ function render(){
         <span class="c-where"${many?` title="${esc(placeNames(g).join(' \u00b7 '))}"`:''}>${esc(wVenue)}${wSuburb?`<span class="tm">${esc(wSuburb)}</span>`:''}</span>
         <span class="c-when">${whenText(i)}</span>
         <span class="c-extra">${(()=>{const x=extraOf(i);return x?esc(x.value):''})()}</span>
-        <span class="mob">${[i.type, many?wVenue:whereLine(i), whenText(i).replace(/<[^>]+>/g,'\u001f'),
-          (()=>{const x=extraOf(i);return x?x.value:''})()]
+        <span class="mob">${[many?wVenue:whereLine(i), whenText(i).replace(/<[^>]+>/g,'\u001f')]
           .flatMap(v=>String(v==null?'':v).split('\u001f')).map(v=>v.trim())
           .filter(Boolean).map(esc).join(' &middot; ')}</span>
       </button>
