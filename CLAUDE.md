@@ -7487,6 +7487,57 @@ so the same columns, sort and pick logic read it. `publishRows()` takes any
 number of `(table, ids)` pairs. **The Places tab has a `not reviewed` chip.**
 `check_admin.py` ran clean.
 
+## The review queue, rebuilt for speed — 7 Sep 2026
+
+Scott: *"suggest ways that would make it quicker for a person to review."*
+Measured first — 369 events, 13 listings, 14 places waiting; **155 events
+passed every mechanical check and were mixed in with 214 that did not; 27
+expired while waiting (7% a week); 63 rows were 14 library series.** Eight
+changes, all in `drawReview` and its neighbours in `private/admin.html`, one
+new action on `api/admin.mjs`. Verified in the browser against live data:
+396 rows → Ready 179 · Needs a fix 190 · Expired 27, no console errors.
+
+- **Three buckets, chips at the top, Ready by default.** `needsOf()` is the
+  test: an event is ready when its date is still ahead, it has a place, types
+  and a time; a listing when it has types, a kind and a pin; a place when it
+  has a pin and a town. Those are exactly the checks the scrapers already run,
+  so a person is never asked to re-verify a machine's work. What is left for
+  them is RELEVANCE, and the row now carries what that needs. *Publish N
+  shown* per source acts on the bucket in view.
+- **Expired rows are kept, not deleted** — Scott asked whether there was
+  merit in keeping them and there is: a held row still says a venue ran a
+  thing on a date, which is what a same-time-next-year check reads. They go
+  in their own bucket and nothing sweeps them.
+- **A series folds to one line.** `foldSeries()` groups held events on name +
+  source + time, prints *× 6*, the date span, and the rooms through
+  `placesLabel` (*5 libraries*), and every button on the line acts on all
+  members. No checkbox on a folded line — `PICK` keys one id, and widening it
+  was not worth doing for a row that already has its own buttons.
+- **Fix it in the row.** A `+ type…` select appends a type (never reorders —
+  `types[0]` is the primary), a *link a location…* select sets `place_id`, and
+  `suggestType()` offers a chip when the title says the type itself (*+
+  workshop* on "Community Meditation Classes"). `TYPE_HINTS` is a small word
+  list and a suggestion is never applied on its own.
+- **The description's first 150 characters sit under the name.**
+- **Keyboard:** ↑↓ or J/K move a highlight, P publish, D delete, E edit, U
+  undo. Off while an input is focused or the editor is open.
+- **Delete is deferred, with Undo that lasts until your next click** — Scott's
+  wording. The rows leave the list at once and sit in `PENDING`; any other
+  click or key commits the real `delete_many`, Undo puts them straight back
+  with nothing to reverse on the server, and `beforeunload` commits with a
+  keepalive fetch. No confirm dialog.
+- **`check pin ↗`** opens OpenStreetMap at the coordinate, for events with a
+  place and for the machine-made places.
+- **Hover the source link for a preview.** `action: 'preview'` reads the
+  page's own Open Graph title, description and image server-side (so CORS and
+  ClaudeBot rules do not apply, and nothing is billed) and the card sits under
+  the link, cached per session. Under the local preview server it says *Could
+  not read* because there is no `/api` there — check it on the deploy.
+
+**`drawReview`…`rejectRow` were replaced as one slice and the slice was
+asserted** to define exactly those four functions and nothing else, which is
+the check this file's own `check_admin.py` section demands.
+
 ## Research rules — this project has been burned before
 
 - **Never invent a URL.** Earlier versions of the database were full of fabricated

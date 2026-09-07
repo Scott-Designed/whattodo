@@ -567,6 +567,18 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
 .msg.bad{color:var(--bad)}
 .msg.good{color:var(--good)}
 .msg ul{margin:4px 0 0;padding-left:16px;text-align:left}
+
+/* ── review queue extras (7 Sep 2026) ── */
+.rowsub{font-size:12.5px;color:var(--ink3);margin-top:3px;max-width:44ch;line-height:1.3}
+tr.kb td{background:var(--surface);box-shadow:inset 3px 0 0 var(--accent)}
+select.mini{font-family:var(--util);font-size:11px;padding:2px 4px;max-width:20ch;
+  background:var(--ground);color:var(--ink2);border:1px solid var(--rule2);border-radius:5px}
+.lp{position:absolute;z-index:80;width:360px;background:var(--surface);border:1px solid var(--rule2);
+  border-radius:10px;padding:12px;box-shadow:0 8px 30px rgba(0,0,0,.18);pointer-events:none}
+.lp img{width:100%;max-height:190px;object-fit:cover;border-radius:6px;margin-bottom:8px;display:block}
+.lp-site{font-family:var(--util);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.lp-title{font-family:var(--serif);font-size:16px;line-height:1.25;margin:3px 0 5px}
+.lp-desc{font-size:12.5px;line-height:1.4;color:var(--ink2)}
 </style>
 </head>
 <body>
@@ -724,6 +736,7 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none;vertical-align
     <div class="msg" id="rmsg" style="margin-left:0"></div>
   </div>
   <div id="review"></div>
+  <div id="lp" class="lp" hidden></div>
 </section>
 
 <section id="tab-events" hidden>
@@ -2396,7 +2409,7 @@ async function markInbox(id, status){
    where it came from, because the useful gesture is almost always "approve all
    of these" rather than one at a time — 500 library rows are one decision, not
    five hundred. */
-let RFILTER = {src: '', sort: 'when', dir: 1};
+let RFILTER = {src: '', sort: 'when', dir: 1, bucket: 'ready'};
 
 /* ── what order the queue comes in ────────────────────────────────────────
    Every column of the review table sorts, because the queue is a worklist and
@@ -2481,9 +2494,83 @@ function dupeCell(r){
    because the cell reads it too — the sort and the print are one answer. */
 const rowTown = sortTown;
 
+/* ── which bucket a review row is in ─────────────────────────────────────
+   Scott, 7 Sep 2026, on making review quicker: split the queue into rows that
+   need nothing but a look, rows that need a fix first, and rows whose date has
+   gone. Measured before building: 155 of 369 passed every mechanical check and
+   were mixed in with 214 that did not, and 27 had expired while waiting.
+   "Ready" is exactly the checks the scrapers already run — a date still ahead,
+   a place, types, a time — so a person is never asked to verify what a machine
+   already did; the judgement left is relevance, which is why the description
+   and the link preview sit on the row. Expired rows are KEPT, not deleted: a
+   held row still says a venue ran a thing on a date, which is what a
+   same-time-next-year check reads. */
+const RBUCKET = {ready: 'Ready', fix: 'Needs a fix', expired: 'Expired'};
+function needsOf(r){
+  const n = [];
+  if (r.__t === 'events'){
+    const gone = r.starts_on && r.starts_on < TODAY && (!r.ends_on || r.ends_on < TODAY)
+                 && (!r.recurrence || r.recurrence === 'none');
+    if (gone) return ['expired'];
+    if (!r.starts_on)          n.push('no date');
+    if (!r.place_id)           n.push('no place');
+    if (!(r.types || []).length) n.push('no types');
+    if (!r.time_text)          n.push('no time');
+  } else if (r.__t === 'activities'){
+    if (!(r.types || []).length) n.push('no types');
+    if (!r.kind)               n.push('no kind');
+    if (r.lat == null && !r.place_id) n.push('no pin');
+  } else if (r.__t === 'places'){
+    if (r.lat == null)         n.push('no pin');
+    if (!r.suburb)             n.push('no town');
+  }
+  return n;
+}
+const bucketOf = r => { const n = needsOf(r); return n[0] === 'expired' ? 'expired' : n.length ? 'fix' : 'ready'; };
+
+/* A type the title itself says, offered as a one-click chip. The vocabulary's
+   own words and plurals plus a few synonyms; never applied by itself. */
+const TYPE_HINTS = {market:'market', markets:'market', workshop:'workshop', class:'workshop',
+  classes:'workshop', course:'workshop', comedy:'comedy', comedian:'comedy', theatre:'theatre',
+  play:'theatre', musical:'theatre', exhibition:'art gallery', gallery:'art gallery',
+  film:'cinema', cinema:'cinema', movie:'cinema', festival:'festival', gig:'music',
+  band:'music', live:'music', concert:'music', choir:'music', trivia:'night', bingo:'night',
+  quiz:'night', run:'running', parkrun:'running', ride:'cycling', swim:'swimming',
+  surf:'surfing', yoga:'wellbeing', kids:'kids', children:'kids', storytime:'kids',
+  toddler:'kids', volunteer:'volunteering', 'working bee':'volunteering', walk:'walk',
+  garden:'nature', birds:'nature', wildflower:'nature', book:'reading', author:'reading'};
+function suggestType(r){
+  const have = new Set(r.types || []), known = new Set(DATA.types.map(t => t.name));
+  const words = ' ' + String(r.name || '').toLowerCase().replace(/[^a-z ]+/g, ' ') + ' ';
+  for (const [w, ty] of Object.entries(TYPE_HINTS))
+    if (words.includes(' ' + w + ' ') && known.has(ty) && !have.has(ty)) return ty;
+  return null;
+}
+
+/* Rows of one series folded into a line — same name, same source, same time,
+   which is how the library's school-holiday sessions arrive: six dates across
+   five branches under one name. The board already clusters these; the queue
+   should be one decision too. Members ride in __series; every button on the
+   line acts on all of them. */
+function foldSeries(rows){
+  const out = [], by = {};
+  for (const r of rows){
+    if (r.__t !== 'events'){ out.push(r); continue; }
+    const k = [r.name, r.added_by, r.time_text || ''].join('|');
+    if (by[k]){ by[k].__series.push(r); continue; }
+    by[k] = {...r, __series: [r]}; out.push(by[k]);
+  }
+  return out.map(r => r.__series && r.__series.length === 1 ? r.__series[0] : r);
+}
+const memberIds = r => (r.__series || [r]).map(x => x.id);
+
+/* ── the queue ─────────────────────────────────────────────────────────── */
 function drawReview(){
   const all = reviewRows();
   $('#t-review').textContent = all.length || '';
+  for (const r of all) r.__bucket = bucketOf(r);
+  const nb = {ready: 0, fix: 0, expired: 0};
+  for (const r of all) nb[r.__bucket]++;
 
   const bySrc = {};
   for (const r of all) (bySrc[r.added_by || 'unknown'] ||= []).push(r);
@@ -2494,58 +2581,98 @@ function drawReview(){
       Object.entries(bySrc).sort((a,b) => b[1].length - a[1].length)
         .map(([k,v]) => `<option value="${esc(k)}"${RFILTER.src===k?' selected':''}>${esc(sourceName(k))} · ${v.length}</option>`).join('');
   }
-
+  const inBucket = r => !RFILTER.bucket || r.__bucket === RFILTER.bucket;
   const groups = Object.entries(bySrc)
     .filter(([k]) => !RFILTER.src || k === RFILTER.src)
+    .map(([k, rows]) => [k, rows.filter(inBucket)])
+    .filter(([, rows]) => rows.length)
     .sort((a,b) => b[1].length - a[1].length);
 
+  const chips = `<div class="flags" style="margin-bottom:14px">${
+    [['', 'Everything', all.length], ...Object.entries(RBUCKET).map(([k, l]) => [k, l, nb[k]])]
+      .map(([k, l, n]) => `<button class="flagbtn ${RFILTER.bucket === k ? 'on' : ''}" data-bucket="${k}">${l}<b>${n}</b></button>`).join('')
+    }<span style="font-family:var(--util);font-size:11.5px;color:var(--ink3);margin-left:10px">
+      keys: ↑↓ move · P publish · D delete · E edit · U undo</span></div>`;
+
   if (!all.length){
-    $('#review').innerHTML = `<p class="empty">Nothing waiting. Everything in the
-      database has either been checked by you or auto-verified because it came off
-      a first-party page with a date that checks out.</p>`;
-    return;
+    $('#review').innerHTML = chips + `<p class="empty">Nothing waiting.</p>`;
+    wireBuckets(); return;
+  }
+  if (!groups.length){
+    $('#review').innerHTML = chips + `<p class="empty">Nothing in this bucket.</p>`;
+    wireBuckets(); return;
   }
 
-  $('#review').innerHTML = groups.map(([src, rows]) => {
+  const placeOpts = DATA.places.slice().sort((a, b) => a.name.localeCompare(b.name))
+    .map(p => `<option value="${p.id}">${esc(p.name)}${p.suburb ? ' · ' + esc(p.suburb) : ''}</option>`).join('');
+  const typeOpts  = DATA.types.map(t => t.name).sort().map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+
+  $('#review').innerHTML = chips + groups.map(([src, rows]) => {
+    const lines = foldSeries(sortRows(rows, RCOLS, RFILTER));
+    const ids   = rows.map(r => r.id);
     return `<h3 class="subhead" style="display:flex;align-items:center;gap:12px">
         <span>${esc(sourceName(src))} · ${rows.length}</span>
         <button class="btn" style="padding:4px 12px;font-size:11.5px"
-          data-approve="${esc(src)}">Publish all ${rows.length}</button>
+          data-approve="${esc(src)}">Publish ${rows.length} shown</button>
       </h3>
       <div style="overflow-x:auto"><table><thead><tr>
         ${pickHead()}${sortHead(RCOLS, RFILTER)}<th></th>
-      </tr></thead><tbody>${sortRows(rows, RCOLS, RFILTER).slice(0, 400).map(r => {
-        const place = r.__t === 'places' ? null : DATA.places.find(p => p.id === r.place_id);
-        const venue = r.__t === 'places' ? (r.address || '') : (place?.name || r.venue || '');
-        // The town is the thing you check first — is this even in the region.
-        // rowTown is the same answer the sort reads, so the column cannot be
-        // ordered by one rule and printed by another.
-        const town  = rowTown(r);
-        const types = (r.types || []).join(' · ');
-        const link  = r.info_url || r.ticket_url || r.url || r.website || r.events_url;
-        const isPlace = r.__t === 'places';
-        const past  = r.starts_on && r.starts_on < TODAY &&
-                      (!r.recurrence || r.recurrence === 'none');
-        return `<tr data-t="${r.__t}" data-id="${r.id}">
-          ${pickCell(r.__t, r.id)}
-          <td class="clickable" data-open="1"><div class="rowname">${esc(r.name)}</div></td>
-          <td style="white-space:nowrap;color:var(--ink3)">${esc(whatIs(r))}</td>
-          <td class="cap" style="max-width:16ch" title="${esc(types)}">${
-                types ? esc(types) : '<span style="color:var(--ink3)"><i>unsorted</i></span>'}</td>
-          <td${past ? ' style="color:var(--bad)"' : ''} style="white-space:nowrap"
-              title="${r.date_confidence ? 'date read with ' + esc(r.date_confidence) + ' confidence' : 'no confidence recorded'}">${esc(dmy(r.starts_on) || '—')}
+      </tr></thead><tbody>${lines.slice(0, 400).map(r => {
+        const isPlace = r.__t === 'places', isEv = r.__t === 'events';
+        const series  = r.__series || null;
+        const place   = isPlace ? r : DATA.places.find(p => p.id === r.place_id);
+        const venue   = isPlace ? (r.address || '') : (place?.name || r.venue || '');
+        const town    = rowTown(r);
+        const types   = (r.types || []).join(' · ');
+        const link    = r.info_url || r.ticket_url || r.url || r.website || r.events_url;
+        const needs   = needsOf(r).filter(x => x !== 'expired');
+        const past    = r.__bucket === 'expired';
+        const hint    = !isPlace && suggestType(r);
+        const desc    = String(r.description || '').replace(/\s+/g, ' ').trim();
+        const pin     = place && place.lat != null
+          ? `<a href="https://www.openstreetmap.org/?mlat=${place.lat}&mlon=${place.lng}#map=18/${place.lat}/${place.lng}"
+               target="_blank" rel="noopener" onclick="event.stopPropagation()"
+               style="color:var(--ink3);font-size:11px;text-decoration:none;border-bottom:1px dotted">check pin ↗</a>` : '';
+        // Series: the dates and the rooms of every member, one line.
+        const dates = series ? series.map(x => x.starts_on).filter(Boolean).sort() : null;
+        const rooms = series ? [...new Set(series.map(x => (DATA.places.find(p => p.id === x.place_id) || {}).name || x.venue).filter(Boolean))] : null;
+        const whenCell = series
+          ? `${dates.length} dates<br><span style="color:var(--ink3);font-size:11px">${esc(dmy(dates[0]))} – ${esc(dmy(dates[dates.length-1]))}${r.time_text ? ' · ' + esc(r.time_text) : ''}</span>`
+          : `${esc(dmy(r.starts_on) || '—')}
               ${r.time_text ? `<br><span style="color:var(--ink3);font-size:11px">${esc(r.time_text)}</span>` : ''}
-              ${past ? '<br><span style="font-size:11px">in the past</span>' : ''}</td>
-          <td><b style="font-weight:500">${esc(town || '—')}</b>
-              ${venue && venue !== town ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(venue)}</span>` : ''}</td>
+              ${past ? '<br><span style="font-size:11px">in the past</span>' : ''}`;
+        const whereCell = series
+          ? `<b style="font-weight:500">${esc(typeof placesLabel === 'function' ? placesLabel(rooms) : rooms.length + ' places')}</b>
+             <br><span class="cap" style="color:var(--ink3);font-size:11px;display:block;max-width:22ch" title="${esc(rooms.join(', '))}">${esc(rooms.join(', '))}</span>`
+          : `<b style="font-weight:500">${esc(town || '—')}</b>
+              ${venue && venue !== town ? `<br><span style="color:var(--ink3);font-size:11.5px">${esc(venue)}</span>` : ''}
+              ${isEv && !r.place_id ? `<br><select class="mini" data-place="1" onclick="event.stopPropagation()">
+                  <option value="">link a location…</option>${placeOpts}</select>` : ''}
+              ${pin ? '<br>' + pin : ''}`;
+        return `<tr data-t="${r.__t}" data-ids="${memberIds(r).join(',')}">
+          ${series ? '<td class="pick"></td>' : pickCell(r.__t, r.id)}
+          <td class="clickable" data-open="1">
+            <div class="rowname">${esc(r.name)}${series ? ` <span style="font-family:var(--util);font-size:11px;color:var(--ink3)">× ${series.length}</span>` : ''}</div>
+            ${desc ? `<div class="rowsub" title="${esc(desc.slice(0, 600))}">${esc(desc.slice(0, 150))}${desc.length > 150 ? '…' : ''}</div>` : ''}
+            ${needs.length ? `<div style="font-family:var(--util);font-size:11px;color:var(--accent);margin-top:3px">${esc(needs.join(' · '))}</div>` : ''}
+          </td>
+          <td style="white-space:nowrap;color:var(--ink3)">${esc(whatIs(r))}</td>
+          <td style="max-width:18ch">
+            <span class="cap" style="display:block;max-width:18ch" title="${esc(types)}">${
+                types ? esc(types) : (isPlace ? '' : '<span style="color:var(--ink3)"><i>unsorted</i></span>')}</span>
+            ${hint ? `<button class="flagbtn" style="margin-top:4px" data-addtype="${esc(hint)}" title="the title says so — click to add it">+ ${esc(hint)}</button>` : ''}
+            ${!isPlace ? `<select class="mini" data-type="1" onclick="event.stopPropagation()" style="margin-top:4px">
+                <option value="">+ type…</option>${typeOpts}</select>` : ''}
+          </td>
+          <td${past ? ' style="color:var(--bad);white-space:nowrap"' : ' style="white-space:nowrap"'}
+              title="${r.date_confidence ? 'date read with ' + esc(r.date_confidence) + ' confidence' : ''}">${whenCell}</td>
+          <td>${whereCell}</td>
           <td class="cap" style="max-width:22ch">${dupeCell(r)}</td>
           <td style="white-space:nowrap">${r.created_at
-                ? `${esc(dmy(r.created_at.slice(0, 10)))}<br><span style="color:var(--ink3);font-size:11px">${
-                    esc(clock(r.created_at))}</span>`
-                : '<span style="color:var(--ink3)">—</span>'}
-              ${!r.place_id && r.__t === 'events' ? '<br><span style="color:var(--ink3);font-size:11px">no place</span>' : ''}</td>
+                ? `${esc(dmy(r.created_at.slice(0, 10)))}<br><span style="color:var(--ink3);font-size:11px">${esc(clock(r.created_at))}</span>`
+                : '<span style="color:var(--ink3)">—</span>'}</td>
           <td style="text-align:right;white-space:nowrap">
-            ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener"
+            ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener" data-prev="${esc(link)}"
                  onclick="event.stopPropagation()"
                  style="color:var(--ink3);font-size:11.5px;margin-right:8px">source ↗</a>` : ''}
             <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-open="1">Edit</button>
@@ -2553,56 +2680,76 @@ function drawReview(){
             <button class="btn ghost" style="padding:3px 9px;font-size:11.5px" data-no="1">Delete</button>
           </td></tr>`;
       }).join('')}</tbody></table></div>
-      ${rows.length > 400 ? `<p class="note">Showing the first 400. Publish all ${rows.length} does the lot.</p>` : ''}`;
+      ${lines.length > 400 ? `<p class="note">Showing the first 400. Publish ${rows.length} shown does the lot.</p>` : ''}`;
   }).join('');
 
   wireSort('#review', RFILTER, drawReview);
+  wireBuckets();
 
   $('#review').querySelectorAll('[data-approve]').forEach(b => b.onclick = () => {
-    const rows = bySrc[b.dataset.approve] || [];
+    const rows = (bySrc[b.dataset.approve] || []).filter(inBucket);
     publishRows(...['events', 'activities', 'places'].flatMap(t =>
       [t, rows.filter(r => r.__t === t).map(r => r.id)]));
   });
-  $('#review').querySelectorAll('tr[data-id]').forEach(tr => {
-    const t = tr.dataset.t, id = +tr.dataset.id;
-    // Both the name and the Edit button open it, so querySelectorAll — the
-    // singular form wired the name and left the new button dead.
-    tr.querySelectorAll('[data-open]').forEach(el =>
-      el.onclick = () => openEditor(t, DATA[t].find(x => x.id === id)));
+  $('#review').querySelectorAll('tr[data-ids]').forEach(tr => {
+    const t = tr.dataset.t, ids = tr.dataset.ids.split(',').map(Number), id = ids[0];
+    const row = () => DATA[t].find(x => x.id === id);
+    tr.querySelectorAll('[data-open]').forEach(el => el.onclick = () => openEditor(t, row()));
     tr.querySelectorAll('[data-dup]').forEach(el => el.onclick = ev => {
       ev.preventDefault(); ev.stopPropagation();
       openEditor('events', DATA.events.find(x => x.id === +el.dataset.dup));
     });
-    tr.querySelector('[data-ok]').onclick   = () => publishRows(t, [id]);
-    tr.querySelector('[data-no]').onclick   = () => rejectRow(t, id);
+    tr.querySelector('[data-ok]').onclick = () => publishRows(t, ids);
+    tr.querySelector('[data-no]').onclick = () => deleteRows(t, ids);
+    const addT = tr.querySelector('[data-addtype]');
+    if (addT) addT.onclick = ev => { ev.stopPropagation(); patchRows(t, ids, r => ({types: [...(r.types || []), addT.dataset.addtype]})); };
+    const selT = tr.querySelector('[data-type]');
+    if (selT) selT.onchange = () => { const v = selT.value; if (v) patchRows(t, ids, r => (r.types || []).includes(v) ? null : ({types: [...(r.types || []), v]})); };
+    const selP = tr.querySelector('[data-place]');
+    if (selP) selP.onchange = () => { const v = +selP.value; if (v) patchRows(t, ids, () => ({place_id: v})); };
+    tr.querySelector('a[data-prev]') && wirePreview(tr.querySelector('a[data-prev]'));
   });
-  /* One selection, shared with the other four tables — Review is the only view
-     whose rows are not all one table, which is why the pick key carries it.
-     Grouped by source, so several <table>s: wirePick reads them all through
-     `#review` and gives each group's header box its own scope. */
   wirePick('#review', 'review', null);
+  keyboardRows();
+}
+
+function wireBuckets(){
+  $('#review').querySelectorAll('[data-bucket]').forEach(b => b.onclick = () => {
+    RFILTER.bucket = b.dataset.bucket; RKEY.i = 0; drawReview();
+  });
 }
 
 function rsay(html, cls){ $('#rmsg').className = 'msg ' + (cls||''); $('#rmsg').innerHTML = html; }
 
-/* Approving PUBLISHES. It is one gesture because it is one decision — the row
-   goes on the site — and the endpoint sets `verified` alongside it, because a
-   person putting something in front of readers is exactly what that flag was
-   always meant to record. Two flags remain and they still mean different
-   things: a scraper may set `verified` itself when its mechanical checks pass,
-   and it may never set `published`. */
-/* THE QUEUE HAS ONE VERB. This used to be `approve`, from when `verified` was
-   the gate on the board; it has posted `publish` since the gate moved, so the
-   word was the only thing left saying otherwise. Publishing sets `verified`
-   with it, and the queue is `published === false`, so there is no second
-   decision left for a separate Approve to make — on the pick bar the two
-   buttons were literally the same request. */
+/* One field changed on one row (or every row of a series) from the queue
+   itself, without opening the editor: a type added, a place linked. `make`
+   builds the patch from the row so a series member that already has the type
+   is skipped rather than given it twice. Types are APPENDED — the first
+   element is the primary and must not move. */
+async function patchRows(table, ids, make){
+  if (!PASS) return rsay('Unlock first — the button at the top right.', 'bad');
+  let n = 0;
+  for (const id of ids){
+    const r = DATA[table].find(x => x.id === id); if (!r) continue;
+    const patch = make(r); if (!patch) continue;
+    const [code, out] = await post({action:'update', table, id, patch});
+    if (code !== 200) return rsay(esc(out.message || (out.complaints || []).join('; ') || out.error || ('error ' + code)), 'bad');
+    Object.assign(r, out.row); n++;
+  }
+  rsay(`Saved on ${n} row${n === 1 ? '' : 's'}.`, 'good');
+  drawReview(); redrawAll();
+}
+
+/* Approving PUBLISHES — one gesture, one decision, and the endpoint sets
+   `verified` alongside. A place is never on the board, so on a place the same
+   button means REVIEWED. (table, ids, table, ids, …) because a Review group
+   can hold three tables. */
 async function publishRows(...pairs){
   if (!PASS) return rsay('Unlock first — the button at the top right.', 'bad');
-  // (table, ids, table, ids, …) — Review groups hold up to three tables now.
   const jobs = [];
   for (let i = 0; i + 1 < pairs.length; i += 2)
     if (pairs[i] && pairs[i + 1] && pairs[i + 1].length) jobs.push([pairs[i], pairs[i + 1]]);
+  if (!jobs.length) return;
   rsay('Publishing…');
   let done = 0, seen = 0;
   for (const [table, ids] of jobs){
@@ -2619,15 +2766,107 @@ async function publishRows(...pairs){
   drawReview(); redrawAll();
 }
 
-async function rejectRow(table, id){
+/* ── delete with undo, not a confirm ────────────────────────────────────────
+   Scott, 7 Sep 2026: "make the undo persistent until a new click". So a
+   delete is DEFERRED: the rows leave the list at once and sit in PENDING; the
+   real request goes when you do anything else — any click, any key, leaving
+   the page — and Undo puts them straight back with nothing to reverse on the
+   server. One pending delete at a time: starting another commits the first. */
+let PENDING = null;
+async function commitPending(){
+  if (!PENDING) return;
+  const {table, ids} = PENDING; PENDING = null;
+  const [code, out] = await post({action:'delete_many', table, ids, force:true});
+  if (code !== 200) rsay('Delete failed: ' + esc(out.message || out.error || code), 'bad');
+}
+function deleteRows(table, ids){
   if (!PASS) return rsay('Unlock first.', 'bad');
-  const row = DATA[table].find(x => x.id === id);
-  if (!confirm(`Delete “${row?.name}”? This cannot be undone here.`)) return;
-  const [code, out] = await post({action:'delete', table, id});
-  if (code !== 200) return rsay(esc(out.message || out.error || ('error ' + code)), 'bad');
-  DATA[table] = DATA[table].filter(x => x.id !== id);
-  rsay('Deleted.', 'good');
+  commitPending();
+  const rows = DATA[table].filter(x => ids.includes(x.id));
+  DATA[table] = DATA[table].filter(x => !ids.includes(x.id));
+  PENDING = {table, ids, rows};
+  const what = rows.length === 1 ? `“${rows[0].name}”` : `${rows.length} rows`;
+  rsay(`Deleted ${what}. <a href="#" id="undo" style="margin-left:8px;font-weight:600">Undo</a>
+        <span style="color:var(--ink3)"> — goes for good on your next click</span>`, '');
   drawReview(); redrawAll();
+  $('#undo').onclick = ev => {
+    ev.preventDefault(); ev.stopPropagation();
+    const p = PENDING; PENDING = null;
+    if (p){ DATA[p.table].push(...p.rows); rsay('Put back.', 'good'); drawReview(); redrawAll(); }
+  };
+}
+// Any other click or key commits. Capture phase, so it runs before the click
+// does whatever else it does; the Undo link itself is excluded by its id.
+document.addEventListener('click', ev => { if (PENDING && ev.target.id !== 'undo') commitPending(); }, true);
+document.addEventListener('keydown', ev => { if (PENDING && ev.key !== 'u' && ev.key !== 'U') commitPending(); }, true);
+window.addEventListener('beforeunload', () => {
+  if (!PENDING) return;
+  navigator.sendBeacon && fetch('/api/admin', {method:'POST', keepalive:true,
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({password: PASS, action:'delete_many', table: PENDING.table, ids: PENDING.ids, force:true})});
+});
+// The old name, kept for anything still calling it.
+const rejectRow = (table, id) => deleteRows(table, [id]);
+
+/* ── keyboard ─────────────────────────────────────────────────────────────
+   ↑/↓ or J/K move a highlight down the queue; P publishes it, D deletes it,
+   E opens it, U undoes. Only while the Review tab is showing and nothing is
+   being typed into. */
+const RKEY = {i: 0};
+function keyboardRows(){
+  const trs = [...$('#review').querySelectorAll('tr[data-ids]')];
+  trs.forEach((tr, i) => tr.classList.toggle('kb', i === RKEY.i));
+  const cur = trs[RKEY.i];
+  if (cur) cur.scrollIntoView({block: 'nearest'});
+}
+document.addEventListener('keydown', ev => {
+  if ($('#tab-review').hidden || OPEN) return;
+  const tag = (document.activeElement || {}).tagName;
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes(tag)) return;
+  const trs = [...$('#review').querySelectorAll('tr[data-ids]')];
+  if (!trs.length) return;
+  const k = ev.key;
+  if (k === 'ArrowDown' || k === 'j'){ RKEY.i = Math.min(trs.length - 1, RKEY.i + 1); keyboardRows(); ev.preventDefault(); return; }
+  if (k === 'ArrowUp'   || k === 'k'){ RKEY.i = Math.max(0, RKEY.i - 1); keyboardRows(); ev.preventDefault(); return; }
+  const tr = trs[RKEY.i]; if (!tr) return;
+  if (k === 'p' || k === 'P'){ tr.querySelector('[data-ok]').click(); ev.preventDefault(); }
+  else if (k === 'd' || k === 'D'){ tr.querySelector('[data-no]').click(); ev.preventDefault(); }
+  else if (k === 'e' || k === 'E'){ tr.querySelector('[data-open]').click(); ev.preventDefault(); }
+  else if (k === 'u' || k === 'U'){ const u = $('#undo'); if (u) u.click(); ev.preventDefault(); }
+});
+
+/* ── link preview on hover ────────────────────────────────────────────────
+   What the row is checking for is relevance, and the row alone rarely says
+   what a thing is. Hover the source link and a card shows the page's own
+   title, description and picture, read server-side (action: preview) and
+   cached here for the session. */
+const PREV = {cache: {}, timer: null};
+function wirePreview(a){
+  a.addEventListener('mouseenter', () => {
+    clearTimeout(PREV.timer);
+    PREV.timer = setTimeout(async () => {
+      const url = a.dataset.prev;
+      const card = $('#lp');
+      const at = a.getBoundingClientRect();
+      card.style.top  = (window.scrollY + at.bottom + 8) + 'px';
+      card.style.left = Math.max(12, Math.min(window.innerWidth - 372, window.scrollX + at.right - 360)) + 'px';
+      card.hidden = false;
+      const paint = d => {
+        if (!d || !d.ok && !d.title) { card.innerHTML = `<div class="lp-site">${esc((d && d.site) || url)}</div><div class="lp-desc">Could not read that page${d && d.status ? ' (' + d.status + ')' : ''}.</div>`; return; }
+        card.innerHTML = `${d.image ? `<img src="${esc(d.image)}" alt="" onerror="this.remove()">` : ''}
+          <div class="lp-site">${esc(d.site || '')}</div>
+          <div class="lp-title">${esc(d.title || '')}</div>
+          <div class="lp-desc">${esc(d.description || '')}</div>`;
+      };
+      if (PREV.cache[url]) return paint(PREV.cache[url]);
+      card.innerHTML = `<div class="lp-desc">Reading…</div>`;
+      const [code, out] = await post({action:'preview', url});
+      PREV.cache[url] = code === 200 ? out : {ok: false, site: url};
+      if (!card.hidden && PREV.timer === null) return;   // moved away already
+      paint(PREV.cache[url]);
+    }, 250);
+  });
+  a.addEventListener('mouseleave', () => { clearTimeout(PREV.timer); PREV.timer = null; $('#lp').hidden = true; });
 }
 
 /* ── flag chips, shared by all three tabs ──────────────────────────────────*/

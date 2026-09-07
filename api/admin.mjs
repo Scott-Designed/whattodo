@@ -305,6 +305,40 @@ export default async function handler(req, res) {
   // disallow that crawler, like Coast & Bay and Humanitix, are readable). It
   // identifies as whattodo-janjuc, the same as the scrapers, and honours
   // robots.txt before fetching anything.
+  /* ── preview ──────────────────────────────────────────────────────────────
+     What a link looks like, for the review queue's hover card (7 Sep 2026).
+     Scott's point: what he is checking for is RELEVANCE — not every row on a
+     feed belongs on the board — and the row alone rarely says what a thing is.
+     Server-side for the usual reasons (CORS, and we are not ClaudeBot); reads
+     the page's own Open Graph tags and nothing else; no model, nothing billed. */
+  if (action === 'preview') {
+    const {u, error} = safeUrl(req.body?.url);
+    if (error) return res.status(400).json({error});
+    const dec = s => String(s || '').replace(/&amp;/g, '&').replace(/&quot;/g, '"')
+      .replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n)).replace(/\s+/g, ' ').trim();
+    try {
+      const page = await getPage(u.toString(), 8000, 300_000);
+      const body = page.body;
+      const meta = key => {
+        const a = new RegExp(`<meta[^>]+(?:property|name)=["']${key}["'][^>]*?content=["']([^"']*)["']`, 'i').exec(body);
+        const b = new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]*?(?:property|name)=["']${key}["']`, 'i').exec(body);
+        return dec((a || b || [])[1]);
+      };
+      const title = meta('og:title') || meta('twitter:title')
+                 || dec((/<title[^>]*>([^<]*)<\/title>/i.exec(body) || [])[1]);
+      const description = meta('og:description') || meta('twitter:description') || meta('description');
+      let image = meta('og:image') || meta('twitter:image');
+      if (image && !/^https?:/i.test(image)) { try { image = new URL(image, u).toString(); } catch { image = ''; } }
+      return res.status(200).json({ok: page.status < 400, status: page.status, url: u.toString(),
+        site: u.hostname.replace(/^www\./, ''), title: title.slice(0, 160),
+        description: description.slice(0, 400), image});
+    } catch (e) {
+      return res.status(200).json({ok: false, url: u.toString(), site: u.hostname,
+        error: String(e).slice(0, 120)});
+    }
+  }
+
   if (action === 'probe') {
     const {u, error} = safeUrl(req.body?.url);
     if (error) return res.status(400).json({error});
