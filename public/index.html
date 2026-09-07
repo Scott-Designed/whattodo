@@ -538,6 +538,7 @@ body.mapview .tbl{display:none}
   .controls .seg#whenseg{width:100%}
   .controls .seg button{flex:1 1 0;padding:7px 2px 8px;font-size:15px;white-space:nowrap}
   #whenseg button[data-w="any"]{display:none}
+  #whenseg button[data-w="week"]{border-right:0}   /* it is the last cell drawn now */
   #morebtn,#more{display:none}
   /* the When chips take what is left of the row beside two circles — the view
      switch and Filters — and drop to their own row when that is not enough */
@@ -559,10 +560,13 @@ body.mapview .tbl{display:none}
   .toolbar .board{white-space:normal;font-size:16px}
   .toolbar input[type=search],.toolbar input[type=search]:focus{width:100%}
   /* stacked, so a fixed height and a clipped name both stop making sense.
-     The icon and the pin's lane both come in a little, which is 30px more
-     for the name — a fifth column's worth on a 375px screen. */
+     The pin sits on the SECOND row, at the end of the grey line, so the name
+     runs to the page margin — Scott, 7 Sep 2026. Only the grey line keeps a
+     lane clear for it. */
   .rowline{grid-template-columns:28px 1fr;gap:3px 12px;min-height:0;align-items:start;
-    padding:11px calc(var(--gut) + 28px) 11px var(--gut)}
+    padding:11px var(--gut) 11px var(--gut)}
+  .savebtn{top:auto;bottom:6px;height:30px}
+  .mob{padding-right:34px}
   .c-icon{grid-row:1;margin-top:3px;width:28px}
   .c-icon svg{width:28px;height:26px}
   .c-name{grid-column:2}
