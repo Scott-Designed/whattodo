@@ -734,6 +734,7 @@ select.mini{font-family:var(--util);font-size:11px;padding:2px 4px;max-width:20c
   <h2 class="pagetitle">Review</h2>
   <div class="controls">
     <select id="rsrc"><option value="">Everything waiting</option></select>
+    <select id="rtype"><option value="">Any type</option></select>
     <div class="msg" id="rmsg" style="margin-left:0"></div>
   </div>
   <div id="review"></div>
@@ -2410,7 +2411,7 @@ async function markInbox(id, status){
    where it came from, because the useful gesture is almost always "approve all
    of these" rather than one at a time — 500 library rows are one decision, not
    five hundred. */
-let RFILTER = {src: '', sort: 'when', dir: 1, bucket: 'ready'};
+let RFILTER = {src: '', type: '', sort: 'when', dir: 1, bucket: 'ready'};
 
 /* ── what order the queue comes in ────────────────────────────────────────
    Every column of the review table sorts, because the queue is a worklist and
@@ -2582,7 +2583,20 @@ function drawReview(){
       Object.entries(bySrc).sort((a,b) => b[1].length - a[1].length)
         .map(([k,v]) => `<option value="${esc(k)}"${RFILTER.src===k?' selected':''}>${esc(sourceName(k))} · ${v.length}</option>`).join('');
   }
-  const inBucket = r => !RFILTER.bucket || r.__bucket === RFILTER.bucket;
+  /* View by type — Scott, 7 Sep 2026. The menu lists only the types the queue
+     actually holds, with counts, plus `unsorted` for rows with none, so a row
+     that carries several types is reachable under each of them. */
+  const tsel = $('#rtype');
+  const byType = {};
+  for (const r of all) for (const ty of ((r.types || []).length ? r.types : ['unsorted'])) byType[ty] = (byType[ty] || 0) + 1;
+  if (tsel.dataset.n !== String(all.length)){
+    tsel.dataset.n = String(all.length);
+    tsel.innerHTML = '<option value="">Any type</option>' +
+      Object.entries(byType).sort((a, b) => b[1] - a[1])
+        .map(([k, n]) => `<option value="${esc(k)}"${RFILTER.type === k ? ' selected' : ''}>${esc(k)} · ${n}</option>`).join('');
+  }
+  const inType   = r => !RFILTER.type || (RFILTER.type === 'unsorted' ? !(r.types || []).length : (r.types || []).includes(RFILTER.type));
+  const inBucket = r => (!RFILTER.bucket || r.__bucket === RFILTER.bucket) && inType(r);
   const groups = Object.entries(bySrc)
     .filter(([k]) => !RFILTER.src || k === RFILTER.src)
     .map(([k, rows]) => [k, rows.filter(inBucket)])
@@ -5499,7 +5513,7 @@ wire({'#eq':'q', '#etype':'type', '#erec':'rec', '#ewhen':'when', '#esrc':'src'}
      EFILTER, () => drawEvents());
 wire({'#aq':'q', '#atype':'type'}, AFILTER, () => drawActivities());
 wire({'#pq':'q', '#pkind':'kind'}, PFILTER, () => drawPlaces());
-wire({'#rsrc':'src'}, RFILTER, () => drawReview());
+wire({'#rsrc':'src', '#rtype':'type'}, RFILTER, () => { RKEY.i = 0; drawReview(); });
 wire({'#istatus':'status', '#itriage':'triage'}, IFILTER, () => loadInbox());
 $('#ireload').onclick = loadInbox;
 $('#ipaste').onclick  = () => { $('#ipastebox').hidden = !$('#ipastebox').hidden;
