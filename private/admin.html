@@ -1351,6 +1351,18 @@ function dmy(iso){
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
   return m ? `${+m[3]} ${MONTHS[+m[2] - 1]} ${m[1]}` : (iso || '');
 }
+/* The weekday, built the same way — from the string's own parts through
+   Date.UTC, never by parsing the string. Used where a person is judging a date
+   (is this a weekend?): the Review queue and the chart tooltip. */
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const dow = iso => {
+  const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number);
+  return DOW[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+};
+function dmyw(iso){
+  const s = dmy(iso);
+  return /^\d{4}-\d{2}-\d{2}/.test(iso || '') ? `${dow(iso)}, ${s}` : s;
+}
 /* The opposite of dmy, and the distinction is the whole trick: `created_at`
    is a real INSTANT, so it may be handed to Date() and rendered in Melbourne.
    A stored `starts_on` is a DAY and must not be, which is what dmy is for. */
@@ -2657,8 +2669,8 @@ function drawReview(){
         const dates = series ? series.map(x => x.starts_on).filter(Boolean).sort() : null;
         const rooms = series ? [...new Set(series.map(x => (DATA.places.find(p => p.id === x.place_id) || {}).name || x.venue).filter(Boolean))] : null;
         const whenCell = series
-          ? `${dates.length} dates<br><span style="color:var(--ink3);font-size:11px">${esc(dmy(dates[0]))} – ${esc(dmy(dates[dates.length-1]))}${r.time_text ? ' · ' + esc(r.time_text) : ''}</span>`
-          : `${esc(dmy(r.starts_on) || '—')}
+          ? `${dates.length} dates<br><span style="color:var(--ink3);font-size:11px">${esc(dmyw(dates[0]))} – ${esc(dmyw(dates[dates.length-1]))}${r.time_text ? ' · ' + esc(r.time_text) : ''}</span>`
+          : `${esc(dmyw(r.starts_on) || '—')}
               ${r.time_text ? `<br><span style="color:var(--ink3);font-size:11px">${esc(r.time_text)}</span>` : ''}
               ${past ? '<br><span style="font-size:11px">in the past</span>' : ''}`;
         const whereCell = series
@@ -4259,12 +4271,6 @@ const LIBRARY = 'grlc';
 // line and everything else hides under them. The switch is the only way to see
 // the rest of the calendar.
 let CHART = {on: {all: true, auto: true, hand: true, total: false}, days: 90, library: true};
-
-const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const dow = iso => {
-  const [y, m, d] = String(iso).split('-').map(Number);
-  return DOW[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-};
 
 function chartData(){
   // Both sides of today, because a listings site is judged on what it has
