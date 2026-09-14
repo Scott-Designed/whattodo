@@ -5497,6 +5497,121 @@ whose types would make them a spot or a group; the classifier dry-run reports
 no disagreement on any of the 13. The invariant ran clean after every write.
 The Capture queue was republished empty.
 
+## The Capture pull of 14 Sep 2026 — 8 items, 10 rows, 4 corrections
+
+Scott: *"Check inbox."* The email inbox had nothing new since 1 Sep — the same
+three rows (two of his own tests and Postmark's fixture). **The Capture artifact
+held 8 items**: three links and five photographs, and the photographs are where
+the work was.
+
+    768  Starter Culture Bakery         venue   bakery              building-level pin
+    769  There & Back Again Records     shop    music               house-level pin
+    770  The Bolt Blowers Invitational  group   surfing·community   no pin, on purpose
+    771  One Percent Run Clb            group   running·community   no pin; CURRENCY UNCONFIRMED
+
+    1518  Explore Barwon Bluff                Mon 21 Sep  place 88
+    1519  Explore the Mangroves               Tue 22 Sep  no pin
+    1520  Land, Sea, Sky                      Wed 23 Sep  no pin
+    1521  Tide & Seek                         Thu 24 Sep  no pin
+    1522  Barwon Heads Great Spring Clean Up  Fri 25 Sep  no pin
+    1523  Geelong Design Week 2026            1–11 Oct    one row for eleven days
+
+All ten held, all `km` null. Every weekday printed on a source was checked
+against the calendar and every one matched.
+
+### A magazine photograph was the best item in the queue
+
+The Talking Heads spring 2026 cover shot — a community magazine open on a table,
+with a QR code beside it — resolved to **barwonbluff.com.au/nature-festival/**,
+the Friends of the Bluff's own program for the **Barwon Heads Nature Festival
+2026, 21–25 September**. Nine activities, server-rendered, times and meeting
+points printed, most free.
+
+**Five of the nine were already in the database and four were not, and the split
+is not random.** Events 113, 114 (Canoe the Mangroves), 115 (Walk on Country,
+filed as "Wadawurrung Cultural Education Session"), 116 (Orchids in the Park)
+and 151 (Turning the Tide) all sell or register through Humanitix, so the venue
+feed had them. The five written here — two guided walks, a slide night, a
+drop-in marine science afternoon and the clean-up — take **no booking at all**,
+which is exactly why no ticketing feed has ever seen them. **A festival's
+unticketed half is invisible to every automation this project owns**, and the
+only route to it is a person reading the organiser's own program.
+
+**The duplicate exposed a wrong value for the fifth time.** Event 151 carried no
+cost from Humanitix; the festival page says *"Entry by $5.00 donation (cards
+accepted) which includes the 90 minute program and supper"*. Written to 151.
+
+Three of the five new rows have **no pin and say so on the row**: the Sheepwash
+boat ramp, the Barwon Coast Discover Centre (the Lobster Pot) and Lahey Square
+have no `places` row, and Nominatim returned nothing for the Lobster Pot under
+three name variants. Also found: **places 88 and 144 are two rows for the same
+Bluff Road carpark** — outstanding.
+
+### The Chocolaterie was two records that had never met
+
+`gorci.com.au/whats-on/` with the note *"Add to location and scrapers"* is the
+**Great Ocean Road Chocolaterie**, renamed **The Chocolateries Great Ocean
+Road**. Activity 36 already existed with the dead `gorchocolaterie.com.au`
+address and no `place_id`; place 245 already existed, created by the
+surfcoastevents importer on 7 Sep, unreviewed and with no website. **Their
+coordinates are identical to six decimal places**, so they are one venue in two
+tables. Linked, url moved to gorci.com.au, old name kept as an alias, place
+marked reviewed.
+
+**`events_url` is set and will report nothing for now, deliberately.** That page
+carries schema.org `WebPage` and `Organization` and no `Event`; its listings
+render client-side behind a date/venue filter and the page itself still prints
+*"(Functonality not working, only for testing)"*. robots.txt allows the read, so
+registering it costs one fetch a run and catches the day they turn it on.
+
+### Geelong Design Week is 80+ events and one row
+
+**Eleven days, more than 80 events, 1–11 October 2026**, City of Greater Geelong.
+The program page is server-rendered and every card carries a name, its dates, a
+blurb and a precinct — but **no schema.org, no times, no venues, no prices**. So
+it is one row for the whole festival, the shape event 45 already set, and the
+80 individual events were not guessed at. A one-off pass over that page is
+outstanding; it is not a scraper source, because a per-venue parser is the thing
+this project does not take.
+
+### Two captures had already happened, and one is two years old
+
+- **Bolt Blowers Invitational**, Jan Juc Beach, **Sat 12 Sep 2026** — captured on
+  the day, pulled two days late. No event row for a past date; the group is
+  written instead (770), with the annual comp in its notes. Their site says
+  "over 16 years ago" while the poster says est. 2006 and twenty years — the
+  site text is the stale one and neither was resolved.
+- **SCEG's monthly working bee**, Spring Creek Valley at Ashmore Arts, **Sun 13
+  Sep 10am–12pm** — also passed. It corrected activity 627, which said SCEG is
+  the advocacy group *"rather than one of its working-bee groups"*. **That was
+  wrong**, and the source is the group's own newsletter, photographed. sceg.org.au
+  is Wix and renders client-side, so no future dates could be read and no event
+  row was written.
+- **One Percent Run Clb** (771) — the poster is dated **30 July 2024**. Written
+  anyway rather than lost on the republish, with CURRENCY UNCONFIRMED on the row
+  and the reason in the source note: Instagram refuses ClaudeBot, there is no
+  website, and no linktr.ee exists. **The meeting point is Torquay, not Jan
+  Juc** — "the bench near Salty Dog Cafe" is activity 364, 50 The Esplanade,
+  Torquay.
+
+### Findings worth keeping
+
+- **Wix is unreadable to a fetch, twice in one pull.** sceg.org.au and
+  talkingheadsmag.com both come back ~250KB of Wix runtime with the content
+  rendered client-side. Add it to the Square and Bookeo list.
+- **Instagram's robots.txt refuses ClaudeBot**, so a screenshot of an Instagram
+  post is the whole of what a session can use. Two rows here (768, 771) are
+  written off Scott's photograph and nothing else, and both say so.
+- **A Google Knowledge Panel screenshot carries the business's own Instagram
+  bio**, which is first-party text arriving by an odd route. Starter Culture
+  Bakery's hours and description are exactly that.
+- **Nominatim's house-number route lands on whatever tenancy it knows at that
+  number** — Soap Bar Launderette for 222 Fischer Street, Waynes World of Music
+  for 171 Melbourne Road. Both are the right building and the wrong label; both
+  source notes say which.
+
+The Capture queue was republished empty.
+
 ## Two running events, and a past one kept on purpose — 30 Aug 2026
 
     685  Bellarine Rail Trail Run   Sun 23 Aug 2026  annual  place 141  ALREADY HAPPENED
@@ -8170,6 +8285,21 @@ caught it before it shipped; clicking around the page would not have.
 
 ## Known outstanding
 
+- **Places 88 and 144 are two rows for the same Barwon Bluff carpark** (found
+  14 Sep 2026, writing the nature festival). 88 is "Barwon Bluff (Bluff Road
+  Carpark)", 144 is "Barwon Bluff, Barwon Heads (Bluff Road Carpark)", both
+  Barwon Heads. Event 115 uses 88; event 1518 was linked to 88 as well. Merge.
+- **Barwon Heads has three unpinned meeting points** the Nature Festival names
+  and `places` does not hold: the **Barwon Coast Discover Centre (the Lobster
+  Pot)**, Jetty Road — Nominatim answers nothing for it under three name
+  variants — the **Sheepwash boat ramp** near Pelican Court, and **Lahey Square**
+  opposite the Barwon Heads Hotel. Events 1519–1522 carry them as venue text.
+- **Geelong Design Week's 80+ events are not imported** (14 Sep 2026). Event 1523
+  is the whole festival as one row, 1–11 Oct 2026. The program page is
+  server-rendered with a name, dates, blurb and precinct per card and NO
+  schema.org, no times, no venues and no prices, so it needs a one-off pass by a
+  person, not a parser — a per-venue parser is the thing this project does not
+  take.
 - **`sync.py add` takes `place_id` now** (27 Aug 2026). It was on activities but
   not events, so every event written by hand started unlinked — no pin, no
   curated suburb — and needed a second patch that is easy to forget; that is a
