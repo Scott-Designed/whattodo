@@ -5497,17 +5497,18 @@ whose types would make them a spot or a group; the classifier dry-run reports
 no disagreement on any of the 13. The invariant ran clean after every write.
 The Capture queue was republished empty.
 
-## The Capture pull of 14 Sep 2026 — 8 items, 10 rows, 4 corrections
+## The Capture pull of 14 Sep 2026 — 9 items, 11 rows, 4 corrections
 
 Scott: *"Check inbox."* The email inbox had nothing new since 1 Sep — the same
 three rows (two of his own tests and Postmark's fixture). **The Capture artifact
 held 8 items**: three links and five photographs, and the photographs are where
-the work was.
+the work was. A ninth arrived while this was being written — see below.
 
     768  Starter Culture Bakery         venue   bakery              building-level pin
     769  There & Back Again Records     shop    music               house-level pin
     770  The Bolt Blowers Invitational  group   surfing·community   no pin, on purpose
     771  One Percent Run Clb            group   running·community   no pin; CURRENCY UNCONFIRMED
+    772  Geelong Classic Truck & Machinery Show  group  festival·community  house-level pin
 
     1518  Explore Barwon Bluff                Mon 21 Sep  place 88
     1519  Explore the Mangroves               Tue 22 Sep  no pin
@@ -5593,6 +5594,45 @@ this project does not take.
   website, and no linktr.ee exists. **The meeting point is Torquay, not Jan
   Juc** — "the bench near Salty Dog Cafe" is activity 364, 50 The Esplanade,
   Torquay.
+
+### A ninth item arrived after the queue was cleared
+
+The artifact republished itself while this log was being written — Scott
+captured **classictruckandmachinery.com.au** at 10:09am, minutes after the pull
+finished. Worth knowing the shape: a live watch on the artifact reported the
+change, the queue came back holding one item, and it was worked without a
+second pull.
+
+It is the **Geelong Classic Truck & Machinery Show** — the Geelong Vintage
+Machinery section's annual January weekend at 79 Breakwater Road. **Third
+capture in this pull whose date had already gone**: the only dates the site
+publishes are 10–11 January 2026, Saturday and Sunday, matching its own two
+programs, so the dates are right and simply old. No 2027 date is announced and
+none was inferred, so the show is a group row (772) with the January weekend in
+its notes — the Bolt Blowers shape, twice in one day.
+
+**It was NOT linked to place 16, Geelong Showgrounds**, 190 m away. The site
+never uses the word showground, and 79 against the showgrounds' even numbers
+suggests opposite sides of Breakwater Road. Two records 190 m apart are either
+one site or two, and nothing read here settles it — unlike the Chocolaterie,
+whose coordinates matched to six decimals.
+
+### The classifier step was skipped, and four rows were exposed for an hour
+
+`classify_kinds.py` reported **769, 770, 771 and 772 as disagreements** —
+`--reclassify` would have turned the record shop into a venue and all three
+groups into a spot or a venue. The 7 Sep pull's own log says every new shop,
+maker and group goes in `BY_ID` in the same commit, and this pull did not do it
+until the ninth item forced a second look.
+
+**The rule is mechanical and the omission was not caught by anything**, which is
+this file's standing lesson pointed at itself: nothing refuses a row whose kind
+the rules disagree with, because a disagreement is usually a person being right.
+The check is one command and belongs at the end of every pull:
+
+    python3 scripts/classify_kinds.py | sed -n '/rules disagree/,$p'
+
+Four lines added; disagreements 39 → 35, and none of today's rows is among them.
 
 ### Findings worth keeping
 

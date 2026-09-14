@@ -172,6 +172,13 @@ BY_ID = {
   766: ('maker', 'Penny Drop runs adult art workshops with no premises'),
   767: ('venue', 'Warrnambool Community Garden has a gate and hours; `community` would make it a group'),
 
+  # The Capture pull of 14 Sep 2026. A shop still cannot be inferred, and three
+  # organisations carry activity types that outrank `group` on PRECEDENCE.
+  769: ('shop',  'a record shop — `music` is what it sells, not a room to hear it in'),
+  770: ('group', 'the Bolt Blowers are people who run an annual comp; `surfing` would make them a spot'),
+  771: ('group', 'a Wednesday run club meeting at somebody else\'s cafe; `running` would make it a spot'),
+  772: ('group', 'the Geelong Vintage Machinery section, which runs the show; `festival` would make it a venue'),
+
   # The three rows added by hand on 27 Aug 2026, all of which the rules would
   # make spots — a maker, a shop and a group whose types are all activity types
   # that outrank their kind on PRECEDENCE. `types` says what a row is ABOUT and
