@@ -5652,6 +5652,98 @@ Four lines added; disagreements 39 → 35, and none of today's rows is among the
 
 The Capture queue was republished empty.
 
+## The inbox pull of 17 Sep 2026 — two emails, four captures, 4 rows, 2 places
+
+Scott: *"check inbox"*. **The email inbox had its first two real messages since
+it went live**, both newsletters, and the Capture artifact held four items.
+
+    773   Barwon Coast Discovery Centre   venue   museum·nature    place 249 (street level)
+    1524  Beasties                        Sat 19 Sep   place 146
+    1525  Beasties                        Sun 20 Sep   place 146
+    1526  Geelong Showgrounds Holistic and Psychic Expo   Sun 20 Sep   place 16
+
+    249   Barwon Coast Discovery Centre   Barwon Heads   events 1520, 1521 linked
+    250   The Fives                       Bellbrae       events_url = its Eventbrite organiser; activity 168 linked
+
+All held, all `km` null, every weekday checked. Both inbox rows set `filed`
+with a note saying what came of them.
+
+### The email route delivered, and a newsletter's links are not the way in
+
+**The Geelong Gist (message 12) is exactly the prose newsletter this file said
+the inbox could not read**, and triage correctly said `needs-you`. Of its five
+what's-on items, three were already held (846, 686, 852), one was out of region
+(the waterfalls are Grampians and the western district), and two were new.
+
+**Every link in both emails is a click-tracker** (`link.mail.beehiiv.com`,
+`url4533.geelongmums.com.au/ls/click`). Resolving one records a click as Scott
+in the sender's analytics, so none was followed — each item was found at its
+first-party source by name instead. That is slower and it is the right trade.
+
+**Geelong Mums' weekly calendar (message 13) is not a source for a date.** Every
+listing's start and end share a day number — Classic Truck & Machinery Show
+*1 Oct – 1 Nov* (its own site says 10–11 January), Tuff Nutterz *4 Mar – 4 Dec*
+(Geelong Showgrounds' own page says 3–12 April 2026), Kids Baking Classes
+*"Easter Holidays" 4 Aug – 4 Oct*. That reads as the sender's template, not the
+events. Nothing filed from it.
+
+### Geelong Showgrounds publishes an Events Calendar feed and nothing reads it
+
+Looking up the psychic expo found that **geelongshowgrounds.com.au runs The
+Events Calendar** — the plugin behind both calendar feeds — so
+`/wp-json/tribe/events/v1/events` answers with the venue's own programme,
+robots-clean. Five events from 1 Sep: the expo (now 1526), the Royal Geelong
+Show (already 1235), **the Showgrounds Museum open first Sundays** and
+**Geelong's Annual Wedding Expo on 22 Nov** — neither of those two is held.
+
+**Not registered, deliberately, and it is a real choice for Scott.** It fits
+neither scraper without a decision: as a row in `scrape_events.py`'s `SOURCES`
+it is one line, but that path was built for aggregators and half the
+Showgrounds' events carry an empty venue object, so they would arrive unlinked;
+as `places.events_url` on place 16 it goes through `scrape_venues.py`, whose
+ladder reads schema.org — which each event PAGE carries, and the listing page
+answered nothing to a fetch. Either works with a small change; neither was made
+inside an inbox pull.
+
+### Two faults found in rows that were already live
+
+- **All six Paddock Bakery kids' classes (745–750) pointed at a 404.** Scott's
+  capture was the class republished at a new URL. `info_url` moved on all six,
+  and each now carries its own session's nowbookit link as `ticket_url`. **And
+  the new page has dropped Friday 25 September** — its list runs Session 1,
+  Session 2, then Session 4, with no sold-out or cancelled notice. **747 is
+  unpublished**, `verified` left alone, with the reason on the row. A live
+  listing whose link breaks says nothing on the board; it took a person
+  capturing the new page to notice.
+- **The Arts Centre parser skipped Beasties silently.** The page is in the
+  event sitemap, but it labels its sessions `DATES & TIMES:` and its room
+  `LOCATION:` where every other page says `Performances:` and `VENUE:`, so
+  `read_page()` returns `[]` and nothing counts it as a failure — the zero guard
+  only fires when a whole run finds nothing. Written by hand at `medium`, since
+  the page prints no year. **Other installation-style pages will fall through
+  the same way.**
+
+### The Discovery Centre is DISCOVERY, and the pin is the road
+
+Scott's note *"Barwon Heads disocvery centre"* is the room the 14 Sep pull could
+not place. The festival program spells it **Discover**; Barwon Coast, who run
+it, spell it **Discovery**, and the building is the 1934 **Lobster Pot**. Both
+program spellings are aliases on place 249 so the scrapers match them.
+
+**The pin is street level and says so.** Nominatim still knows no feature by
+any of its names, and Overpass timed out on both endpoints. `Jetty Road, Barwon
+Heads` is a single `highway=service` way — one point, not the multi-segment
+coin toss — and it reverse-geocodes to 1A Jetty Road, 108 m from At The Heads.
+A person who knows the building can move it.
+
+### Left in the Capture queue on purpose
+
+**The seaweed cyanotypes reel.** Instagram refuses ClaudeBot, the note is two
+words, and no first-party page for a seaweed cyanotype workshop in the region
+turned up. Rather than clear it on the republish and lose it, Capture was
+republished holding that one item — the first pull to leave something in the
+queue deliberately.
+
 ## Two running events, and a past one kept on purpose — 30 Aug 2026
 
     685  Bellarine Rail Trail Run   Sun 23 Aug 2026  annual  place 141  ALREADY HAPPENED
@@ -8329,11 +8421,17 @@ caught it before it shipped; clicking around the page would not have.
   14 Sep 2026, writing the nature festival). 88 is "Barwon Bluff (Bluff Road
   Carpark)", 144 is "Barwon Bluff, Barwon Heads (Bluff Road Carpark)", both
   Barwon Heads. Event 115 uses 88; event 1518 was linked to 88 as well. Merge.
-- **Barwon Heads has three unpinned meeting points** the Nature Festival names
-  and `places` does not hold: the **Barwon Coast Discover Centre (the Lobster
-  Pot)**, Jetty Road — Nominatim answers nothing for it under three name
-  variants — the **Sheepwash boat ramp** near Pelican Court, and **Lahey Square**
-  opposite the Barwon Heads Hotel. Events 1519–1522 carry them as venue text.
+- **Barwon Heads has two unpinned meeting points** the Nature Festival names
+  and `places` does not hold: the **Sheepwash boat ramp** near Pelican Court and
+  **Lahey Square** opposite the Barwon Heads Hotel (events 1519, 1522). The third,
+  the Discovery Centre, became place 249 on 17 Sep 2026 — at street level on
+  Jetty Road, which a person could move onto the Lobster Pot itself.
+- **Geelong Showgrounds' Events Calendar feed is readable and unregistered**
+  (17 Sep 2026) — see that day's inbox pull. Its Museum first Sundays and the
+  22 Nov Wedding Expo are not held.
+- **`parsers/geelongartscentre.py` silently skips pages labelled `DATES &
+  TIMES:` / `LOCATION:`** instead of `Performances:` / `VENUE:` — Beasties was
+  one. The zero guard does not catch a single page falling through.
 - **Geelong Design Week's 80+ events are not imported** (14 Sep 2026). Event 1523
   is the whole festival as one row, 1–11 Oct 2026. The program page is
   server-rendered with a name, dates, blurb and precinct per card and NO
