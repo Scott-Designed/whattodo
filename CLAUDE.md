@@ -3765,7 +3765,7 @@ takes its port from `$PORT`, because 4173 is often held by another session.
 
 **It serves a copy, so re-copy after every edit:**
 
-    cp public/*.html public/*.css public/*.js private/admin.html ~/.cache/notice-preview/
+    cp public/*.html public/*.css public/*.js public/*.geojson private/admin.html ~/.cache/notice-preview/
 
 The `*.js` half is new: since 26 Aug 2026 the page is not one file, and a
 preview that copies only HTML and CSS runs the previous session's JavaScript.
@@ -8447,6 +8447,76 @@ it is the only test that catches a pin a few hundred metres offshore, which is
 close enough that reverse geocoding still snaps it to a coastal road and calls it
 land.
 
+### The map was rebuilt — 4 Oct 2026
+
+Scott, asked what to change about the Everything map: *"I want to create
+'places' outlines so its clear where is covered"*, plus a bigger map and better
+popups. Three changes, all in `index.html`, and one new file.
+
+**The town outlines — `public/notice-places.geojson`, built by
+`scripts/place_outlines.py`.** One outline per town in the Place menu, drawn
+under the basemap's own labels, so the map says where the site reaches. The
+script reads `SUBURBS` and `GEELONG` out of `notice-vocab.js` rather than
+keeping a list, asks Nominatim for each (cached in
+`scripts/.place_outlines_cache.json`, which is gitignored), and writes 48
+towns in 80 KB. **Adding a town to the vocabulary means re-running it**, or the
+new town has no outline:
+
+    python3 scripts/place_outlines.py
+
+- **Only a locality boundary is accepted** — `addresstype` suburb, town,
+  village, hamlet, locality, city, city_district. A council area is refused,
+  or "Geelong" would be the City of Greater Geelong and paint half the region.
+- **The sixteen suburbs folded into Geelong are dissolved into one shape** by
+  cancelling the edges two suburbs share (OSM boundaries share their nodes, so
+  an internal border appears exactly twice). Nothing is simplified until after
+  that, or the shared edges stop matching. It comes out as two shapes, because
+  the fold is not contiguous — North Geelong, East Geelong and others are not
+  in `GEELONG`, so the outline has honest gaps where the vocabulary does.
+- **Three towns have no outline: Cumberland River, Point Addis and the You
+  Yangs.** OpenStreetMap has no locality boundary for them — a river mouth, a
+  headland and a park. The script names them every run.
+- **`setStyle()` throws added layers away**, so `drawPlaces()` runs on every
+  `style.load`; that is what keeps the outlines through a light/dark switch.
+  The line colour is a literal per scheme, because a map layer cannot read
+  the page's CSS tokens.
+- The file is fetched only when the map is opened, and the map is whole
+  without it — same rule as MapLibre itself.
+
+**Pressing an outline opens the town**: its name, how many things are there
+under the current filters, *Show only <town>* (which sets the Place filter) and
+a link to the town page.
+
+**The layout.** In map view the map is the page: edge to edge, and as tall as
+whatever is left of the window under the filters. The page's name, the footer
+and the bottom padding step aside. `sizeMap()` sets the height, because only
+script knows where the controls end — a `ResizeObserver` watches everything
+above the map, so opening Filters or gaining a chip row resizes it. A second
+observer on `#map` calls `MAP.resize()`; without it the canvas kept its old
+width and left a blank strip down the right. The count of what is and is not
+pinned moved from under the map to a small label on it.
+
+**The card replaced MapLibre's popup.** `#mapcard` is docked top-left on a
+desktop and is a sheet along the bottom on a phone, so it never covers the pin
+you pressed. It says what the open row says: icon, name, ON NOW, every type,
+when and where, the description in full, address, cost, the drive from Jan
+Juc, any Parks Victoria notice, and then Save, Website, More info, Tickets,
+Directions and *More in <town>*. A pin holding several things lists them
+closed (`<details>`), tinted by group like the list; one thing opens straight
+up. **Save works from the map**, and a pin holding something saved is filled
+with the accent colour (`.pin.kept`). Saving calls `render()`, which is safe
+there because the list is hidden in map view.
+
+**Two things to know when touching it.** A press on a pin also reaches the
+map's own `click` handler, since the pins sit inside the map, so that handler
+returns early on `.closest('.pin')`. And `queryRenderedFeatures` answers
+nothing while the preview pane is hidden — the map does not paint — so check
+the outline click with the tab fronted.
+
+Checked at 1024 and 375 wide in the preview against live data: 516 pins, 48
+outlines, card on a single and a five-thing pin, save and unsave, the town
+card and its filter, outlines surviving a theme switch, no console errors.
+
 ## Type icons in the row gutter
 
 **The whole set is Lucide 1.34.0 (ISC), inlined — all 43 types, no gaps.**
@@ -8763,7 +8833,7 @@ caught it before it shipped; clicking around the page would not have.
   **This was solved properly 25 Aug 2026** — `launch.json` serves
   `~/.cache/notice-preview`, a stable path outside iCloud, with `-I`,
   `"autoPort": true` and the port from `$PORT`. Re-copy after every edit with
-  `cp public/*.html public/*.css public/*.js private/admin.html ~/.cache/notice-preview/`. See "Serving it
+  `cp public/*.html public/*.css public/*.js public/*.geojson private/admin.html ~/.cache/notice-preview/`. See "Serving it
   locally" under Back of house for the two distinct failures involved — the
   second one 404s instead of erroring, which is what makes it confusing.
   Verifying against the deployed site works too, once a push has built.

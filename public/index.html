@@ -389,15 +389,15 @@ body.sheetopen{overflow:hidden}
 .rowhead{--tint:var(--surface)}
 /* Nine groups, nine hues 40 degrees apart. oklch keeps them all the same
    perceptual brightness, so no row shouts louder than its neighbour. */
-.rowhead[data-tint="hospitality"]{--tint:oklch(var(--tint-l) var(--tint-c)  30)}
-.rowhead[data-tint="produce"]    {--tint:oklch(var(--tint-l) var(--tint-c)  70)}
-.rowhead[data-tint="outdoors"]   {--tint:oklch(var(--tint-l) var(--tint-c) 110)}
-.rowhead[data-tint="landscape"]  {--tint:oklch(var(--tint-l) var(--tint-c) 150)}
-.rowhead[data-tint="ocean"]      {--tint:oklch(var(--tint-l) var(--tint-c) 190)}
-.rowhead[data-tint="home"]       {--tint:oklch(var(--tint-l) var(--tint-c) 230)}
-.rowhead[data-tint="arts"]       {--tint:oklch(var(--tint-l) var(--tint-c) 270)}
-.rowhead[data-tint="music"]      {--tint:oklch(var(--tint-l) var(--tint-c) 310)}
-.rowhead[data-tint="community"]  {--tint:oklch(var(--tint-l) var(--tint-c) 350)}
+.rowhead[data-tint="hospitality"],.mcitem[data-tint="hospitality"]{--tint:oklch(var(--tint-l) var(--tint-c)  30)}
+.rowhead[data-tint="produce"],.mcitem[data-tint="produce"]    {--tint:oklch(var(--tint-l) var(--tint-c)  70)}
+.rowhead[data-tint="outdoors"],.mcitem[data-tint="outdoors"]   {--tint:oklch(var(--tint-l) var(--tint-c) 110)}
+.rowhead[data-tint="landscape"],.mcitem[data-tint="landscape"]  {--tint:oklch(var(--tint-l) var(--tint-c) 150)}
+.rowhead[data-tint="ocean"],.mcitem[data-tint="ocean"]      {--tint:oklch(var(--tint-l) var(--tint-c) 190)}
+.rowhead[data-tint="home"],.mcitem[data-tint="home"]       {--tint:oklch(var(--tint-l) var(--tint-c) 230)}
+.rowhead[data-tint="arts"],.mcitem[data-tint="arts"]       {--tint:oklch(var(--tint-l) var(--tint-c) 270)}
+.rowhead[data-tint="music"],.mcitem[data-tint="music"]      {--tint:oklch(var(--tint-l) var(--tint-c) 310)}
+.rowhead[data-tint="community"],.mcitem[data-tint="community"]  {--tint:oklch(var(--tint-l) var(--tint-c) 350)}
 /* An unsorted row has no theme, keeps no data-tint, and falls back to --surface
    above — the grey it has always had. */
 /* A pinned row keeps the hover look for good — its theme colour and its icon in
@@ -463,13 +463,68 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--rule);font-fa
 .seg button:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
 
 /* ── map ── */
-#mapwrap{display:none}
+/* In map view the map IS the page: edge to edge, and as tall as whatever is left
+   of the window under the filters (sizeMap() sets the height — CSS cannot know
+   where the controls end). The page's name, its bottom padding and the footer
+   all step aside; the bar already says which board this is. */
+#mapwrap{display:none;position:relative;margin:0 calc(var(--pad) * -1)}
 body.mapview #mapwrap{display:block}
-body.mapview .tbl{display:none}
+body.mapview .tbl,body.mapview footer,body.mapview header{display:none}
+body.mapview .page{padding-bottom:0}
+body.mapview .controls{padding-top:22px;padding-bottom:16px}
 #map{height:min(72vh,640px);width:100%;background:var(--surface);border-top:1px solid var(--ink)}
-.mapnote{font-family:var(--util);font-size:11.5px;line-height:1.75;color:var(--ink3);
-  margin:0;padding:11px 0 0;border-top:1px solid var(--rule)}
+/* what is and is not on the map, said on the map rather than under it */
+.mapnote{position:absolute;z-index:3;left:12px;bottom:34px;margin:0;max-width:calc(100% - 24px);
+  font-family:var(--util);font-size:11px;line-height:1.5;color:var(--ink3);
+  background:color-mix(in srgb,var(--ground) 88%,transparent);border:1px solid var(--rule2);
+  border-radius:8px;padding:5px 10px;pointer-events:none}
 .mapnote b{font-weight:600;color:var(--ink2)}
+
+/* ── the card: what a pin, or a town's outline, says when pressed ──
+   Docked to the side of the map rather than floating over the pin, so it never
+   covers the thing you just pressed or its neighbours. On a phone it is a sheet
+   along the bottom. */
+#mapcard{position:absolute;z-index:4;top:12px;left:12px;width:min(360px,calc(100% - 76px));
+  max-height:calc(100% - 84px);overflow-y:auto;background:var(--ground);color:var(--ink);
+  border:1px solid var(--ink);border-radius:8px;scrollbar-width:thin;
+  scrollbar-color:var(--rule2) transparent}
+#mapcard[hidden]{display:none}
+.mchead{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:9px 8px 9px 16px;background:var(--ground);border-bottom:1px solid var(--rule);
+  font-family:var(--util);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3)}
+.mcclose{font-family:var(--util);font-size:19px;line-height:1;color:var(--ink3);background:none;border:0;
+  padding:4px 9px 6px;cursor:pointer}
+.mcclose:hover{color:var(--ink)}
+.mcitem{border-top:1px solid var(--rule)}
+.mcitem:first-of-type{border-top:0}
+.mcitem>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:26px minmax(0,1fr);
+  gap:0 11px;align-items:start;padding:13px 16px 12px}
+.mcitem>summary::-webkit-details-marker{display:none}
+.mcitem>summary:hover,.mcitem[open]>summary{background:var(--tint,var(--surface))}
+.mcitem.solo>summary{cursor:default}
+.mcitem .ic{grid-row:1 / span 3}
+.mcitem svg{width:24px;height:24px;margin-top:2px;color:var(--ink2)}
+.mcitem .nm{font-family:var(--serif);font-size:20px;letter-spacing:-.01em;line-height:1.18}
+.mcitem .live{margin-left:0;vertical-align:2px}
+.mcitem .meta{grid-column:2;font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink3);margin-top:4px}
+.mcitem .wh{grid-column:2;font-family:var(--util);font-size:12px;line-height:1.5;color:var(--ink2);margin-top:5px}
+.mcitem .wh b{font-weight:600;color:var(--ink)}
+.mcbody{padding:2px 16px 16px}
+.mcbody p{margin:10px 0 0;font-size:15.5px;line-height:1.52;color:var(--ink2)}
+.mcbody p.fact{font-family:var(--util);font-size:12px;line-height:1.55}
+.mcbody p.fact b{font-weight:600;color:var(--ink)}
+.mcbody a{color:inherit}
+.mcacts{display:flex;flex-wrap:wrap;gap:8px 8px;margin-top:14px}
+.mcacts a,.mcacts button{font-family:var(--util);font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink2);text-decoration:none;background:none;border:1px solid var(--rule2);border-radius:8px;
+  padding:7px 10px;cursor:pointer;line-height:1;white-space:nowrap}
+.mcacts a:hover,.mcacts button:hover{color:var(--ink);border-color:var(--ink)}
+.mcacts .mcsave.on{color:var(--ground);background:var(--ink);border-color:var(--ink)}
+.mctown{padding:16px}
+.mctown h4{font-family:var(--serif);font-weight:400;font-size:26px;letter-spacing:-.015em;line-height:1.1;margin:0}
+.mctown p{margin:8px 0 0;font-family:var(--util);font-size:12.5px;line-height:1.55;color:var(--ink2)}
 .mapstate{display:grid;place-items:center;height:100%;text-align:center;padding:0 24px;
   font-family:var(--serif);font-size:19px;color:var(--ink3);line-height:1.5}
 
@@ -483,31 +538,16 @@ body.mapview .tbl{display:none}
 /* the mark stays small; the thing you can hit with a thumb does not */
 .pin::before{content:'';position:absolute;inset:-10px}
 .pin:hover,.pin.on{background:var(--ink)}
+/* something you saved keeps its colour on the map, as its row does in the list */
+.pin.kept{background:var(--accent);border-color:#1B2114}
+.pin.kept b{color:#1B2114}
+.pin.on{box-shadow:0 0 0 4px color-mix(in srgb,var(--ink) 30%,transparent)}
 .pin b{font-family:var(--util);font-size:9px;font-weight:600;color:var(--ink);line-height:1}
 .pin:hover b,.pin.on b{color:var(--ground)}
 .pin.multi{width:20px;height:20px}
 .pin.home{width:9px;height:9px;background:var(--ink);border-color:var(--ink);cursor:default;
   box-shadow:0 0 0 4px color-mix(in srgb,var(--ground) 65%,transparent)}
 
-.maplibregl-popup-content{background:var(--ground);color:var(--ink);border:1px solid var(--ink);
-  border-radius:0;box-shadow:none;padding:15px 17px 16px;font-family:var(--serif);max-width:290px}
-.maplibregl-popup-tip{display:none}
-.maplibregl-popup-close-button{font-family:var(--util);font-size:17px;line-height:1;color:var(--ink3);
-  background:none;padding:5px 8px 6px;right:0;top:0}
-.maplibregl-popup-close-button:hover{background:none;color:var(--ink)}
-.pop{max-height:270px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--rule2) transparent}
-.pop::-webkit-scrollbar{width:5px}
-.pop::-webkit-scrollbar-thumb{background:var(--rule2)}
-.pop::-webkit-scrollbar-track{background:transparent}
-.pop h4{font-family:var(--serif);font-weight:400;font-size:19px;letter-spacing:-.01em;line-height:1.2;
-  margin:0 0 4px;padding-right:16px}
-.pop h4~h4{margin-top:15px;padding-top:13px;border-top:1px solid var(--rule)}
-.pop .meta{font-family:var(--util);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--ink3);margin:0 0 7px}
-.pop p.txt{margin:0 0 9px;font-size:15px;line-height:1.5;color:var(--ink2)}
-.pop a{font-family:var(--util);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);
-  text-decoration:none;border-bottom:1px solid var(--rule2);margin-right:15px;white-space:nowrap}
-.pop a:hover{color:var(--ink);border-bottom-color:var(--ink)}
 .maplibregl-ctrl-group{border-radius:0!important;box-shadow:none!important;border:1px solid var(--rule2);
   background:var(--ground)}
 .maplibregl-ctrl-group button{border-radius:0!important;background:var(--ground)}
@@ -593,6 +633,9 @@ body.mapview .tbl{display:none}
   .mob .mobr{flex:none;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink2)}
   .detail{padding:2px var(--pad) 24px}
   #map{height:min(76vh,560px)}
+  #mapcard{top:auto;left:8px;right:8px;bottom:8px;width:auto;max-height:62%}
+  .mapnote{top:10px;bottom:auto;left:10px;max-width:calc(100% - 64px)}
+  body.mapview .controls{padding-top:14px;padding-bottom:12px}
 }
 </style>
 
@@ -737,6 +780,7 @@ body.mapview .tbl{display:none}
   <div id="mapwrap">
     <div id="map"><div class="mapstate">The map loads when you open it.</div></div>
     <p class="mapnote" id="mapnote"></p>
+    <div id="mapcard" hidden></div>
   </div>
 
   <footer>
@@ -1579,37 +1623,141 @@ function loadMapLibre(){
    Those share a pin and the pin says how many, rather than being nudged apart into
    five coordinates that are not true. */
 const atKey=i=>Number(i.lat).toFixed(5)+','+Number(i.lng).toFixed(5);
-function popupHTML(group){
-  return '<div class="pop">'+group.map(i=>{
-    const meta=[i.type, whereLine(i), i.km!=null?i.km+' km':''].filter(Boolean).map(esc).join(' &middot; ');
-    const d=String(i.desc||'');
-    const links=[
-      i.url&&i.url!==i.info&&!isMapLink(i.url)?`<a href="${esc(i.url)}" target="_blank" rel="noopener">Website</a>`:'',
-      i.info?`<a href="${esc(i.info)}" target="_blank" rel="noopener">More info</a>`:'',
-      i.ticket?`<a href="${esc(i.ticket)}" target="_blank" rel="noopener">Tickets</a>`:'',
-      `<a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}" target="_blank" rel="noopener">Directions</a>`
-    ].join('');
-    return `<h4>${esc(i.name)}</h4><p class="meta">${meta}</p>`
-         + (d?`<p class="txt">${esc(d.length>170?d.slice(0,170).trim()+'…':d)}</p>`:'')
-         + links;
-  }).join('')+'</div>';
+
+/* ── the card ──────────────────────────────────────────────────────────────
+   Pressing a pin, or a town's outline, fills one card docked to the side of
+   the map (a sheet along the bottom on a phone). It replaced MapLibre's own
+   popup on 4 Oct 2026: that floated over the pin, covered its neighbours, and
+   had room for a name and two links. The card says what the open row says. */
+const mapCard=document.getElementById('mapcard');
+let CARDPIN=null;
+function openCard(html, pinEl){
+  mapCard.innerHTML=html; mapCard.hidden=false; mapCard.scrollTop=0;
+  if(CARDPIN) CARDPIN.classList.remove('on');
+  CARDPIN=pinEl||null;
+  if(CARDPIN) CARDPIN.classList.add('on');
+}
+function closeCard(){
+  mapCard.hidden=true; mapCard.innerHTML='';
+  if(CARDPIN) CARDPIN.classList.remove('on');
+  CARDPIN=null;
+}
+/* whenText() is written for the list's When column and carries its own spans */
+const plainText=h=>String(h).replace(/<[^>]+>/g,'·').split('·').map(s=>s.trim()).filter(Boolean).join(' · ');
+const cardHead=label=>`<div class="mchead"><span>${label}</span>`
+  +`<button type="button" class="mcclose" aria-label="Close">×</button></div>`;
+
+function cardItem(i, solo){
+  const k=keyOf(i), kept=SAVED.has(k), town=suburbOf(i.loc);
+  const when=i.ev ? plainText(whenText(i)) : '';
+  const where=whereLine(i);
+  const facts=[
+    addressOf(i) ? ['Address', esc(addressOf(i))] : null,
+    i.cost ? ['Cost', esc(i.cost)] : null,
+    i.km>0 ? ['From Jan Juc', esc(i.km)+' km by road'] : null,
+    ...(!i.ev ? (NOTICES[i.id]||[]).map(n=>['Parks Victoria notice',
+        esc(n.title)+(n.until?` — until ${esc(dayLabel(n.until))}`:'')
+        +` · <a href="${esc(n.park_url)}" target="_blank" rel="noopener">read it at ${esc(n.park_name)}</a>`]) : [])
+  ].filter(Boolean);
+  const out=(href,word)=>`<a href="${esc(href)}" target="_blank" rel="noopener">${word}</a>`;
+  const acts=[
+    `<button type="button" class="mcsave${kept?' on':''}" data-k="${k}" aria-pressed="${kept}">${kept?'Saved':'Save'}</button>`,
+    i.url&&i.url!==i.info&&!isMapLink(i.url) ? out(i.url,'Website') : '',
+    i.info ? out(i.info,'More info') : '',
+    i.ticket ? out(i.ticket,'Tickets') : '',
+    out(`https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}`,'Directions'),
+    town ? `<a href="/${slugify(town)}">More in ${esc(town)}</a>` : ''
+  ].join('');
+  return `<details class="mcitem${solo?' solo':''}"${solo?' open':''}${(i.groups||[])[0]?` data-tint="${i.groups[0]}"`:''}>
+    <summary>
+      <span class="ic" aria-hidden="true">${ICON_OF[i.type]?`<svg><use href="#i-${ICON_OF[i.type]}"/></svg>`:''}</span>
+      <span><span class="nm">${esc(i.name)}</span>${onNow(i,NOW,SUNSET)?' <span class="live">on now</span>':''}</span>
+      <span class="meta">${esc((i.types||[]).join(' · ')||'unsorted')}</span>
+      ${when||where?`<span class="wh">${when?`<b>${esc(when)}</b>`:''}${when&&where?' · ':''}${esc(where)}</span>`:''}
+    </summary>
+    <div class="mcbody">
+      ${i.desc?`<p>${esc(i.desc)}</p>`:''}
+      ${facts.map(([b,v])=>`<p class="fact"><b>${b}</b> · ${v}</p>`).join('')}
+      <div class="mcacts">${acts}</div>
+    </div>
+  </details>`;
+}
+/* Several things genuinely share one pin — five sit on Bells Beach. They are
+   listed closed, so the card reads as a list first; one thing opens straight up. */
+function pinCard(group){
+  const solo=group.length===1;
+  return cardHead(solo ? esc(suburbOf(group[0].loc)||'On the map') : group.length+' things at this spot')
+       + group.map(i=>cardItem(i,solo)).join('');
+}
+function townCard(name){
+  const n=VISIBLE.filter(i=>suburbOf(i.loc)===name).length;
+  const only=S.suburb.length===1 && S.suburb[0]===name;
+  return cardHead('A town Notice covers')+`<div class="mctown"><h4>${esc(name)}</h4>
+    <p>${n ? `<b>${n}</b> thing${n===1?'':'s'} here`+(only?'.':' with the filters you have on.')
+           : 'Nothing here matches the filters you have on.'}</p>
+    <div class="mcacts">${only?'':`<button type="button" class="mconly" data-town="${esc(name)}">Show only ${esc(name)}</button>`}
+      <a href="/${slugify(name)}">Open the ${esc(name)} page</a></div></div>`;
+}
+mapCard.addEventListener('click',e=>{
+  if(e.target.closest('.mcclose')) return closeCard();
+  /* a card holding one thing has nothing to fold away */
+  if(e.target.closest('.mcitem.solo>summary')) return e.preventDefault();
+  const only=e.target.closest('.mconly');
+  if(only){ S.suburb=[only.dataset.town]; closeCard(); refreshFacets(); render(); return; }
+  const b=e.target.closest('.mcsave'); if(!b) return;
+  const on=!SAVED.has(b.dataset.k);
+  setSaved([b.dataset.k],on);
+  b.classList.toggle('on',on); b.setAttribute('aria-pressed',String(on));
+  b.textContent=on?'Saved':'Save';
+  if(CARDPIN) CARDPIN.classList.toggle('kept', [...mapCard.querySelectorAll('.mcsave')].some(x=>x.classList.contains('on')));
+  syncSavedPill();
+  /* the list is out of sight in map view, so redrawing it shuts nothing a reader
+     has open — and its rows have to learn the pin changed. Inside the saved
+     view this also takes the pin off the map, which is what unsaving means. */
+  const keep=CARDPIN; render();
+  if(S.saved && !on) closeCard(); else if(keep && !keep.isConnected) closeCard();
+});
+
+/* ── the towns ─────────────────────────────────────────────────────────────
+   An outline round every town in the Place menu, so the map says where the
+   site reaches and where it does not. Built by scripts/place_outlines.py from
+   OpenStreetMap's locality boundaries; fetched only when the map is opened,
+   and the map is whole without it. */
+let PLACES=null, HOVERED=null;
+function drawPlaces(){
+  if(!MAP || !PLACES || MAP.getSource('places')) return;
+  const ink=isDark()?'#E5E7DE':'#1B2114';
+  /* under the basemap's own labels, so a town's name sits on its outline */
+  const under=(MAP.getStyle().layers.find(l=>l.type==='symbol')||{}).id;
+  MAP.addSource('places',{type:'geojson',data:PLACES,generateId:true});
+  MAP.addLayer({id:'places-fill',type:'fill',source:'places',paint:{'fill-color':ink,
+    'fill-opacity':['case',['boolean',['feature-state','hover'],false],.14,.05]}},under);
+  MAP.addLayer({id:'places-line',type:'line',source:'places',paint:{'line-color':ink,
+    'line-opacity':.6,'line-width':['interpolate',['linear'],['zoom'],8,.7,13,1.6]}},under);
+  paintMap();
+}
+function loadPlaces(){
+  fetch('/notice-places.geojson').then(r=>r.ok?r.json():null).then(g=>{
+    if(!g) return;
+    PLACES=g;
+    try{ drawPlaces(); }catch(e){ MAP.once('idle',drawPlaces); }
+  }).catch(()=>{});
 }
 
 function paintMap(){
   const note=document.getElementById('mapnote');
   const pinned=VISIBLE.filter(i=>i.lat!=null&&i.lng!=null);
   const blank=VISIBLE.length-pinned.length;
-  const blankEv=VISIBLE.filter(i=>i.ev&&i.lat==null).length;
   if(note) note.innerHTML = VISIBLE.length===0 ? 'Nothing matches that.'
     : `<b>${pinned.length}</b> of ${VISIBLE.length} on the map`
-      + (blank?` &middot; ${blank} have no coordinates yet`:'')
-      + (blankEv?`, ${blankEv} of those events &mdash; no venue is geocoded`:'')
-      + ' &middot; distances in the list are driving km from Jan Juc, not the line you see here';
+      + (blank?` &middot; ${blank} ${blank===1?'has':'have'} no pin yet`:'')
+      + (PLACES?' &middot; outlines are the towns Notice covers':'');
   if(S.view!=='map'||!MAP) return;
 
   const sig=pinned.map(i=>i.id).join(',');
   if(sig===MAPSIG) return;
   MAPSIG=sig;
+  closeCard();
   MARKS.forEach(m=>m.remove()); MARKS=[];
 
   const groups=new Map();
@@ -1618,14 +1766,12 @@ function paintMap(){
   const bounds=new maplibregl.LngLatBounds();
   groups.forEach(group=>{
     const i=group[0], el=document.createElement('div');
-    el.className='pin'+(group.length>1?' multi':'');
+    el.className='pin'+(group.length>1?' multi':'')+(group.some(isSaved)?' kept':'');
     el.setAttribute('role','button'); el.tabIndex=0;
     el.title=group.length>1 ? group.length+' things here' : i.name;
     if(group.length>1) el.innerHTML='<b>'+group.length+'</b>';
-    const m=new maplibregl.Marker({element:el})
-      .setLngLat([+i.lng,+i.lat])
-      .setPopup(new maplibregl.Popup({offset:14,maxWidth:'300px'}).setHTML(popupHTML(group)))
-      .addTo(MAP);
+    const m=new maplibregl.Marker({element:el}).setLngLat([+i.lng,+i.lat]).addTo(MAP);
+    el.addEventListener('click',()=> CARDPIN===el ? closeCard() : openCard(pinCard(group), el));
     el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); }});
     MARKS.push(m);
     bounds.extend([+i.lng,+i.lat]);
@@ -1638,6 +1784,25 @@ function paintMap(){
                           duration:FITTED?500:0});
     FITTED=true;
   }
+}
+
+/* The map takes whatever is left of the window under the filters. Only script
+   can know where they end — the Filters drawer and the chips both move it — so
+   everything above the map is watched and the height follows. */
+function sizeMap(){
+  if(S.view!=='map') return;
+  const wrap=document.getElementById('mapwrap'), el=document.getElementById('map');
+  const top=wrap.getBoundingClientRect().top+scrollY;
+  const h=Math.max(420, innerHeight-top)+'px';
+  if(el.style.height===h) return;
+  el.style.height=h;
+  if(MAP) MAP.resize();
+}
+addEventListener('resize',sizeMap);
+if(window.ResizeObserver){
+  const ro=new ResizeObserver(sizeMap);
+  [...document.querySelector('.page').children]
+    .filter(c=>!c.matches('.tbl,#mapwrap,footer')).forEach(c=>ro.observe(c));
 }
 
 function buildMap(){
@@ -1656,6 +1821,34 @@ function buildMap(){
      over the canvas, not part of the style, so they do not need the basemap — and on
      a slow connection the listings appear while the tiles are still arriving. */
   MAPSIG=null; paintMap();
+  /* the canvas is drawn at the size the box had when it was made, and the box
+     moves — the window, the filters above it, a phone turning over */
+  if(window.ResizeObserver) new ResizeObserver(()=>MAP.resize()).observe(el);
+
+  /* The outlines ARE part of the style, and a change of basemap — light to dark —
+     throws every added layer away, so they go back on each time one loads. */
+  MAP.on('style.load',()=>{ try{ drawPlaces(); }catch(e){} });
+  loadPlaces();
+  MAP.on('mousemove','places-fill',e=>{
+    const id=e.features[0]&&e.features[0].id;
+    if(id===HOVERED) return;
+    if(HOVERED!=null) MAP.setFeatureState({source:'places',id:HOVERED},{hover:false});
+    HOVERED=id; MAP.setFeatureState({source:'places',id},{hover:true});
+    MAP.getCanvas().style.cursor='pointer';
+  });
+  MAP.on('mouseleave','places-fill',()=>{
+    if(HOVERED!=null && MAP.getSource('places')) MAP.setFeatureState({source:'places',id:HOVERED},{hover:false});
+    HOVERED=null; MAP.getCanvas().style.cursor='';
+  });
+  /* A press on a pin reaches the map as well, since the pins sit inside it; the
+     pin has already answered. Anywhere else: a town if there is one under the
+     press, and otherwise it is how the card is put away. */
+  MAP.on('click',e=>{
+    if(e.originalEvent.target.closest && e.originalEvent.target.closest('.pin')) return;
+    const f=MAP.getLayer('places-fill') && MAP.queryRenderedFeatures(e.point,{layers:['places-fill']})[0];
+    if(f) openCard(townCard(f.properties.name)); else closeCard();
+  });
+
   matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{
     if(MAP && !document.documentElement.dataset.theme) MAP.setStyle(BASEMAP[isDark()?'dark':'light']);
   });
@@ -1679,6 +1872,7 @@ async function showView(v){
   const wrap=document.getElementById('mapwrap');
   if(wrap.getBoundingClientRect().top > innerHeight*0.5)
     wrap.scrollIntoView({block:'start', behavior:'smooth'});
+  sizeMap();
   if(MAP){ MAP.resize(); MAPSIG=null; paintMap(); return; }
   const el=document.getElementById('map');
   el.innerHTML='<div class="mapstate">Fetching the map…</div>';

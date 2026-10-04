@@ -5,3 +5,6 @@ node_modules/
 *.xlsx
 .DS_Store
 *.icloud
+
+# raw boundaries fetched by place_outlines.py — rebuilt on demand
+scripts/.place_outlines_cache.json
