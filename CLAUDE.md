@@ -5744,6 +5744,204 @@ turned up. Rather than clear it on the republish and lose it, Capture was
 republished holding that one item — the first pull to leave something in the
 queue deliberately.
 
+## The inbox pull of 4 Oct 2026 — 3 emails, 10 captures, 17 rows, 2 places
+
+Scott: *"Inbox check"*. **Three unfiled emails and ten captures**, and the two
+halves behaved like opposite ends of the same spectrum: the email that was worth
+reading was the one triage could not finish, and the capture that said *"check we
+have this one"* was the one that found a row going stale.
+
+    774  Canvas and Cork             venue  arts·workshop    place 263
+    775  Elizabeth Bell Ceramics     venue  arts·workshop    its own OSM node
+    776  Alesi                       shop   arts             TYPE IS A PLACEHOLDER
+    777  Some Folk                   venue  cafe             Ocean Grove
+    778  Middle Child                maker  arts             pin is the precinct
+
+    1704-1712  nine Canvas and Cork sessions, 9 Oct – 22 Nov   place 263
+    1713  Electric Homes Program Launch          8 Oct   place 166
+    1714  Electric Homes Program Colac Launch   28 Oct   place 264
+    1715  Electric Homes Program Torquay Launch  4 Nov   place 79
+
+    263  Canvas and Cork   Torquay   house 7 Bell Street
+    264  COPACC            Colac     the named community_centre feature
+
+All seventeen held, every `km` null, every printed weekday checked against the
+calendar and every one matching. The invariant ran clean after.
+
+### The newsletter named one event and the organiser's own page had three
+
+Message 14 was Geelong Sustainability's September newsletter, forwarded by
+Scott, and triage had left it `unread` — the reader did not finish, so nothing
+had classified it. It names **one** thing with a date: the Electric Homes
+Program launch, Thursday 8 October, Deakin Waterfront.
+
+Going to geelongsustainability.org.au/events to confirm it found **three**:
+Geelong 8 Oct, **Colac 28 Oct** and **Torquay 4 Nov**, each with its own
+product page carrying the room, the full address and the times. The two the
+newsletter never mentioned are the two in the Surf Coast and the Otways — the
+half of the region this site is actually for.
+
+**The newsletter and the event page disagree about the time.** The newsletter
+says 6:30pm, the page says 6:15pm. The page is the later and more specific of
+the two and is what the row carries. Worth keeping: an email is first-party and
+is still a snapshot of what was true when it was sent.
+
+**No link in either Geelong Mums message or the Sustainability one was
+followed.** Every one is a click-tracker (`link.mail.beehiiv.com`,
+`url4533.geelongmums.com.au/ls/click`, Zoho campaigns), and resolving one
+records a click as Scott in the sender's analytics. Each item was found at its
+first-party source by name instead — which is what turned one event into three.
+
+**And this is the hardest evidence yet for NOT registering Geelong
+Sustainability as a source.** This file has recorded twice that it is an
+organiser rather than a room. Three launches, three different people's
+buildings, in one program: a `places` row for the organisation would have filed
+the Colac one at Deakin.
+
+**The two Geelong Mums calendars (15, 16) gave nothing, again.** Same template
+fault as message 13 — every listing's start and end share a day number, and
+Portarlington Mussel Festival is listed *"Thu 01 Oct"* against event 37's
+9 Jan 2027. Filed with the reason on the row.
+
+### "Check we have this one" — we did, and its date had gone stale
+
+The photograph was the South Geelong Farmers Market's Instagram profile. **It is
+event 165**, published and verified since August — and its `starts_on` was
+6 September, a month gone, because *"first and third Sunday"* has no word in
+`recurrence` and `nextDate()` therefore rolls nothing. A market that runs
+twice a month had been invisible on the board for four weeks.
+
+Rolled by hand to **18 October**, the next first-or-third Sunday, with the
+organiser's page re-read the same day (*"1st & 3rd Sundays, 8.30am–12.30pm"*)
+and the Instagram bio saying the same.
+
+**Then the same question was asked of every other row in that state.** Nine
+published market rows sit on a past date with no recurrence word:
+
+    161 Warralily Market            162 Geelong Dog Lovers Market
+    165 South Geelong Farmers Mkt   853 Wyndham Makers And Farmers Market
+    862 Piccadilly Grand Final Eve  951 Bellarine Farmers' Market
+    994 G: Zines Swap/Sell         1005 Geelong Waterfront Makers and Growers
+    1070 SECOND HAND BOOK SALE
+
+**Torquay Cowrie Market (26) was fixed in the same pass and is the better
+precedent**, because its own site publishes the whole season: 20 Sep, 18 Oct,
+15 Nov, 20 Dec, 17 Jan, 21 Feb, 21 Mar, 18 Apr — third Sunday, September
+through April. Rolled to 18 Oct, confidence raised to `high`, and the full list
+is in its `source_note` so the next person does not have to go and look. It is
+`monthly`, which `nextDate()` also does not roll, so it will need the same
+treatment every month.
+
+**The generalisable bit: a recurrence this vocabulary cannot say is a row that
+goes stale silently.** Nothing reports it — the row simply stops appearing, and
+the board looks like a region where nothing is on. The honest fixes are a
+`recurrence` value for *nth weekday*, or a standing check that lists published
+rows whose date has passed and whose recurrence is null.
+
+### Canvas and Cork — a Shopify storefront IS a what's-on, and its handles lie
+
+Torquay's paint-and-sip studio, 2/7 Bell Street. **Nine live sessions, 9 Oct to
+22 Nov**, every one with its weekday, date, time and price in the product
+title, and all nine weekdays check out.
+
+**`products.json` is the readable feed.** `canvasandcork.com.au/products.json?limit=250`
+returns clean JSON — title, price, handle — with no key and no robots problem.
+That is a general Shopify endpoint, so it is worth trying on any Shopify venue
+this project meets. **It is NOT registered as a source**: nothing in
+`scrape_venues.py`'s ladder reads `products.json`, so an `events_url` here would
+report a source that cannot read, and a reader for it is a per-venue parser —
+the thing this project takes only by Scott's decision. Place 263 therefore has
+a `website` and no `events_url`, and the reason is on the row.
+
+**THE TITLE IS THE TRUTH AND THE HANDLE IS NOT.** They reuse product records, so
+a session titled *Saturday 17th of October* lives at a URL ending
+`saturday-17th-of-september`, and the 1 November adult session is at
+`fathers-day-painting-activity-...-6th-of-september`. A scraper keying on the
+handle would file every session on a date months past. One session also
+disagrees with itself — the handle says 3pm-5pm where the title says 4pm-6pm —
+and the title is the later edit. All nine URLs were fetched and all nine
+resolve; they are stored as `info_url` because they are what a reader clicks.
+
+### The other seven captures
+
+- **Elizabeth Bell Ceramics** (775) — a pottery studio and shop in the Fyansford
+  Paper Mills, open six days, with taster classes, six-week terms, private wheel
+  classes and school-holiday sessions. The Bellbrae Clay shape exactly, so
+  `venue` with `arts · workshop`. **OpenStreetMap carries it as its own
+  `shop=pottery` node**, which reverse-geocodes back to 100 Lower Paper Mills
+  Road — the business as a mapped feature, the best pin available. No dated
+  class is published today, so no event rows.
+- **Alesi** (776) — Barwon Heads, 55B Hitchcock Ave, house-level pin agreeing in
+  both directions. Its *Kids Bead Free* mornings were **1 and 2 October and have
+  both passed**, so no event. **Its type is a placeholder**: a store selling
+  jewellery, clothing, kids' goods and homewares has no honest word in this
+  vocabulary and `arts` was the nearest — the Pop Cultcha gap, unchanged.
+- **Some Folk** (777) — a coffee shop in the Prosperity Drive estate at Ocean
+  Grove. Instagram refuses ClaudeBot, so the photograph is the whole of that
+  half; **its ordering page at `ordering.oolio.io/some-folk` carries the full
+  address**, which is where the pin comes from. Worth knowing for next time: a
+  café with no website often has one on its ordering platform.
+- **Middle Child** (778) — a jewellery design studio at Federal Mills, North
+  Geelong. **The address is self-published**, with collection hours and
+  directions to the door, so it clears the maker rule; the limit is that it is
+  click-and-collect only rather than an open studio, and the row says so. Pinned
+  to OSM's `landuse=commercial` feature named *"Federal Mills, 13-35"*, which is
+  the complex their own address names — **the pin is the precinct, not the
+  studio**, the Centrepoint Arcade precedent, because Mackey Street itself
+  returns two road segments 140 m apart. Its one local market date, the
+  Piccadilly Market at Deakin Waterfront on 13 December, **is already event
+  1050** and was not written twice.
+- **Skateboarding Victoria's school-holiday skate lessons** — two in region,
+  Inverleigh (21, 28 Sep) and Waurn Ponds (23, 30 Sep). **Every date has
+  passed.** Nothing written. It is another organiser that is not a room — the
+  sessions run at councils' skateparks — which is now the sixth time this file
+  has recorded that gap.
+- **Port Phillip Fish Club** — a school-holiday fishing charter, Docklands ferry
+  across to Portarlington Pier, run with Freetime Adventure Charters. Scott's
+  note was *"see if can be scraped"*: **no**. The page carries only a
+  `BreadcrumbList`, no dates at all, and *"Mondays, Wednesdays and Fridays during
+  the holidays"* behind a third-party booking calendar.
+- **ParkConnect's Junior Ranger page** — *"add to list to scrape
+  automatically"*: **not today, and the empty state is the useful finding.** The
+  page is server-rendered and says *"The Junior Ranger holiday program has
+  concluded for this term"*, so an empty read is honest rather than broken. The
+  `/community-events/` list next to it is a Dynamics grid that answers *"you
+  don't have permissions to view these records"* to an anonymous fetch. Worth
+  re-reading at the start of each school holidays: if activities appear in the
+  HTML the way the empty message does, it is readable; the grid never will be.
+  Parks Victoria is also an organiser across a hundred parks, so this could
+  never be a `places` row.
+
+### Places 237 and 79 were one building, and the merge was free
+
+Writing the Torquay launch found **`Surf Coast Shire Council` (237) and
+`Surf Coast Shire Offices` (79) on the identical coordinate** — 79 built by hand
+in August for the Torquay Farmers Market, 237 made by the Coast & Bay importer
+on 7 Sep. This file already named 237 as *"the one to look at first"*.
+
+Merged the usual three ways: event 1029 repointed, the importer's spelling kept
+as an **alias on 79** so the feed matches it instead of making it again, then
+237 deleted. Places 208 → 264 net of the two built here.
+
+**COPACC (264) was built for the Colac launch** — asked for by name, which
+returns the named `amenity=community_centre` at the published address; its
+street returns a residential road segment. The reverse lookup gives *Colac
+Cinemas* at the same house number, which is the cinema inside the same complex.
+
+### The classifier step was run this time
+
+`776` and `778` were disagreements the moment they were written — `arts` maps to
+venue, so the rules wanted to put a shop and a maker on the board. Both are in
+`BY_ID` with the reason, in the same commit, and disagreements are back to 35
+with none of today's rows among them. That is the lesson the 14 Sep pull wrote
+after skipping it, kept.
+
+### Left in the Capture queue, again
+
+**The seaweed cyanotypes reel.** Instagram still refuses ClaudeBot, the note is
+two words, and no first-party page for a seaweed cyanotype workshop in the
+region has turned up in two attempts. Republished holding that one item.
+
 ## Two running events, and a past one kept on purpose — 30 Aug 2026
 
     685  Bellarine Rail Trail Run   Sun 23 Aug 2026  annual  place 141  ALREADY HAPPENED
@@ -8417,6 +8615,24 @@ caught it before it shipped; clicking around the page would not have.
 
 ## Known outstanding
 
+- **Nine published market rows sit on a past date with no recurrence word**
+  (4 Oct 2026) — 161, 162, 853, 862, 951, 994, 1005, 1070, and 26 and 165 which
+  were rolled by hand that day. `nextDate()` rolls weekly and fortnightly only,
+  so *"first and third Sunday"* and *"third Sunday of the month"* go stale
+  silently: the row simply stops appearing. The honest fixes are a `recurrence`
+  value for *nth weekday*, or a standing check listing published rows whose date
+  has passed and whose recurrence is null.
+- **`canvasandcork.com.au/products.json` is a readable session feed and nothing
+  reads it** (4 Oct 2026). Nine dated sessions, clean JSON, no key, robots-clean
+  — but a Shopify product list is not a shape `scrape_venues.py` understands, so
+  place 263 has a website and deliberately no `events_url`. Worth trying the
+  same endpoint on any Shopify venue; **the handles are stale and only the title
+  carries the true date**.
+- **ParkConnect's Junior Ranger page is worth re-reading each school holidays**
+  (4 Oct 2026). It is server-rendered and currently says the program has
+  concluded for the term; if activities appear in the HTML the way that message
+  does, it is readable. The `/community-events/` grid beside it refuses an
+  anonymous read and never will be.
 - **Places 88 and 144 are two rows for the same Barwon Bluff carpark** (found
   14 Sep 2026, writing the nature festival). 88 is "Barwon Bluff (Bluff Road
   Carpark)", 144 is "Barwon Bluff, Barwon Heads (Bluff Road Carpark)", both

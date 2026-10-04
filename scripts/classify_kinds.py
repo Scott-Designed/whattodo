@@ -179,6 +179,12 @@ BY_ID = {
   771: ('group', 'a Wednesday run club meeting at somebody else\'s cafe; `running` would make it a spot'),
   772: ('group', 'the Geelong Vintage Machinery section, which runs the show; `festival` would make it a venue'),
 
+  # The Capture pull of 4 Oct 2026. `arts` maps to venue, so the rules would put
+  # a lifestyle shop and a jewellery studio on the board beside places you go for
+  # the afternoon. Both are things you look up.
+  776: ('shop',  'a Barwon Heads store; `arts` is a placeholder type and would make it a venue'),
+  778: ('maker', 'a jewellery studio open for collection only; `arts` would make it a venue'),
+
   # The three rows added by hand on 27 Aug 2026, all of which the rules would
   # make spots — a maker, a shop and a group whose types are all activity types
   # that outrank their kind on PRECEDENCE. `types` says what a row is ABOUT and
