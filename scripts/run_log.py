@@ -308,6 +308,59 @@ def read_parks(text):
     }
 
 
+def read_fareharbor(text):
+    """What scrape_fareharbor.py said.
+
+    Its own state, set here rather than through source_state(), which defaults
+    to success — the rule this file keeps. A source whose operator has simply
+    not opened its next season reads `nothing`, not `failed`: the API answered,
+    there is just nothing in it yet, and that is the normal state of a
+    school-holiday charter in term time.
+    """
+    out = []
+    for m in re.finditer(r'^source (\S+) — (\d+) items listed, (\d+) dated, '
+                         r'(\d+) new, (\d+) already held, (\d+) items not listed',
+                         text, re.M):
+        site, listed, dated, new, dupe, spare = m.group(1), *[int(x) for x in m.groups()[1:]]
+        out.append({
+            'name':  site,
+            'how':   f'{listed} items watched ({dated} dated, {new} new)',
+            'hint':  (f'{spare} item(s) on this operator are not listed — the run names them '
+                      f'with their next date, which is how a new one gets noticed') if spare else None,
+            'state': 'read' if dated else 'nothing',
+            'via':   ['FareHarbor'],
+            'own':   False,
+            'new':   new,
+            'dupe':  dupe,
+        })
+    for m in re.finditer(r'^source (\S+) — failed: (.+)$', text, re.M):
+        out.append({'name': m.group(1), 'how': m.group(2), 'hint': None,
+                    'state': 'failed', 'via': ['FareHarbor'], 'own': False,
+                    'new': 0, 'dupe': 0})
+    return {'added': sum(s['new'] for s in out), 'drift': [], 'sources': out}
+
+
+def read_watch(text):
+    """What watch_pages.py said.
+
+    This one writes no listings at all, so there is nothing to count but the
+    thing a person has to act on. A page that has OPENED UP is `manual` —
+    orange, needs a person — because that is precisely the moment somebody has
+    to go and read it. Everything else is green and silent.
+    """
+    out = []
+    for m in re.finditer(r'^watch (\S+) — (.+)$', text, re.M):
+        key, said = m.group(1), m.group(2)
+        low = said.lower()
+        if low.startswith('opened up'):   state = 'manual'
+        elif low.startswith('changed'):   state = 'manual'
+        elif low.startswith('failed'):    state = 'dead'
+        else:                             state = 'read'
+        out.append({'name': key, 'how': said[:160], 'hint': None, 'state': state,
+                    'via': ['page watch'], 'own': False, 'new': 0, 'dupe': 0})
+    return {'added': 0, 'drift': [], 'sources': out}
+
+
 def step(name, script, out, rc, parse):
     """One scraper's leg of the run. Missing output is itself worth recording —
     it means the step never got to run, which the page should say out loud."""
@@ -338,6 +391,10 @@ def main():
              'vgb.txt', 'vgb.rc', read_vgb),
         step('Parks Victoria notices', 'scrape_parks.py',
              'parks.txt', 'parks.rc', read_parks),
+        step('Operator booking calendars', 'scrape_fareharbor.py',
+             'fareharbor.txt', 'fareharbor.rc', read_fareharbor),
+        step('Watched pages', 'watch_pages.py',
+             'watch.txt', 'watch.rc', read_watch),
     ]
 
     record = {

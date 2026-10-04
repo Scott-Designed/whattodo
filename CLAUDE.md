@@ -5942,6 +5942,131 @@ after skipping it, kept.
 two words, and no first-party page for a seaweed cyanotype workshop in the
 region has turned up in two attempts. Republished holding that one item.
 
+## Two ways to not miss a source — 4 Oct 2026
+
+Scott, off the inbox pull: *"Can we setup scrapers for Park Connect and Port
+Phillip Fish Club? I dont want to miss next time."* Both, and they needed
+opposite answers — one is a real importer and the other is a watcher, because
+only one of the two has readable dates anywhere.
+
+    scripts/scrape_fareharbor.py   an operator's own booking calendar, via FareHarbor's public API
+    scripts/watch_pages.py         pages that cannot be parsed, fingerprinted and reported when they move
+
+Both are steps in `.github/workflows/events.yml` (Mon & Thu), both have a
+`run_log.py` reader so they surface on the Automations tab, both have an
+`AGGREGATORS` entry, and `ppf` is in `SOURCE_OF` so the Review queue never
+prints the acronym.
+
+### The Fish Club's own page is not the source — FareHarbor is
+
+`portphillipferries.com.au/.../port-phillip-fish-club/` carries no date at all:
+only *"Mondays, Wednesdays and Fridays during the holidays"* and a booking
+widget. That widget is **FareHarbor**, and FareHarbor publishes a public API:
+
+    /api/v1/companies/<shortname>/items/                        the catalogue
+    /api/v1/companies/<shortname>/items/<pk>/calendar/<y>/<m>/  a month of dates
+
+**No key, no token, no cookie, and fareharbor.com's robots.txt allows our
+crawler**, so a Claude session may run this as well as the Action. The
+shortname is in the booking link on the operator's own page (`portphillipferries`).
+
+**The `/embeds/api/...` paths 404 and so does `/calendar/months/`** — three
+plausible spellings, all wrong. The working one came out of the embed's own
+JavaScript bundle, which carries the full route table. Worth knowing before
+guessing at another FareHarbor operator.
+
+**This is a PLATFORM, so the registry is `SOURCES` in the script, not
+`places.events_url`.** A FareHarbor company is an operator whose experiences
+happen in several places; `scrape_venues.py` sets `place_id` to the row it read
+from, so registering Port Phillip Ferries as a place would file a Portarlington
+mussel lunch at "Port Phillip Ferries". The Creative Geelong trap, a fifth time.
+
+### The allow-list IS the answer to "don't miss next time"
+
+Measured 4 Oct 2026 over three months, Port Phillip Ferries publishes **1,297
+availabilities and 1,100 of them are the scheduled ferry crossings, gift cards
+and memberships.** A naive import is a timetable on the noticeboard.
+
+So an item is imported only if it is in that operator's `items` map — six, each
+a hand decision with its reason — **and every other item with dates is printed
+every run, with its pk and its next date.** That second half is the whole
+design. A new experience, or the Fish Club's next school-holiday season, turns
+up in the report; nobody has to remember to look. Today it prints:
+
+    nothing published yet — 756421 Port Phillip Fish Club
+    nothing published yet — 739821 Junior Captain Adventure Cruise
+    NOT LISTED — 761973 Whisky by the Bay …          (and fifteen more)
+
+**A tour that runs most days is a STANDING OFFER and is refused**, with a line
+saying it belongs in `activities`. *Taste the Bellarine* and *Port to Plate
+Mussel Experience* each publish about seventy dates in ninety days — 75 rows
+apiece saying the same sentence, which is the library story-time flood in
+another costume. `DENSE_FRAC` is 40%: well above a weekly series (14%) and an
+every-weekend one (29%), well below a daily tour (79%).
+
+**Consecutive days with identical times collapse into one row with `ends_on`**
+— the call `scrape_vgb.py` already makes.
+
+First write: **two rows, held** — Whisky by the Bay (24 Oct) and Fashions on
+the Ferry (27 Oct), both at places row 183, the Portarlington pier deck.
+
+### `start_at` is local and `description` is a lie
+
+Two traps in this API, and the second is the more useful finding:
+
+- **`start_at` is local wall time; `utc_start_at` is the same instant with an
+  offset.** The local one is read — the Eventbrite `start.local` rule. Reading
+  the other would shift every row ten or eleven hours.
+- **THE `description` FIELD IS NOT TRUSTWORTHY AND IS NEVER WRITTEN.** *Port to
+  Plate Mussel Experience*, *Taste the Bellarine Experience* and *Port Phillip
+  Fish Club* all carry the **identical** description, and it is about a lunch
+  package at the Portarlington Grand Hotel — none of them is that. The operator
+  reuses item records, exactly as Canvas and Cork reuse Shopify product
+  handles. **Two platforms in one day, so it is a rule rather than a quirk: a
+  booking system's structured fields are the truth and its prose is whatever
+  was there last time.** Name, date and time are read; prose is a person's job.
+
+**`date_confidence` is `high` and there is no weekday checksum**, because an
+API prints no weekday to refute its own date. The checksum exists to catch a
+page contradicting itself; structured datetimes cannot. Nothing auto-verifies.
+
+### ParkConnect cannot be parsed, and watching is the honest alternative
+
+`parkconnect.vic.gov.au/junior-ranger/` is server-rendered and currently says
+*"There are currently no activities available"*; `/find-activities/` says the
+program **has concluded for this term**. The `/community-events/` grid beside
+them is a Dynamics list that answers *"You don't have permissions to view these
+records"* to an anonymous fetch and always will. So there are no dates to read,
+and writing a parser against an empty endpoint is how a source comes to read
+green while returning nothing — the failure `run_log.py` already had to be
+taught about once.
+
+**What a machine CAN honestly do is notice the day the page stops saying
+nothing is on**, which is all anyone needed. `watch_pages.py` fetches each
+page, strips it to text, fingerprints it and compares.
+
+**`expect` is the sentence that means "still nothing", and it is what makes
+this usable.** While that sentence is present the page reads as *quiet*
+whatever else moved on it — a cookie banner, a footer year, a promo tile. A
+watcher keyed on the hash alone would cry wolf every week and be ignored within
+a month. When the sentence GOES the run prints **OPENED UP** and `run_log.py`
+colours that source orange, *needs a person*. Both branches were proved by
+driving them, not by reading them.
+
+**The fingerprint is of the page's TEXT, not its HTML**, for the same reason:
+markup churns and prose does not.
+
+Three pages are watched today — the two ParkConnect ones (two rather than one,
+because they can disagree, and the day they do is the day something has been
+published) and the Fish Club's own page, which is belt and braces: the FareHarbor
+calendar carries its dates, but only the page can say the price changed or the
+charter was withdrawn.
+
+**Parks Victoria could never be a `places` row** — an organiser across a hundred
+parks — so even if the Junior Ranger list becomes readable, its reader has to
+take the park off each activity. That is the sixth time this file has recorded
+*an organiser worth watching that is not a room*.
+
 ## Two running events, and a past one kept on purpose — 30 Aug 2026
 
     685  Bellarine Rail Trail Run   Sun 23 Aug 2026  annual  place 141  ALREADY HAPPENED
@@ -8698,11 +8823,18 @@ caught it before it shipped; clicking around the page would not have.
   place 263 has a website and deliberately no `events_url`. Worth trying the
   same endpoint on any Shopify venue; **the handles are stale and only the title
   carries the true date**.
-- **ParkConnect's Junior Ranger page is worth re-reading each school holidays**
-  (4 Oct 2026). It is server-rendered and currently says the program has
-  concluded for the term; if activities appear in the HTML the way that message
-  does, it is readable. The `/community-events/` grid beside it refuses an
-  anonymous read and never will be.
+- ~~ParkConnect's Junior Ranger page is worth re-reading each school holidays~~
+  **DONE 4 Oct 2026** — `watch_pages.py` watches it twice a week and says
+  OPENED UP the day its "no activities available" sentence goes. A parser is
+  still impossible; the `/community-events/` grid refuses an anonymous read.
+- **Two Port Phillip Ferries tours want an activity row and did not get one**
+  (4 Oct 2026). *Taste the Bellarine* and *Port to Plate Mussel Experience* run
+  most days, so `scrape_fareharbor.py` correctly refuses them as events and
+  says they belong in `activities`. They were NOT written here, because the
+  only description the API gives is the same wrong paragraph on both, and
+  **Port to Plate may overlap activity 470, `Portarlington Mussel Tours`** —
+  the Wiffen family's own boat out of the same pier. Research both first-party
+  before writing either.
 - **Places 88 and 144 are two rows for the same Barwon Bluff carpark** (found
   14 Sep 2026, writing the nature festival). 88 is "Barwon Bluff (Bluff Road
   Carpark)", 144 is "Barwon Bluff, Barwon Heads (Bluff Road Carpark)", both

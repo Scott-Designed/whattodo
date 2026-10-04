@@ -133,6 +133,35 @@ jobs:
           echo "$?" > parks.rc
           exit 0
 
+      # Operators' own booking calendars, through FareHarbor's public API.
+      # Added 4 Oct 2026, chasing the Port Phillip Fish Club. An item is only
+      # imported if it is in that operator's allow-list in the script; every
+      # other item with dates is PRINTED, which is how a new experience — or a
+      # school-holiday charter reopening — gets noticed without anyone having
+      # to remember it. Writes held rows like everything else.
+      - name: Read operators' booking calendars
+        if: always()
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set +e -o pipefail
+          python3 scripts/scrape_fareharbor.py --write 2>&1 | tee fareharbor.txt
+          echo "$?" > fareharbor.rc
+          exit 0
+
+      # Pages that cannot be parsed and are worth watching anyway. Writes no
+      # listing and touches no table — it fingerprints each page and says when
+      # one moves, so ParkConnect's Junior Ranger program announcing its next
+      # term turns up in the report instead of being missed. Needs no secrets.
+      - name: Watch the pages that cannot be parsed
+        if: always()
+        run: |
+          set +e -o pipefail
+          python3 scripts/watch_pages.py --write 2>&1 | tee watch.txt
+          echo "$?" > watch.rc
+          exit 0
+
       # The job summary below is a page on github.com nobody visits. This is the
       # same information written into the repo, where the back-of-house page can
       # read it off raw.githubusercontent.com without a token or a redeploy.
@@ -164,6 +193,14 @@ jobs:
             echo '```'
             cat parks.txt 2>/dev/null || echo 'produced nothing — check the step above'
             echo '```'
+            echo '## Operator booking calendars'
+            echo '```'
+            cat fareharbor.txt 2>/dev/null || echo 'produced nothing — check the step above'
+            echo '```'
+            echo '## Watched pages'
+            echo '```'
+            cat watch.txt 2>/dev/null || echo 'produced nothing — check the step above'
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       # always(), because a crashed run is exactly the one worth having on file.
@@ -172,7 +209,7 @@ jobs:
         run: |
           git config user.name  'events bot'
           git config user.email 'noreply@github.com'
-          git add scripts/events_seen.json scripts/venues_seen.json scripts/library_seen.json scripts/vgb_seen.json scripts/run_log.json scripts/parser_counts.json
+          git add scripts/events_seen.json scripts/venues_seen.json scripts/library_seen.json scripts/vgb_seen.json scripts/run_log.json scripts/parser_counts.json scripts/fareharbor_seen.json scripts/watch_pages.json
           git diff --cached --quiet && { echo 'nothing new to remember'; exit 0; }
           # [skip ci] because the site reads Supabase live, and the back-of-house
           # page reads this log from raw.githubusercontent — neither needs a build.
@@ -210,5 +247,7 @@ jobs:
           rc3=$(cat library.rc 2>/dev/null || echo 1)
           rc4=$(cat vgb.rc     2>/dev/null || echo 1)
           rc5=$(cat parks.rc   2>/dev/null || echo 1)
-          echo "scrape_events.py exited $rc1, scrape_venues.py exited $rc2, scrape_library.py exited $rc3, scrape_vgb.py exited $rc4, scrape_parks.py exited $rc5"
-          [ "$rc1" = 0 ] && [ "$rc2" = 0 ] && [ "$rc3" = 0 ] && [ "$rc4" = 0 ] && [ "$rc5" = 0 ]
+          rc6=$(cat fareharbor.rc 2>/dev/null || echo 1)
+          rc7=$(cat watch.rc      2>/dev/null || echo 1)
+          echo "scrape_events.py exited $rc1, scrape_venues.py exited $rc2, scrape_library.py exited $rc3, scrape_vgb.py exited $rc4, scrape_parks.py exited $rc5, scrape_fareharbor.py exited $rc6, watch_pages.py exited $rc7"
+          [ "$rc1" = 0 ] && [ "$rc2" = 0 ] && [ "$rc3" = 0 ] && [ "$rc4" = 0 ] && [ "$rc5" = 0 ] && [ "$rc6" = 0 ] && [ "$rc7" = 0 ]
