@@ -1,1 +1,26 @@
-{"note": "What each watched page looked like last time. `quiet` is whether its \"nothing on\" sentence was present; `since` is when it last moved. Delete an entry to be told about that page afresh.", "pages": {"parkconnect-junior-ranger": {"hash": "a570a3ec7179", "chars": 793, "quiet": true, "since": "2026-10-04", "read": "2026-10-04"}, "parkconnect-find-activities": {"hash": "212895886970", "chars": 1615, "quiet": true, "since": "2026-10-04", "read": "2026-10-04"}, "ppf-fish-club": {"hash": "44cd5e47e5bc", "chars": 11360, "quiet": null, "since": "2026-10-04", "read": "2026-10-04"}}}
+{
+ "note": "What each watched page looked like last time. `quiet` is whether its \"nothing on\" sentence was present; `since` is when it last moved. Delete an entry to be told about that page afresh.",
+ "pages": {
+  "parkconnect-junior-ranger": {
+   "hash": "a570a3ec7179",
+   "chars": 793,
+   "quiet": true,
+   "since": "2026-10-04",
+   "read": "2026-10-05"
+  },
+  "parkconnect-find-activities": {
+   "hash": "212895886970",
+   "chars": 1615,
+   "quiet": true,
+   "since": "2026-10-04",
+   "read": "2026-10-05"
+  },
+  "ppf-fish-club": {
+   "hash": "873545b5191c",
+   "chars": 11378,
+   "quiet": null,
+   "since": "2026-10-05",
+   "read": "2026-10-05"
+  }
+ }
+}
