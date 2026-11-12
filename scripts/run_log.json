@@ -1,5 +1,1713 @@
 [
  {
+  "recorded_at": "2026-11-12T03:02:13Z",
+  "run_id": "43140177283",
+  "run_number": "32",
+  "trigger": "schedule",
+  "url": "https://github.com/Scott-Designed/whattodo/actions/runs/43140177283",
+  "steps": [
+   {
+    "name": "Surf Coast events calendar",
+    "script": "scrape_events.py",
+    "exit": 0,
+    "text": "reading https://www.surfcoastevents.com.au/wp-json/tribe/events/v1/events \u2026\n  surfcoastevents.com.au: 113 listings -> 58 series\nreading https://coastandbay.com.au/wp-json/tribe/events/v1/events \u2026\n  coastandbay.com.au: 9342 listings -> 772 series\n\nevent feeds \u2014 2026-11-12\n  source surfcoastevents.com.au \u2014 113 listings, 58 series, 2 new, 6 already held\n  source coastandbay.com.au \u2014 9342 listings, 772 series, 9 new, 135 already held\n  9455 listings, 830 distinct series, 2009 events already in the database\n\nNEW \u2014 11\n  2027-03-20  music        Gia Margaret (USA) The Sound Doctor        Anglesea          surfcoastevents.com.\n  2026-12-19  community    Kids Christmas Wooden Ornament Painting    Torquay           surfcoastevents.com.\n  2026-11-12  community    Fundamental Drawing Term 4 2026 \u2013 Tutor    Anglesea          coastandbay.com.au  [weekly]\n  2026-11-18  community    Glass Studio Wednesday- Term 4 2026        Anglesea          coastandbay.com.au  [weekly]\n  2026-11-12  community    Oil/ Acrylic Painting Class \u2013 Term 4 202   Anglesea          coastandbay.com.au  [weekly]\n  2026-11-13  community    Painting Studio \u2013 Term 4 2026 Friday 9:3   Anglesea          coastandbay.com.au  [weekly]\n  2026-11-16  community    Pottery Hand building \u2013 Term 4 2026 \u2013 Tu   Anglesea          coastandbay.com.au  [weekly]\n  2026-11-12  community    Pottery Handbuilding \u2013 Term 4 2026- Tuto   Anglesea          coastandbay.com.au\n  2026-11-18  community    Printmaking Studio- Term 4 2026 Wednesda   Anglesea          coastandbay.com.au  [weekly]\n  2026-11-18  community    Reiki Clinic                               Torquay           coastandbay.com.au\n  2026-11-17  community    Restart Guitar \u2013 5 Week Course | Lara, G   Lara              coastandbay.com.au\n\nDATE MOVED since we imported it \u2014 28\n      48  Aireys Inlet Market                        2026-10-11 -> 2026-11-29  (VERIFIED, left alone)\n      52  Riverbank Market                           2026-11-01 -> 2027-01-01  (VERIFIED, left alone)\n      53  Anglesea Twilight Market                   2026-11-06 -> 2026-11-20  (VERIFIED, left alone)\n      84  Torquay Parkrun                            2026-08-29 -> 2026-11-14  (VERIFIED, left alone)\n      86  Trebeck Reserve Parkrun                    2026-08-29 -> 2026-11-14  (VERIFIED, left alone)\n      88  Community Market \u2013 first Sunday of Month   2026-09-06 -> 2027-01-03  (VERIFIED, left alone)\n     945  Awkwardstra Geelong Inc. (Community Orch   2026-11-09 -> 2026-11-16  (unverified, updated)\n     946  Bachata Classes in Geelong                 2026-10-08 -> 2026-12-03  (VERIFIED, left alone)\n     951  Bellarine Farmers\u2019 Market                  2026-09-19 -> 2026-11-21  (VERIFIED, left alone)\n      40  Drysdale Community Market                  2026-10-18 -> 2026-11-15  (VERIFIED, left alone)\n     989  Emotion 21                                 2026-11-11 -> 2026-11-18  (unverified, updated)\n     994  G: Zines Swap/Sell                         2026-09-19 -> 2026-12-19  (VERIFIED, left alone)\n    1001  Geelong Machine Embroidery Club (Monthly   2026-09-12 -> 2026-11-14  (VERIFIED, left alone)\n    1002  Geelong Machine Embroidery Club (Monthly   2026-09-15 -> 2026-11-17  (VERIFIED, left alone)\n    1016  Hospo Night Mondays                        2026-11-09 -> 2026-11-16  (unverified, updated)\n    1023  Kids in the kitchen \u2013 Sprouts Club         2026-09-30 -> 2026-11-25  (VERIFIED, left alone)\n    1033  Maker Meetup | Geelong VIC                 2026-09-24 -> 2026-11-26  (VERIFIED, left alone)\n    1043  No Strings Improv | Open improv comedy s   2026-09-02 -> 2026-11-18  (VERIFIED, left alone)\n    1062  Repair Cafe Bellarine \u2013 Ocean Grove        2026-09-20 -> 2026-11-15  (VERIFIED, left alone)\n    1064  Rest, Reset & Thrive \u2013 Monthly Breathwor   2026-11-10 -> 2026-12-08  (unverified, updated)\n    1066  Salsa Dance Classes \u2013 Geelong              2026-11-11 -> 2026-11-18  (unverified, updated)\n    1070  SECOND HAND BOOK SALE                      2026-09-05 -> 2026-12-05  (VERIFIED, left alone)\n    1072  Shedding & Becoming- An Initmate Women\u2019s   2026-09-08 -> 2026-12-08  (VERIFIED, left alone)\n    1075  Sprouts: Story-telling in the garden       2026-09-02 -> 2026-12-02  (VERIFIED, left alone)\n    1089  Tough Guy Book Club                        2026-09-02 -> 2026-12-02  (VERIFIED, left alone)\n    1093  Tough Guy Book Club                        2026-09-02 -> 2026-12-02  (VERIFIED, left alone)\n    1104  Geelong Gaol Ghost Tours                   2026-09-02 -> 2026-11-12  (VERIFIED, left alone)\n    1105  Wednesday Social Table Tennis (Seniors)    2026-09-16 -> 2026-11-18  (VERIFIED, left alone)\n\nPLACES CREATED \u2014 1, each reviewed = false\n  Anglesea Art House                         Anglesea         house-level pin at -38.406319,144.191855   for: Fundamental Drawing Term 4 2026 \u2013 Tu\n\nVENUE NAMES ADDED AS ALIASES \u2014 1\n  Torquay Improvement Association Hall       geocodes 0 m from place 96 TIA Hall \u2014 same building, so 'Torquay Improvement Association Hall' becomes an alias rather than a second row\n\nOUTSIDE THE REGION \u2014 47, dropped and remembered as offered\n  2026-11-12  Art, History, Food and Wine Tour           Melbourne Visitor Hub, 90-130, Swanston Street, Greek Precinct, Melbourne, Victoria, 3000, Australia is at -37.81453,144.96636, outside the region box\n  2026-11-16  Auslan Storytime                           State Library Victoria, 328, Swanston Street, Greek Precinct, Melbourne, Victoria, 3000, Australia is at -37.80977,144.965535, outside the region box\n  2026-11-12  Ceramic Painting Classes: Bowls, Plates    Cherry & Twigs Cafe, 555, Flinders Lane, Melbourne, Victoria, 3000, Australia is at -37.82004,144.955718, outside the region box\n  2026-11-16  Comedy at the Charles Dickens Tavern       280-292, Collins Street, East End Theatre District, Melbourne, Victoria, 3000, Australia is at -37.815881,144.964675, outside the region box\n  2026-11-17  Comedy at the Clyde                        The Clyde Hotel, Elgin Street, Carlton, Melbourne, Victoria, 3053, Australia is at -37.797249,144.965754, outside the region box\n  2026-11-18  Comedy Therapy                             313-315, Flinders Lane, Melbourne, Victoria, 3000, Australia is at -37.817517,144.9638, outside the region box\n  2026-11-18  Damn Fine Laughs                           Fad Gallery Bar, 14, Corrs Lane, Chinatown, Melbourne, Victoria, 3000, Australia is at -37.811221,144.968435, outside the region box\n  2026-11-12  Decoding Australian Food: A Curated 10-S   Yarra Botanica, Southbank Promenade, Southbank, Melbourne, Victoria, 3006, Australia is at -37.820288,144.963477, outside the region box\n  2026-11-12  Fijian Flying Circus                       Flemington Racecourse, 448, Epsom Road, Flemington, Melbourne, Victoria, 3031, Australia is at -37.789251,144.912771, outside the region box\n  2026-11-12  Future Dreaming                            146-154, Elgin Street, Carlton, Melbourne, Victoria, 3053, Australia is at -37.797117,144.96958, outside the region box\n  2026-11-12  HERstory: Remembering Australia\u2019s Milita   Shrine of Remembrance, Garden Courtyard, Melbourne, Victoria, 3004, Australia is at -37.830531,144.973447, outside the region box\n  2026-11-12  Home is Football: Belonging in Australia   Immigration Museum, 400, Flinders Street, Melbourne, Victoria, 3000, Australia is at -37.81912,144.960398, outside the region box\n  2026-11-12  Japanese Film Festival                     Pope Joan, 45, Collins Street, East End Theatre District, Melbourne, Victoria, 3000, Australia is at -37.813928,144.973089, outside the region box\n  2026-11-12  Kylie Watson: Love Letters                 Box Hill Institute, 253, Flinders Lane, Melbourne, Victoria, 3000, Australia is at -37.817001,144.965824, outside the region box\n  2026-11-12  La Ronde                                   217-231, Lonsdale Street, Greek Precinct, Melbourne, Victoria, 3000, Australia is at -37.811447,144.965845, outside the region box\n  2026-11-17  Laugh Lab                                  La La Land, 391, Little Lonsdale Street, Koreatown, Melbourne, Victoria, 3000, Australia is at -37.811896,144.960384, outside the region box\n  2026-11-12  Le Petit Wonders of the Sea: Kids High T   The Westin Melbourne, 205, Collins Street, East End Theatre District, Melbourne, Victoria, 3000, Australia is at -37.815833,144.967425, outside the region box\n  2026-11-16  Long Pose Monday                           The Motley Bauhaus, 118, Elgin Street, Carlton, Melbourne, Victoria, 3053, Australia is at -37.797243,144.970855, outside the region box\n  2026-11-12  Making Modern Melbourne                    Old Treasury Building, 20, Spring Street, East Melbourne, Melbourne, Victoria, 3002, Australia is at -37.81318,144.974384, outside the region box\n  2026-11-17  Maracatu Estrela do Mar: Afro-Brazilian    Multicultural Hub, 506, Elizabeth Street, Melbourne, Victoria, 3000, Australia is at -37.806739,144.960188, outside the region box\n  2026-11-12  Melbourne: An Insider\u2019s Walk               Melbourne Visitor Hub, 90-130, Swanston Street, Greek Precinct, Melbourne, Victoria, 3000, Australia is at -37.81453,144.96636, outside the region box\n  2026-11-18  Mellowdias Thump                           United Backpackers, 250, Flinders Street, Melbourne, Victoria, 3000, Australia is at -37.81763,144.966163, outside the region box\n  2026-11-15  Moroccan Skin and Beauty                   Nashi, 8, Dorcas Street, Southbank, Melbourne, Victoria, 3006, Australia is at -37.830015,144.97036, outside the region box\n  2026-11-12  Mosaic Art Classes Melbourne: Turkish La   Cherry & Twigs Cafe, 555, Flinders Lane, Melbourne, Victoria, 3000, Australia is at -37.82004,144.955718, outside the region box\n  2026-11-12  Native High Tea                            The Westin Melbourne, 205, Collins Street, East End Theatre District, Melbourne, Victoria, 3000, Australia is at -37.815833,144.967425, outside the region box\n  2026-11-12  NEW26                                      Australian Centre for Contemporary Art, 111, Sturt Street, Southbank, Melbourne, Victoria, 3006, Australia is at -37.826676,144.966909, outside the region box\n  2026-11-17  Official Linguas Melbourne Language Exch   249, Little Lonsdale Street, Greek Precinct, Melbourne, Victoria, 3000, Australia is at -37.810342,144.965537, outside the region box\n  2026-11-24  Our Words, Our Way Writing Workshop        Kathleen Syme Library and Community Centre, 251, Faraday Street, Carlton, Melbourne, Victoria, 3053, Australia is at -37.798713,144.965252, outside the region box\n  2026-11-12  Protest Melbourne                          Old Treasury Building, 20, Spring Street, East Melbourne, Melbourne, Victoria, 3002, Australia is at -37.81318,144.974384, outside the region box\n  2026-11-12  Rebel Heart: Love Letters and Other Decl   State Library Victoria, 328, Swanston Street, Greek Precinct, Melbourne, Victoria, 3000, Australia is at -37.80977,144.965535, outside the region box\n  2026-11-12  Shop and the City Walking Tour             Flinders Street, Melbourne, Victoria, 3000, Australia is at -37.818416,144.966478, outside the region box\n  2026-12-08  Sit N Stitch                               narrm ngarrgu Library and Family Services, 141, Therry Street, Melbourne, Victoria, 3000, Australia is at -37.807721,144.958416, outside the region box\n  2026-11-12  Songbirds                                  122, George Street, Doncaster East, Melbourne, Victoria, 3109, Australia is at -37.780894,145.14807, outside the region box\n  2026-11-12  State Library Victoria Unlocked            State Library Victoria, 328, Swanston Street, Greek Precinct, Melbourne, Victoria, 3000, Australia is at -37.80977,144.965535, outside the region box\n  2026-11-26  STEAM After School at narrm ngarrgu Libr   narrm ngarrgu Library and Family Services, 141, Therry Street, Melbourne, Victoria, 3000, Australia is at -37.807721,144.958416, outside the region box\n  2026-11-12  Stirling Caiulo: There\u2019s No Hiding From    Library at the Dock, 107-117, Victoria Harbour Promenade, Victoria Harbour, Docklands, Melbourne, Victoria, 3008, Australia is at -37.82002,144.940544, outside the region box\n  2026-11-12  Stompers                                   North Melbourne Library, 66-68, Errol Street, North Melbourne, Melbourne, Victoria, 3051, Australia is at -37.803565,144.949759, outside the region box\n  2026-11-12  Swinging 60s                               Old Treasury Building, 20, Spring Street, East Melbourne, Melbourne, Victoria, 3002, Australia is at -37.81318,144.974384, outside the region box\n  2026-11-12  Taste of Combat                            Shrine of Remembrance, Garden Courtyard, Melbourne, Victoria, 3004, Australia is at -37.830531,144.973447, outside the region box\n  2026-11-12  Terrarium Miniature Garden Workshop        Kellee Flowers, 158-160, Albert Street, East Melbourne, Melbourne, Victoria, 3002, Australia is at -37.810384,144.985136, outside the region box\n  2026-11-12  The Green Bus                              110, Swanston Street, Templestowe Lower, Melbourne, Victoria, 3107, Australia is at -37.761224,145.099234, outside the region box\n  2026-11-17  Tiny Tours: Big Adventures for Little Ex   Melbourne Museum, 11, Nicholson Street, Carlton, Melbourne, Victoria, 3053, Australia is at -37.80323,144.972349, outside the region box\n  2026-11-21  Walsh Street Guided Tour                   290-292, Walsh Street, South Yarra, Melbourne, Victoria, 3141, Australia is at -37.831275,144.98646, outside the region box\n  2026-11-12  Weaving the Everywhen                      Koorie Heritage Trust, Birrarung Marr Walk, Melbourne, Victoria, 3000, Australia is at -37.818157,144.969102, outside the region box\n  2026-11-18  Wednesday Trivia at Springrock             Springrock Public Bar, 87, Bourke Street, East End Theatre District, Melbourne, Victoria, 3000, Australia is at -37.812124,144.970916, outside the region box\n  2026-11-12  World of the Book                          State Library Victoria, 328, Swanston Street, Greek Precinct, Melbourne, Victoria, 3000, Australia is at -37.80977,144.965535, outside the region box\n  2026-12-14  Yeah Sure, Why Not!                        Red Violin, 231, Bourke Street, Greek Precinct, Melbourne, Victoria, 3000, Australia is at -37.813487,144.966896, outside the region box\n\nSAME NAME already in the database \u2014 141, skipped\n    2455  Aireys Inlet Market \ud83c\udf81#grabyourgifts                    surfcoastevents.com.au\n    2457  Anglesea Twilight Market \ud83c\udf81#grabyourgifts               surfcoastevents.com.au\n      34  Cadel Evans Great Ocean Road Race                      surfcoastevents.com.au\n      28  Deans Marsh Festival                                   surfcoastevents.com.au\n      25  Great Ocean Road Running Festival                      surfcoastevents.com.au\n       9  Lorne Pier to Pub Swim                                 surfcoastevents.com.au\n     156  Queenscliffe Community Market                          coastandbay.com.au\n      38  Portarlington Lions Market                             coastandbay.com.au\n     938  Sol Sounds Torquay Little Starfish Swimmers Floating   coastandbay.com.au\n    1633  A relatively uneventful evening                        coastandbay.com.au\n    1839  A Taste Of Christmas                                   coastandbay.com.au\n    1840  A Taste of Melbourne: Laneways, Boroughs, Bites and    coastandbay.com.au\n    1842  Aboriginal Heritage Walk                               coastandbay.com.au\n    1313  An Audience with Sir Tony Robinson                     coastandbay.com.au\n     774  An Evening with Brian Lara LIVE in Geelong!            coastandbay.com.au\n     911  An Evening with Cat Power: The Greatest                coastandbay.com.au\n    1855  Aperture Photography Tours                             coastandbay.com.au\n    1859  Aqua Sculpt Floating Pilates                           coastandbay.com.au\n    1860  Aqua Sculpt Twilight Floating Sound Bath               coastandbay.com.au\n    1864  Arts Centre Melbourne Tours                            coastandbay.com.au\n     163  Barwon Heads Makers Market                             coastandbay.com.au\n     948  BEATS BINGO at Barwon Club Hotel [SOUTH GEELONG]       coastandbay.com.au\n     828  Beckley Park Market                                    coastandbay.com.au\n    1788  Big Band Dance                                         coastandbay.com.au\n    1312  CentreStage presents Broadway Rocks! A Student Showc   coastandbay.com.au\n    1924  Chocolate Family Adventure Day                         coastandbay.com.au\n      61  Christmas Day Buffet Lunch                             coastandbay.com.au\n    1315  Cirque Nouvelle                                        coastandbay.com.au\n    1945  Coffee Culture Tour                                    coastandbay.com.au\n    1949  Comedy at the Coopers Inn                              coastandbay.com.au\n    1951  Comedy in Theory                                       coastandbay.com.au\n    1956  COMMUNITY SESSION Breathe & Be: Weekly Breathwork &    coastandbay.com.au\n    1959  CONNECT Ocean Grove \u2013 Wednesday Mornings               coastandbay.com.au\n    1965  Create Your Signature Scent                            coastandbay.com.au\n    1966  Creative Community Night                               coastandbay.com.au\n    1968  Cross-stitch Embroidery Bag Workshop                   coastandbay.com.au\n    1977  Decoupage Bag Making Workshop                          coastandbay.com.au\n    1978  Decoupage Seashell Wind Chime Workshop                 coastandbay.com.au\n    1979  Deeper Melbourne Walking Tours                         coastandbay.com.au\n    2001  EMERGENCE[Y]                                           coastandbay.com.au\n    2009  Family Mystery Picnic: Melbourne Laneways              coastandbay.com.au\n    1459  Farewell Libba! Tom Liberatore Retirement Show LIVE    coastandbay.com.au\n    2016  Feng Mengbo: Long March Restart                        coastandbay.com.au\n    1243  Festival of Glass Treasure Hunt                        coastandbay.com.au\n    2025  Fitzroy Gardens Heritage Tour                          coastandbay.com.au\n    2026  Fitzroy Gardens Outdoor Adventure                      coastandbay.com.au\n    2030  Focus on Frederick Wiseman                             coastandbay.com.au\n    2031  Focus on the Taiwan New Wave                           coastandbay.com.au\n    1314  Footlight Productions Presents Annie                   coastandbay.com.au\n    2034  Forest Therapy                                         coastandbay.com.au\n    2037  Free Fun Run Time Trial at The Tan                     coastandbay.com.au\n    2038  Free Guided Walk                                       coastandbay.com.au\n     166  Geelong City Market                                    coastandbay.com.au\n     162  Geelong Dog Lovers Market                              coastandbay.com.au\n    2059  Geelong Showgrounds Museum                             coastandbay.com.au\n    2063  Geelong, VIC \u2013 Starts at 60 Meetup                     coastandbay.com.au\n     820  Generations: Cats fans, then, now, always              coastandbay.com.au\n     906  Grrrl Power                                            coastandbay.com.au\n    1301  GSODA Junior Players presents Curtain Up               coastandbay.com.au\n    2091  Hello Kitty and Friends High Tea                       coastandbay.com.au\n    1015  hey dee ho Intergenerational Music Sessions \u2013 Bellar   coastandbay.com.au\n     936  Hindley Street Country Club \u2013 Live in 26               coastandbay.com.au\n     910  I Love Your Faces: The Don Lane Story                  coastandbay.com.au\n    1242  Ian Moss and Troy Cassar-Daley                         coastandbay.com.au\n    1311  Ian Moss & Troy Cassar-Daley                           coastandbay.com.au\n    2102  Italian Summer Wine School with Jay Bessell            coastandbay.com.au\n    1026  Lake Colac parkrun                                     coastandbay.com.au\n    2137  Loose Fit: Contemporary Architecture Projects from E   coastandbay.com.au\n    2139  Lunchtime Concerts                                     coastandbay.com.au\n    2142  Mahjong Moments with Tea & Treats                      coastandbay.com.au\n    2146  Margaret Preston                                       coastandbay.com.au\n    2147  Matinees at ACMI Cinemas                               coastandbay.com.au\n    1297  Medimime Productions presents The Little Mermaid       coastandbay.com.au\n    2148  Melbourne Adventure Date: Pizza, Cocktails, Games      coastandbay.com.au\n    2153  Melbourne Hidden Bars Walking Tour                     coastandbay.com.au\n    2154  Melbourne Highlights Cruise                            coastandbay.com.au\n    2157  Melbourne Paint Lab Art Workshop                       coastandbay.com.au\n    2159  Melbourne Sunrise Hot Air Balloon Flight               coastandbay.com.au\n    2160  Melbourne Uncovered: The Insider Tour                  coastandbay.com.au\n     912  Mistletoe Melodies                                     coastandbay.com.au\n    2172  Mother of Pearl Inlay Brooch Making Workshop           coastandbay.com.au\n    2177  Mystery Basement Bar Hop                               coastandbay.com.au\n    2179  Mystery Picnic With Friends: Melbourne Laneways        coastandbay.com.au\n    2180  Mystery Picnic with Self Drive Boat: Melbourne Lanew   coastandbay.com.au\n    2181  Mystery Rooftop Bar Hop                                coastandbay.com.au\n    2182  Mystery Sidedoor: 5 Plate South East Asia Tasting Me   coastandbay.com.au\n    2183  Mystery Sidedoor City: Wine and Asian Fusion Bites     coastandbay.com.au\n    2194  Ngarn Wa\u2019ngal: Art of the Gum Tree                     coastandbay.com.au\n    1660  Nyilamum Song Cycles \u2013 Australian String Quartet & D   coastandbay.com.au\n    2204  Off Leash: Monthly Live Comedy Show                    coastandbay.com.au\n    2207  Olivers Hill Social Walk                               coastandbay.com.au\n    1307  Out of this World \u2013 Motion Dance: Junior Show          coastandbay.com.au\n    2216  Parks and Gardens Cruise                               coastandbay.com.au\n    2218  Pasko sa Warrnambool \u2b50\ufe0f                                coastandbay.com.au\n    2219  Passage: The Art of Atong Atem                         coastandbay.com.au\n    2221  Plant Life: The Nature of Design                       coastandbay.com.au\n    2222  Play and Sip Melbourne                                 coastandbay.com.au\n     164  Portarlington Makers Market                            coastandbay.com.au\n    2228  Ports and Docklands Cruise                             coastandbay.com.au\n    1055  Pram walk and talk \u2013 Lara                              coastandbay.com.au\n    2229  Pram Walk and Talk starting at Cobbin Chapel           coastandbay.com.au\n     287  Preschool Storytime                                    coastandbay.com.au\n    2232  Pressed Flower Hanging Lantern Workshop for Beginner   coastandbay.com.au\n    2233  Pressed Flower Lamp Making Workshop                    coastandbay.com.au\n    1308  Psychic Medium John Edward                             coastandbay.com.au\n    2234  Punting on the Lake                                    coastandbay.com.au\n     221  Purl Jam Knitting Circle                               coastandbay.com.au\n    1056  Qi Gong with Bernadette Darby                          coastandbay.com.au\n    2239  Reawakening Deep Water Knowledge                       coastandbay.com.au\n    1065  Rest, Reset & Thrive \u2014 Monthly Breathwork for Nervou   coastandbay.com.au\n    2251  Run the Tan: Run Club                                  coastandbay.com.au\n     718  Saturday Markets at Creative Geelong                   coastandbay.com.au\n    2258  Secret Life of Birds                                   coastandbay.com.au\n    2261  Serene Terrarium: Workshop for Beginners               coastandbay.com.au\n    2272  Solar Tours                                            coastandbay.com.au\n     165  South Geelong Farmers Market                           coastandbay.com.au\n    2276  Southbank Makers Market                                coastandbay.com.au\n    2279  Spirit of Melbourne Bottomless Brunch                  coastandbay.com.au\n    2280  Spirit of Melbourne Dinner Cruise                      coastandbay.com.au\n    2281  Spirit of Melbourne Lunch Cruise                       coastandbay.com.au\n    2286  Stellar Nights                                         coastandbay.com.au\n    2291  Sunday Night Stand Up Comedy Show                      coastandbay.com.au\n    1461  Tech Help \u2013 Digital basics                             coastandbay.com.au\n    2304  The Blues Train                                        coastandbay.com.au\n    1303  The Church \u2013 A Psychedelic Symphony with The George    coastandbay.com.au\n    1295  The Eagles Greatest Hits                               coastandbay.com.au\n    2308  The Explorer Bus Melbourne                             coastandbay.com.au\n    2309  The Good Stuff: Social Enterprise and Circularity Ex   coastandbay.com.au\n    1309  The Greatest Christmas Show                            coastandbay.com.au\n    2312  The Jazz Alchemists                                    coastandbay.com.au\n     907  The Kim Wilde \u2013 Closer Tour                            coastandbay.com.au\n     914  THE POLAR EXPRESS\u2122 Train Ride \u2013 Queenscliff            coastandbay.com.au\n    2320  The Story of the Moving Image                          coastandbay.com.au\n    1296  The Sweet (UK) \u2013 The Final Blitz Tour                  coastandbay.com.au\n     915  The UK Rod Stewart Show                                coastandbay.com.au\n    2334  Tommy @ Anglesea Hotel                                 coastandbay.com.au\n    2337  Tote Bag Block Printing Workshop                       coastandbay.com.au\n    2338  Tough Guy Book Club \u2013 Geelong Chapter                  coastandbay.com.au\n     118  Wadawurrung Cultural Education Session \u2013 The Narrows   coastandbay.com.au\n    2363  Water Marbling Workshop                                coastandbay.com.au\n    1517  Wellness and Glamping Weekend in the Vines             coastandbay.com.au\nadded event 2503: Gia Margaret (USA) The Sound Doctor\nadded event 2504: Kids Christmas Wooden Ornament Painting\nadded event 2505: Fundamental Drawing Term 4 2026 \u2013 Tutor Tony Bramwell\nadded event 2506: Glass Studio Wednesday- Term 4 2026\nadded event 2507: Oil/ Acrylic Painting Class \u2013 Term 4 2026 Tutor Tony Bramwell\nadded event 2508: Painting Studio \u2013 Term 4 2026 Friday 9:30am \u2013 12pm\nadded event 2509: Pottery Hand building \u2013 Term 4 2026 \u2013 Tutor Melinda Solly\nadded event 2510: Pottery Handbuilding \u2013 Term 4 2026- Tutor Alda Hubbard\nadded event 2511: Printmaking Studio- Term 4 2026 Wednesday 10am-3pm\nadded event 2512: Reiki Clinic\nadded event 2513: Restart Guitar \u2013 5 Week Course | Lara, Geelong Region\nmoved event 945: 2026-11-09 -> 2026-11-16\nmoved event 989: 2026-11-11 -> 2026-11-18\nmoved event 1016: 2026-11-09 -> 2026-11-16\nmoved event 1064: 2026-11-10 -> 2026-12-08\nmoved event 1066: 2026-11-11 -> 2026-11-18\n\n11 added unverified. Review: python3 scripts/sync.py pending",
+    "ok": true,
+    "ran": true,
+    "listings": 9455,
+    "series": 830,
+    "new": 11,
+    "clashes": 141,
+    "added": 11,
+    "moved": 5,
+    "drift": [
+     {
+      "id": 48,
+      "name": "Aireys Inlet Market",
+      "from": "2026-10-11",
+      "to": "2026-11-29",
+      "locked": true
+     },
+     {
+      "id": 52,
+      "name": "Riverbank Market",
+      "from": "2026-11-01",
+      "to": "2027-01-01",
+      "locked": true
+     },
+     {
+      "id": 53,
+      "name": "Anglesea Twilight Market",
+      "from": "2026-11-06",
+      "to": "2026-11-20",
+      "locked": true
+     },
+     {
+      "id": 84,
+      "name": "Torquay Parkrun",
+      "from": "2026-08-29",
+      "to": "2026-11-14",
+      "locked": true
+     },
+     {
+      "id": 86,
+      "name": "Trebeck Reserve Parkrun",
+      "from": "2026-08-29",
+      "to": "2026-11-14",
+      "locked": true
+     },
+     {
+      "id": 88,
+      "name": "Community Market \u2013 first Sunday of Month",
+      "from": "2026-09-06",
+      "to": "2027-01-03",
+      "locked": true
+     },
+     {
+      "id": 945,
+      "name": "Awkwardstra Geelong Inc. (Community Orch",
+      "from": "2026-11-09",
+      "to": "2026-11-16",
+      "locked": false
+     },
+     {
+      "id": 946,
+      "name": "Bachata Classes in Geelong",
+      "from": "2026-10-08",
+      "to": "2026-12-03",
+      "locked": true
+     },
+     {
+      "id": 951,
+      "name": "Bellarine Farmers\u2019 Market",
+      "from": "2026-09-19",
+      "to": "2026-11-21",
+      "locked": true
+     },
+     {
+      "id": 40,
+      "name": "Drysdale Community Market",
+      "from": "2026-10-18",
+      "to": "2026-11-15",
+      "locked": true
+     },
+     {
+      "id": 989,
+      "name": "Emotion 21",
+      "from": "2026-11-11",
+      "to": "2026-11-18",
+      "locked": false
+     },
+     {
+      "id": 994,
+      "name": "G: Zines Swap/Sell",
+      "from": "2026-09-19",
+      "to": "2026-12-19",
+      "locked": true
+     },
+     {
+      "id": 1001,
+      "name": "Geelong Machine Embroidery Club (Monthly",
+      "from": "2026-09-12",
+      "to": "2026-11-14",
+      "locked": true
+     },
+     {
+      "id": 1002,
+      "name": "Geelong Machine Embroidery Club (Monthly",
+      "from": "2026-09-15",
+      "to": "2026-11-17",
+      "locked": true
+     },
+     {
+      "id": 1016,
+      "name": "Hospo Night Mondays",
+      "from": "2026-11-09",
+      "to": "2026-11-16",
+      "locked": false
+     },
+     {
+      "id": 1023,
+      "name": "Kids in the kitchen \u2013 Sprouts Club",
+      "from": "2026-09-30",
+      "to": "2026-11-25",
+      "locked": true
+     },
+     {
+      "id": 1033,
+      "name": "Maker Meetup | Geelong VIC",
+      "from": "2026-09-24",
+      "to": "2026-11-26",
+      "locked": true
+     },
+     {
+      "id": 1043,
+      "name": "No Strings Improv | Open improv comedy s",
+      "from": "2026-09-02",
+      "to": "2026-11-18",
+      "locked": true
+     },
+     {
+      "id": 1062,
+      "name": "Repair Cafe Bellarine \u2013 Ocean Grove",
+      "from": "2026-09-20",
+      "to": "2026-11-15",
+      "locked": true
+     },
+     {
+      "id": 1064,
+      "name": "Rest, Reset & Thrive \u2013 Monthly Breathwor",
+      "from": "2026-11-10",
+      "to": "2026-12-08",
+      "locked": false
+     },
+     {
+      "id": 1066,
+      "name": "Salsa Dance Classes \u2013 Geelong",
+      "from": "2026-11-11",
+      "to": "2026-11-18",
+      "locked": false
+     },
+     {
+      "id": 1070,
+      "name": "SECOND HAND BOOK SALE",
+      "from": "2026-09-05",
+      "to": "2026-12-05",
+      "locked": true
+     },
+     {
+      "id": 1072,
+      "name": "Shedding & Becoming- An Initmate Women\u2019s",
+      "from": "2026-09-08",
+      "to": "2026-12-08",
+      "locked": true
+     },
+     {
+      "id": 1075,
+      "name": "Sprouts: Story-telling in the garden",
+      "from": "2026-09-02",
+      "to": "2026-12-02",
+      "locked": true
+     },
+     {
+      "id": 1089,
+      "name": "Tough Guy Book Club",
+      "from": "2026-09-02",
+      "to": "2026-12-02",
+      "locked": true
+     },
+     {
+      "id": 1093,
+      "name": "Tough Guy Book Club",
+      "from": "2026-09-02",
+      "to": "2026-12-02",
+      "locked": true
+     },
+     {
+      "id": 1104,
+      "name": "Geelong Gaol Ghost Tours",
+      "from": "2026-09-02",
+      "to": "2026-11-12",
+      "locked": true
+     },
+     {
+      "id": 1105,
+      "name": "Wednesday Social Table Tennis (Seniors)",
+      "from": "2026-09-16",
+      "to": "2026-11-18",
+      "locked": true
+     }
+    ],
+    "sources": [
+     {
+      "name": "surfcoastevents.com.au",
+      "how": "WordPress JSON API (113 listings \u2192 58 series)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "The Events Calendar"
+      ],
+      "own": false,
+      "new": 2,
+      "dupe": 6
+     },
+     {
+      "name": "coastandbay.com.au",
+      "how": "WordPress JSON API (9342 listings \u2192 772 series)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "The Events Calendar"
+      ],
+      "own": false,
+      "new": 9,
+      "dupe": 135
+     }
+    ]
+   },
+   {
+    "name": "Venue ticketing pages",
+    "script": "scrape_venues.py",
+    "exit": 0,
+    "text": "venue feeds \u2014 2026-11-12\n  350 venues, 124 with somewhere to look\n\n  1915 \u2014 nothing machine-readable\n\n  4 Pines X Boardriders \u2014 nothing machine-readable [homepage; no gig page found]\n\n  70D The Terrace \u2014 website is shared with other places \u2014 set events_url to read it\n\n  Aireys Pub \u2014 nothing machine-readable\n\n  Alt Rd Wines \u2014 nothing machine-readable\n\n  Apollo Bay Hotel \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Apollo Bay Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Ashmore Arts \u2014 robots.txt asks us not to read it\n\n  Bannockburn Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Barwon Club Hotel \u2014 nothing machine-readable\n\n  Barwon Coast Discovery Centre \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Barwon Heads Hotel \u2014 own listing (6 gigs); Oztix (6 gigs from 6 of 6 links)\n     2027-02-18  Osees                                          already there as 149\n\n  Barwon Heads Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Beav's Bar \u2014 nothing machine-readable\n\n  Bellarine Arts Centre \u2014 robots.txt asks us not to read it\n\n  Bellarine Catchment Network \u2014 schema.org on the page (3); Humanitix (15 gigs from 75 of 75 links)\n\n  Bellarine Estate Winery \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  Bellbrae Estate \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Bells Beach Brewing \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Belmont Hotel \u2014 nothing machine-readable\n\n  Belmont Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Bennetts on Bellarine \u2014 nothing machine-readable\n\n  Bird Rock \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  Biyal-a Armstrong Creek Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Blackmans Brewery Torquay \u2014 schema.org on the page (1); Humanitix (13 gigs from 71 of 71 links)\n\n  Bomboras \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Boronggook Drysdale Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Canvas and Cork \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Church Geelong \u2014 nothing machine-readable\n\n  Colac Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Corio Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Costa Hall \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Creative Geelong Makers Hub \u2014 Eventbrite API (6)\n\n  Cuda Bar \u2014 site did not respond\n\n  Das Bierhaus \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Deans Marsh Community Hall \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Elephant & Castle Hotel \u2014 TryBooking (1 gigs from 1 of 1 links)\n\n  Entertainment by Vin \u2014 Eventbrite API (26)\n\n  Farm My School \u2013 Bellarine \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  Flying Brick Cider Co \u2014 Eventbrite API (0)\n\n  Forrest Mountain Bike and Cycling Club \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Fyansford Hotel \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Gather \u2014 robots.txt asks us not to read it\n\n  Geelong Arts Centre \u2014 Geelong Arts Centre parser (148 events, 206 performances, 155 pages)\n     2026-11-14  Hindley Street Country Club - Live in 26       already there as 936\n       venue: \"Woodbin Theatre\" has no street address\n     2026-11-22  The Kim Wilde - Closer Tour                    already there as 907\n       venue: \"Woodbin Theatre\" has no street address\n     2026-11-28  Out of this World - Motion Dance: Tiny Tots    already there as 2212\n     2026-11-28  I Love Your Faces: The Don Lane Story          already there as 910\n     2026-11-29  Eternity Dance - On Broadway                   already there as 2466\n       venue: \"Woodbin Theatre\" has no street address\n     2026-12-02  An Evening with Cat Power: The Greatest        already there as 911\n     2026-12-02  Mistletoe Melodies                             already there as 912\n     2026-12-04  Handel's Messiah | Melbourne Symphony Orches   already there as 2086\n     2026-12-05  Expressions Ballet Academy - 2026 End of Yea   already there as 2467\n     2026-12-05  Geelong Ballet Centre - The Little Comet       already there as 2446\n     2026-12-11  The UK Rod Stewart Show                        already there as 915\n     2027-01-30  Forever Diamond                                NEW  [high  verified]\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n     2027-02-26  We Will Rock You                               already there as 926\n     2027-02-27  Bonegilla - The Migrant's Journey              NEW  [high  verified]\n     2027-03-05  CentreStage Presents Frozen: The Broadway Mu   already there as 962\n     2027-03-13  Smokie (UK) Greatest Hits Tour                 already there as 1244\n     2027-04-03  Michael Paynter: Great Australian Songbook E   NEW  [high  verified]\n       venue: \"Woodbin Theatre\" has no street address\n     2027-04-17  The King of Pop Show \u2013 Michael Jackson Live    NEW  [high  verified]\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n     2027-05-21  The TEN Tenors - Great Southern Land           NEW  [high  verified]\n     2027-06-12  Nazeem Hussain - I AM BEING CALM!              NEW  [high  verified]\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n     2027-07-06  Kitty Flanagan: Glad Game                      NEW  [high  verified]\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n       venue: \"Woodbin Theatre\" has no street address\n\n  Geelong Gallery \u2014 TryBooking (1 gigs from 2 of 2 links)\n\n  Geelong Library and Heritage Centre \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Geelong West Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Geelong West Neighbourhood House \u2014 Humanitix (2 gigs from 2 of 2 links) [found at / \u2014 set events_url to lock it in]\n\n  Gellibrand River Hotel \u2014 nothing machine-readable\n\n  Grand Hotel Portarlington \u2014 nothing machine-readable\n\n  Great Ocean Road Brewhouse \u2014 nothing machine-readable\n\n  Great Ocean Road Brewing \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Great Ocean Road Brewing Taphouse \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Highton Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Jan Juc Surf Life Saving Club \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Kardinia Park Precinct \u2014 robots.txt asks us not to read it\n\n  Lambys Tavern \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Lara Hotel \u2014 nothing machine-readable\n\n  Lara Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Last One Inn \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Leopold Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Leura Park Estate \u2014 nothing machine-readable\n\n  Little Creatures Brewery \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Lorne Hotel \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Lorne Theatre \u2014 nothing machine-readable\n\n  Love House \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Mount Moriac Hotel \u2014 nothing machine-readable\n\n  Mt Duneed Estate \u2014 nothing machine-readable\n\n  Mt Rothwell Safe Haven \u2014 Eventbrite API (12)\n     2026-11-21  Into the Woodlands X Creatures of the Night    already there as 1111\n     2027-02-13  Into the Woodlands X Creatures of the Night    NEW  [high  verified]\n     2027-02-21  Into the Woodlands Birdwatching Tour           NEW  [high  verified]\n     2027-02-27  Creatures of the Night Spotlight Tour          NEW  [high  verified]\n\n  National Hotel \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Newcomb Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Noble Rot Wine Store & Bar \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Ocean Grind \u2014 Eventbrite API (1)\n\n  Ocean Grove Hotel \u2014 nothing machine-readable\n\n  Ocean Grove Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Old Geelong Gaol \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Oneday Estate \u2014 Humanitix (2 gigs from 2 of 2 links)\n\n  Paddock Bakery - Geelong \u2014 nothing machine-readable\n\n  Patagonia Torquay \u2014 nothing machine-readable\n\n  Piano Bar Geelong \u2014 site did not respond\n\n  Pizzeria Adamo \u2014 Eventbrite API (1)\n\n  Platform Arts \u2014 Humanitix (13 gigs from 13 of 13 links) [found at / \u2014 set events_url to lock it in]\n       venue: added venue 370 \"Platform Arts: Gallery One (ground floor)\"\n     2026-11-21  Hand-held Loom Weaving Workshop with Phoebe    already there as 1770\n\n  Provenance Wines \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Queen of the West \u2014 nothing machine-readable\n\n  Queenscliff Brewhouse \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Queenscliff Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Queenscliff Railway Station \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Queenscliff Town Hall \u2014 robots.txt asks us not to read it\n\n  Royal Mail Hotel \u2014 nothing machine-readable\n\n  Saints and Sailors \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Shoestring Playhouse \u2014 Humanitix (3 gigs from 2 of 2 links)\n\n  St Leonards Hotel by the Sea \u2014 nothing machine-readable\n\n  Surf Coast Environment Group \u2014 Humanitix (11 gigs from 65 of 65 links)\n\n  Surf Coast Mountain Bike Club \u2014 TryBooking (1 gigs from 1 of 1 links) [found at / \u2014 set events_url to lock it in]\n\n  Surf Coast Shire Offices \u2014 nothing machine-readable [homepage; no gig page found]\n\n  The 18th Amendment Bar \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  The Blues Train \u2014 nothing machine-readable\n\n  The Book Bird \u2014 Eventbrite API (0)\n\n  The Book Club Social \u2014 schema.org on the page (1); Humanitix (12 gigs from 66 of 66 links)\n\n  The Chocolateries Great Ocean Road \u2014 nothing machine-readable\n\n  The Covenant Wine Bar \u2014 nothing machine-readable [homepage; no gig page found]\n\n  The Deck Geelong \u2014 nothing machine-readable\n\n  The Esplanade Hotel \u2014 nothing machine-readable [homepage; no gig page found]\n\n  The Fives \u2014 Eventbrite API (0)\n\n  The Grovedale Hotel \u2014 nothing machine-readable\n\n  The HOOP Gallery \u2014 Eventbrite API (5)\n\n  The Palais Geelong \u2014 nothing machine-readable [homepage; no gig page found]\n\n  The Sands Torquay \u2014 nothing machine-readable\n\n  The Sewing Collective \u2014 website is shared with other places \u2014 set events_url to read it\n\n  The Sound Doctor \u2014 schema.org on the page (1); Humanitix (13 gigs from 69 of 69 links)\n     2027-03-20  Gia Margaret (USA)                             already there as 2503\n\n  The Sphinx Hotel \u2014 nothing machine-readable\n\n  The Telegraph Hotel \u2014 nothing machine-readable [homepage; no gig page found]\n\n  The Union Hotel Colac \u2014 nothing machine-readable\n\n  The Whiskery \u2014 site did not respond\n\n  The Wool Exchange Entertainment Complex \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  Torquay Bowls Club \u2014 Eventbrite API (0)\n\n  Torquay Community House \u2014 nothing machine-readable [homepage; no gig page found]\n\n  Torquay Hotel \u2014 own listing (11 gigs over 2 pages); Oztix (11 gigs from 11 of 11 links)\n     2027-01-21  Ruby Fields                                    NEW  [high  verified]\n     2027-01-25  Pierce Brothers \u2013 Summer 2027 Tour +18         NEW  [high  verified]\n     2027-01-29  John Butler Trio \u2013 Beer Garden \u2013 Sunset Sess   NEW  [high  verified]\n\n  Warrnambool Community Garden \u2014 nothing machine-readable\n\n  Waurn Ponds Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Western Heights College Library \u2014 events_url is shared with other places \u2014 the feed importer covers these\n\n  Workers Club Geelong \u2014 nothing machine-readable [found at / \u2014 set events_url to lock it in]\n\n  Yellow Gums Performance Space \u2014 nothing machine-readable [homepage; no gig page found]\n\n  You Yangs Mountain Bike Club \u2014 nothing machine-readable [homepage; no gig page found]\n\nrooms not previously on file \u2014 1\n   added     Platform Arts: Gallery One (ground floor   Geelong\n\n13 new, 18 already in the database, 105 venue(s) with nothing readable\nadded event 2514: Forever Diamond\nadded event 2515: Bonegilla - The Migrant's Journey\nadded event 2516: Michael Paynter: Great Australian Songbook Encore Tour 2027\nadded event 2517: The King of Pop Show \u2013 Michael Jackson Live Concert Experience\nadded event 2518: The TEN Tenors - Great Southern Land\nadded event 2519: Nazeem Hussain - I AM BEING CALM!\nadded event 2520: Kitty Flanagan: Glad Game\nadded event 2521: Into the Woodlands X Creatures of the Night\nadded event 2522: Into the Woodlands Birdwatching Tour\nadded event 2523: Creatures of the Night Spotlight Tour\nadded event 2524: Ruby Fields\nadded event 2525: Pierce Brothers \u2013 Summer 2027 Tour +18\nadded event 2526: John Butler Trio \u2013 Beer Garden \u2013 Sunset Session\n\n13 added \u2014 13 auto-verified, 0 waiting for you at /admin",
+    "ok": true,
+    "ran": true,
+    "venues": 350,
+    "readable": 124,
+    "new": 13,
+    "dupes": 18,
+    "rooms": 1,
+    "added": 13,
+    "sources": [
+     {
+      "name": "1915",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "4 Pines X Boardriders",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "70D The Terrace",
+      "how": "website is shared with other places \u2014 set events_url to read it",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Aireys Pub",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Alt Rd Wines",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Apollo Bay Hotel",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Apollo Bay Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Ashmore Arts",
+      "how": "robots.txt asks us not to read it",
+      "hint": null,
+      "state": "refused",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bannockburn Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Barwon Club Hotel",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Barwon Coast Discovery Centre",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Barwon Heads Hotel",
+      "how": "own listing (6 gigs); Oztix (6 gigs from 6 of 6 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Oztix"
+      ],
+      "own": true,
+      "new": 0,
+      "dupe": 1
+     },
+     {
+      "name": "Barwon Heads Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Beav's Bar",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bellarine Arts Centre",
+      "how": "robots.txt asks us not to read it",
+      "hint": null,
+      "state": "refused",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bellarine Catchment Network",
+      "how": "schema.org on the page (3); Humanitix (15 gigs from 75 of 75 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bellarine Estate Winery",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bellbrae Estate",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bells Beach Brewing",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Belmont Hotel",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Belmont Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bennetts on Bellarine",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bird Rock",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Biyal-a Armstrong Creek Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Blackmans Brewery Torquay",
+      "how": "schema.org on the page (1); Humanitix (13 gigs from 71 of 71 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Bomboras",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Boronggook Drysdale Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Canvas and Cork",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Church Geelong",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Colac Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Corio Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Costa Hall",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Creative Geelong Makers Hub",
+      "how": "Eventbrite API (6)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Cuda Bar",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Das Bierhaus",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Deans Marsh Community Hall",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Elephant & Castle Hotel",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Entertainment by Vin",
+      "how": "Eventbrite API (26)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Farm My School \u2013 Bellarine",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Flying Brick Cider Co",
+      "how": "Eventbrite API (0)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Forrest Mountain Bike and Cycling Club",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Fyansford Hotel",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Gather",
+      "how": "robots.txt asks us not to read it",
+      "hint": null,
+      "state": "refused",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Geelong Arts Centre",
+      "how": "Geelong Arts Centre parser (148 events, 206 performances, 155 pages)",
+      "hint": null,
+      "state": "read",
+      "via": [],
+      "own": false,
+      "new": 7,
+      "dupe": 14
+     },
+     {
+      "name": "Geelong Gallery",
+      "how": "TryBooking (1 gigs from 2 of 2 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Geelong Library and Heritage Centre",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Geelong West Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Geelong West Neighbourhood House",
+      "how": "Humanitix (2 gigs from 2 of 2 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Gellibrand River Hotel",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Grand Hotel Portarlington",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Great Ocean Road Brewhouse",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Great Ocean Road Brewing",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Great Ocean Road Brewing Taphouse",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Highton Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Jan Juc Surf Life Saving Club",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Kardinia Park Precinct",
+      "how": "robots.txt asks us not to read it",
+      "hint": null,
+      "state": "refused",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Lambys Tavern",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Lara Hotel",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Lara Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Last One Inn",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Leopold Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Leura Park Estate",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Little Creatures Brewery",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Lorne Hotel",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Lorne Theatre",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Love House",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Mount Moriac Hotel",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Mt Duneed Estate",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Mt Rothwell Safe Haven",
+      "how": "Eventbrite API (12)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 3,
+      "dupe": 1
+     },
+     {
+      "name": "National Hotel",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Newcomb Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Noble Rot Wine Store & Bar",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Ocean Grind",
+      "how": "Eventbrite API (1)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Ocean Grove Hotel",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Ocean Grove Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Old Geelong Gaol",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Oneday Estate",
+      "how": "Humanitix (2 gigs from 2 of 2 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Paddock Bakery - Geelong",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Patagonia Torquay",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Piano Bar Geelong",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Pizzeria Adamo",
+      "how": "Eventbrite API (1)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Platform Arts",
+      "how": "Humanitix (13 gigs from 13 of 13 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 1
+     },
+     {
+      "name": "Provenance Wines",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Queen of the West",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Queenscliff Brewhouse",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Queenscliff Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Queenscliff Railway Station",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Queenscliff Town Hall",
+      "how": "robots.txt asks us not to read it",
+      "hint": null,
+      "state": "refused",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Royal Mail Hotel",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Saints and Sailors",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Shoestring Playhouse",
+      "how": "Humanitix (3 gigs from 2 of 2 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "St Leonards Hotel by the Sea",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Surf Coast Environment Group",
+      "how": "Humanitix (11 gigs from 65 of 65 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Surf Coast Mountain Bike Club",
+      "how": "TryBooking (1 gigs from 1 of 1 links)",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "read",
+      "via": [
+       "TryBooking"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Surf Coast Shire Offices",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The 18th Amendment Bar",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Blues Train",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Book Bird",
+      "how": "Eventbrite API (0)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Book Club Social",
+      "how": "schema.org on the page (1); Humanitix (12 gigs from 66 of 66 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Chocolateries Great Ocean Road",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Covenant Wine Bar",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Deck Geelong",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Esplanade Hotel",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Fives",
+      "how": "Eventbrite API (0)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Grovedale Hotel",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The HOOP Gallery",
+      "how": "Eventbrite API (5)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Palais Geelong",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Sands Torquay",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Sewing Collective",
+      "how": "website is shared with other places \u2014 set events_url to read it",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Sound Doctor",
+      "how": "schema.org on the page (1); Humanitix (13 gigs from 69 of 69 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Humanitix"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 1
+     },
+     {
+      "name": "The Sphinx Hotel",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Telegraph Hotel",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Union Hotel Colac",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Whiskery",
+      "how": "site did not respond",
+      "hint": null,
+      "state": "dead",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "The Wool Exchange Entertainment Complex",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Torquay Bowls Club",
+      "how": "Eventbrite API (0)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Eventbrite"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Torquay Community House",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Torquay Hotel",
+      "how": "own listing (11 gigs over 2 pages); Oztix (11 gigs from 11 of 11 links)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "Oztix"
+      ],
+      "own": true,
+      "new": 3,
+      "dupe": 0
+     },
+     {
+      "name": "Warrnambool Community Garden",
+      "how": "nothing machine-readable",
+      "hint": null,
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Waurn Ponds Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Western Heights College Library",
+      "how": "events_url is shared with other places \u2014 the feed importer covers these",
+      "hint": null,
+      "state": "shared",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Workers Club Geelong",
+      "how": "nothing machine-readable",
+      "hint": "found at / \u2014 set events_url to lock it in",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "Yellow Gums Performance Space",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "You Yangs Mountain Bike Club",
+      "how": "nothing machine-readable",
+      "hint": "homepage; no gig page found",
+      "state": "nothing",
+      "via": [],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     }
+    ],
+    "drift": []
+   },
+   {
+    "name": "Geelong Regional Libraries",
+    "script": "scrape_library.py",
+    "exit": 1,
+    "text": "events.grlc.vic.gov.au \u2014 2026-11-12\n  500 events, 2026-11-12 \u2192 2026-12-07 (25 days ahead)\n\nbranches \u2014 18 already a place, 1 not on file\n     9  Apollo Bay Library                             -> place 120 Apollo Bay Library\n    20  Bannockburn Library                            -> place 121 Bannockburn Library\n     3  Barwon Heads Library                           -> place 122 Barwon Heads Library\n    29  Belmont Library                                -> place 123 Belmont Library\n    83  Biyal-a Armstrong Creek Library                -> place 124 Biyal-a Armstrong Creek Li\n    29  Boronggook Drysdale Library                    -> place 125 Boronggook Drysdale Librar\n    22  Colac Library                                  -> place 126 Colac Library\n    39  Corio Library                                  -> place 127 Corio Library\n    88  Geelong Library and Heritage Centre (The Dom   -> place 128 Geelong Library and Herita\n    19  Geelong West Library                           -> place 129 Geelong West Library\n     4  Highton Library                                -> place 130 Highton Library\n    19  Lara Library                                   -> place 131 Lara Library\n    21  Leopold Library                                -> place 132 Leopold Library\n    30  Newcomb Library                                -> place 133 Newcomb Library\n    20  Ocean Grove Library                            -> place 134 Ocean Grove Library\n     4  Queenscliff Library                            -> place 135 Queenscliff Library\n    29  Torquay Library                                -> place 74 Torquay Library\n    25  Waurn Ponds Library                            -> place 136 Waurn Ponds Library\n     7  Chilwell Library                               -- NO PLACE  -38.1570878,144.3467352\n\n500 occurrences -> 237 series\n    109  weekly (3+ occurrences, every gap 7 days)\n      5  fortnightly\n    123  not proved repeating \u2014 imported as dated one-offs (132 rows)\n         of those, 9 show a 7-day gap but only twice \u2014 too few to call weekly, so they stay one-offs\n   456 grlc rows already in the database (101 recurring)\n\n57 of 500 held back \u2014 57 tagged Seniors (40 of them new this run)\n   tagged Seniors                 Thu 2026-12-03 1pm\u20132:30pm   3D Printing Basics                   Biyal-a Armstrong Cree  \n   tagged Seniors                 Sat 2026-11-14 2:30pm\u20134pm   Armchair actors                      Geelong Library and He  \n   tagged Seniors                 Fri 2026-11-20 10:30am\u201311:30am Chair Yoga                           Biyal-a Armstrong Cree   x3\n   tagged Seniors                 Tue 2026-11-17 2pm\u20133pm      Embroidery Basics                    Corio Library            x3\n   tagged Seniors                 Mon 2026-11-30 11:30am\u201312:30pm Embroidery basics                    Geelong Library and He  \n   tagged Seniors                 Mon 2026-11-16 11am\u201312pm    English Conversation Club            Biyal-a Armstrong Cree   x3\n   tagged Seniors                 Thu 2026-11-12 5:30pm\u20137:30pm Justice of the Peace Document Sign   Biyal-a Armstrong Cree   x4\n   tagged Seniors                 Fri 2026-11-20 1pm\u20132pm      Knitting and crochet social group    Biyal-a Armstrong Cree   x3\n   tagged Seniors                 Tue 2026-11-24 11am\u201312pm    Knitting and crochet social group    Geelong Library and He  \n   tagged Seniors                 Fri 2026-11-20 3pm\u20134pm      Knot Just Knitting                   Belmont Library         \n   tagged Seniors                 Fri 2026-11-27 10:30am\u201312pm Laser Cutting Basics                 Biyal-a Armstrong Cree  \n   tagged Seniors                 Wed 2026-11-25 3pm\u20134:30pm   Laser cutting workshop               Geelong Library and He  \n   tagged Seniors                 Thu 2026-11-12 6pm\u20137pm      Makers Room Safety Induction         Biyal-a Armstrong Cree   x2\n   tagged Seniors                 Sat 2026-11-14 10:30am\u201311:30am Makers Room Safety Induction         Biyal-a Armstrong Cree   x2\n   tagged Seniors                 Mon 2026-11-16 4:30pm\u20135:30pm Makers Room Safety Induction         Biyal-a Armstrong Cree  \n   tagged Seniors                 Thu 2026-11-26 1:30pm\u20132:30pm Makers Room Safety Induction         Biyal-a Armstrong Cree  \n   tagged Seniors                 Mon 2026-11-30 11:30am\u201312:30pm Makers Room Safety Induction         Biyal-a Armstrong Cree  \n   tagged Seniors                 Thu 2026-11-12 5:30pm\u20137:30pm Makerspace Opening Hours             Biyal-a Armstrong Cree   x2\n   tagged Seniors                 Sat 2026-11-14 10am\u201312pm    Makerspace Opening Hours             Biyal-a Armstrong Cree   x2\n   tagged Seniors                 Tue 2026-11-17 10am\u20131pm     Makerspace Opening Hours             Biyal-a Armstrong Cree   x3\n   \u2026 and 11 more series\n\n139 to import \u2014 24 recurring series, 115 one-off occurrences\n  types proposed: {'workshop': 20, 'kids': 16, '(unsorted)': 78, 'reading': 17, 'nature': 1, 'arts': 5, 'music': 1, 'cultural': 1}\n   weekly       Thu 2pm\u20133pm      Tech Help Drop In                      Boronggook Drysdale Libr   x4\n   weekly       Thu 3:45pm\u20134:45pm LEGO club                              Ocean Grove Library        x4\n   weekly       Thu 4pm\u20135pm      The Junior Mix                         Geelong Library and Heri   x4\n   weekly       Thu 4pm\u20135pm      Game On!                               Boronggook Drysdale Libr   x4\n   weekly       Fri 11am\u201312pm    Tech Help Drop In                      Corio Library              x4\n   weekly       Sun 3pm\u20133:30pm   Toddler time                           Geelong Library and Heri   x4\n   weekly       Mon 10:30am\u201311:30am Knitting and crochet social group      Chilwell Library           x3\n   weekly       Mon 2pm\u20133pm      English conversation group             Geelong Library and Heri   x3\n   weekly       Mon 3:30pm\u20134:30pm Artists assemble!                      Lara Library               x3\n   weekly       Mon 4pm\u20135pm      Tween craft group                      Biyal-a Armstrong Creek    x3\n   one-off      2026-11-12 all day      Crossroads Poetry & Imagery            Geelong Library and Heri  \n   one-off      2026-11-12 11:30am\u201312pm Story time without limits              Geelong Library and Heri  \n   one-off      2026-11-12 2pm\u20133pm      Embroidery Basics                      Belmont Library           \n   one-off      2026-11-12 2pm\u20133pm      Virtual Reality Play Session           Geelong Library and Heri  \n   one-off      2026-11-12 5pm\u20136pm      Surf Coast Book Club                   Torquay Library           \n   one-off      2026-11-12 6pm\u20137pm      Pip Williams - The German Ward         Geelong Library and Heri  \n   one-off      2026-11-14 all day      Crossroads Poetry & Imagery            Geelong Library and Heri  \n   one-off      2026-11-14 10am\u201312pm    Jigsaw Jam                             Waurn Ponds Library       \n   one-off      2026-11-14 10:30am\u201311:30am Anna Woods - LIT                       Biyal-a Armstrong Creek   \n   one-off      2026-11-15 all day      Crossroads Poetry & Imagery            Geelong Library and Heri  \n   \u2026 and 119 more\n\n18 recurring row(s) the feed no longer carries:\n    268  Read and Roar (Blocks 1-8)                     weekly from 2026-09-01\n    341  Code Club                                      weekly from 2026-09-03\n    251  Preschool Story Time                           weekly from 2026-09-01\n    239  Library Play Time                              weekly from 2026-08-31\n   1176  Footprints on Country                          weekly from 2026-09-07\n   1461  Tech Help - Digital Basics                     weekly from 2026-09-15\n   1181  Footprints on Country                          weekly from 2026-09-10\n   1184  Footprints on Country                          weekly from 2026-09-13\n   1183  Footprints on Country                          weekly from 2026-09-12\n    234  LEGO\u00ae CLUB                                     weekly from 2026-08-31\n    262  The Youth Mix                                  weekly from 2026-09-01\n    266  LEGO\u00ae CLUB                                     weekly from 2026-09-01\n   --expire stands these down (recurrence -> none; nothing deleted)\nrefusing to write: 1 branch(es) have no place row (Chilwell Library). Their events would be unplaceable. Create the places first \u2014 the GEO above is the coordinate.",
+    "ok": false,
+    "ran": true,
+    "occurrences": 500,
+    "series": 237,
+    "weekly": 109,
+    "added": 0,
+    "stopped": 18,
+    "held_back": 57,
+    "drift": [],
+    "sources": [
+     {
+      "name": "events.grlc.vic.gov.au",
+      "how": "one iCal feed (500 occurrences -> 237 series)",
+      "hint": "the feed returns at most 500 items \u2014 about 21 days. No parameter widens it; only Communico API credentials would.",
+      "state": "read",
+      "via": [
+       "Communico"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     }
+    ]
+   },
+   {
+    "name": "Visit Geelong & The Bellarine",
+    "script": "scrape_vgb.py",
+    "exit": 0,
+    "text": "reading the products_default_events index at visitgeelongbellarine.com.au \u2026\n  110 What's On products -> 110 with a date ahead\nreading 110 product page(s) for the venue \u2026\n\nsource visitgeelongbellarine.com.au \u2014 110 products, 110 dated, 2 new, 15 already held\n  every row lands UNPUBLISHED \u2014 release them in /admin\n\nNEW \u2014 2\n  2026-12-02             community  Bellarine Arts Centre 2027 Season Launch     Drysdale          6pm\n  2026-12-12             unsorted   The Blues Train Upcoming Shows               Queenscliff       \u2014\n\nVENUES \u2014 76 distinct, 54 of 110 products linked to a place, 1 with no venue on the page\n\nVENUES WITH NO PLACES ROW \u2014 46\n  Each one needs a `places` row built and geocoded BY HAND before its events can be pinned. The address is what the page prints; the coordinate is in each event's source_note.\n  13th Beach Golf Links                            1732 Barwon Heads Road, Connewarre\n  360Q                                             2 Wharf Street East, Queenscliff\n  Adventure Park                                   1249 Bellarine Highway, Wallington\n  Austin's Wines                                   870 Steiglitz Road, Sutherlands Creek\n  Avalon Airport                                   156 Pousties Road, Avalon\n  Basilica of St Mary of the Angels                136 Yarra Street, Geelong\n  Beckley Park Centre                              41 Broderick Road, Corio\n  Bellarine Estate                                 2270 Portarlington Road, Bellarine\n  Bellarine Estate Winery and Brewery              2270 Portarlington Road, Bellarine\n  Centrepoint Arcade                               132 Little Malop Street, Geelong\n  Coastal Glamp at Bellarine Estate winery         2270 Portarlington Road, Bellarine\n  Costa Hall: Deakin University                    1 Gheringhap St, Geelong\n  Crowne Plaza Geelong                             33 Smythe Street, Geelong\n  Drysdale Community Hub                           21-27 Eversley St, Drysdale\n  Geelong Ballroom Dance Club                      Carey St & Bayview Parade, Hamlyn Heights\n  Geelong Racecourse                               99 Breakwater Road, Breakwater\n  Geelong Regional Library                         51 Little Malop Street, Geelong\n  Golden Plains Farmers' Market                    Corner High and Milton Streets - The Bannockburn Heart, Bannockburn\n  Golden Plains Twilight Market                    High/Milton and Byron Streets, Bannockburn\n  Hazy Tales Art Studio                            10-16 Mayall Way, Drysdale\n  Here and Now Lounge                              97-99 Ryrie Street, Geelong\n  Jack Rabbit Vineyard                             85 McAdams Lane, Bellarine\n  Johnston Park                                    24-28 Gheringhap St, Geelong\n  Johnstone Park Geelong                           24-28 Gheringhap Street, Geelong\n  Lancemore Mansion Hotel Werribee Park            Escarpment Road, Werribee South\n  Lara RSL grounds                                 2 Rennie Street, Lara\n  National Wool Museum                             26 Moorabool Street, Geelong\n  Ocean Grove Bowling Club                         18 The Terrace, Ocean Grove\n  Ocean View Estates                               145 Coatsworth Road, Portarlington\n  Portarlington Township                           Newcombe Street, Portarlington\n  Queenscliff Music Festival                       Princess Park, Queenscliff\n  Rosana Bistro and Bar                            22 Synnot Street, Werribee\n  Royal Geelong Yacht Club and Geelong Waterfron   25 Eastern Beach Road, Geelong\n  Scotchmans Hill                                  190 Scotchmans Road, Drysdale\n  Searoad Ferries                                  1 Wharf Street East, Queenscliff\n  Shadowfax Winery                                 South Drive, Werribee South\n  Shelford Recreation Reserve                      1 The Parade Road, Shelford\n  The Bellarine Railway                            20 Symonds Street, Queenscliff\n  The Espalande Hotel Queenscliff                  2 Gellibrand St, Queenscliff\n  The Leopold Sporties Club                        135 Kensington Rd, Leopold\n  Various venues on the Bellarine Peninsula        Bellarine, Bellarine\n  W. H Little Reserve                              67-109 Newcombe Street, Portarlington\n  Werribee Park Historic Mansion                   K Road, Werribee South\n  Werribee Park Mansion                            K Road, Werribee South\n  Werribee Racecourse                              Ballan Road Service Road, Werribee\n  Wyndham Cultural Centre                          177 Watton Street, Werribee\n\nNO VENUE ON THE PAGE \u2014 1\n  Festival of Glass Treasure Hunt\n\nDATE MOVED since we imported it \u2014 21\n    2499  Play                                       2026-11-09 -> 2026-11-12\n    2417  Silks, Studs and Stories: Briseis, St Al   2026-11-05 -> 2026-11-12\n    1241  Medimime Productions presents The Little   2026-11-06 -> 2026-11-12\n     903  Bowls Premier League 24                    2026-11-09 -> 2026-11-12\n     820  GENERATIONS: Cats Fans. Then, Now, Alway   2026-09-03 -> 2026-11-12\n     823  Friday Nights at Shadowfax                 2026-09-04 -> 2026-11-13\n     825  What was that! - Night theatre at Werrib   2026-09-04 -> 2026-11-13\n    2452  Summer Live Music at Sailors' Rest         2026-11-07 -> 2026-11-14\n    1783  BAAH LAH at Austin\u2019s                       2026-10-17 -> 2026-11-14\n     828  Beckley Park Market                        2026-09-05 -> 2026-11-14\n     831  Swan Bay Express Train Rides               2026-09-06 -> 2026-11-15\n     853  Wyndham Makers And Farmers Market          2026-09-20 -> 2026-11-15\n     848  Fine Lines and Wine                        2026-09-16 -> 2026-11-18\n    1645  Creative Geelong Monthly Maker Markets     2026-10-19 -> 2026-11-19\n    1750  Now That's Improv                          2026-10-11 -> 2026-11-22\n     851  The Dress at Werribee Park                 2026-09-18 -> 2026-11-22\n     837  High Tea on the High Seas - Queenscliff    2026-09-06 -> 2026-11-22\n     824  Clay and Cocktails - Social Ceramics       2026-09-04 -> 2026-11-27\n     830  Resin and Sip Class at Bellarine Estate    2026-09-05 -> 2026-12-05\n     923  Festival of Sails 2027                     2027-01-23 -> 2027-01-22\n     829  Golden Plains Farmers' Market              2026-09-05 -> 2027-02-06\n\nSAME NAME already in the database \u2014 15, skipped\n     936  Hindley Street Country Club - Live in 26\n     166  Geelong City Market\n     165  South Geelong Farmers Market\n      33  Queenscliff Music Festival\n    1308  Psychic Medium John Edward\n     910  I Love Your Faces: The Don Lane Story\n    1309  The Greatest Christmas Show\n    2278  Spilt Milk - Geelong\n      37  Portarlington Mussel Festival\n    1314  Footlight Productions Presents Annie\n    1315  Cirque Nouvelle\n    1323  Randy Feltface - Gimmick\n      43  Bellarine Agricultural Show\n    1334  The Princess Proms Concert\n      41  National Celtic Folk Festival\n\nTOWNS suburbOf() DOES NOT KNOW \u2014 2, on 2 row(s)\n  Avalon, Sutherlands Creek\n  Those rows reach no filter and no town page. Add them to SUBURBS in public/notice-vocab.js, or fold them into an existing town.\nadded event 2527 (unpublished): Bellarine Arts Centre 2027 Season Launch\nadded event 2528 (unpublished): The Blues Train Upcoming Shows\n\n2 added, none of them on the site. Release them at /admin -> Automations -> Review.",
+    "ok": true,
+    "ran": true,
+    "products": 110,
+    "added": 2,
+    "venues": 76,
+    "linked": 54,
+    "drift": [],
+    "sources": [
+     {
+      "name": "visitgeelongbellarine.com.au",
+      "how": "Algolia index (110 What's On products, 54 linked to a place)",
+      "hint": "46 venue(s) it names have no places row, so those events cannot be pinned \u2014 the run lists them with their addresses",
+      "state": "read",
+      "via": [
+       "Algolia"
+      ],
+      "own": false,
+      "new": 2,
+      "dupe": 0
+     }
+    ]
+   },
+   {
+    "name": "Parks Victoria notices",
+    "script": "scrape_parks.py",
+    "exit": 0,
+    "text": "source parks.vic.gov.au \u2014 13 of 13 parks read, 4 notices, 0 new, 1 ended, 1 attached to a listing, 3 unattached\nNOTICES\n      barwon-bluff-marine-sanctuary | - | Cliff Stability Hazards - Barwon Bluff | site: Barwon Bluff Marine Sanctuary | until - | -> a564 Barwon Bluff Marine Sanctuary\n      great-otway-national-park | warning | Wye Road Closure | site: Great Otway National Park | until - | -> \u2014\n      werribee-gorge-state-park | warning | Centenary Walk Closed Beyond Junction Pool | site: Centenary Walk | until - | -> \u2014\n      you-yangs-regional-park | warning | Track 6 - Lactic Acid - Closed for repairs | site: Stockyards - Track 06 - Lactic Acid | until - | -> \u2014\nENDED \u2014 1 no longer on a page that was read\n  serendip-sanctuary | Construction work at Serendip Sanctuary | first seen 2026-09-08\nUNATTACHED \u2014 3 name no listing (park-wide, or no row by that name)\n  great-otway-national-park | site: Great Otway National Park | Wye Road Closure\n  you-yangs-regional-park | site: Stockyards - Track 06 - Lactic Acid | Track 6 - Lactic Acid - Closed for repairs\n  werribee-gorge-state-park | site: Centenary Walk | Centenary Walk Closed Beyond Junction Pool\nwrote 0 new, refreshed 4, ended 1, revived 0",
+    "ok": true,
+    "ran": true,
+    "notices": 4,
+    "added": 0,
+    "ended": 1,
+    "drift": [],
+    "sources": [
+     {
+      "name": "parks.vic.gov.au",
+      "how": "13 park pages (4 notices, 0 new)",
+      "hint": "3 notice(s) attach to no listing \u2014 park-wide, or no row by that name; the run lists them",
+      "state": "read",
+      "via": [
+       "park pages"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     }
+    ]
+   },
+   {
+    "name": "Operator booking calendars",
+    "script": "scrape_fareharbor.py",
+    "exit": 0,
+    "text": "source portphillipferries.com.au \u2014 6 items listed, 0 dated, 0 new, 0 already held, 16 items not listed\n   NOT LISTED \u2014 85727 Docklands to Portarlington                        50 dates, next 2026-11-12\n   NOT LISTED \u2014 85728 Portarlington to Docklands                        50 dates, next 2026-11-12\n   NOT LISTED \u2014 173011 Gift Cards                                        50 dates, next 2026-11-12\n   NOT LISTED \u2014 192961 Geelong to Docklands                              25 dates, next 2026-11-14\n   NOT LISTED \u2014 192962 Docklands to Geelong                              25 dates, next 2026-11-14\n   NOT LISTED \u2014 366691 A Grand Day Out                                   39 dates, next 2026-11-13\n   NOT LISTED \u2014 384333 Geelong to Portarlington                          25 dates, next 2026-11-14\n   NOT LISTED \u2014 384334 Portarlington to Geelong                          25 dates, next 2026-11-14\n   NOT LISTED \u2014 395722 National Wool Museum Package                      26 dates, next 2026-11-14\n   NOT LISTED \u2014 444549 Return Ferry + Geelong Gallery Package            23 dates, next 2026-11-14\n   NOT LISTED \u2014 538434 Port Phillip Bay Cruises                           7 dates, next 2026-11-17\n   NOT LISTED \u2014 580980 Retro Entertainment Cruises                        1 dates, next 2026-12-10\n   NOT LISTED \u2014 583166 PortPlus Membership                               50 dates, next 2026-11-12\n   NOT LISTED \u2014 589690 Port Phillip Bay Scenic Cruise with Brunch and     7 dates, next 2026-11-17\n   NOT LISTED \u2014 656162 One Way Ferry + Geelong Gallery Package           23 dates, next 2026-11-14\n   NOT LISTED \u2014 676826 Q Train Package: Return Trip - Docklands to Po    29 dates, next 2026-11-12\n   RUNS MOST DAYS \u2014 608094 Port to Plate Mussel Experience               40 dates 2026-11-13 to 2026-12-31; a standing offer, not an occasion \u2014 it belongs in activities\n   RUNS MOST DAYS \u2014 725256 Taste the Bellarine Experience                41 dates 2026-11-13 to 2026-12-31; a standing offer, not an occasion \u2014 it belongs in activities\n   nothing published yet \u2014 756421 Port Phillip Fish Club\n   nothing published yet \u2014 761973 Whisky by the Bay\n   nothing published yet \u2014 757104 Fashions on the Ferry\n   nothing published yet \u2014 739821 Junior Captain Adventure Cruise\n0 new row(s)",
+    "ok": true,
+    "ran": true,
+    "added": 0,
+    "drift": [],
+    "sources": [
+     {
+      "name": "portphillipferries.com.au",
+      "how": "6 items watched (0 dated, 0 new)",
+      "hint": "16 item(s) on this operator are not listed \u2014 the run names them with their next date, which is how a new one gets noticed",
+      "state": "nothing",
+      "via": [
+       "FareHarbor"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     }
+    ]
+   },
+   {
+    "name": "Watched pages",
+    "script": "watch_pages.py",
+    "exit": 0,
+    "text": "watch parkconnect-junior-ranger \u2014 quiet since 2026-10-12 (Parks Victoria \u2014 Junior Rangers)\nwatch parkconnect-find-activities \u2014 quiet since 2026-10-29 (Parks Victoria \u2014 Find activities)\nwatch ppf-fish-club \u2014 CHANGED (Port Phillip Fish Club) https://www.portphillipferries.com.au/portarlington-bellarine/port-phillip-fish-club/\nwatch \u2014 3 page(s), 1 changed, 0 did not answer",
+    "ok": true,
+    "ran": true,
+    "added": 0,
+    "drift": [],
+    "sources": [
+     {
+      "name": "parkconnect-junior-ranger",
+      "how": "quiet since 2026-10-12 (Parks Victoria \u2014 Junior Rangers)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "page watch"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "parkconnect-find-activities",
+      "how": "quiet since 2026-10-29 (Parks Victoria \u2014 Find activities)",
+      "hint": null,
+      "state": "read",
+      "via": [
+       "page watch"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     },
+     {
+      "name": "ppf-fish-club",
+      "how": "CHANGED (Port Phillip Fish Club) https://www.portphillipferries.com.au/portarlington-bellarine/port-phillip-fish-club/",
+      "hint": null,
+      "state": "manual",
+      "via": [
+       "page watch"
+      ],
+      "own": false,
+      "new": 0,
+      "dupe": 0
+     }
+    ]
+   }
+  ],
+  "ok": false,
+  "needs_you": 23
+ },
+ {
   "recorded_at": "2026-11-09T01:43:42Z",
   "run_id": "42542772489",
   "run_number": "31",
